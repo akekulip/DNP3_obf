@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # read_complete_01: one entry point that re-derives every offline result and re-checks the recorded evidence.
 #
-#   bash reproduce.sh            # offline: software tests, policy, constants, P4 regeneration, model gate, freeze
-#   bash reproduce.sh --readout  # also re-run the independent readout over every recorded hardware block
+#   bash reproduce.sh                                # offline: software tests, policy, constants, P4, gate, freeze
+#   bash reproduce.sh --readout BLOCK_DIR CONFIG [ARMS] # also the independent readout of one recorded block
+#                                                      (exit nonzero when that readout fails)
 #
 # Nothing here loads the switch or generates traffic. The hardware campaign is launched separately with the
 # commands in COMPLETION_RECORD.md (evaluation_campaign.py init/start), under its own authorization and gates.
@@ -38,7 +39,8 @@ got="$(sha256sum "$SCRATCH/m12p/response_only.p4" | cut -d' ' -f1)"
 [ "$got" = "$B08_SOURCE_SHA" ] || { echo "regenerated source $got != $B08_SOURCE_SHA"; exit 1; }
 echo "source $got"
 
-step "5. model gate: v3 summary recomputed from the recorded runs (no --write)"
+step "5. model gate: retained logs restored (hash-verified), v3 summary recomputed (no --write)"
+python3 "$HERE/restore_retained_logs.py"
 (cd "$STAGE/ctl_timing_01" && python3 model_summary.py evidence/m12p_b08 --v3 --enforce | tail -1)
 
 step "6. freeze: every block config belongs to the frozen candidate"
@@ -48,11 +50,9 @@ for c in "$HERE"/hw/config/rc01_m12p_b08_*.json; do
 done
 
 if [ "${1:-}" = "--readout" ]; then
-  step "7. independent hardware readout over every recorded block"
-  for b in "$HERE"/evidence/hw_blocks/rc01_hw_b08_*; do
-    [ -d "$b" ] || continue
-    "$PY312" "$HERE/analysis/hw_read_readout.py" "$b" --out "$SCRATCH/$(basename "$b").json" >/dev/null \
-      && echo "ok $(basename "$b")" || echo "FAIL $(basename "$b") (see the block's readout.json)"
-  done
+  [ $# -ge 3 ] || { echo "usage: reproduce.sh --readout BLOCK_DIR CONFIG [ARMS]"; exit 2; }
+  step "7. independent hardware readout of $(basename "$2")"
+  "$PY312" "$HERE/analysis/hw_read_readout.py" "$2" --config "$3" ${4:+--arms "$4"} --out "$SCRATCH/readout.json"
+  "$PY312" -m pytest -q "$HERE/analysis/tests/test_readout.py"
 fi
 echo; echo "reproduce.sh: all offline steps passed"

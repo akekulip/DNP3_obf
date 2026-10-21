@@ -1,206 +1,329 @@
-"""Independent physical-switch READ readout (Python >= 3.10): sizes, preservation, bandwidth, latency, throughput.
+"""Independent physical-switch readout of one campaign block (Python >= 3.10). Fail-closed.
 
-For every connection directory under a block's evidence (one with out.pcap and in.pcap), cut the DNP3 frames of
-each TCP direction from both captures and pair the transactions in order:
-  * out.pcap (Vision -Q out): the NATIVE responses the outstation sent, and the master's requests;
-  * in.pcap (Vision -Q in): the responses the master received through the switch.
-Each READ response the master received is checked against the REFERENCE ENCODER, independently of the switch
-and its model: general_read_padding.pad_read(request, native, policy targets, reserved range) must reproduce the
-received bytes exactly when the connection was padded (and the native bytes exactly when it was not). Every CRC,
-one reassembled fragment, original points as the suffix and the reserved synthetic prefix are checked by that
-encoder's own decoder. Reported per connection: aggregate response sizes, TCP payload sizes per packet, wire
-octets (Ethernet frames) native vs master-side, request-to-response latency at the master, transactions/s.
+The expected set comes from the FROZEN block config, not from any file the run generated: the planned trials are
+arms x fixtures x trials_per_arm (label <run>_<fixture>_<arm>_t<i>), and each trial's expected exchanges are
+reads_per_trial READs and, when run_sbo, sbo_cycles SELECT and OPERATE each. The run's own records
+(standards.json expected.counts, master.json, campaign_run.json) are only cross-checked against that expectation.
 
-  python3 hw_read_readout.py BLOCK_EVIDENCE_DIR [--out readout.json]
+Per trial, both Vision captures are read with integer nanosecond timestamps (wire_check.read_pcap_records; a
+truncated capture fails). The trial's one TCP connection (its master port <-> the outstation port, exactly one
+incarnation) is reassembled per direction by sequence number; a gap, an overlap with different bytes, or a
+missing handshake fails, and retransmitted segments are counted. Out.pcap holds what Vision SENT (the master's
+requests, the outstation's native responses), in.pcap what it RECEIVED (requests at the outstation, responses
+through the switch at the master).
+
+DNP3 link frames are cut from each byte stream with every block CRC checked, and transport segments are
+reassembled into application fragments. A response is the whole fragment: its link frames, the TCP segments that
+carried them and its aggregate octets are recorded separately, never assuming one response is one TCP payload.
+Requests and responses pair by application sequence in order; any missing, extra or mismatched exchange fails.
+Each response the master received must equal its expected image exactly:
+  READ   padding on: general_read_padding.pad_read(request at the outstation, native, policy targets) (the
+         reference encoder); padding off: the native bytes;
+  SELECT/OPERATE   padding on: the candidate61 control image (read_reencode_01/profile_check.expected_image);
+                   padding off: the native bytes.
+Latency is reported to the first response frame and to the complete response (the segment that delivered its
+last byte), both from the master's request in integer ns. Percentiles are nearest-rank.
+
+  python3 hw_read_readout.py BLOCK_DIR --config FROZEN_CONFIG.json [--arms a,b] [--fixtures f] [--out R.json]
+Exit 0 only when every planned trial is present and every check passes.
 """
 import argparse
 import collections
+import hashlib
+import importlib.util
 import json
-import statistics
 import struct
 import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
+STAGE = ROOT.parent
+ARCH = STAGE.parents[3]
 sys.path.insert(0, str(ROOT / 'software/source/full_read_01'))
 sys.path.insert(0, str(ROOT / 'software/source/read_reencode_01'))
+sys.path.insert(0, str(ARCH / 'protocol/hw_vepa'))
 import general_read_padding as gp  # noqa: E402
-import capture  # noqa: E402
+import wire_check  # noqa: E402
 
 std = gp.std
 POLICY = json.loads((ROOT / 'policy/policy.json').read_text())
 TARGETS = POLICY['selected']['targets']
 PAD_START, PAD_STOP = POLICY['profile']['reserved_padding_range']
-MASTER, OUTSTATION = '192.168.10.61', '192.168.10.62'
+KINDS = {1: 'READ', 3: 'SELECT', 4: 'OPERATE'}
+SYN, ACK = 0x02, 0x10
 
 
-def as_micro(path):
-    """capture.packets reads microsecond pcaps; convert a nanosecond pcap to a temporary microsecond copy."""
-    data = path.read_bytes()
-    if data[:4] == b'\xd4\xc3\xb2\xa1':
-        return path
-    if data[:4] != b'\x4d\x3c\xb2\xa1':
-        raise ValueError('unsupported pcap magic in %s' % path)
-    out, p = bytearray(b'\xd4\xc3\xb2\xa1' + data[4:24]), 24
-    while p + 16 <= len(data):
-        sec, nsec, incl, orig = struct.unpack('<IIII', data[p:p + 16])
-        out += struct.pack('<IIII', sec, nsec // 1000, incl, orig) + data[p + 16:p + 16 + incl]
-        p += 16 + incl
-    tmp = path.with_suffix('.us.pcap.tmp')
-    tmp.write_bytes(bytes(out))
-    return tmp
+def _profile_check():
+    path = STAGE / 'read_reencode_01/profile_check.py'
+    spec = importlib.util.spec_from_file_location('readout_profile_check', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
-def ip(b):
-    return '.'.join(str(x) for x in b)
+PROFILE = _profile_check()
 
 
-def direction_packets(pcap):
-    """[(t, src, dst, payload_len, frame_len)] for TCP packets with payload, both directions."""
-    out = []
-    for t, f in capture.packets(pcap):
-        if len(f) < 54 or f[12:14] != b'\x08\x00' or f[23] != 6:
-            continue
-        ihl = (f[14] & 15) * 4
-        tot = int.from_bytes(f[16:18], 'big')
-        off = 14 + ihl
-        doff = (f[off + 12] >> 4) * 4
-        plen = tot - ihl - doff
-        if plen > 0:
-            out.append((t, ip(f[26:30]), ip(f[30:34]), plen, len(f)))
+class ReadoutError(ValueError):
+    pass
+
+
+def nearest_rank(values, q):
+    v = sorted(values)
+    return v[max(0, -(-int(q * len(v)) // 100) - 1)] if v else None
+
+
+def plan(cfg, arms, fixtures):
+    """{label: {'arm', 'fixture', 'padding', 'counts'}} from the frozen config alone."""
+    t, traffic = cfg['trials'], cfg.get('traffic', {})
+    counts = {'READ': int(t['reads_per_trial'])}
+    if traffic.get('run_sbo', True):
+        counts.update(SELECT=int(traffic['sbo_cycles']), OPERATE=int(traffic['sbo_cycles']))
+    padding = {a['name']: int(a['padding']) for a in cfg['arms']}
+    out = {}
+    for fixture in fixtures:
+        for arm in arms:
+            for i in range(int(t['trials_per_arm'])):
+                out['%s_%s_%s_t%d' % (cfg['_run_id'], fixture, arm, i)] = dict(
+                    arm=arm, fixture=fixture, padding=padding[arm], counts=dict(counts))
     return out
 
 
-def transactions(pcap):
-    """[(kind, request_bytes, response_bytes, t_request, t_response_first_seg)] in stream order."""
-    recs = list(capture.tcp_records(pcap))
-    by_dir = collections.defaultdict(list)
-    for r in recs:
-        if r['payload']:
-            by_dir[(ip(r['src'][0]) if isinstance(r['src'][0], (bytes, bytearray)) else r['src'][0],
-                    ip(r['dst'][0]) if isinstance(r['dst'][0], (bytes, bytearray)) else r['dst'][0])].append(r)
-    def cut(rs):
-        # byte stream in sequence order (drop exact retransmissions), then link frames with first-byte time
-        seen, data, times = set(), bytearray(), []
-        for r in sorted(rs, key=lambda r: (r['seq'], r['time'])):
-            if r['seq'] in seen:
-                continue
-            seen.add(r['seq'])
-            data += r['payload']
-            times += [r['time']] * len(r['payload'])
-        frames, p = [], 0
-        while p + 10 <= len(data) and data[p:p + 2] == b'\x05\x64':
-            n = std.frame_length(data[p + 2] - 5)
-            frames.append((bytes(data[p:p + n]), times[p]))
-            p += n
-        return frames
-    req = cut(by_dir[(MASTER, OUTSTATION)])
-    rsp = cut(by_dir[(OUTSTATION, MASTER)])
-    def group(frames):
-        out, cur, t0 = [], [], None
-        for f, t in frames:
-            u = std.deframe(f)[1]
-            if u[0] & std.FIR:
-                cur, t0 = [], t
-            cur.append(f)
-            if u[0] & std.FIN:
-                out.append((b''.join(cur), t0))
-                cur = []
-        return out
-    return group(req), group(rsp)
+def tcp_packets(path):
+    """[(t_ns, src_ip, sport, dst_ip, dport, flags, seq, payload, frame_len)] from one capture; fails on truncation."""
+    data = Path(path).read_bytes()
+    records, _res = wire_check.read_pcap_records(path)
+    if 24 + sum(16 + r['captured_len'] for r in records) != len(data):
+        raise ReadoutError('%s: truncated or trailing bytes after the last whole record' % path)
+    out = []
+    for r in records:
+        f = r['frame']
+        if len(f) < 54 or f[12:14] != b'\x08\x00' or f[23] != 6:
+            continue
+        ihl = (f[14] & 15) * 4
+        o = 14 + ihl
+        if len(f) < o + 20:
+            continue
+        doff = (f[o + 12] >> 4) * 4
+        total = int.from_bytes(f[16:18], 'big')
+        payload = f[o + doff:14 + total]
+        if len(payload) != total - ihl - doff:
+            raise ReadoutError('%s: packet %d payload shorter than its IP length (snap?)' % (path, len(out)))
+        out.append((r['timestamp_ns'], '.'.join(map(str, f[26:30])), int.from_bytes(f[o:o + 2], 'big'),
+                    '.'.join(map(str, f[30:34])), int.from_bytes(f[o + 2:o + 4], 'big'), f[o + 13],
+                    int.from_bytes(f[o + 4:o + 8], 'big'), bytes(payload), len(f)))
+    return out
 
 
-def kind_of(response):
-    _, app = gp.one_fragment(response)
-    if app[1] != 0x81:
-        return 'other'
-    obj = app[4:7]
-    return 'SBO' if obj[:2] == b'\x0c\x01' else 'READ'
+def stream(packets, src, dst):
+    """One direction of the trial's single TCP incarnation: (bytes, byte_time_ns[], segments[], retransmissions)."""
+    mine = [p for p in packets if (p[1], p[2]) == src and (p[3], p[4]) == dst]
+    isns = {p[6] for p in mine if p[5] & SYN}         # a retransmitted SYN repeats the same ISN
+    if len(isns) != 1:
+        raise ReadoutError('%s->%s: %d SYN incarnations, expected exactly 1' % (src, dst, len(isns)))
+    isn = (isns.pop() + 1) & 0xFFFFFFFF
+    data, times, segs, seen, retx = {}, {}, [], set(), 0
+    for p in mine:
+        if not p[7]:
+            continue
+        off = (p[6] - isn) & 0xFFFFFFFF
+        if (off, p[7]) in seen:
+            retx += 1
+            continue
+        if off in {o for o, _ in seen}:
+            retx += 1                                  # repacketized retransmission: bytes checked below
+        seen.add((off, p[7]))
+        segs.append(dict(offset=off, length=len(p[7]), t_ns=p[0], frame_len=p[8]))
+        for i, b in enumerate(p[7]):
+            if data.get(off + i, b) != b:
+                raise ReadoutError('%s->%s: overlapping segments disagree at offset %d' % (src, dst, off + i))
+            data[off + i] = b
+            times.setdefault(off + i, p[0])
+    n = max(data) + 1 if data else 0
+    if len(data) != n:
+        raise ReadoutError('%s->%s: byte stream has a gap (%d of %d octets)' % (src, dst, len(data), n))
+    return bytes(data[i] for i in range(n)), [times[i] for i in range(n)], segs, retx
 
 
-def analyse_connection(cdir, padded_expected):
-    # Both captures are on Vision's switch-facing interface: out.pcap (-Q out) holds what Vision's endpoints
-    # SENT (the master's requests, the outstation's native responses); in.pcap (-Q in) holds what they RECEIVED
-    # (the requests at the outstation, the responses through the switch at the master).
-    out_p, in_p = as_micro(cdir / 'out.pcap'), as_micro(cdir / 'in.pcap')
-    m_req, o_rsp = transactions(out_p)
-    o_req, m_rsp = transactions(in_p)
-    rows, fails = [], []
-    for i, ((mq, tq), (mr, tr)) in enumerate(zip(m_req, m_rsp)):
-        if i >= len(o_rsp):
-            fails.append('master response %d has no outstation-side native' % i)
-            break
-        native, tn = o_rsp[i]
-        k = kind_of(native)
-        row = dict(index=i, kind=k, native_len=len(native), master_len=len(mr), latency_us=round((tr - tq) * 1e6, 1),
-                   native_frames=[len(f) for f in gp.split_frames(native)], master_frames=[len(f) for f in gp.split_frames(mr)])
-        if k == 'READ':
-            oq = o_req[i][0] if i < len(o_req) else mq
-            if padded_expected:
-                r = gp.pad_read(oq, native, TARGETS, pad_start=PAD_START, pad_stop=PAD_STOP)
-                exp = r.output
-                row.update(status=r.status, target=r.target, padding_points=r.padding_points)
-            else:
-                exp = native
-            row['exact'] = (mr == exp)
-            if not row['exact']:
-                fails.append('READ %d: master-side bytes differ from the reference encoder' % i)
-        rows.append(row)
-    pk_m, pk_o = direction_packets(in_p), direction_packets(out_p)   # master-received, outstation-sent
-    o2m_m = [p for p in pk_m if p[1] == OUTSTATION and p[2] == MASTER]
-    o2m_o = [p for p in pk_o if p[1] == OUTSTATION and p[2] == MASTER]
-    reads = [r for r in rows if r['kind'] == 'READ']
-    dur = (max(p[0] for p in pk_m) - min(p[0] for p in pk_m)) if pk_m else 0
-    summary = dict(
-        transactions=len(rows), reads=len(reads), reads_exact=sum(1 for r in reads if r.get('exact')),
-        read_native_lens=sorted(collections.Counter(r['native_len'] for r in reads).items()),
-        read_master_lens=sorted(collections.Counter(r['master_len'] for r in reads).items()),
-        read_master_frames=sorted(collections.Counter(tuple(r['master_frames']) for r in reads).items()),
-        sbo_master_lens=sorted(collections.Counter(r['master_len'] for r in rows if r['kind'] == 'SBO').items()),
-        o2m_tcp_payload_native=sorted(collections.Counter(p[3] for p in o2m_o).items()),
-        o2m_tcp_payload_master=sorted(collections.Counter(p[3] for p in o2m_m).items()),
-        o2m_wire_octets_native=sum(p[4] for p in o2m_o), o2m_wire_octets_master=sum(p[4] for p in o2m_m),
-        read_latency_us=dict(median=statistics.median([r['latency_us'] for r in reads]) if reads else None,
-                             p99=sorted(r['latency_us'] for r in reads)[int(0.99 * (len(reads) - 1))] if reads else None),
-        transactions_per_s=round(len(rows) / dur, 2) if dur else None, duration_s=round(dur, 3))
-    if summary['o2m_wire_octets_native']:
-        summary['o2m_wire_overhead_percent'] = round(100 * (summary['o2m_wire_octets_master'] /
-                                                           summary['o2m_wire_octets_native'] - 1), 2)
-    for p in (out_p, in_p):
-        if p.name.endswith('.tmp'):
-            p.unlink()
-    return dict(connection=str(cdir), padded_expected=padded_expected, summary=summary, failures=fails, rows=rows)
+def fragments(buf, times, segs):
+    """Application fragments in stream order, each with its link frames and carrying TCP segments."""
+    out, cur, pos = [], None, 0
+    while pos < len(buf):
+        if buf[pos:pos + 2] != b'\x05\x64' or pos + 10 > len(buf):
+            raise ReadoutError('stream offset %d is not a DNP3 link frame start' % pos)
+        size = std.frame_length(buf[pos + 2] - 5)
+        if pos + size > len(buf):
+            raise ReadoutError('stream ends inside a link frame at offset %d' % pos)
+        frame = buf[pos:pos + size]
+        _header, user = std.deframe(frame)                  # every block CRC checked
+        th = user[0]
+        if th & std.FIR:
+            if cur is not None:
+                raise ReadoutError('FIR at offset %d before the previous fragment finished' % pos)
+            cur = dict(app=bytearray(), frames=[], start=pos, t_first_ns=times[pos])
+        elif cur is None:
+            raise ReadoutError('continuation frame at offset %d without FIR' % pos)
+        cur['app'] += user[1:]
+        cur['frames'].append(size)
+        pos += size
+        if th & std.FIN:
+            cur.update(end=pos, t_complete_ns=max(times[cur['start']:pos]), bytes=buf[cur['start']:pos],
+                       tcp_segments=[s['length'] for s in segs if s['offset'] < pos and
+                                     s['offset'] + s['length'] > cur['start']])
+            out.append(cur)
+            cur = None
+    if cur is not None:
+        raise ReadoutError('stream ends inside an application fragment')
+    return out
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('block')
-    ap.add_argument('--out')
-    ap.add_argument('--native', action='store_true', help='connections were size-off (expect native bytes)')
-    a = ap.parse_args()
-    root = Path(a.block)
-    conns = sorted({p.parent for p in root.rglob('out.pcap') if (p.parent / 'in.pcap').is_file()})
-    results = []
-    for c in conns:
-        rec = {}
-        for name in ('result.json', 'connection.json'):
-            if (c / name).is_file():
-                rec = json.loads((c / name).read_text())
-        padded = not a.native and rec.get('padding', 1) != 0
+def expected_image(kind, request_at_outstation, native, padding):
+    if not padding:
+        return native, None
+    if kind == 'READ':
+        r = gp.pad_read(request_at_outstation, native, TARGETS, pad_start=PAD_START, pad_stop=PAD_STOP)
+        if r.status not in ('padded', 'already_at_target'):
+            raise ReadoutError('padding-on READ of %d octets is %s under the policy: %s'
+                               % (len(native), r.status, r.reason))
+        return r.output, dict(status=r.status, target=r.target, padding_points=r.padding_points,
+                              construction=r.construction)
+    return PROFILE.expected_image(kind, native, 61), None
+
+
+def analyse_trial(tdir, spec, cfg):
+    fail = []
+    result = json.loads((tdir / 'result.json').read_text()) if (tdir / 'result.json').is_file() else {}
+    port = result.get('master_port')
+    rng = cfg['traffic']['master_port_range']
+    if not isinstance(port, int) or not rng['first'] <= port <= rng['last']:
+        raise ReadoutError('master port %r outside the configured range %r' % (port, rng))
+    master = (cfg['endpoints']['master_ip'], port)
+    outstation = (cfg['endpoints']['outstation_ip'], int(cfg['endpoints']['outstation_port']))
+    sent, recv = tcp_packets(tdir / 'out.pcap'), tcp_packets(tdir / 'in.pcap')
+    resolution = sorted({wire_check.read_pcap_records(tdir / n)[1] for n in ('out.pcap', 'in.pcap')})
+    m_req = stream(sent, master, outstation)
+    o_rsp = stream(sent, outstation, master)
+    o_req = stream(recv, master, outstation)
+    m_rsp = stream(recv, outstation, master)
+    req_m = [f for f in fragments(*m_req[:3]) if f['app'][1] != 0]          # CONFIRM (func 0) has no response
+    req_o = [f for f in fragments(*o_req[:3]) if f['app'][1] != 0]
+    nat = fragments(*o_rsp[:3])
+    got = fragments(*m_rsp[:3])
+    lens = (len(req_m), len(req_o), len(nat), len(got))
+    if len(set(lens)) != 1:
+        fail.append('exchange counts differ: master requests %d, outstation requests %d, native responses %d, '
+                    'master responses %d' % lens)
+    rows = []
+    for i in range(min(lens)):
+        q, qo, n, g = req_m[i], req_o[i], nat[i], got[i]
+        kind = KINDS.get(q['app'][1], 'func%d' % q['app'][1])
+        seqs = (q['app'][0] & 15, qo['app'][0] & 15, n['app'][0] & 15, g['app'][0] & 15)
+        if len(set(seqs)) != 1 or bytes(q['bytes']) != bytes(qo['bytes']):
+            fail.append('exchange %d: request/response application sequences or request bytes differ %r' % (i, seqs))
+            continue
         try:
-            results.append(analyse_connection(c, padded))
-        except Exception as error:  # a malformed capture is a recorded failure
-            results.append(dict(connection=str(c), failures=['analysis error: %r' % error]))
-    report = dict(block=str(root), policy_targets=TARGETS, connections=results,
-                  ok=bool(results) and all(not r['failures'] for r in results))
-    text = json.dumps(report, indent=1)
+            want, info = expected_image(kind, bytes(qo['bytes']), bytes(n['bytes']), spec['padding'])
+        except (gp.UnsupportedRead, std.StdError, ValueError, AssertionError) as error:
+            fail.append('exchange %d (%s): no expected image: %s' % (i, kind, error))
+            continue
+        exact = bytes(g['bytes']) == want
+        if not exact:
+            fail.append('exchange %d (%s): master received %d octets, expected image %d octets%s'
+                        % (i, kind, len(g['bytes']), len(want), '' if len(g['bytes']) != len(want) else ' (bytes differ)'))
+        rows.append(dict(index=i, kind=kind, app_seq=seqs[0], native_len=len(n['bytes']), master_len=len(g['bytes']),
+                         native_frames=n['frames'], master_frames=g['frames'], native_tcp=n['tcp_segments'],
+                         master_tcp=g['tcp_segments'], exact=exact, encoding=info,
+                         latency_first_ns=g['t_first_ns'] - q['t_first_ns'],
+                         latency_complete_ns=g['t_complete_ns'] - q['t_first_ns']))
+    counts = collections.Counter(r['kind'] for r in rows)
+    if dict(counts) != spec['counts'] or len(rows) != sum(spec['counts'].values()):
+        fail.append('exchanges by kind %r, planned %r' % (dict(counts), spec['counts']))
+    std_counts = (json.loads((tdir / 'standards.json').read_text()).get('expected') or {}).get('counts') \
+        if (tdir / 'standards.json').is_file() else None
+    if std_counts != spec['counts']:
+        fail.append('standards.json expected.counts %r differs from the frozen plan %r' % (std_counts, spec['counts']))
+    m = json.loads((tdir / 'master.json').read_text()) if (tdir / 'master.json').is_file() else {}
+    if m.get('reads_completed') != spec['counts']['READ']:
+        fail.append('master.json reads_completed %r, planned %d' % (m.get('reads_completed'), spec['counts']['READ']))
+    o2m_native = sum(s['frame_len'] for s in o_rsp[2])
+    o2m_master = sum(s['frame_len'] for s in m_rsp[2])
+    duration_ns = (got[-1]['t_complete_ns'] - req_m[0]['t_first_ns']) if got and req_m else 0
+    by_kind = {}
+    for kind in sorted(counts):
+        sel = [r for r in rows if r['kind'] == kind]
+        by_kind[kind] = dict(
+            n=len(sel), exact=sum(r['exact'] for r in sel),
+            master_lens=sorted(collections.Counter(r['master_len'] for r in sel).items()),
+            master_tcp=sorted(collections.Counter(tuple(r['master_tcp']) for r in sel).items()),
+            latency_first_ns={q: nearest_rank([r['latency_first_ns'] for r in sel], q) for q in (50, 99)},
+            latency_complete_ns={q: nearest_rank([r['latency_complete_ns'] for r in sel], q) for q in (50, 99)})
+    summary = dict(planned=spec['counts'], by_kind=by_kind, retransmissions=dict(
+                       native_o2m=o_rsp[3], master_o2m=m_rsp[3], m2o_sent=m_req[3], m2o_received=o_req[3]),
+                   o2m_unique_segment_frame_octets=dict(native=o2m_native, master=o2m_master,
+                                                        overhead_percent=round(100 * (o2m_master / o2m_native - 1), 3)
+                                                        if o2m_native else None),
+                   duration_ns=duration_ns,
+                   exchanges_per_s=round(len(rows) / (duration_ns / 1e9), 3) if duration_ns > 0 else None,
+                   percentile_estimator='nearest-rank', capture_resolution=resolution)
+    return dict(trial=tdir.name, arm=spec['arm'], padding=spec['padding'], master_port=port,
+                summary=summary, failures=fail, rows=rows)
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument('block')
+    ap.add_argument('--config', required=True, help='the frozen config the block ran')
+    ap.add_argument('--arms', help='comma list; default: the config evaluation.arm_order')
+    ap.add_argument('--fixtures', default='separate_ack')
+    ap.add_argument('--out')
+    a = ap.parse_args(argv)
+    block = Path(a.block)
+    cfg_bytes = Path(a.config).read_bytes()
+    cfg = json.loads(cfg_bytes)
+    cfg['_run_id'] = block.name
+    config_sha = hashlib.sha256(cfg_bytes).hexdigest()
+    bound = {name: (json.loads((block / name).read_text()).get(key) if (block / name).is_file() else None)
+             for name, key in (('campaign_run.json', 'config_file_sha256'), ('freeze_check.json', 'config_sha256'))}
+    arms = a.arms.split(',') if a.arms else cfg['evaluation']['arm_order']
+    planned = plan(cfg, arms, a.fixtures.split(','))
+    run = json.loads((block / 'campaign_run.json').read_text()) if (block / 'campaign_run.json').is_file() else {}
+    ran = {t['label'] for arm in run.get('arms', []) for t in arm.get('trials', [])}
+    trials, failures = [], []
+    for name, sha in bound.items():
+        if sha != config_sha:
+            failures.append('--config sha256 %s is not the config this block ran (%s records %r)' % (config_sha[:12], name, sha))
+    for label, spec in planned.items():
+        tdir = block / spec['fixture'] / spec['arm'] / label
+        if label not in ran:
+            failures.append('%s: planned trial absent from campaign_run.json' % label)
+        if not ((tdir / 'out.pcap').is_file() and (tdir / 'in.pcap').is_file()):
+            failures.append('%s: planned trial has no capture pair' % label)
+            continue
+        try:
+            trials.append(analyse_trial(tdir, spec, cfg))
+        except Exception as error:  # noqa: BLE001 - every analysis error is a recorded failure, never a pass
+            trials.append(dict(trial=label, arm=spec['arm'], failures=['analysis error: %s' % error]))
+    extra = ran - set(plan(cfg, cfg['evaluation']['arm_order'], a.fixtures.split(',')))
+    if extra:
+        failures.append('trials not in the frozen plan: %s' % sorted(extra))
+    for t in trials:
+        failures += ['%s: %s' % (t['trial'], f) for f in t['failures']]
+    partial = sorted(set(cfg['evaluation']['arm_order']) - set(arms))
+    report = dict(block=str(block), config=str(a.config), config_sha256=config_sha, partial_arms_omitted=partial,
+                  planned=sorted(planned), policy_targets=TARGETS,
+                  trials=trials, failures=failures, ok=bool(planned) and not failures)
     if a.out:
-        Path(a.out).write_text(text + '\n')
-    print(json.dumps([dict(connection=r['connection'], summary=r.get('summary'), failures=r['failures'][:5])
-                      for r in results], indent=1)[:6000])
+        Path(a.out).write_text(json.dumps(report, indent=1) + '\n')
+    for t in trials:
+        print(json.dumps(dict(trial=t['trial'], by_kind=(t.get('summary') or {}).get('by_kind'),
+                              failures=t['failures'][:3]))[:1500])
+    print('READOUT %s%s: %d planned trials, %d failures' % ('OK' if report['ok'] else 'FAILED',
+          ' (PARTIAL: arms %s not read)' % ','.join(partial) if partial else '', len(planned), len(failures)))
+    for f in failures[:20]:
+        print('  ' + f)
     return 0 if report['ok'] else 1
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    sys.exit(main())
