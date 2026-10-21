@@ -28,3 +28,11 @@ policy, reproduction and the completion record only.
   reproduce_software.sh on that binary: pytest 51/51; live fallback full 247->269 16/16 + segmented 377->399
   16/16 (+ native comparison), target-163 range 16/16 + analog 16/16, IIN 0x9000, errors [] in all 8 runs.
   Tier: live software endpoints over loopback TCP, two independent connections via proxy; NOT switch/timing.
+- M2 DONE: policy frozen {141,247,401} (rule v3, aggregate-response layer, Ditto-inspired seeds, profile
+  coverage 10,243 cases + workload prefix constraint). 10.93% added vs comparator 19.04%. v1 (387, needs
+  resegment for 377) and v2-greedy (249/401, 39.96%) preserved. select_policy.py 707077a697c94e7b, policy.json ade5643172ff0a00.
+- M3 DONE (software tiers): test_policy_coverage 25/25; live pinned endpoint evidence/m3_live_policy_01 5 cases
+  x16+16 PASS (range 49->141 prefix, analog/class0/integrity at target, large 377->401 prefix).
+- NEXT: M4 P4 in make_m12.py: generalized READ shapes {49->141 pad, 141 pass, 247 pass, 377(292+85)->401 pad
+  first seg + renumber continuation}, SBO 61 kept; single acct_try with size via m.ina (4-RegAction limit);
+  C3 per-image boundary, C5, waiver gated on profile, zero-window restore.
