@@ -199,7 +199,12 @@ def main():
                     report.add('%s_ACK_forwarded_at_once' % tag, True,
                                len(early) == 1 and same_frame(early[0][2], want_ack, ack))
             native = seqs.response(app, body, kind)
-            image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
+            if kind == 'READ' and len(native) in rb.rp.PASSTHROUGH_LENS:
+                image = native                                 # pass-through READ class: already at a policy target
+            elif kind == 'READ':
+                image = encode61.read61(native)
+            else:
+                image = encode61.ctl61(native)
             sent_rsp = vectors.packet(24, s, c, reverse=True, payload=native)
             want_rsp = vectors.packet(24, s + growth, c, reverse=True, payload=image)
             m.drain(ports)
@@ -365,9 +370,11 @@ def main():
         report.add('reset_no_commit_or_release', {'ACK_COMMIT': 0, 'RESP_RELEASE': 0},
                    {k: after[k] - before[k] for k in ('ACK_COMMIT', 'RESP_RELEASE')})
 
+        # Reconnect ISNs are offset by 100000 (2026-10-21): the READ-class cycles above advance the live sequences past
+        # 2000/5000, and N refuses a SYN older than the current connection's (model_control_timing_m12p_c12_01).
         # Lane exhaustion (registers forced): a protected transaction is never silently downgraded
         lane = 'p1.t_Ingress.gen_alloc_reg'
-        reconnect('exhaust_read', 2000, 3000)
+        reconnect('exhaust_read', 102000, 103000)
         m.register_write(lane, 0, {'t_Ingress.gen_alloc_reg.f1': 0xfffe}, pipe=1)
         before = outcomes()
         request, app = seqs.request(1, rb.READ_OBJECTS)
@@ -376,7 +383,7 @@ def main():
         report.add('exhausted_READ_counted', 1, outcomes()['GEN_EXHAUSTED'] - before['GEN_EXHAUSTED'])
         c += len(request)                              # N admitted the READ before T dropped it
         rst('exhaust_read')
-        reconnect('exhaust_operate', 4000, 5000)
+        reconnect('exhaust_operate', 104000, 105000)
         m.register_write(lane, 0, {'t_Ingress.gen_alloc_reg.f1': 0xfffd}, pipe=1)
         transaction('SELECT', 3, rb.crob(120), bytes(2) + rb.crob(120))      # takes the last usable 0xfffe
         before = outcomes()
@@ -405,7 +412,7 @@ def main():
         # (model_control_timing_m3_01_02), or the response is busy-dropped, the ACK leaves by T's readiness
         # fallback, and the outstation's retransmission is delivered as the exact 61-octet image, released by the
         # response fallback (model_control_timing_m4_01_08). Both paths are asserted exactly.
-        reconnect('race', 8000, 9000)
+        reconnect('race', 108000, 109000)
         before, busy0 = outcomes(), scalar(m.register_read('p0.n_Ingress.count_busy', 0, pipe=0))
         request, app = seqs.request(1, rb.READ_OBJECTS)
         seqs.next_app()
@@ -454,7 +461,7 @@ def main():
         if profile['t_child_count'] == 1:
             # Use a live epoch and both current lane generations. An invalid child must be refused before
             # any stateful action, rather than merely arriving with an already stale epoch/generation.
-            reconnect('single_child_ids', 9000, 10000)
+            reconnect('single_child_ids', 109000, 110000)
             transaction('READ', 1, rb.READ_OBJECTS, read_body)
             sbo(104)
 
@@ -525,7 +532,7 @@ def main():
             report.record['meta']['single_child_negative_ladder_roles'] = [11, 12, 13, 14, 15, 16]
             report.record['meta']['single_child_blocker_positive_control'] = 'policy-off TOKEN_OFF once, child 0'
             rst('single_child_ids')
-        reconnect('t_off', 10000, 11000)              # ISNs increase: N refuses an older SYN as stale
+        reconnect('t_off', 110000, 111000)              # ISNs increase: N refuses an older SYN as stale
 
         # T disabled: everything passes through untimed and no lane state moves
         params['enabled'] = 0

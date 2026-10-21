@@ -1132,6 +1132,7 @@ def main():
         't_time': {'unit_ns': 256, 'grid_ns': 512, 'source': 'global_tstamp[39:8] & ~1'},
         't_lifetime_encoding': 'sealed_low31',
         'native_lengths': {'READ': read_native, 'SELECT_OPERATE': 37},
+        **({'read_boundary': 'cimg' if a.c3 == 'cimg' else 'max_image_ladder'} if a.policy else {}),
         **({'passthrough_reads': {n: {'request_octets': v[0], 'request_dl_len': v[1], 'response_octets': v[2],
                                       'response_dl_len': v[3], 'output_octets': v[2]}
                                   for n, v in PASSTHROUGH_READS.items()}} if a.shapes == 'passthrough' else {}),

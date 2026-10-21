@@ -45,6 +45,16 @@ def _passthrough_lengths():
 PASSTHROUGH_LENS = _passthrough_lengths()
 
 
+def _read_boundary():
+    """The reverse-ACK boundary the build implements: 'cimg' (per committed image, stale beyond the image) or
+    'max_image_ladder' (b08: the SBO pre-start region is withheld, a documented limitation)."""
+    path = os.environ.get('PORT_MAP')
+    return json.loads(Path(path).read_text()).get('read_boundary', 'max_image_ladder') if path and POLICY else None
+
+
+READ_BOUNDARY = _read_boundary()
+
+
 def construct(native, c=None):
     import dnp3_std as std
     if len(native) in PASSTHROUGH_LENS:

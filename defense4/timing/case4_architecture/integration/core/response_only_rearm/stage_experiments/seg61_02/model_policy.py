@@ -42,11 +42,19 @@ def build_passthrough():
     return json.loads(Path(path).read_text()).get('passthrough_reads') or {} if path else {}
 
 
-def resequence(frame, transport, app):
-    """A captured one-frame DNP3 message with a new transport sequence and application control, re-framed so
-    every CRC is valid (std.frame)."""
+def resequence(frame, transport, app, dst=None, src=None):
+    """A captured one-frame DNP3 message re-addressed to the model connection's link addresses and given a new
+    transport sequence and application control, re-framed so every block CRC is valid (std.frame). The fixture
+    captures carry the testbed's own link addresses (outstation 0x000a, master 0x0001); the model's range builders
+    and the installed read_connection row use 0x0000/0x0100, so an un-readdressed frame trips N's link-address
+    guard (m.badh)."""
     hdr, user = std.deframe(frame)
-    return std.frame(hdr, bytes([(user[0] & 0xC0) | (transport & 63), (user[1] & 0xF0) | (app & 0x0F)]) + user[2:])
+    hdr = bytearray(hdr)
+    if dst is not None:
+        hdr[4:6] = dst.to_bytes(2, 'big')   # the model's link builders pack dst/src big-endian
+    if src is not None:
+        hdr[6:8] = src.to_bytes(2, 'big')
+    return std.frame(bytes(hdr), bytes([(user[0] & 0xC0) | (transport & 63), (user[1] & 0xF0) | (app & 0x0F)]) + user[2:])
 IMAGE = C['target']
 PAD_FIRST = C['reserved_first_index']
 NPAD = C['padding_points']
@@ -99,13 +107,14 @@ class PolicyGate(pfx.PrefixGate):
         """A pass-through READ class from real captured bytes: N must admit the request and the response, which
         leaves the switch UNCHANGED (already at a policy target), mapped at native size."""
         t = TEMPLATES[cls]
-        request = resequence(bytes.fromhex(t['request']), seq, 0xC0 | (seq & 15))
+        # transport sequence 0, as the range builders (read_support.request_frame/response_frame) send it
+        request = resequence(bytes.fromhex(t['request']), 0, 0xC0 | (seq & 15), dst=0x0000, src=0x0100)
         self.exchange(name + '_request', self.v.packet(24, cseq, wire_sseq, payload=request),
                       self.v.packet(24, cseq, native_sseq, payload=request))
         qlen = len(request)
         self.exchange(name + '_server_ack', self.rs.ack_packet(seq=native_sseq, ack=cseq + qlen),
                       self.rs.ack_packet(seq=wire_sseq, ack=cseq + qlen), reverse=True)
-        native = resequence(bytes.fromhex(t['native']), seq, 0xC0 | (seq & 15))
+        native = resequence(bytes.fromhex(t['native']), 0, 0xC0 | (seq & 15), dst=0x0100, src=0x0000)
         self.add(name + '_policy_status', 'already_at_target', t['status'])
         got = self.exchange(name + '_response',
                             self.v.packet(24, native_sseq, cseq + qlen, reverse=True, payload=native),
@@ -176,9 +185,13 @@ class PolicyBoundaryGate(PolicyGate):
         P4_PLACEMENT_FINDINGS.md) -- asserted under an explicit LIMITATION name, never as a pass of C3."""
         self._probe('%s_end_d0' % prefix, cseq, we, fb.R_TRANSLATE)
         self._probe('%s_start_d%d' % (prefix, L), cseq, (we - L) & 0xffffffff, fb.R_WITHHOLD)
-        if L == IMAGE:
+        if L == IMAGE or mp.rp.READ_BOUNDARY == 'cimg':
+            # per-committed-image boundary (make_m12 --c3 cimg): one octet before the committed image's own start
+            # is stale for every image, including the 61-octet SBO image
             self._probe('%s_before_d%d' % (prefix, L + 1), cseq, (we - L - 1) & 0xffffffff, fb.R_STALE)
         else:
+            # max-image ladder (b08): the SBO image's pre-start region d in [L+1, IMAGE] is withheld, not stale --
+            # a documented limitation (P4_PLACEMENT_FINDINGS.md), asserted under its own name, never as a C3 pass
             self._probe('%s_LIMITATION_prestart_withheld_d%d' % (prefix, L + 1), cseq, (we - L - 1) & 0xffffffff, fb.R_WITHHOLD)
             self._probe('%s_LIMITATION_prestart_withheld_d%d' % (prefix, IMAGE), cseq, (we - IMAGE) & 0xffffffff, fb.R_WITHHOLD)
             self._probe('%s_before_maximage_d%d' % (prefix, IMAGE + 1), cseq, (we - IMAGE - 1) & 0xffffffff, fb.R_STALE)
