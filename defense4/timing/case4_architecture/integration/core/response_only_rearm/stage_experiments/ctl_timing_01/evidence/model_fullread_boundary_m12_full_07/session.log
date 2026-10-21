@@ -1,0 +1,74 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS end_mr0_SYN                        expected=one exact frame observed=1
+PASS end_mr0_SYNACK                     expected=one exact frame observed=1
+PASS end_mr0_ACK                        expected=one exact frame observed=1
+PASS end_mr0_request                    expected=one exact frame observed=1
+PASS end_mr0_server_ack                 expected=one exact frame observed=1
+PASS end_mr0_response                   expected=one exact frame observed=1
+PASS end_mr0                            expected=result 9 incremented observed=deltas {0: 1, 9: 1}, egress frame
+  end_mr0            expect result 9  -> deltas={0: 1, 9: 1} egress=frame  PASS
+PASS end_mr0_close_fin                  expected=one exact frame observed=1
+PASS end_mr0_close_fin_ack              expected=one exact frame observed=1
+PASS end_mr0_close_last_ack             expected=one exact frame observed=1
+PASS within_mr-1_SYN                    expected=one exact frame observed=1
+PASS within_mr-1_SYNACK                 expected=one exact frame observed=1
+PASS within_mr-1_ACK                    expected=one exact frame observed=1
+PASS within_mr-1_request                expected=one exact frame observed=1
+PASS within_mr-1_server_ack             expected=one exact frame observed=1
+PASS within_mr-1_response               expected=one exact frame observed=1
+PASS within_mr-1                        expected=result 10 incremented observed=deltas {10: 1}, egress none
+  within_mr-1        expect result 10 -> deltas={10: 1} egress=none  PASS
+PASS within_mr-1_close_fin              expected=one exact frame observed=1
+PASS within_mr-1_close_fin_ack          expected=one exact frame observed=1
+PASS within_mr-1_close_last_ack         expected=one exact frame observed=1
+PASS within_mr-100_SYN                  expected=one exact frame observed=1
+PASS within_mr-100_SYNACK               expected=one exact frame observed=1
+PASS within_mr-100_ACK                  expected=one exact frame observed=1
+PASS within_mr-100_request              expected=one exact frame observed=1
+PASS within_mr-100_server_ack           expected=one exact frame observed=1
+PASS within_mr-100_response             expected=one exact frame observed=1
+PASS within_mr-100                      expected=result 10 incremented observed=deltas {10: 1}, egress none
+  within_mr-100      expect result 10 -> deltas={10: 1} egress=none  PASS
+PASS within_mr-100_close_fin            expected=one exact frame observed=1
+PASS within_mr-100_close_fin_ack        expected=one exact frame observed=1
+PASS within_mr-100_close_last_ack       expected=one exact frame observed=1
+PASS start_mr-269_SYN                   expected=one exact frame observed=1
+PASS start_mr-269_SYNACK                expected=one exact frame observed=1
+PASS start_mr-269_ACK                   expected=one exact frame observed=1
+PASS start_mr-269_request               expected=one exact frame observed=1
+PASS start_mr-269_server_ack            expected=one exact frame observed=1
+PASS start_mr-269_response              expected=one exact frame observed=1
+PASS start_mr-269                       expected=result 10 incremented observed=deltas {10: 1}, egress none
+  start_mr-269       expect result 10 -> deltas={10: 1} egress=none  PASS
+PASS start_mr-269_close_fin             expected=one exact frame observed=1
+PASS start_mr-269_close_fin_ack         expected=one exact frame observed=1
+PASS start_mr-269_close_last_ack        expected=one exact frame observed=1
+PASS before_mr-270_SYN                  expected=one exact frame observed=1
+PASS before_mr-270_SYNACK               expected=one exact frame observed=1
+PASS before_mr-270_ACK                  expected=one exact frame observed=1
+PASS before_mr-270_request              expected=one exact frame observed=1
+PASS before_mr-270_server_ack           expected=one exact frame observed=1
+PASS before_mr-270_response             expected=one exact frame observed=1
+PASS before_mr-270                      expected=result 11 incremented observed=deltas {11: 1}, egress none
+  before_mr-270      expect result 11 -> deltas={11: 1} egress=none  PASS
+PASS before_mr-270_close_fin            expected=one exact frame observed=1
+PASS before_mr-270_close_fin_ack        expected=one exact frame observed=1
+PASS before_mr-270_close_last_ack       expected=one exact frame observed=1
+PASS before_mr-299_SYN                  expected=one exact frame observed=1
+PASS before_mr-299_SYNACK               expected=one exact frame observed=1
+PASS before_mr-299_ACK                  expected=one exact frame observed=1
+PASS before_mr-299_request              expected=one exact frame observed=1
+PASS before_mr-299_server_ack           expected=one exact frame observed=1
+PASS before_mr-299_response             expected=one exact frame observed=1
+PASS before_mr-299                      expected=result 11 incremented observed=deltas {11: 1}, egress none
+  before_mr-299      expect result 11 -> deltas={11: 1} egress=none  PASS
+PASS before_mr-299_close_fin            expected=one exact frame observed=1
+PASS before_mr-299_close_fin_ack        expected=one exact frame observed=1
+PASS before_mr-299_close_last_ack       expected=one exact frame observed=1
+SUMMARY {'total': 60, 'passed': 60, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

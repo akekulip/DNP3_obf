@@ -63,7 +63,25 @@ def transform_mapper(src, image):
 # per-shape encoded image lengths (new-encoded length = native + len_delta). The mapper carries each
 # response to its own target (option A, variable image). Must equal each padder's output size.
 SHAPE_IMAGE = {'read': 73, 'ctl': 61}   # range READ 49->73 (prefix), SBO 37->61 (k=3). full READ 247->269 added in M5.
-STALE_GUARD = False   # step 1a core; stale guard (1b) pending PHV fit
+STALE_GUARD = False   # C3 via extended window-range ladder (hypothesis a: covers full 269 image)
+
+
+def rev_ternary_window(image, width=32):
+    """Minimal ternary (value, mask) entries covering m.r in [-image, -1] = [2^w-image, 2^w-1]: the reverse
+    ACKs that fall WITHIN the committed image (withheld, not dropped). Prefix decomposition of the range, so
+    the classify_rev C3 boundary needs no window-range key (which expands in TCAM) and no register."""
+    full = (1 << width) - 1
+    lo = (1 << width) - image
+    hi = full
+    out, v = [], lo
+    while v <= hi:
+        size = v & (-v)
+        while v + size - 1 > hi:
+            size >>= 1
+        mask = full ^ (size - 1)
+        out.append((v & mask, mask))
+        v += size
+    return out
 
 
 def transform_mapper_var(src, shape_image, stale_guard=True, read_native=49):
@@ -96,11 +114,12 @@ def transform_mapper_var(src, shape_image, stale_guard=True, read_native=49):
                '        void apply(inout r_pair32 v) { v.lo = v.lo + m.leff; v.hi = v.hi + m.leff; } };\n', '')
     src = once(src, '    action do_acct_grow() { acct_grow.execute(m.idx); }\n', '')
     src = once(src, '(_, 1, 3w4 &&& 3w7, 0, _, _, _, _, _, _, _, _, _, _, _): do_acct_grow();', '')
-    # reverse stale guard needs two 32-bit fields; declare them only then (keeps the base build lean)
-    if stale_guard:
-        src = once(src, '    bit<32> q; bit<32> p; bit<32> y; bit<32> z; bit<32> pm; bit<32> t; bit<32> qx; bit<32> r;',
-                   '    bit<32> q; bit<32> p; bit<32> y; bit<32> z; bit<32> pm; bit<32> t; bit<32> qx; bit<32> r;\n'
-                   '    bit<32> committed_len; bit<32> rstale;')
+    # Committed-image length carried as a 1-BIT flag (two sizes: big=1 -> read image, big=0 -> ctl image),
+    # avoiding the 32-bit committed_len register that overflowed PHV. The reverse stale/window computations
+    # REUSE m.y and m.z (forward-only fields, dead on the reverse path), so no new 32-bit cluster field is
+    # added -- only the 1-byte m.big.
+    # No new PHV field for the committed length: it lives in the img_len register, and rstale is computed
+    # into m.y (forward-dead on the reverse path). classify_rev keys on m.r and m.y.
     # 1) acct_try per DISTINCT size (constant image; no PHV field). acct_t rows route each shape to its
     #    size's try action. Keeps the acct SALU inputs at {m.leff, m.ina} = 2 (unchanged from m11_09).
     try_acts = ''
@@ -154,56 +173,33 @@ def transform_mapper_var(src, shape_image, stale_guard=True, read_native=49):
                '    action fwd_prep() { m.y = m.q + m.leff; m.z = m.p + m.leff; m.pm = m.p + 32w0xFFFFFFC3; m.t = m.q + r_IMAGE_LEN; }\n'
                '    table fwd_prep_t { actions = { fwd_prep; } size = 1; const default_action = fwd_prep(); }',
                fp_acts + fp_tab)
-    # 3) classify_rev window ladder (length-independent split, keyed on d=-m.r). Capped at 250 entries'
-    #    worth of depth: a TCAM block holds 512 entries and the ladder is 2*d+2, so d>255 overflows the
-    #    group at load time (bf_switchd "Could not make space", entry 534). d<=250 => <=502 entries, one
-    #    block. This fully covers SBO (61) and the realistic READ ack range: a single-TCP-segment response
-    #    (<=269 B < MSS) is acked whole (m.r=0 -> translate), so m.r in [-269,-251] is unreachable (the
-    #    master never acks a sub-segment prefix); deeper withhold entries would never fire.
-    ladder = min(max_image, 250)
-    src = once(src, 'size = 124; const default_action = rev_drop();', 'size = %d; const default_action = rev_drop();' % (2 * ladder + 2))
+    # 3) classify_rev C3 boundary. INTENDED: per-committed-image (m.r in [-L,-1] withhold, m.r<-L stale,
+    #    L = m.q-m.p via reverse_gap) so an SBO (61) ACK at m.r=-62 stale-drops. MEASURED 2026-10-20: the
+    #    per-image boundary does NOT fit the FULL build's PHV -- any per-image reverse computation (a
+    #    committed-length register's 1-bit rstale output, OR the arithmetic m.z = m.s_end + m.r) evicts the
+    #    SAME 8 small PHV slices (the full-READ prefix padder already sits at the egress+ingress PHV
+    #    ceiling). The window-range ladder to the full image (540 entries) compiles but overflows the TCAM
+    #    group at load. So the SHIPPED boundary is the pure-m.r form sized to the MAX image (269): withhold
+    #    m.r in [-maximg,-1] (4 ternary prefixes), translate m.r>=0, stale m.r<-maximg. This is EXACT for
+    #    the READ (269) image and over-withholds a smaller SBO (61) image's pre-start region (m.r in
+    #    [-269,-62] withheld, not stale). PER-IMAGE EXACTNESS and the window zero/open split remain OPEN
+    #    (need PHV headroom in the full build -- see WORKING_NOTES C3). No window-range key / register /
+    #    extra stage; fits and loads.
+    maximg = max(shape_image.values())
+    src = once(src, '    table classify_rev {\n'
+               '        key = { m.r : ternary; hdr.tcp.window : range; }',
+               '    table classify_rev {\n'
+               '        key = { m.r : ternary; }')
     body_start = src.index('const entries = {', src.index('    table classify_rev {')) + len('const entries = {')
     body_end = src.index('        }\n    }', body_start)
-    src = src[:body_start] + '\n' + rev_entries(ladder) + '\n        ' + src[body_end:]
-    if stale_guard:
-        # committed-image register: store the per-shape constant at COMMIT, read on the reverse ACK, and
-        # drop acks that fall before the committed image start (exact per-response stale boundary).
-        ilen_acts = ''.join(
-            '    RegisterAction<bit<32>, r_slot_t, bit<32>>(img_len) ilen_commit_%d = {\n'
-            '        void apply(inout bit<32> v) { v = 32w%d; } };\n'
-            '    action do_ilen_commit_%d() { ilen_commit_%d.execute(m.idx); }\n' % (v, v, v, v)
-            for v in sizes)
-        commit_rows = ';'.join('(1, 3w4 &&& 3w7, r_OUT_COMMIT, %s): do_ilen_commit_%d()'
-                               % (('1, _' if s == 'read' else '_, 1'), shape_image[s]) for s in shape_image)
-        ilen = ('    Register<bit<32>, r_slot_t>(16, 0) img_len;\n'
-                + ilen_acts +
-                '    RegisterAction<bit<32>, r_slot_t, bit<32>>(img_len) ilen_rev = {\n'
-                '        void apply(inout bit<32> v, out bit<32> rv) { rv = v; } };\n'
-                '    action do_ilen_rev() { m.committed_len = ilen_rev.execute(m.idx); }\n'
-                '    table img_len_t {\n'
-                '        key = { m.dir : exact; m.shape : ternary; m.result : ternary; m.read_shape : ternary; m.ctl_shape : ternary; }\n'
-                '        actions = { %s do_ilen_rev; NoAction; } size = 6;\n'
-                '        const default_action = NoAction();\n'
-                '        const entries = { %s; (2, (bit<3>)r_SH_ACK, _, _, _): do_ilen_rev(); }\n'
-                '    }\n' % (''.join('do_ilen_commit_%d;' % v for v in sizes), commit_rows))
-        src = once(src, '    Register<bit<32>, r_slot_t>(16, 0) img_wend;', ilen + '    Register<bit<32>, r_slot_t>(16, 0) img_wend;')
-        guard = ('    action rstale_calc() { m.rstale = m.committed_len + m.r; }\n'
-                 '    table rstale_t { actions = { rstale_calc; } size = 1; const default_action = rstale_calc(); }\n'
-                 '    action rev_stale_drop() { hdr.tcp.window = 0; m.result = r_OUT_REV_DROP_STALE; md.drop_ctl = 3w1; }\n'
-                 '    table rev_stale_drop_t { actions = { rev_stale_drop; } size = 1; const default_action = rev_stale_drop(); }\n'
-                 '    Hash<bit<16>>(HashAlgorithm_t.IDENTITY) narrow_win;')
-        src = once(src, '    Hash<bit<16>>(HashAlgorithm_t.IDENTITY) narrow_win;', guard)
-        src = once(src, '        if (((bit<8>)m.dir == 1 && (bit<8>)m.shape == r_SH_SYNACK_OK) || (bit<8>)m.mode == 1) { img_wend_t.apply(); }',
-                   '        if (((bit<8>)m.dir == 1 && (bit<8>)m.shape == r_SH_SYNACK_OK) || (bit<8>)m.mode == 1) { img_wend_t.apply(); img_len_t.apply(); }')
-        src = once(src,
-                   '            classify_rev.apply();\n'
-                   '            if ((bit<8>)m.wide == 1) { window_t.apply(); }',
-                   '            rstale_t.apply();\n'
-                   '            if (m.rstale[31:31] == 1w1) { rev_stale_drop_t.apply(); }\n'
-                   '            else {\n'
-                   '                classify_rev.apply();\n'
-                   '                if ((bit<8>)m.wide == 1) { window_t.apply(); }\n'
-                   '            }')
+    withhold = rev_ternary_window(maximg)
+    new_entries = ('\n            (32w0 &&& 32w0x80000000) : rev_translate();\n'
+                   + ''.join('            (32w0x%08x &&& 32w0x%08x) : rev_withhold_open();\n' % (v, m)
+                             for v, m in withhold)
+                   + '        ')
+    src = once(src, 'size = 124; const default_action = rev_drop();',
+               'size = %d; const default_action = rev_drop();' % (len(withhold) + 2))
+    src = src[:body_start] + new_entries + src[body_end:]
     return src
 
 
@@ -413,16 +409,55 @@ def transform_read_prefix_full(src, image):
     # d) next expected seq advances by the full READ native length (247), not 49 (candidate is full-only).
     src = once(src, 'action next_read_response(){m.new_seq=hdr.tcp.seq+32w49;}',
                'action next_read_response(){m.new_seq=hdr.tcp.seq+32w247;}')
-    # e) guard admission needs all four CRCs valid (0x993a). The full READ parses only block0, so block1/
-    #    tail CRCs (crc1/tcrc) are not computed; the switch does not validate the tail (the master does,
-    #    same principle as E). For the full READ (hdr.second never extracted) set crc1=tcrc=0x993a and skip
-    #    rd_second/rd_tail; the range path (hdr.second valid) is unchanged.
+    # e) SHALLOW-PARSE ADMISSION (honest; C2). The full READ parses only block0. hcrc (link) and bcrc
+    #    (block0 DNP3 CRC) are REALLY computed by crc_head_first, so a corrupt block0 fails the guard and is
+    #    dropped. block1/tail DNP3 CRCs (crc1/tcrc) are NOT independently validated by the switch -- they are
+    #    DERIVED from the real block0 CRC (m.crc1=m.tcrc=m.bcrc), so admission gates on block0 validity
+    #    (corrupt block0 -> bcrc!=0x993a -> guard miss -> drop) and does NOT falsely claim the tail is valid.
+    #    The whole-segment TCP checksum cannot be computed under the shallow parse (219 B unparsed), so it is
+    #    explicitly WAIVED (m.tcp_sum=0xffeb) -- endpoint-owned, the master's TCP validates it. This is a
+    #    documented shallow-parse limitation, not whole-response validation; corrupt-TCP-checksum and
+    #    corrupt-tail packets are forwarded and recovered at the endpoint (verified by the C2 regressions).
     src = once(src, 'action rd_tail_crc(){m.tcrc=hash_rd_tail.get({hdr.rd_tail.value,hdr.rd_tail.crc});}',
                'action rd_tail_crc(){m.tcrc=hash_rd_tail.get({hdr.rd_tail.value,hdr.rd_tail.crc});}\n'
-               'action full_read_crc_ok(){m.crc1=16w0x993a;m.tcrc=16w0x993a;m.tcp_sum=16w0xffeb;}\n'
-               'table full_read_crc_ok_t{actions={full_read_crc_ok;}size=1;const default_action=full_read_crc_ok();}')
+               'action full_read_shallow_admit(){m.crc1=m.bcrc;m.tcrc=m.bcrc;m.tcp_sum=16w0xffeb;}\n'
+               'table full_read_shallow_admit_t{actions={full_read_shallow_admit;}size=1;const default_action=full_read_shallow_admit();}')
     src = once(src, 'else{read_response_profile.apply();rd_second_crc_t.apply();rd_tail_crc_t.apply();}',
-               'else{read_response_profile.apply();if(hdr.second.isValid()){rd_second_crc_t.apply();rd_tail_crc_t.apply();}else{full_read_crc_ok_t.apply();}}')
+               'else{read_response_profile.apply();if(hdr.second.isValid()){rd_second_crc_t.apply();rd_tail_crc_t.apply();}else{full_read_shallow_admit_t.apply();}}')
+    # f) REQUEST SIDE (C1): recognize the real 27-byte integrity request (G60V2/V3/V4/V1 qual 0x06,
+    #    ip.len=67, dl.len=0x14). N had only the old range request (ip.len=60). Add a 4-object request
+    #    header, a first-block parse state, its profile + real block CRC, and +27 seq accounting.
+    src = once(src, 'header n_read_req_h{bit<8> tp;bit<8> app;bit<8> func;bit<8> group;bit<8> variation;bit<8> qualifier;bit<8> first;bit<8> last;bit<16> crc;}',
+               'header n_read_req_h{bit<8> tp;bit<8> app;bit<8> func;bit<8> group;bit<8> variation;bit<8> qualifier;bit<8> first;bit<8> last;bit<16> crc;}\n'
+               'header n_read_req_full_h{bit<8> tp;bit<8> app;bit<8> func;bit<24> o1;bit<24> o2;bit<24> o3;bit<24> o4;bit<16> crc;}\n'
+               '@pa_mutually_exclusive("ingress","hdr.rd_req","hdr.rd_req_full")')
+    src = once(src, 'n_read_req_h rd_req;', 'n_read_req_h rd_req;n_read_req_full_h rd_req_full;')
+    src = once(src, '(4w4,4w5,8w6,16w60):read_ip_flags;', '(4w4,4w5,8w6,16w60):read_ip_flags;(4w4,4w5,8w6,16w67):read_ip_flags;')
+    src = once(src, 'state read_dl{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition read_request;}',
+               'state read_dl{pkt.extract(hdr.dl);tc.subtract(hdr.dl);transition select(hdr.dl.len){8w0x14:read_request_full;default:read_request;}}\n'
+               ' state read_request_full{pkt.extract(hdr.rd_req_full);tc.subtract(hdr.rd_req_full);m.packet_kind=8w9;transition finish;}')
+    src = once(src, 'action rd_request_crc(){m.bcrc=hash_rd_request.get({hdr.rd_req.tp,hdr.rd_req.app,hdr.rd_req.func,hdr.rd_req.group,hdr.rd_req.variation,hdr.rd_req.qualifier,hdr.rd_req.first,hdr.rd_req.last,hdr.rd_req.crc});}',
+               'action rd_request_crc(){m.bcrc=hash_rd_request.get({hdr.rd_req.tp,hdr.rd_req.app,hdr.rd_req.func,hdr.rd_req.group,hdr.rd_req.variation,hdr.rd_req.qualifier,hdr.rd_req.first,hdr.rd_req.last,hdr.rd_req.crc});}\n'
+               'Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_request_full;\n'
+               'action rd_request_full_crc(){m.bcrc=hash_rd_request_full.get({hdr.rd_req_full.tp,hdr.rd_req_full.app,hdr.rd_req_full.func,hdr.rd_req_full.o1,hdr.rd_req_full.o2,hdr.rd_req_full.o3,hdr.rd_req_full.o4,hdr.rd_req_full.crc});}\n'
+               'table rd_request_full_crc_t{actions={rd_request_full_crc;}size=1;const default_action=rd_request_full_crc();}')
+    # integrity request profile (G60V2 q06 first object, func READ): sets eligibility like the range one
+    src = once(src, '(16w0x0564,8w13,8w0xc4,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w1,8w10,8w2,8w0,8w0,8w22):eligible();}}',
+               '(16w0x0564,8w13,8w0xc4,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w1,8w10,8w2,8w0,8w0,8w22):eligible();}}\n'
+               'table read_request_full_profile{key={hdr.dl.magic:exact;hdr.dl.len:exact;hdr.dl.ctrl:exact;hdr.rd_req_full.tp:ternary;hdr.rd_req_full.app:ternary;hdr.rd_req_full.func:exact;hdr.rd_req_full.o1:exact;}\n'
+               ' actions={eligible;NoAction;}size=1;const default_action=NoAction();const entries={(16w0x0564,8w0x14,8w0xc4,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w1,24w0x3c0206):eligible();}}')
+    src = once(src, 'if(m.packet_kind==8w9){read_request_profile.apply();rd_request_crc_t.apply();}',
+               'if(m.packet_kind==8w9){if(hdr.rd_req_full.isValid()){read_request_full_profile.apply();rd_request_full_crc_t.apply();}else{read_request_profile.apply();rd_request_crc_t.apply();}}')
+    src = once(src, 'action next_read_request(){m.new_seq=hdr.tcp.seq+32w20;}',
+               'action next_read_request(){m.new_seq=hdr.tcp.seq+32w27;}')
+    # read_app matching reads the request's app seq nibble from hdr.rd_req; for the integrity request it
+    # lives in hdr.rd_req_full.app. Add the full variant and branch (same seq-nibble semantics).
+    src = once(src, 'action read_request_input(){m.compare_read_app=(bit<32>)(hdr.rd_req.app[3:0]);}',
+               'action read_request_input(){m.compare_read_app=(bit<32>)(hdr.rd_req.app[3:0]);}\n'
+               'action read_request_full_input(){m.compare_read_app=(bit<32>)(hdr.rd_req_full.app[3:0]);}\n'
+               'table read_request_full_input_t{actions={read_request_full_input;}size=1;const default_action=read_request_full_input();}')
+    src = once(src, 'ack_native_t.apply();read_input_t.apply();',
+               'ack_native_t.apply();if(hdr.rd_req_full.isValid()){read_request_full_input_t.apply();}else{read_input_t.apply();}')
     return src
 
 
@@ -466,24 +501,34 @@ def main():
     # The candidate is runnable only when the mapper AND every size-path transform agree. A partial set
     # (e.g. mapper alone: image=269 while the encoders still emit 61) is an intermediate placement
     # experiment, NOT a working candidate, and is flagged non-runnable so nothing treats it as integrated.
-    required = {'mapper_var', 'read_prefix'}  # step 1 runnable scope: range READ + inherited SBO; full READ (n_lane) + SBO retarget added later
+    # Per-build scope + metadata. The full build REPLACES the response profile and seq delta (full
+    # integrity READ 247->269); it does NOT still support the old range READ merely because the old parser
+    # dispatch remains. The range-proof build keeps the inherited-SBO scope.
+    if a.full:
+        required = {'mapper_var', 'read_prefix_full'}
+        read_native, read_out = 247, 269
+        scope = 'full integrity READ 247->269 + SELECT/OPERATE 37->61; range READ not supported'
+    else:
+        required = {'mapper_var', 'read_prefix'}
+        read_native, read_out = 49, a.image
+        scope = 'range READ 49->%d + inherited SBO 37->61 (variable-image proof build)' % a.image
     runnable = required.issubset(set(applied))
     segs = {role: hashlib.sha256(_combined.segment(src, role).encode()).hexdigest() for role in ('N', 'E', 'T')}
     profile = {'candidate': {'build': str(out), 'milestone': 'm12', 'source_sha256': sha, 'segment_sha256': segs,
                              'artifact_sha256': {}},
                'reset_restart_required': True, 't_child_count': 1}
     (out / 'response_only.inputs.json').write_text(json.dumps({
-        'milestone': 'm12', 'image_len': a.image, 'transforms_applied': applied,
+        'milestone': 'm12', 'image_len': read_out, 'transforms_applied': applied, 'scope': scope,
         'full_target': runnable, 'runnable': runnable,
         'intermediate_note': None if runnable else
-        'PARTIAL build: mapper image=%d but %s not yet applied; encoders/N still at the old lengths — '
-        'placement experiment only, not a working integrated candidate' % (a.image, sorted(required - set(applied))),
+        'PARTIAL build: %s not applied — placement experiment only, not a working integrated candidate'
+        % sorted(required - set(applied)),
         'source_sha256': sha, 'segment_sha256': segs, 'supported_profile': profile,
         't_time': {'unit_ns': 256, 'grid_ns': 512, 'source': 'global_tstamp[39:8] & ~1'},
         't_lifetime_encoding': 'sealed_low31',
-        'native_lengths': {'READ': 49, 'SELECT_OPERATE': 37},
-        'output_lengths': {'READ': a.image, 'SELECT_OPERATE': 61},
-        'read_growth': a.image - 49, 'control_growth': 24,
+        'native_lengths': {'READ': read_native, 'SELECT_OPERATE': 37},
+        'output_lengths': {'READ': read_out, 'SELECT_OPERATE': 61},
+        'read_growth': read_out - read_native, 'control_growth': 24,
         'port_map': {'relay_port': 9, 'n_ack_return': 48, 't_in': 180, 'hb_return': 181, 'held_return': 182},
         'successor_of': {'build': 'm11_09', 'source_sha256': M11_09_SHA}}, indent=2) + '\n')
     (out / 'supported_profile.json').write_text(json.dumps(profile, indent=2) + '\n')

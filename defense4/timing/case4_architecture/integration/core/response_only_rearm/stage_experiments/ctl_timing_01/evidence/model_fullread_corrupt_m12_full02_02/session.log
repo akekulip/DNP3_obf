@@ -1,0 +1,44 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS clean_SYN                          expected=one exact frame observed=1
+PASS clean_SYNACK                       expected=one exact frame observed=1
+PASS clean_ACK                          expected=one exact frame observed=1
+PASS clean_request                      expected=one exact frame observed=1
+PASS clean_server_ack                   expected=one exact frame observed=1
+PASS clean                              expected=forward    observed=forward
+PASS clean_close_fin                    expected=one exact frame observed=1
+PASS clean_close_fin_ack                expected=one exact frame observed=1
+PASS clean_close_last_ack               expected=one exact frame observed=1
+PASS bad_block0_SYN                     expected=one exact frame observed=1
+PASS bad_block0_SYNACK                  expected=one exact frame observed=1
+PASS bad_block0_ACK                     expected=one exact frame observed=1
+PASS bad_block0_request                 expected=one exact frame observed=1
+PASS bad_block0_server_ack              expected=one exact frame observed=1
+PASS bad_block0                         expected=drop       observed=drop
+PASS bad_block0_close_fin               expected=one exact frame observed=1
+PASS bad_block0_close_fin_ack           expected=one exact frame observed=1
+PASS bad_block0_close_last_ack          expected=one exact frame observed=1
+PASS bad_tcp_cksum_SYN                  expected=one exact frame observed=1
+PASS bad_tcp_cksum_SYNACK               expected=one exact frame observed=1
+PASS bad_tcp_cksum_ACK                  expected=one exact frame observed=1
+PASS bad_tcp_cksum_request              expected=one exact frame observed=1
+PASS bad_tcp_cksum_server_ack           expected=one exact frame observed=1
+PASS bad_tcp_cksum                      expected=forward    observed=forward
+PASS bad_tcp_cksum_close_fin            expected=one exact frame observed=1
+PASS bad_tcp_cksum_close_fin_ack        expected=one exact frame observed=1
+PASS bad_tcp_cksum_close_last_ack       expected=one exact frame observed=1
+PASS bad_tail_crc_SYN                   expected=one exact frame observed=1
+PASS bad_tail_crc_SYNACK                expected=one exact frame observed=1
+PASS bad_tail_crc_ACK                   expected=one exact frame observed=1
+PASS bad_tail_crc_request               expected=one exact frame observed=1
+PASS bad_tail_crc_server_ack            expected=one exact frame observed=1
+PASS bad_tail_crc                       expected=forward    observed=forward
+PASS bad_tail_crc_close_fin             expected=one exact frame observed=1
+PASS bad_tail_crc_close_fin_ack         expected=one exact frame observed=1
+PASS bad_tail_crc_close_last_ack        expected=one exact frame observed=1
+SUMMARY {'total': 36, 'passed': 36, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

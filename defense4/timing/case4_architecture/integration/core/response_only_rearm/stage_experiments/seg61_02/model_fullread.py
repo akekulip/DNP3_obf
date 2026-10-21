@@ -46,26 +46,42 @@ def full_native(seq):
     return native
 
 
+INTEGRITY_REQ_NATIVE = 27  # 27-byte integrity READ request (G60V2/V3/V4/V1 qual 0x06)
+
+
+def integrity_request(seq):
+    """The real 27-byte integrity READ request, addressed like the model's range request (dl dst=0/src=1,
+    ctrl 0xc4) so read_connection/badh match, with the app-control seq nibble set to `seq`."""
+    user = bytes([0xc0 | (seq & 0x3f), 0xc0 | (seq & 0x0f), 0x01,
+                  0x3c, 0x02, 0x06, 0x3c, 0x03, 0x06, 0x3c, 0x04, 0x06, 0x3c, 0x01, 0x06])
+    head = bytes.fromhex('0564') + bytes([5 + len(user)]) + bytes([0xc4]) + (0).to_bytes(2, 'little') + (1).to_bytes(2, 'little')
+    frame = std.frame(head, user)
+    assert len(frame) == INTEGRITY_REQ_NATIVE, len(frame)
+    return frame
+
+
 class FullReadGate(pfx.PrefixGate):
     def full_read_exchange(self, name, cseq, native_sseq, wire_sseq, seq=0):
-        request = self.rs.request_packet(seq=cseq, ack=wire_sseq, app=0xc0 | (seq & 15))
-        self.exchange(name + '_request', request, self.rs.request_packet(seq=cseq, ack=native_sseq, app=0xc0 | (seq & 15)))
-        ack = self.rs.ack_packet(seq=native_sseq, ack=cseq + 20)
-        self.exchange(name + '_server_ack', ack, self.rs.ack_packet(seq=wire_sseq, ack=cseq + 20), reverse=True)
+        req = integrity_request(seq)
+        self.exchange(name + '_request', self.v.packet(24, cseq, wire_sseq, payload=req),
+                      self.v.packet(24, cseq, native_sseq, payload=req))
+        ack = self.rs.ack_packet(seq=native_sseq, ack=cseq + INTEGRITY_REQ_NATIVE)
+        self.exchange(name + '_server_ack', ack, self.rs.ack_packet(seq=wire_sseq, ack=cseq + INTEGRITY_REQ_NATIVE), reverse=True)
+        cseq += INTEGRITY_REQ_NATIVE
         native = full_native(seq)
         image, _info = pp.prepend_padding(native, IMAGE)
         self.add(name + '_image_len', IMAGE, len(image))
         self.check_prefix_image(name, native, image)              # oracle on the EXPECTED bytes
         got = self.exchange(name + '_response',
-                            self.v.packet(24, native_sseq, cseq + 20, reverse=True, payload=native),
-                            self.v.packet(24, wire_sseq, cseq + 20, reverse=True, payload=image),
+                            self.v.packet(24, native_sseq, cseq, reverse=True, payload=native),
+                            self.v.packet(24, wire_sseq, cseq, reverse=True, payload=image),
                             reverse=True)
         self.add(name + '_payload_len', IMAGE, len(mp.tcp_payload(got)))
         self.check_prefix_image(name + '_wire', native, mp.tcp_payload(got))   # model's OWN output bytes
         self.exchange(name + '_mapped_ack',
-                      self.v.packet(16, cseq + 20, wire_sseq + IMAGE),
-                      self.v.packet(16, cseq + 20, native_sseq + FULL_NATIVE))
-        return cseq + 20, native_sseq + FULL_NATIVE, wire_sseq + IMAGE
+                      self.v.packet(16, cseq, wire_sseq + IMAGE),
+                      self.v.packet(16, cseq, native_sseq + FULL_NATIVE))
+        return cseq, native_sseq + FULL_NATIVE, wire_sseq + IMAGE
 
     def run(self):
         cseq, nsq, wsq = self.handshake(100, 900, 'base_')
