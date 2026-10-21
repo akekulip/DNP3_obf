@@ -184,6 +184,399 @@ class ReconcileTests(unittest.TestCase):
         self.assertTrue(tool['last_commit'])
 
 
+TRACEBACK_LOG = ('freeze check: OK 0 changed, 0 missing\n'
+                 'Traceback (most recent call last):\n'
+                 '  File "campaign.py", line 142, in load_config\n'
+                 '    validate_profile(cfg)\n'
+                 'ValueError: evaluation.purpose must be qualification\n')
+WRAPPER = str(MODULE.parent / 'run_block_frozen.sh')
+HOSTS = {'switch': 'sw', 'vision': 'vi', 'switch_remote_dir': '/r', 'vision_run_dir': '/v'}
+PRODUCTION = {'program': 'prod', 'relay_slot': True, 'ping': {'count': 3, 'src': 'a', 'dst': 'b'}}
+
+
+def block_log(*lines):
+    return ''.join('2026-10-21T04:4%d:00-04:00 %s\n' % (i, line) for i, line in enumerate(lines))
+
+
+def busy_after(calls):
+    """units(): idle for the first `calls` listings, then a running evaluation unit."""
+    seen = []
+    def units():
+        seen.append(1)
+        return [] if len(seen) <= calls else ['dnp3-eval-late.service']
+    return units
+
+
+class NoContactReconcileTests(unittest.TestCase):
+    """A block that failed before any hardware contact: no run root, a traceback in command.log."""
+
+    def setUp(self):
+        self.c = load_module()
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.blocks = self.root / 'blocks'
+        self.blocks.mkdir()
+        self.run_root = self.blocks / 'block0'  # never created: the block failed before entry
+        self.step_config = self.root / 'step_config.json'
+        self.step_config.write_text(json.dumps({'evidence_dir': str(self.blocks), 'hosts': HOSTS,
+                                                'production': PRODUCTION}))
+        manifest = {'campaign_id': 'nocontact-test', 'evidence_kind': 'supervision_fixture',
+                    'steps': [{'id': 'block0', 'kind': 'block', 'run_root': str(self.run_root),
+                               'argv': ['/bin/bash', WRAPPER, str(self.root / 'freeze.json'), 'candidate_campaign',
+                                        str(self.step_config), 'block0']}]}
+        (self.root / 'input.json').write_text(json.dumps(manifest))
+        self.campaign = Path(self.c.initialize(self.root / 'input.json'))
+        self.steps = self.campaign / 'steps' / 'block0'
+        self.steps.mkdir(parents=True, exist_ok=True)
+        self.log = self.steps / 'command.log'
+        self.log.write_text(TRACEBACK_LOG)
+        self.terminal = {'id': 'block0', 'kind': 'block', 'status': 'failed', 'reason': 'unsafe_restoration', 'rc': 1,
+                         'artifact_manifest': None,
+                         'restoration': {'path': str(self.run_root / 'restore_verify.json'), 'ok': False,
+                                         'error': 'No such file or directory'}}
+        self.testbed = self.root / 'testbed'
+        self.testbed.mkdir()
+        self.ownership = self.testbed / 'ownership.json'
+        self.write_terminal()
+        self.make_baseline()
+        self.c.RUN_BLOCK_LOG = self.root / 'run_block.log'
+        self.c.RUN_BLOCK_LOG.write_text(block_log('START candidate_campaign older', 'END older block_rc=0 restore_verify_rc=0',
+                                                  'START candidate_campaign base',
+                                                  'END base block_rc=1 restore_verify_rc=0'))
+        self.original = {p: p.read_bytes() for p in list(self.baseline.iterdir()) + list(self.steps.iterdir())
+                         if p.is_file()}
+
+    def write_terminal(self):
+        terminal = self.steps / 'terminal.json'
+        terminal.write_text(json.dumps(self.terminal))
+        self.ownership.write_text(json.dumps({'active': False, 'unsafe_restoration': True,
+                                              'campaign_dir': str(self.campaign), 'step_id': 'block0',
+                                              'terminal_sha256': sha(terminal)}))
+
+    def make_baseline(self):
+        """A prior block that passed restoration, bound to its campaign's terminal record."""
+        self.baseline = self.blocks / 'base'
+        self.baseline.mkdir()
+        self.config = self.root / 'baseline_config.json'
+        self.config.write_text(json.dumps({'evidence_dir': str(self.blocks), 'hosts': HOSTS, 'production': PRODUCTION,
+                                           'other': 'differs from the step config'}))
+        (self.baseline / 'campaign_run.json').write_text('{"restore": [{"step": "x", "ok": true}]}')
+        (self.baseline / 'base_prerun.json').write_text('{"tables": {"t": 1}}')
+        (self.baseline / 'restore_verify.json').write_text(json.dumps({'ok': True, 'failures': []}))
+        (self.baseline / 'freeze_check.json').write_text(json.dumps({'config': str(self.config),
+                                                                     'config_sha256': sha(self.config)}))
+        manifest = {'campaign_id': 'basecamp', 'evidence_kind': 'supervision_fixture',
+                    'steps': [{'id': 'base', 'kind': 'block', 'run_root': str(self.baseline),
+                               'argv': ['/bin/bash', WRAPPER, str(self.root / 'freeze.json'), 'candidate_campaign',
+                                        str(self.config), 'base']}]}
+        (self.root / 'base_input.json').write_text(json.dumps(manifest))
+        self.base_campaign = Path(self.c.initialize(self.root / 'base_input.json'))
+        self.base_terminal = self.base_campaign / 'steps' / 'base' / 'terminal.json'
+        self.base_terminal.parent.mkdir(parents=True, exist_ok=True)
+        self.write_baseline_manifest()
+
+    def write_baseline_manifest(self, restoration_ok=True):
+        files = {p.name: {'sha256': sha(p), 'size': p.stat().st_size} for p in self.baseline.iterdir()
+                 if p.name != 'artifact_manifest.json'}
+        (self.baseline / 'artifact_manifest.json').write_text(json.dumps({'files': files}))
+        rv = self.baseline / 'restore_verify.json'
+        self.base_terminal.write_text(json.dumps({
+            'id': 'base', 'kind': 'block', 'status': 'failed', 'reason': 'block_failed',
+            'manifest_sha256': sha(self.base_campaign / 'manifest.json'),
+            'restoration': {'path': str(rv), 'ok': restoration_ok, 'sha256': sha(rv)},
+            'artifact_manifest': {'path': str(self.baseline / 'artifact_manifest.json'),
+                                  'sha256': sha(self.baseline / 'artifact_manifest.json')}}))
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def run_reconcile(self, verifier=None, units=lambda: [], now=1000, baseline='default', terminal='default'):
+        return self.c.reconcile(self.campaign, 'block0', root=self.testbed, units=units,
+                                verifier=verifier or writer(True), now=now,
+                                baseline_run_root=self.baseline if baseline == 'default' else baseline,
+                                baseline_terminal=self.base_terminal if terminal == 'default' else terminal)
+
+    def assert_flag_set(self):
+        self.assertIs(json.loads(self.ownership.read_text())['unsafe_restoration'], True)
+
+    def refusals(self):
+        return list(self.steps.glob('reconcile_*/reconciliation_refused.json'))
+
+    def assert_refused_with_record(self, problem=None, **kwargs):
+        with self.assertRaises(self.c.Refused) as caught:
+            self.run_reconcile(**kwargs)
+        self.assert_flag_set()
+        self.assertEqual(len(self.refusals()), 1)
+        self.assertFalse(list(self.steps.glob('reconcile_*/reconciliation.json')))
+        self.assertIs(json.loads(self.refusals()[0].read_text())['flag_left_set'], True)
+        if problem:
+            self.assertIn(problem, str(caught.exception))
+        return caught.exception
+
+    def test_pass_clears_flag_with_bound_immutable_record(self):
+        record = Path(self.run_reconcile())
+        self.assertEqual(record.parent.parent, self.steps)
+        own = json.loads(self.ownership.read_text())
+        self.assertIs(own['unsafe_restoration'], False)
+        self.assertIs(own['active'], False)
+        self.assertEqual(own['reconciliation_sha256'], sha(record))
+        self.assertEqual(own['previous_terminal_sha256'], sha(self.steps / 'terminal.json'))
+        data = json.loads(record.read_text())
+        bound = data['bound_sha256']
+        self.assertEqual(data['mode'], 'no_hardware_contact')
+        self.assertEqual(bound['terminal'], sha(self.steps / 'terminal.json'))
+        self.assertEqual(bound['command_log'], sha(self.log))
+        self.assertEqual(bound['fresh_restore_verify'], sha(record.parent / 'restore_verify.json'))
+        self.assertEqual(bound['baseline']['restore_verify.json'], sha(self.baseline / 'restore_verify.json'))
+        self.assertEqual(bound['baseline']['config'], sha(self.config))
+        self.assertEqual(bound['baseline']['terminal'], sha(self.base_terminal))
+        self.assertEqual(bound['baseline']['artifact_manifest.json'], sha(self.baseline / 'artifact_manifest.json'))
+        self.assertEqual(bound['run_block_log'], sha(self.c.RUN_BLOCK_LOG))
+        for name in ('campaign_run.json', 'base_prerun.json'):
+            self.assertEqual(sha(record.parent / name), sha(self.baseline / name))
+            self.assertEqual(bound['baseline'][name], sha(self.baseline / name))
+        evidence = data['no_contact_evidence']
+        self.assertEqual(evidence['classification'], 'no_hardware_contact')
+        self.assertIs(evidence['primary']['terminal_artifact_manifest_null'], True)
+        self.assertEqual(evidence['primary']['run_block_log_entries'], [])
+        self.assertEqual(data['config'], str(self.config))
+        self.assertEqual(data['rc'], 0)
+        tool = data['restore_verify_tool']
+        self.assertIn('$PORT_STAT', tool['volatile_tables'])
+        self.assertIn('$COUNTER_SPEC_PKTS', tool['stripped_statistics'])
+        self.assertTrue(tool['rule_note'])
+        self.assertIn('campaign_run.json', data['fresh_checks_note'])
+        self.assertIn('2-5', data['fresh_checks_note'])
+        for path, raw in self.original.items():
+            self.assertEqual(path.read_bytes(), raw)
+
+    def test_docstring_names_record_location(self):
+        self.assertIn('steps/<step>/reconcile_<ts>/', self.c.reconcile_no_contact.__doc__)
+
+    def test_repo_root_resolves_like_guarded_block(self):
+        target = MODULE.parent / 'restore_verify.py'
+        self.assertTrue((self.c.REPO / '.git').exists())
+        self.assertEqual(self.c.REPO / target.relative_to(self.c.REPO), target)
+        self.assertEqual(self.c.ARCH.name, 'case4_architecture')
+
+    # --- no-contact proof -------------------------------------------------------------------------------------
+    def test_hardware_marker_in_command_log_refused(self):
+        self.log.write_text('[switch] make remote directories -> rc 0\n' + TRACEBACK_LOG)
+        self.assert_refused_with_record('hardware marker')
+
+    def test_ssh_in_command_log_refused(self):
+        self.log.write_text('              $ ssh -o BatchMode=yes switch true\n' + TRACEBACK_LOG)
+        self.assert_refused_with_record('hardware marker')
+
+    def test_log_not_ending_in_traceback_or_refusal_refused(self):
+        self.log.write_text('freeze check: OK 0 changed, 0 missing\n')
+        self.assert_refused_with_record('does not end')
+
+    def test_missing_command_log_refused(self):
+        self.log.unlink()
+        self.assert_refused_with_record('command.log unreadable')
+
+    def test_existing_empty_run_root_refused(self):
+        self.run_root.mkdir()
+        self.assert_refused_with_record('run root exists')
+
+    def test_dangling_symlink_run_root_refused(self):
+        self.run_root.symlink_to(self.root / 'nowhere')
+        self.assert_refused_with_record('run root exists')
+
+    def test_terminal_with_artifact_manifest_refused(self):
+        self.terminal['artifact_manifest'] = {'path': '/x/artifact_manifest.json', 'sha256': '0' * 64}
+        self.write_terminal()
+        self.assert_refused_with_record('artifact_manifest')
+
+    def test_run_block_log_start_for_this_run_refused(self):
+        self.c.RUN_BLOCK_LOG.write_text(self.c.RUN_BLOCK_LOG.read_text() +
+                                        block_log('START candidate_campaign block0',
+                                                  'REFUSED block0 block_rc=1 (no hardware entry)'))
+        self.assert_refused_with_record('run_block.log')
+
+    def test_terminal_restoration_not_this_run_root_refused(self):
+        self.terminal['restoration']['path'] = str(self.root / 'elsewhere' / 'restore_verify.json')
+        self.write_terminal()
+        self.assert_refused_with_record('restoration')
+
+    def test_terminal_restoration_ok_refused(self):
+        self.terminal['restoration']['ok'] = True
+        self.write_terminal()
+        self.assert_refused_with_record('restoration')
+
+    def test_run_root_not_derived_from_config_refused(self):
+        self.step_config.write_text(json.dumps({'evidence_dir': str(self.root / 'other'), 'hosts': HOSTS,
+                                                'production': PRODUCTION}))
+        self.assert_refused_with_record('run root')
+
+    def test_run_root_with_hardware_evidence_must_use_existing_path(self):
+        self.run_root.mkdir()
+        (self.run_root / 'campaign_run.json').write_text('{"restore": []}')
+        with self.assertRaises(self.c.Refused):
+            self.run_reconcile()
+        self.assert_flag_set()
+        self.assertFalse(list(self.steps.glob('reconcile_*')))
+
+    # --- baseline binding ---------------------------------------------------------------------------------------
+    def test_missing_baseline_refused(self):
+        self.assert_refused_with_record('baseline', baseline=None)
+
+    def test_missing_baseline_terminal_refused(self):
+        self.assert_refused_with_record('baseline', terminal=None)
+
+    def test_baseline_not_bound_to_terminal_refused(self):
+        terminal = json.loads(self.base_terminal.read_text())
+        terminal['artifact_manifest']['sha256'] = '0' * 64
+        self.base_terminal.write_text(json.dumps(terminal))
+        self.assert_refused_with_record('baseline')
+
+    def test_baseline_terminal_restoration_not_ok_refused(self):
+        self.write_baseline_manifest(restoration_ok=False)
+        self.assert_refused_with_record('baseline')
+
+    def test_stale_baseline_later_start_refused(self):
+        self.c.RUN_BLOCK_LOG.write_text(self.c.RUN_BLOCK_LOG.read_text() +
+                                        block_log('START candidate_campaign later'))
+        self.assert_refused_with_record('baseline')
+
+    def test_baseline_end_without_verified_restore_refused(self):
+        self.c.RUN_BLOCK_LOG.write_text(block_log('START candidate_campaign base',
+                                                  'END base block_rc=0 restore_verify_rc=1'))
+        self.assert_refused_with_record('baseline')
+
+    def test_config_hosts_or_production_mismatch_refused(self):
+        self.step_config.write_text(json.dumps({'evidence_dir': str(self.blocks), 'hosts': HOSTS,
+                                                'production': dict(PRODUCTION, program='other')}))
+        self.assert_refused_with_record('hosts/production')
+
+    def test_baseline_restore_not_ok_refused_without_running_verifier(self):
+        (self.baseline / 'restore_verify.json').write_text(json.dumps({'ok': False, 'failures': ['tables differ']}))
+        self.write_baseline_manifest()
+        self.assert_refused_with_record('baseline')
+        self.assertFalse((self.refusals()[0].parent / 'restore_verify.json').exists())
+
+    def test_baseline_with_failures_refused(self):
+        (self.baseline / 'restore_verify.json').write_text(json.dumps({'ok': True, 'failures': ['x']}))
+        self.write_baseline_manifest()
+        self.assert_refused_with_record('baseline')
+
+    def test_baseline_input_changed_after_retention_refused(self):
+        (self.baseline / 'base_prerun.json').write_text('{"tables": {"t": 2}}')
+        self.assert_refused_with_record('baseline')
+
+    def test_baseline_config_changed_refused(self):
+        self.config.write_text(json.dumps({'evidence_dir': str(self.blocks), 'hosts': HOSTS, 'production': PRODUCTION}))
+        self.assert_refused_with_record('baseline')
+
+    # --- fresh check and post-verify recheck --------------------------------------------------------------------
+    def test_fresh_verifier_failure_leaves_flag_set(self):
+        self.assert_refused_with_record('fresh', verifier=writer(False, rc=1, failures=['tables differ']))
+
+    def test_fresh_ok_with_nonzero_exit_refused(self):
+        self.assert_refused_with_record('fresh', verifier=writer(True, rc=1))
+
+    def test_unit_started_during_verify_refused(self):
+        self.assert_refused_with_record('after the fresh check', units=busy_after(1))
+
+    def test_ownership_changed_during_verify_refused(self):
+        def verifier(config, out):
+            code = ('import json; from pathlib import Path; '
+                    'Path(%r).joinpath("restore_verify.json").write_text(json.dumps({"ok": True, "failures": []})); '
+                    'p = Path(%r); p.write_text(p.read_text() + " ")' % (str(out), str(self.ownership)))
+            return [sys.executable, '-c', code]
+        self.assert_refused_with_record('after the fresh check', verifier=verifier)
+
+    def test_shared_guards_still_apply(self):
+        own = json.loads(self.ownership.read_text())
+        own['step_id'] = 'other'
+        self.ownership.write_text(json.dumps(own))
+        with self.assertRaises(self.c.Refused):
+            self.run_reconcile()
+        self.assert_flag_set()
+        with self.assertRaises(self.c.Refused):
+            self.run_reconcile(units=lambda: ['dnp3-eval-x.service'], now=1001)
+        terminal = self.steps / 'terminal.json'
+        own['step_id'] = 'block0'
+        self.ownership.write_text(json.dumps(own))
+        terminal.write_text(terminal.read_text() + ' ')
+        with self.assertRaises(self.c.Refused):
+            self.run_reconcile(now=1002)
+        self.assert_flag_set()
+        self.assertEqual(len(self.refusals()), 3)
+
+    def test_record_is_never_overwritten(self):
+        record = Path(self.run_reconcile(now=2000))
+        raw = record.read_bytes()
+        own = json.loads(self.ownership.read_text())
+        own['unsafe_restoration'] = True
+        self.ownership.write_text(json.dumps(own))
+        with self.assertRaises(FileExistsError):
+            self.run_reconcile(now=2000)
+        self.assertEqual(record.read_bytes(), raw)
+
+
+class EvidenceClassificationTests(unittest.TestCase):
+    TERMINAL = {'artifact_manifest': None}
+
+    def setUp(self):
+        self.c = load_module()
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.log = self.root / 'command.log'
+        self.runlog = self.root / 'run_block.log'
+        self.runlog.write_text(block_log('START candidate_campaign other', 'END other block_rc=0 restore_verify_rc=0'))
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def classify(self, run_root=None, terminal=None):
+        return self.c.classify_step_evidence(run_root or self.root / 'run0', self.log,
+                                             self.TERMINAL if terminal is None else terminal,
+                                             'run0', self.runlog)
+
+    def test_traceback_without_run_root_is_no_contact(self):
+        self.log.write_text(TRACEBACK_LOG)
+        self.assertEqual(self.classify()['classification'], 'no_hardware_contact')
+
+    def test_wrapper_refusal_is_no_contact(self):
+        self.log.write_text('REFUSED (nothing entered): retained run path already exists\n')
+        self.assertEqual(self.classify()['classification'], 'no_hardware_contact')
+
+    def test_any_hardware_evidence_file_is_hardware_run(self):
+        for name in ('campaign_run.json', 'x_prerun.json', 'run_block_plan.out', 'run_block_run.out',
+                     'restore_verify.json', 'restore_verify_postrun.json', 'freeze_check.json'):
+            with tempfile.TemporaryDirectory() as temp:
+                (Path(temp) / name).write_text('{}')
+                self.log.write_text(TRACEBACK_LOG)
+                self.assertEqual(self.classify(run_root=Path(temp))['classification'], 'hardware_run', name)
+
+    def test_existing_root_or_symlink_is_ambiguous(self):
+        self.log.write_text(TRACEBACK_LOG)
+        (self.root / 'empty').mkdir()
+        self.assertEqual(self.classify(run_root=self.root / 'empty')['classification'], 'ambiguous')
+        (self.root / 'dangling').symlink_to(self.root / 'nowhere')
+        self.assertEqual(self.classify(run_root=self.root / 'dangling')['classification'], 'ambiguous')
+
+    def test_terminal_artifact_manifest_or_start_entry_is_ambiguous(self):
+        self.log.write_text(TRACEBACK_LOG)
+        self.assertEqual(self.classify(terminal={'artifact_manifest': {'path': 'x'}})['classification'], 'ambiguous')
+        self.assertEqual(self.classify(terminal={})['classification'], 'ambiguous')
+        self.runlog.write_text(self.runlog.read_text() + block_log('START candidate_campaign run0'))
+        self.assertEqual(self.classify()['classification'], 'ambiguous')
+
+    def test_markers_are_ambiguous(self):
+        for line in ('[local      ] deploy', '[vision] verify', '[restore:switch] x', 'rsync -a a b',
+                     'scp -q a b', 'launch bf_switchd', 'DEFENSE4_HW_AUTHORIZED=1',
+                     'block command failed; checking for hardware entry: x'):
+            self.log.write_text(line + '\n' + TRACEBACK_LOG)
+            self.assertEqual(self.classify()['classification'], 'ambiguous', line)
+
+    def test_traceback_must_be_last(self):
+        self.log.write_text(TRACEBACK_LOG + 'more output\n')
+        self.assertEqual(self.classify()['classification'], 'ambiguous')
+
+
 class UnitListingTests(unittest.TestCase):
     def test_running_queued_and_reserved_are_busy_but_exited_is_not(self):
         from unittest import mock
@@ -209,3 +602,13 @@ class UnitListingTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class WrapperLocationTest(unittest.TestCase):
+    def test_a_wrapper_from_another_checkout_is_refused(self):
+        step = {'id': 's', 'argv': ['/bin/bash', '/elsewhere/checkout/run_block_frozen.sh', 'F', 'T', 'C', 'R']}
+        with self.assertRaises(ValueError):
+            load_module().frozen_argv(step)
+        step['argv'][1] = WRAPPER
+        self.assertEqual(load_module().frozen_argv(step), ('C', 'R'))
+

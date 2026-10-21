@@ -562,7 +562,314 @@ def rv_rules(name):
     return set()
 
 
-def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=None, now=None):
+# Files guarded_block.py/restore_verify.py retain in a run root once a block may have entered hardware. Any one of
+# them sends reconcile down the existing restoration path; only a run root with none of them is a no-contact case.
+HARDWARE_EVIDENCE = ('campaign_run.json', '*_prerun.json', 'run_block_plan.out', 'run_block_run.out',
+                     'restore_verify*.json', 'freeze_check.json')
+# Lines a hardware run prints (run_block step markers `[switch] ... -> rc N`, `[local      ] ...` plan lines, restore
+# steps, `$ ssh/scp ...` command echoes, the wrapper's entry/post-entry messages). command.log of a block that
+# entered hardware carries the run output only when Campaign never created its root; any such line is ambiguous.
+HARDWARE_MARKER_PREFIXES = ('[switch', '[vision', '[local', '[restore')
+HARDWARE_MARKER_WORDS = ('ssh ', 'rsync ', 'scp ', 'bf_switchd', 'DEFENSE4_HW_AUTHORIZED', 'hardware entry',
+                         'verifying restoration')
+EXCEPTION_LINE = re.compile(r'[A-Za-z_][A-Za-z0-9_.]*(Error|Exception|Interrupt)(: .*)?\Z')
+ARCH = HERE.parents[3]              # guarded_block.py: ARCH = HW.parents[3]
+REPO = ARCH.parents[2]              # guarded_block.py chdirs here; freeze records hold repo-relative paths
+RUN_BLOCK_LOG = HERE / 'run_block.log'  # guarded_block.log_event: START before entry, END/REFUSED after
+FRESH_CHECKS_NOTE = ('restore_verify check 1 (runner restore record) is satisfied by the BASELINE block\'s historical '
+                     'campaign_run.json copied here, not by a new restore; only checks 2-5 (running program, live '
+                     'snapshot against the baseline pre-run snapshot, Vision state, ping) observe the testbed afresh')
+
+
+def hardware_run_evidence(run_root):
+    """Retained hardware-run files under a block's run root (empty when the root was never created)."""
+    run_root = Path(run_root)
+    if not run_root.is_dir():
+        return []
+    return sorted({str(p.relative_to(run_root)) for pattern in HARDWARE_EVIDENCE for p in run_root.rglob(pattern)})
+
+
+def run_block_entries(run_block_log):
+    """(event, run_id, fields) for every START/END/REFUSED line guarded_block.log_event wrote."""
+    entries = []
+    for line in Path(run_block_log).read_text(errors='replace').splitlines():
+        fields = line.split()
+        if len(fields) >= 4 and fields[1] == 'START':
+            entries.append(('START', fields[3], fields))
+        elif len(fields) >= 3 and fields[1] in ('END', 'REFUSED'):
+            entries.append((fields[1], fields[2], fields))
+    return entries
+
+
+def classify_step_evidence(run_root, command_log, terminal, run_id, run_block_log):
+    """Pure, read-only: hardware_run | no_hardware_contact | ambiguous, with the evidence for the verdict.
+
+    hardware_run: any hardware-run file under the run root. no_hardware_contact needs positive proof. Primary:
+    the run root does not exist (os.path.lexists, so a dangling symlink counts as existing), the terminal record
+    (hash-bound in ownership.json) has artifact_manifest null (retain_artifact_hashes returns None only when the
+    root was not a directory at block end), and run_block.log has no START for this run ID (guarded_block logs
+    START before entering hardware). Corroborating: command.log exists, ends in a Python traceback (exception line
+    after the last 'Traceback' header) or a REFUSED line, and carries no hardware marker line. Anything else is
+    ambiguous."""
+    run_root, command_log = Path(run_root), Path(command_log)
+    primary = dict(run_root=str(run_root), run_root_exists=os.path.lexists(str(run_root)),
+                   terminal_artifact_manifest_null=isinstance(terminal, dict) and 'artifact_manifest' in terminal
+                   and terminal['artifact_manifest'] is None,
+                   run_block_log=str(run_block_log), run_block_log_entries=None, run_id=run_id)
+    corroborating = dict(command_log=str(command_log), command_log_sha256=None, ending=None, markers=[])
+    summary = dict(hardware_evidence=hardware_run_evidence(run_root), primary=primary,
+                   corroborating=corroborating, reasons=[])
+    if summary['hardware_evidence']:
+        summary['classification'] = 'hardware_run'
+        return summary
+    reasons = summary['reasons']
+    if primary['run_root_exists']:
+        reasons.append('run root exists (possible hardware entry)')
+    if not primary['terminal_artifact_manifest_null']:
+        reasons.append('terminal artifact_manifest is not null (root was a directory at block end)')
+    try:
+        primary['run_block_log_entries'] = [' '.join(f) for _, rid, f in run_block_entries(run_block_log) if rid == run_id]
+        if primary['run_block_log_entries']:
+            reasons.append('run_block.log has entries for this run ID')
+    except OSError as error:
+        reasons.append('run_block.log unreadable: %s' % error)
+    try:
+        raw = command_log.read_bytes()
+    except OSError as error:
+        reasons.append('command.log unreadable: %s' % error)
+        summary['classification'] = 'ambiguous'
+        return summary
+    corroborating['command_log_sha256'] = digest(raw)
+    lines = raw.decode('utf-8', errors='replace').splitlines()
+    corroborating['markers'] = [line for line in lines if line.lstrip().startswith(HARDWARE_MARKER_PREFIXES) or
+                                any(word in line for word in HARDWARE_MARKER_WORDS)]
+    filled = [line for line in lines if line.strip()]
+    last = filled[-1] if filled else ''
+    headers = [i for i, line in enumerate(filled) if line == 'Traceback (most recent call last):']
+    if last.startswith('REFUSED'):
+        corroborating['ending'] = 'refused'
+    elif headers and headers[-1] < len(filled) - 1 and EXCEPTION_LINE.match(last):
+        corroborating['ending'] = 'traceback'
+    else:
+        reasons.append('command.log does not end in a Python traceback or a REFUSED line')
+    if corroborating['markers']:
+        reasons.append('command.log carries hardware marker lines')
+    summary['classification'] = 'ambiguous' if reasons else 'no_hardware_contact'
+    return summary
+
+
+def frozen_argv(step):
+    """(config, run_id) from a run_block_frozen.sh argv: bash WRAPPER FREEZE TOOL CONFIG RUN_ID [ARGS...]."""
+    argv = step['argv']
+    if len(argv) < 6 or Path(argv[1]).name != 'run_block_frozen.sh':
+        raise ValueError('step %s argv is not a run_block_frozen.sh invocation' % step['id'])
+    # guarded_block writes run_block.log beside its own copy; the no-contact proof reads this checkout's log, so the
+    # step must have run this checkout's wrapper (review W1).
+    if Path(argv[1]).resolve() != (HERE / 'run_block_frozen.sh').resolve():
+        raise ValueError('step %s ran a wrapper outside this checkout: %s' % (step['id'], argv[1]))
+    return argv[4], argv[5]
+
+
+def baseline_inputs(baseline_run_root, baseline_terminal, problems):
+    """A prior block that passed restoration, bound three ways: its campaign terminal record (artifact manifest hash,
+    restoration ok and hash), its hash-retained restore inputs, and the config from its campaign manifest argv
+    (matching the freeze check's config_sha256). Returns (run root, shas, config, inputs, run_id)."""
+    base = Path(baseline_run_root).resolve() if baseline_run_root is not None else None
+    shas, config, run_id = {}, None, None
+    try:
+        if base is None or baseline_terminal is None:
+            raise ValueError('--baseline-run-root and --baseline-terminal are both required')
+        terminal_path = Path(baseline_terminal).resolve(strict=True)
+        terminal = read_json(terminal_path)
+        shas['terminal'] = digest(terminal_path.read_bytes())
+        campaign = terminal_path.parents[2]
+        manifest_raw = (campaign / 'manifest.json').read_bytes()
+        if terminal.get('manifest_sha256') != digest(manifest_raw):
+            raise ValueError('baseline terminal does not match its campaign manifest')
+        step = next((s for s in json.loads(manifest_raw)['steps'] if s['id'] == terminal.get('id') ==
+                     terminal_path.parent.name and s['kind'] == 'block'), None)
+        if step is None or Path(step['run_root']).resolve() != base:
+            raise ValueError('baseline terminal names a different block or run root')
+        config, run_id = frozen_argv(step)
+        artifacts_ref = terminal.get('artifact_manifest') or {}
+        shas['artifact_manifest.json'] = digest((base / 'artifact_manifest.json').read_bytes())
+        if (Path(artifacts_ref.get('path', '/nonexistent')).resolve() != base / 'artifact_manifest.json' or
+                artifacts_ref.get('sha256') != shas['artifact_manifest.json']):
+            raise ValueError('baseline artifact manifest is not the one its terminal record binds')
+        restoration = terminal.get('restoration') or {}
+        artifacts = read_json(base / 'artifact_manifest.json')['files']
+        prerun = sorted(base.glob('*_prerun.json'))
+        if len(prerun) != 1:
+            raise ValueError('baseline needs exactly one pre-run snapshot, found %d' % len(prerun))
+        for path in [base / 'campaign_run.json', prerun[0], base / 'restore_verify.json', base / 'freeze_check.json']:
+            shas[path.name] = digest(path.read_bytes())
+            if artifacts.get(path.name, {}).get('sha256') != shas[path.name]:
+                raise ValueError('baseline %s differs from its retained artifact hash' % path.name)
+        if (restoration.get('ok') is not True or restoration.get('sha256') != shas['restore_verify.json'] or
+                Path(restoration.get('path', '/nonexistent')).resolve() != base / 'restore_verify.json'):
+            raise ValueError('baseline terminal does not record this restore_verify.json as passed')
+        verified = read_json(base / 'restore_verify.json')
+        if verified.get('ok') is not True or verified.get('failures'):
+            raise ValueError('baseline restore_verify.json did not pass (ok %r, failures %r)'
+                             % (verified.get('ok'), verified.get('failures')))
+        freeze = read_json(base / 'freeze_check.json')
+        shas['config'] = digest(Path(config).read_bytes())
+        if shas['config'] != freeze.get('config_sha256') or (REPO / freeze['config']).resolve() != Path(config).resolve():
+            raise ValueError('baseline config changed since the baseline block ran, or is not the frozen one')
+    except (KeyError, TypeError, ValueError, OSError, StopIteration, Refused) as error:
+        problems.append('baseline restoration unusable: %s' % error)
+        return base, shas, config, [], run_id
+    return base, shas, config, [base / 'campaign_run.json', prerun[0]], run_id
+
+
+def baseline_is_latest(run_block_log, run_id, problems):
+    """The baseline's START/END must be the last block on the testbed, with restore_verify_rc=0."""
+    entries = run_block_entries(run_block_log)
+    starts = [i for i, entry in enumerate(entries) if entry[0] == 'START']
+    if not starts or entries[starts[-1]][1] != run_id:
+        problems.append('baseline is not the last block started on the testbed (run_block.log)')
+        return
+    ends = [entry for entry in entries[starts[-1] + 1:] if entry[0] == 'END' and entry[1] == run_id]
+    if len(ends) != 1 or 'restore_verify_rc=0' not in ends[0][2]:
+        problems.append('baseline has no single END with restore_verify_rc=0 after its START (run_block.log)')
+
+
+def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline_run_root, baseline_terminal):
+    """Clear an unverified-restoration flag for a block with NO hardware-run evidence.
+
+    Records are written to the campaign's steps/<step>/reconcile_<ts>/ (created exclusively, never reused):
+    reconciliation.json on a pass, reconciliation_refused.json otherwise, beside the copied baseline inputs and the
+    fresh restore_verify.json/.log. Same shared guards as reconcile (testbed lock, no active owner, evaluation unit
+    or reservation, ownership names exactly this step, terminal hash bound). The terminal record must be a failed
+    unsafe_restoration with ok false for run_root/restore_verify.json, and the run root must be the one guarded_block
+    derives from the config (ARCH / evidence_dir / RUN_ID). No-contact proof comes from classify_step_evidence. The
+    testbed is checked afresh against a named baseline: the last block that ran (run_block.log), bound to its
+    campaign terminal record, whose config has the same hosts and production as this step's. Its restore record and
+    pre-run snapshot are copied in and restore_verify.py runs unchanged with its config. Only exit 0, ok and no
+    failures, with units and ownership unchanged afterwards, clear the flag; anything else leaves a refusal."""
+    step_id = step['id']
+    records = directory / 'steps' / step_id
+    out = records / ('reconcile_%s' % stamp)
+    with locked(root, 'active.lock', blocking=False):
+        state_path = root / 'ownership.json'
+        ownership = read_json(state_path)
+        problems, bound = [], {'ownership': digest(state_path.read_bytes())}
+        if ownership.get('active'):
+            problems.append('an owner is active')
+        if ownership.get('unsafe_restoration') is not True:
+            problems.append('ownership records no unverified restoration')
+        if ownership.get('campaign_dir') != str(directory) or ownership.get('step_id') != step_id:
+            problems.append('ownership names a different campaign or step')
+        terminal_path = records / 'terminal.json'
+        terminal = read_json(terminal_path) if terminal_path.is_file() else {}
+        bound['terminal'] = digest(terminal_path.read_bytes()) if terminal_path.is_file() else None
+        if bound['terminal'] is None or bound['terminal'] != ownership.get('terminal_sha256'):
+            problems.append('terminal record missing or differs from the ownership binding')
+        if (terminal.get('status'), terminal.get('reason')) != ('failed', 'unsafe_restoration') or not terminal.get('rc'):
+            problems.append('terminal record is not a failed block with unsafe_restoration and a nonzero rc')
+        restoration = terminal.get('restoration') or {}
+        if restoration.get('ok') is not False or restoration.get('path') != str(Path(step['run_root']) / 'restore_verify.json'):
+            problems.append('terminal restoration is not a failed check of this run root')
+        config, run_id, step_cfg = None, None, {}
+        try:
+            config, run_id = frozen_argv(step)
+            step_bytes = Path(config).read_bytes()
+            step_cfg = json.loads(step_bytes)
+            bound['step_config'] = digest(step_bytes)        # the version compared below (review W2)
+            if (ARCH / step_cfg['evidence_dir'] / run_id).resolve() != Path(step['run_root']).resolve():
+                problems.append('step run root is not the one guarded_block derives from its config and run ID')
+        except (KeyError, TypeError, ValueError, OSError) as error:
+            problems.append('step config/run root not derivable: %s' % error)
+        bound['run_block_log'] = digest(RUN_BLOCK_LOG.read_bytes()) if RUN_BLOCK_LOG.is_file() else None
+        evidence = classify_step_evidence(step['run_root'], records / 'command.log', terminal, run_id, RUN_BLOCK_LOG)
+        bound['command_log'] = evidence['corroborating']['command_log_sha256']
+        if evidence['classification'] != 'no_hardware_contact':
+            problems.append('no positive proof of no hardware contact (%s): %s'
+                            % (evidence['classification'], '; '.join(evidence['reasons'])))
+        base, bound['baseline'], base_config, inputs, base_run_id = baseline_inputs(
+            baseline_run_root, baseline_terminal, problems)
+        if inputs:
+            try:
+                base_cfg = json.loads(Path(base_config).read_text())
+                if any(key not in step_cfg or step_cfg[key] != base_cfg.get(key) for key in ('hosts', 'production')):
+                    problems.append('step config hosts/production differ from the baseline config')
+            except (OSError, ValueError) as error:
+                problems.append('baseline config unreadable: %s' % error)
+            try:
+                baseline_is_latest(RUN_BLOCK_LOG, base_run_id, problems)
+            except OSError as error:
+                problems.append('baseline run_block.log unreadable: %s' % error)
+        busy = units()
+        if busy:
+            problems.append('evaluation units still running: %s' % ', '.join(busy))
+        out.mkdir()
+        tool_commit = subprocess.run(['git', 'log', '-1', '--format=%H %cI %s', '--', RESTORE_VERIFY.name], cwd=str(HERE),
+                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.strip()
+        tool_dirty = subprocess.run(['git', 'status', '--porcelain', '--', RESTORE_VERIFY.name], cwd=str(HERE),
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.strip()
+        record = dict(campaign_dir=str(directory), step_id=step_id, at=time.time(), mode='no_hardware_contact',
+                      bound_sha256=bound, no_contact_evidence=evidence, baseline_run_root=str(base) if base else None,
+                      baseline_terminal=str(baseline_terminal) if baseline_terminal else None,
+                      baseline_run_id=base_run_id, config=base_config, step_config=config,
+                      fresh_checks_note=FRESH_CHECKS_NOTE,
+                      restore_verify_tool=dict(path=str(RESTORE_VERIFY), sha256=digest(RESTORE_VERIFY.read_bytes()),
+                                               last_commit=tool_commit, uncommitted_changes=bool(tool_dirty),
+                                               volatile_tables=sorted(rv_rules('VOLATILE')),
+                                               stripped_statistics=sorted(rv_rules('STATISTICS')),
+                                               rule_note=('comparison rules as committed at reconcile time; the '
+                                                          'baseline check may predate later rule commits (see '
+                                                          'last_commit)')))
+
+        def refuse(why):
+            atomic_json(out / 'reconciliation_refused.json', dict(record, problems=why, flag_left_set=True), exclusive=True)
+            raise Refused('reconciliation refused: ' + '; '.join(why))
+
+        if problems:
+            refuse(problems)
+        for path in inputs:
+            with open(str(out / path.name), 'xb') as stream:
+                stream.write(path.read_bytes())
+        bound['copied_inputs'] = {path.name: digest((out / path.name).read_bytes()) for path in inputs}
+        if bound['copied_inputs'] != {path.name: bound['baseline'][path.name] for path in inputs}:
+            refuse(['baseline inputs changed while copied'])
+        command = (verifier(base_config, out) if verifier is not None else
+                   [sys.executable, str(RESTORE_VERIFY), '--config', base_config, '--run-root', str(out)])
+        rc = command_to_log(command, out / 'restore_verify.log', out)
+        fresh_path = out / 'restore_verify.json'
+        try:
+            fresh = json.loads(fresh_path.read_text())
+        except (OSError, ValueError):
+            fresh = None
+        ok = rc == 0 and isinstance(fresh, dict) and fresh.get('ok') is True and not fresh.get('failures')
+        bound['fresh_restore_verify'] = digest(fresh_path.read_bytes()) if fresh_path.is_file() else None
+        record.update(command=command, rc=rc)
+        if not ok:
+            refuse(['fresh restoration check did not pass'])
+        # Immediately before the atomic update: nothing may have started or changed ownership during the check.
+        late = []
+        busy = units()
+        if busy:
+            late.append('evaluation units running after the fresh check: %s' % ', '.join(busy))
+        if digest(state_path.read_bytes()) != bound['ownership']:
+            late.append('ownership record changed after the fresh check')
+        if (digest(RUN_BLOCK_LOG.read_bytes()) if RUN_BLOCK_LOG.is_file() else None) != bound['run_block_log']:
+            late.append('run_block.log changed after the fresh check')
+        if late:
+            refuse(late)
+        reconciliation = out / 'reconciliation.json'
+        atomic_json(reconciliation, dict(record, result='no hardware contact proven and restoration verified afresh '
+                                                        'against the baseline; ownership update follows (the clear is '
+                                                        'proven by reconciliation_sha256 in ownership.json)'),
+                    exclusive=True)
+        atomic_json(state_path, dict(active=False, unsafe_restoration=False, campaign_dir=str(directory),
+                                     step_id=step_id, previous_terminal_sha256=ownership.get('terminal_sha256'),
+                                     reconciliation=str(reconciliation),
+                                     reconciliation_sha256=digest(reconciliation.read_bytes())))
+        return reconciliation
+
+
+def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=None, now=None,
+              baseline_run_root=None, baseline_terminal=None):
     """Clear an unverified-restoration refusal ONLY on a fresh, complete restoration check.
 
     Under the existing testbed lock: the ownership record must name exactly this failed block (terminal
@@ -579,6 +886,12 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
     hardware = manifest['evidence_kind'] == 'hardware'
     root = Path(root) if root is not None else (HARDWARE_TESTBED if hardware else directory.parent / 'fixture_testbed')
     stamp = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime(time.time() if now is None else now))
+    # A block with no hardware-run evidence in its run root takes the no-contact path; every other block takes the
+    # existing path below, unchanged, and a baseline offered for it is refused rather than ignored.
+    if not hardware_run_evidence(step['run_root']):
+        return reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline_run_root, baseline_terminal)
+    if baseline_run_root is not None or baseline_terminal is not None:
+        raise Refused('block has hardware-run evidence; reconcile it without --baseline-run-root/--baseline-terminal')
     out = directory.parent / ('reconcile_%s_%s' % (step_id, stamp))
     with locked(root, 'active.lock', blocking=False):
         state_path = root / 'ownership.json'
@@ -741,6 +1054,12 @@ def main(argv=None):
         child.add_argument('path')
         if command in ('_block', 'reconcile'):
             child.add_argument('step_id')
+        if command == 'reconcile':
+            child.add_argument('--baseline-run-root', default=None,
+                               help='required for a block with no hardware-run evidence: run root of a prior block '
+                                    'whose restore_verify.json passed; refused for a block that has evidence')
+            child.add_argument('--baseline-terminal', default=None,
+                               help='with --baseline-run-root: that block\'s campaign steps/<id>/terminal.json')
     args = parser.parse_args(argv)
     try:
         if args.command == 'init':
@@ -756,7 +1075,8 @@ def main(argv=None):
         elif args.command == '_block':
             return run_step(args.path, args.step_id)
         elif args.command == 'reconcile':
-            print(reconcile(args.path, args.step_id))
+            print(reconcile(args.path, args.step_id, baseline_run_root=args.baseline_run_root,
+                            baseline_terminal=args.baseline_terminal))
         return 0
     except (Refused, OSError, ValueError, KeyError, TypeError) as error:
         sys.stderr.write('REFUSED: %s\n' % error)
