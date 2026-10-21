@@ -42,6 +42,37 @@ class ClassTable(unittest.TestCase):
                      'master_ack_of_padded'):
             self.assertIn(name, loss.names(), name)
 
+    def test_single_frame_read_class_response_lengths(self):
+        # One selector per length (no per-class claim): analog 181, and ONE 247-byte selector for base
+        # class0/integrity, which the length+flags selector cannot tell apart.
+        c = loss.CLASSES
+        self.assertEqual(c['read_resp_analog']['ip_len'], 40 + 141)
+        self.assertEqual(c['read_resp_247']['ip_len'], 40 + 247)
+        for name in ('read_resp_analog', 'read_resp_247'):
+            self.assertEqual((c[name]['dir'], c[name]['flags']), ('O>M', 'ACK,PSH'), name)
+        # a per-class class0/integrity loss selector is NOT offered (it would mis-stamp the class)
+        for name in ('read_resp_class0', 'read_resp_integrity'):
+            self.assertNotIn(name, c, name)
+            self.assertNotIn(name, loss.names(), name)
+        self.assertEqual(loss.READ_RESP_LEN, {'read_resp_analog': 141, 'read_resp_247': 247})
+
+    def test_segmented_read_class_response_is_not_exercised(self):
+        # base single-frame response lengths {range 49, analog 141, class0/integrity 247}: both selectors valid
+        base = {49, 141, 247}
+        for selector in ('read_resp_analog', 'read_resp_247'):
+            self.assertEqual(loss.read_resp_class(selector, base), (selector, None), selector)
+        # large: class0/integrity are segmented (292 + 85), so no single-frame 247-byte response -> NOT_EXERCISED
+        large = {49, 141}
+        sel, reason = loss.read_resp_class('read_resp_247', large)
+        self.assertIsNone(sel)
+        self.assertIn('NOT_EXERCISED', reason)
+        self.assertEqual(loss.read_resp_class('read_resp_analog', large), ('read_resp_analog', None))
+        # a per-class selector is refused as not a single-frame READ-response loss selector
+        for name in ('read_resp_class0', 'read_resp_integrity'):
+            sel, reason = loss.read_resp_class(name, base)
+            self.assertIsNone(sel, name)
+            self.assertIn('NOT_EXERCISED', reason)
+
 
 class Parse(unittest.TestCase):
     def test_default_n_is_one(self):
@@ -64,6 +95,14 @@ class Parse(unittest.TestCase):
         for bad in ('', 'nope', 'request:0', 'request:-1', 'request:x', 'request:1:2', 'request:%d' % (loss.MAX_N + 1)):
             with self.assertRaises(ValueError, msg=bad):
                 loss.parse_drop(bad, reads=20)
+
+    def test_single_frame_read_class_occurrence(self):
+        s = loss.parse_drop('read_resp_247:2', reads=20)
+        self.assertEqual((s['class'], s['base'], s['occurrence'], s['ip_len']),
+                         ('read_resp_247', 'read_resp_247', 2, 287))
+        for name in ('read_resp_class0', 'read_resp_integrity'):   # per-class selectors do not exist
+            with self.assertRaises(ValueError, msg=name):
+                loss.parse_drop(name, reads=20)
 
 
 class Rules(unittest.TestCase):
@@ -108,6 +147,14 @@ class Rules(unittest.TestCase):
     def test_no_rule_uses_the_unreliable_statistic_match(self):
         for spec in ('request', 'read_resp_padded:7', 'operate_req'):
             self.assertNotIn('statistic', ' '.join(' '.join(r) for r in self.build(spec)[1]))
+
+    def test_single_frame_read_class_drop_targets_its_response_length(self):
+        for spec, length in (('read_resp_analog:2', 181), ('read_resp_247', 287), ('read_resp_247:3', 287)):
+            ns, rules = self.build(spec)
+            self.assertEqual(ns, 'ns_vepa_a', spec)                       # O>M dropped at the master's ingress
+            self.assertEqual(rules[-1][-1], 'DROP', spec)
+            self.assertIn('-m length --length %d' % length, ' '.join(rules[-1]), spec)
+            self.assertIn('--sport 20000 --dport 54500', ' '.join(rules[-1]), spec)
 
 
 class FakeNsx:

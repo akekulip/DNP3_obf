@@ -537,6 +537,34 @@ class CampaignPerClass(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'read_schedule'):
             self.load(with_loss)
 
+    def test_single_frame_read_class_loss_is_allowed_with_a_schedule(self):
+        def with_loss(cfg):
+            self.schedule(db='base')(cfg)
+            del cfg['traffic']['sbo_cycles']
+            cfg['loss']['presets'] = {'core': [{'class': 'read_resp_247', 'n': 1},
+                                               {'class': 'read_resp_analog', 'n': 2}]}
+        cfg = self.load(with_loss)
+        self.assertEqual(cfg['loss']['presets']['core'][0]['class'], 'read_resp_247')
+
+    def test_segmented_read_class_loss_is_refused_with_a_schedule(self):
+        # the 247-byte selector has no single-frame response on the large database (class0/integrity are 292 + 85)
+        def with_loss(cfg):
+            self.schedule(db='large')(cfg)
+            del cfg['traffic']['sbo_cycles']
+            cfg['loss']['presets'] = {'core': [{'class': 'read_resp_247', 'n': 1}]}
+        with self.assertRaisesRegex(ValueError, 'NOT_EXERCISED|segmented'):
+            self.load(with_loss)
+
+    def test_a_per_class_or_non_read_loss_class_refuses_a_schedule(self):
+        # read_resp_class0/read_resp_integrity are not distinct selectors; a non-READ class is also refused
+        for bad in ('read_resp_class0', 'read_resp_integrity', 'request'):
+            def with_loss(cfg, bad=bad):
+                self.schedule(db='base')(cfg)
+                del cfg['traffic']['sbo_cycles']
+                cfg['loss']['presets'] = {'core': [{'class': 'read_resp_247', 'n': 1}, {'class': bad, 'n': 1}]}
+            with self.subTest(bad), self.assertRaisesRegex(ValueError, 'read_schedule'):
+                self.load(with_loss)
+
     def test_schedule_without_declaration_refuses_the_campaign(self):
         def undeclared(cfg):
             self.schedule()(cfg)

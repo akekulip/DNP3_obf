@@ -208,6 +208,26 @@ def _mapper_reg(snapshot, name, field=None):
     return _field_int(registers, table, re.escape(field) + '$' if field else None)
 
 
+def series_read_shape(cfg, build, default=None):
+    """(READ image, READ native) the candidate series issues on each connection. Default (traffic.series_read_class
+    absent): the range READ -- image from range_image_len(build, default), native 49, exactly as before. With
+    traffic.series_read_class set to a single-frame class (analog, base class0/integrity) the series issues that
+    class instead: image = its declared read_images value, else its native (already at target), native = the sum
+    of its native link frames on traffic.db."""
+    traffic = cfg.get('traffic') or {}
+    cls = traffic.get('series_read_class')
+    if cls is None:
+        return read_classes.range_image_len(build, default), 49
+    db = traffic.get('db')
+    native = sum(read_classes.NATIVE_SEGMENTS.get(db, {}).get(cls, ()) or ())
+    image = read_classes.build_images(build, db).get(cls)
+    if image is None:                              # mirror read_classes.expectations(): a padded arm must declare
+        raise read_classes.ReadClassError('traffic.series_read_class %s is not declared in read_images on the '
+                                          'series build (db %s): a padded series must declare the class image it '
+                                          'issues, as read_classes.expectations() requires' % (cls, db))
+    return image, native
+
+
 def series_switch_gate(cfg, arm, reads, ev, lifecycle):
     """Switch-only aggregate gate for a three-connection protected candidate series."""
     run_sbo = cfg['traffic'].get('run_sbo', True)
@@ -225,8 +245,8 @@ def series_switch_gate(cfg, arm, reads, ev, lifecycle):
         growth = (_mapper_reg(lifecycle, 'acct', '.lo') - _mapper_reg(lifecycle, 'front')) & 0xffffffff
         unacked = _mapper_reg(lifecycle, 'acct', '.hi')
         image = build.get('image_len', 58)
-        read_image = read_classes.range_image_len(build, image)   # READ image != control image on policy builds
-        expected = (reads * (read_image - 49) + (2 * (image - 37) if build.get('control_padding', True) else 0)
+        read_image, read_native = series_read_shape(cfg, build, image)   # a chosen single-frame class, else range
+        expected = (reads * (read_image - read_native) + (2 * (image - 37) if build.get('control_padding', True) else 0)
                     if arm['padding'] else 0)
         observed.update(external_growth_bytes=growth, external_growth_expected=expected, unacked=unacked)
         if growth != expected:
@@ -284,10 +304,30 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
             raise ValueError('candidate series requires SBO enabled')
         if 'sbo_cycles' in self.cfg['traffic']:
             raise ValueError('candidate series does not carry traffic.sbo_cycles (vision_candidate runs one SBO)')
-        if 'read_schedule' in self.cfg['traffic'] or 'db' in self.cfg['traffic']:
-            raise ValueError('candidate series does not carry traffic.read_schedule/db (vision_candidate runs the '
-                             'range READ only)')
-        read_classes.range_image_len(self.cfg['builds'].get(self.arms[0].get('build')) or {})   # refuses unsupported
+        if 'read_schedule' in self.cfg['traffic']:
+            raise ValueError('candidate series does not carry traffic.read_schedule (vision_candidate runs one '
+                             'chosen single-frame class or the range READ, not a rotating schedule)')
+        series_class = self.cfg['traffic'].get('series_read_class')
+        if series_class is not None:
+            db = self.cfg['traffic'].get('db')
+            if series_class not in read_classes.CLASSES or series_class == 'range':
+                raise ValueError('traffic.series_read_class must be one of the added single-frame READ classes '
+                                 '(analog, class0, integrity), got %r' % (series_class,))
+            segments = read_classes.NATIVE_SEGMENTS.get(db, {}).get(series_class)
+            if segments is None:
+                raise ValueError('traffic.series_read_class %s needs traffic.db with a native shape' % series_class)
+            if len(segments) > 1:
+                raise ValueError('traffic.series_read_class %s is segmented (%d link frames) on db %s: NOT_EXERCISED, '
+                                 'out of scope for the single-frame series' % (series_class, len(segments), db))
+            build = self.cfg['builds'].get(self.arms[0].get('build')) or {}
+            if read_classes.build_images(build, db).get(series_class) is None:
+                raise ValueError('traffic.series_read_class %s is not declared in read_images on the series build '
+                                 '(db %s): a padded series must declare the class image it issues' % (series_class, db))
+        elif 'db' in self.cfg['traffic']:
+            raise ValueError('candidate series does not carry traffic.db without traffic.series_read_class '
+                             '(vision_candidate runs the range READ only)')
+        else:
+            read_classes.range_image_len(self.cfg['builds'].get(self.arms[0].get('build')) or {})  # refuses unsupported
         traffic = self.cfg['traffic']
         if (traffic.get('range'), traffic.get('gap_ms'), traffic.get('start_delay_ms'),
                 traffic.get('read_pause_ms', 25), self.cfg['seeds']['rng_seed']) != (8, 0, 0, 25, 12345):
@@ -336,11 +376,11 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
                           connect_must_fail=False, drop=None, scenario=None, reconnect_port=None):
         if connect_must_fail or drop or scenario or reconnect_port is not None:
             raise ValueError('candidate series traffic must be one protected installed tuple with no base scenario/drop')
+        read_image, _native = series_read_shape(self.cfg, self.cfg['builds'][self._series_build])
         args = [label, '--master-port', master_port, '--padding', self._series_padding,
                 '--control-padding', self._series_control_padding,
                 '--image-len', int(self.cfg['builds'][self._series_build].get('image_len', 58)),
-                ] + (['--read-image-len', int(read_classes.range_image_len(self.cfg['builds'][self._series_build]))]
-                     if read_classes.range_image_len(self.cfg['builds'][self._series_build]) is not None else []) + [
+                ] + (['--read-image-len', int(read_image)] if read_image is not None else []) + [
                 '--expect-held-operate-dup', int(bool(self.cfg['traffic'].get('expect_held_operate_dup', False))),
                 '--close-mode', self.close_mode,
                 '--rst-grace-ms', self.rst_grace_ms, '--reads', reads, '--apply']

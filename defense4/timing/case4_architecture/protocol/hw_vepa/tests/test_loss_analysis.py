@@ -387,3 +387,59 @@ class ImageLength(unittest.TestCase):
         fails, res = loss.evaluate_loss({'padding': 1, 'image_len': 61}, 3, 5.0, d['spec'], d['rule'], d['ident'],
                                         d['master'], d['ost'], d['wire'], t, EXP, baseline_completion_s=2.5)
         self.assertFalse(any('growth' in f for f in fails), fails)
+
+
+def rotate4_capture(lengths=(141, 141, 247, 247)):
+    """A synthetic rotate4 READ capture: O->M single-frame responses of the given link-octet lengths, interleaved
+    as the schedule issues them -- range and analog are both 141 (IP 181), base class0 and integrity both 247
+    (IP 287). Raw-length payloads: identify() keys on IP length and flags only. Every frame is in both captures."""
+    out, inn = [], []
+    sseq, rseq = 1000, 5000
+    for i, payload in enumerate(lengths):
+        t = 1_000_000 * (i + 1)
+        req = tk.frame(M, O, MP, OP, sseq, rseq, PSHACK, tk.read_request(i))
+        out.append((t, req)); inn.append((t + 50, req)); sseq += 20
+        ack = tk.frame(O, M, OP, MP, rseq, sseq, ACK)
+        out.append((t + 300, ack)); inn.append((t + 350, ack))
+        resp = tk.frame(O, M, OP, MP, rseq, sseq, PSHACK, bytes(payload))
+        out.append((t + 5_000, resp)); inn.append((t + 5_050, resp)); rseq += payload
+        fin_ack = tk.frame(M, O, MP, OP, sseq, rseq, ACK)
+        out.append((t + 5_500, fin_ack)); inn.append((t + 5_550, fin_ack))
+    return out, inn
+
+
+class Rotate4SingleFrameSelectors(unittest.TestCase):
+    """The single-frame READ-response selectors pick a packet by IP length and occurrence over an interleaved
+    rotate4 capture; class0 and integrity (both 247 B) are NOT distinguished -- there is one 247-byte selector."""
+    def setUp(self):
+        td = tempfile.TemporaryDirectory()
+        self.addCleanup(td.cleanup)
+        self.tmp = td.name
+
+    def ident(self, spec, lengths=(141, 141, 247, 247)):
+        out, inn = rotate4_capture(lengths)
+        o, i = write(self.tmp, out, inn)
+        return loss.identify(o, i, loss.parse_drop(spec, reads=4), MP, OP)
+
+    def test_length_selector_picks_the_intended_packet_by_length_and_occurrence(self):
+        a1 = self.ident('read_resp_analog:1')                  # first 181-byte response
+        self.assertTrue(a1['identified'])
+        self.assertEqual(a1['candidates'], 2)                  # two 181-byte responses in the capture
+        self.assertEqual(a1['packet']['ip_len'], 181)
+        a2 = self.ident('read_resp_analog:2')
+        self.assertEqual(a2['packet']['ip_len'], 181)
+        self.assertNotEqual(a1['packet']['seq'], a2['packet']['seq'])    # occurrence selects a different frame
+        c1 = self.ident('read_resp_247:1')
+        c2 = self.ident('read_resp_247:2')
+        for r in (c1, c2):
+            self.assertTrue(r['identified'])
+            self.assertEqual(r['candidates'], 2)               # two 287-byte responses (class0 and integrity)
+            self.assertEqual(r['packet']['ip_len'], 287)
+        self.assertNotEqual(c1['packet']['seq'], c2['packet']['seq'])
+
+    def test_no_class0_vs_integrity_distinction_is_offered(self):
+        for name in ('read_resp_class0', 'read_resp_integrity'):
+            with self.assertRaises(ValueError, msg=name):
+                loss.parse_drop(name + ':1', reads=4)
+            self.assertNotIn(name, loss.names(), name)
+        self.assertIn('read_resp_247', loss.names())

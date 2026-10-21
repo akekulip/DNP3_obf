@@ -159,9 +159,23 @@ def validate_read_classes(cfg):
         if key in traffic and not isinstance(traffic[key], str):
             raise ValueError('traffic.%s must be a string' % key)
     try:
-        name, _classes, _db = read_classes.schedule_and_db(cfg)
-        if name is not None and cfg.get('loss', {}).get('presets'):
-            raise ValueError('traffic.read_schedule is not supported with loss presets (unsupported shape)')
+        name, _classes, db = read_classes.schedule_and_db(cfg)
+        presets = cfg.get('loss', {}).get('presets')
+        if name is not None and presets:
+            # A READ-class schedule with a loss preset is allowed only for a single-frame READ-response selector
+            # whose length exists as one link frame on this database. The 247-byte selector (read_resp_247) covers
+            # base class0/integrity without distinguishing them; on the large database those classes are segmented
+            # (292 + 85), so no 247-byte single-frame response exists and read_resp_247 is refused (NOT_EXERCISED).
+            single_frame = {sum(segs) for segs in read_classes.NATIVE_SEGMENTS.get(db, {}).values() if len(segs) == 1}
+            for pname, entries in presets.items():
+                for e in entries:
+                    if e['class'] not in loss.READ_RESP_LEN:
+                        raise ValueError('traffic.read_schedule with a loss preset is supported only for the '
+                                         'single-frame READ-response selectors %s; preset %s targets %r'
+                                         % (sorted(loss.READ_RESP_LEN), pname, e['class']))
+                    _sel, reason = loss.read_resp_class(e['class'], single_frame)
+                    if reason:
+                        raise ValueError('traffic.read_schedule with loss preset %s: %s' % (pname, reason))
         # the READ count one unit (connection) actually carries; one_connection runs every trial of an arm on one
         reads = cfg['trials']['reads_per_trial'] * (cfg['trials']['trials_per_arm']
                                                     if cfg.get('trial_mode') == 'one_connection' else 1)

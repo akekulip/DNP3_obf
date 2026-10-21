@@ -40,7 +40,20 @@ CLASSES = {
     'read_resp_native': {'dir': 'O>M', 'ip_len': 89, 'flags': 'ACK,PSH', 'what': 'native READ response, 49 B'},
     'control_resp_native': {'dir': 'O>M', 'ip_len': 77, 'flags': 'ACK,PSH', 'what': 'native SELECT/OPERATE response, 37 B'},
     'resp_padded': {'dir': 'O>M', 'ip_len': 98, 'flags': 'ACK,PSH', 'what': 'padded response as returned by the switch, 58 B'},
+    # Single-frame READ-response drop selectors. The selector picks a packet by IP length, flags and occurrence
+    # only; it CANNOT tell apart two READ classes of the same length. On the base fixture class0 and integrity
+    # responses are BOTH 247 B (IP 287) and rotate4 interleaves them, so there is ONE 247-byte selector
+    # (read_resp_247) targeting "a 247-byte READ response" without claiming which class; a per-class
+    # read_resp_class0 / read_resp_integrity drop would mis-stamp the class and is not offered. analog is the
+    # 141-byte (IP 181) selector. The natively segmented large-DB class0/integrity (two frames) have no
+    # single-length selector at all (read_resp_class -> NOT_EXERCISED).
+    'read_resp_analog': {'dir': 'O>M', 'ip_len': 40 + 141, 'flags': 'ACK,PSH', 'what': 'a 141 B single-frame READ response (analog)'},
+    'read_resp_247': {'dir': 'O>M', 'ip_len': 40 + 247, 'flags': 'ACK,PSH', 'what': 'a 247 B single-frame READ response (base class0 or integrity; not distinguished)'},
 }
+# Single-frame READ-response drop selector -> the response link-octet length it targets. One selector per length:
+# the selector is length-unique and makes no per-class claim. A campaign that combines a READ-class schedule with
+# a loss preset is restricted to these, and only when that length exists as a single link frame on the database.
+READ_RESP_LEN = {'read_resp_analog': 141, 'read_resp_247': 247}
 # alias -> (base class, occurrence offset given the READ count): the position of the packet inside the base class
 ALIASES = {
     'read_resp_padded': ('resp_padded', lambda reads: 0),
@@ -66,6 +79,24 @@ def names():
 
 def receiver_ns(direction):
     return NS_O if direction == 'M>O' else NS_M
+
+
+def read_resp_class(drop_class, single_frame_lengths):
+    """Validate a single-frame READ-response loss selector against a database's single-frame response lengths --
+    the set of sum(native_segments) over every READ class that is exactly one link frame on that database --
+    returning (selector, None) when a single-frame response of the selector's length exists, else
+    (None, NOT_EXERCISED reason). A length carried only by a natively segmented class (large-DB class0/integrity,
+    two frames) is NOT_EXERCISED; so is an unknown selector, including a per-class read_resp_class0 /
+    read_resp_integrity, which this selector cannot distinguish from each other at 247 B."""
+    length = READ_RESP_LEN.get(drop_class)
+    if length is None:
+        return None, ('NOT_EXERCISED: %r is not a single-frame READ-response loss selector; the selector cannot '
+                      'distinguish READ classes of the same length (use one of %s)'
+                      % (drop_class, sorted(READ_RESP_LEN)))
+    if length not in single_frame_lengths:
+        return None, ('NOT_EXERCISED: no single-frame %d-byte READ response on this database (segmented or absent); '
+                      'the single-length loss selector targets one link frame only' % length)
+    return drop_class, None
 
 
 def parse_drop(text, reads):
