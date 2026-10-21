@@ -525,6 +525,163 @@ def stop_after_current(directory):
         atomic_json(directory / 'state.json', state)
 
 
+HARDWARE_TESTBED = Path.home() / '.local/state/dnp3-evaluation/tofino1-testbed'
+RESTORE_VERIFY = HERE / 'restore_verify.py'
+
+
+def running_eval_units():
+    """Evaluation services still running (a oneshot that has exited is finished, not running)."""
+    result = subprocess.run(['systemctl', '--user', 'list-units', 'dnp3-eval-*', '--all', '--plain',
+                             '--no-legend', '--no-pager'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if result.returncode:
+        raise Refused('cannot list evaluation units: ' + result.stderr)
+    busy = []
+    for line in result.stdout.splitlines():
+        fields = line.split()
+        if len(fields) >= 4 and fields[2] in ACTIVE and fields[3] != 'exited':
+            busy.append(fields[0])
+    # a queued start job shows as 'inactive dead' in list-units (review): list jobs as well
+    jobs = subprocess.run(['systemctl', '--user', 'list-jobs', 'dnp3-eval-*', '--plain', '--no-legend', '--no-pager'],
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if jobs.returncode:
+        raise Refused('cannot list evaluation jobs: ' + jobs.stderr)
+    busy += ['job: ' + line.strip() for line in jobs.stdout.splitlines() if line.strip()]
+    # a manual run_block_frozen.sh holds a reservation in run_reservations/ and is not a dnp3-eval unit
+    reservations = HERE / 'run_reservations'
+    if reservations.is_dir():
+        busy += ['reservation: ' + p.name for p in sorted(reservations.iterdir())]
+    return busy
+
+
+def rv_rules(name):
+    """A comparison-rule set of restore_verify.py, read from its source (recorded, never altered)."""
+    import ast
+    for node in ast.parse(RESTORE_VERIFY.read_text()).body:
+        if isinstance(node, ast.Assign) and any(getattr(t, 'id', None) == name for t in node.targets):
+            return {elt.value for elt in node.value.args[0].elts}
+    return set()
+
+
+def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=None, now=None):
+    """Clear an unverified-restoration refusal ONLY on a fresh, complete restoration check.
+
+    Under the existing testbed lock: the ownership record must name exactly this failed block (terminal
+    record hash bound), no owner or evaluation service may be active, and the block's own restore inputs
+    (runner restore record, pre-run snapshot, config from its frozen argv) must match the hashes retained at
+    the block. restore_verify.py then runs afresh, unchanged, into a new directory. Only if it exits 0 with
+    ok and no failures is an immutable reconciliation record written and the ownership record updated
+    atomically; any other outcome writes an immutable refusal record and leaves the flag set. Original
+    failure evidence is read, never modified."""
+    directory, manifest, _ = load(Path(directory).resolve(strict=True))
+    step = next((s for s in manifest['steps'] if s['id'] == step_id and s['kind'] == 'block'), None)
+    if step is None:
+        raise Refused('unknown block step')
+    hardware = manifest['evidence_kind'] == 'hardware'
+    root = Path(root) if root is not None else (HARDWARE_TESTBED if hardware else directory.parent / 'fixture_testbed')
+    stamp = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime(time.time() if now is None else now))
+    out = directory.parent / ('reconcile_%s_%s' % (step_id, stamp))
+    with locked(root, 'active.lock', blocking=False):
+        state_path = root / 'ownership.json'
+        ownership = read_json(state_path)
+        problems, bound = [], {'ownership': digest(state_path.read_bytes())}
+        if ownership.get('active'):
+            problems.append('an owner is active')
+        if ownership.get('unsafe_restoration') is not True:
+            problems.append('ownership records no unverified restoration')
+        if ownership.get('campaign_dir') != str(directory) or ownership.get('step_id') != step_id:
+            problems.append('ownership names a different campaign or step')
+        terminal_path = directory / 'steps' / step_id / 'terminal.json'
+        terminal = read_json(terminal_path) if terminal_path.is_file() else {}
+        bound['terminal'] = digest(terminal_path.read_bytes()) if terminal_path.is_file() else None
+        if bound['terminal'] is None or bound['terminal'] != ownership.get('terminal_sha256'):
+            problems.append('terminal record missing or differs from the ownership binding')
+        restoration = terminal.get('restoration') or {}
+        original = Path(restoration.get('path', '/nonexistent'))
+        if not original.is_file() or digest(original.read_bytes()) != restoration.get('sha256') or restoration.get('ok') is not False:
+            problems.append('original failed restoration record missing or changed')
+        else:
+            bound['original_restore_verify'] = restoration['sha256']
+        run_root = Path(step['run_root'])
+        artifacts = {}
+        try:
+            manifest_ref = terminal['artifact_manifest']
+            if digest(Path(manifest_ref['path']).read_bytes()) != manifest_ref['sha256']:
+                raise ValueError('artifact manifest changed')
+            artifacts = read_json(Path(manifest_ref['path']))['files']
+        except (KeyError, TypeError, ValueError, OSError, Refused) as error:
+            problems.append('retained artifact manifest unusable: %s' % error)
+        inputs = [run_root / 'campaign_run.json'] + sorted(run_root.glob('*_prerun.json'))
+        if len(inputs) != 2 or not all(p.is_file() for p in inputs):
+            problems.append('block restore record and exactly one pre-run snapshot are required')
+        for path in inputs:
+            rel = str(path.relative_to(run_root))
+            if path.is_file() and artifacts.get(rel, {}).get('sha256') != digest(path.read_bytes()):
+                problems.append('restore input differs from the retained artifact hash: ' + rel)
+        argv = step['argv']
+        frozen = len(argv) >= 6 and argv[1].endswith('run_block_frozen.sh')
+        config = argv[4] if frozen else None
+        if hardware and (not frozen or not Path(config).is_file()):
+            problems.append('hardware block config not resolvable from its frozen argv')
+        elif hardware:
+            # the config must be the one the block ran with: its freeze check (hash-retained) binds config_sha256
+            freeze = run_root / 'freeze_check.json'
+            if not freeze.is_file() or artifacts.get('freeze_check.json', {}).get('sha256') != digest(freeze.read_bytes()):
+                problems.append('retained freeze check missing or changed')
+            elif read_json(freeze).get('config_sha256') != digest(Path(config).read_bytes()):
+                problems.append('block config changed since the block ran')
+            else:
+                bound['config'] = digest(Path(config).read_bytes())
+        busy = units()
+        if busy:
+            problems.append('evaluation units still running: %s' % ', '.join(busy))
+        out.mkdir()
+        tool_commit = subprocess.run(['git', 'log', '-1', '--format=%H %cI %s', '--', RESTORE_VERIFY.name], cwd=str(HERE),
+                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.strip()
+        tool_dirty = subprocess.run(['git', 'status', '--porcelain', '--', RESTORE_VERIFY.name], cwd=str(HERE),
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.strip()
+        try:
+            original_failures = json.loads(original.read_text()).get('checks', {}).get('snapshot', {}).get('errors')
+        except (OSError, ValueError, AttributeError):
+            original_failures = None
+        record = dict(campaign_dir=str(directory), step_id=step_id, at=time.time(), bound_sha256=bound,
+                      config=config, original_failures=original_failures,
+                      restore_verify_tool=dict(path=str(RESTORE_VERIFY), sha256=digest(RESTORE_VERIFY.read_bytes()),
+                                               last_commit=tool_commit, uncommitted_changes=bool(tool_dirty),
+                                               volatile_tables=sorted(rv_rules('VOLATILE')),
+                                               stripped_statistics=sorted(rv_rules('STATISTICS')),
+                                               rule_note=('comparison rules as committed; the original failed check '
+                                                          'may predate later rule commits (see last_commit)')),
+                      earlier_reverifies={str(p): digest(p.read_bytes()) for p in sorted(directory.parent.glob('reverify_*/restore_verify.json'))})
+        if problems:
+            atomic_json(out / 'reconciliation_refused.json', dict(record, problems=problems, flag_left_set=True), exclusive=True)
+            raise Refused('reconciliation refused: ' + '; '.join(problems))
+        for path in inputs:
+            (out / path.name).write_bytes(path.read_bytes())
+        command = (verifier(config, out) if verifier is not None else
+                   [sys.executable, str(RESTORE_VERIFY), '--config', config, '--run-root', str(out)])
+        rc = command_to_log(command, out / 'restore_verify.log', out)
+        fresh_path = out / 'restore_verify.json'
+        try:
+            fresh = json.loads(fresh_path.read_text())
+        except (OSError, ValueError):
+            fresh = None
+        ok = rc == 0 and isinstance(fresh, dict) and fresh.get('ok') is True and not fresh.get('failures')
+        record.update(command=command, rc=rc, fresh_restore_verify=digest(fresh_path.read_bytes()) if fresh_path.is_file() else None)
+        if not ok:
+            atomic_json(out / 'reconciliation_refused.json', dict(record, problems=['fresh restoration check did not pass'],
+                                                                  flag_left_set=True), exclusive=True)
+            raise Refused('fresh restoration check did not pass; unsafe_restoration left set')
+        reconciliation = out / 'reconciliation.json'
+        atomic_json(reconciliation, dict(record, result='restoration verified afresh; ownership update follows '
+                                                        '(the clear is proven by reconciliation_sha256 in ownership.json)'),
+                    exclusive=True)
+        atomic_json(state_path, dict(active=False, unsafe_restoration=False, campaign_dir=str(directory),
+                                     step_id=step_id, previous_terminal_sha256=ownership.get('terminal_sha256'),
+                                     reconciliation=str(reconciliation),
+                                     reconciliation_sha256=digest(reconciliation.read_bytes())))
+        return reconciliation
+
+
 def status(directory):
     directory = Path(directory).resolve(strict=True)
     with locked(directory):
@@ -579,10 +736,10 @@ def controller(directory):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest='command', required=True)
-    for command in ('init', 'start', 'status', 'resume', 'stop-after-current', '_controller', '_block'):
+    for command in ('init', 'start', 'status', 'resume', 'stop-after-current', 'reconcile', '_controller', '_block'):
         child = sub.add_parser(command)
         child.add_argument('path')
-        if command == '_block':
+        if command in ('_block', 'reconcile'):
             child.add_argument('step_id')
     args = parser.parse_args(argv)
     try:
@@ -598,6 +755,8 @@ def main(argv=None):
             return controller(args.path)
         elif args.command == '_block':
             return run_step(args.path, args.step_id)
+        elif args.command == 'reconcile':
+            print(reconcile(args.path, args.step_id))
         return 0
     except (Refused, OSError, ValueError, KeyError, TypeError) as error:
         sys.stderr.write('REFUSED: %s\n' % error)
