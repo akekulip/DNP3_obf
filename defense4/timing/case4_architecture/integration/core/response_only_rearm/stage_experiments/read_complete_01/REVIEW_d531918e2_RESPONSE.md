@@ -25,6 +25,17 @@ the model gate recomputed there as blocked (exit 1).
 
 ## Timing discrepancy (raised by the review as unattributed)
 
-Attributed to the environment, not the build: the unchanged m11_09 build, run on 2026-10-21 in the same frozen
-wrapper (campaign rc01_hw_b08_20261021_03), fails the same precision gate (READ p99 absolute CLRT error 3551 µs; 63 µs
-on 18 Oct). Details and the open environment issue are in STATUS.md.
+What the control proves, and only that: the **unchanged** m11_09 build, run on 2026-10-21 in the same frozen
+wrapper (campaign rc01_hw_b08_20261021_03), fails the same precision gate (READ p99 absolute CLRT error 3551 µs;
+63 µs on 18 Oct). So the degradation is **not unique to b08 or to any candidate change** — a build-only cause is
+ruled out. It does **not** identify Vision's 2026-10-19 reboot as the cause, and it does **not** exclude an
+additional candidate-specific component on top of the shared degradation. The shared environment change is the
+leading hypothesis (coincident reboot, new adaptive NIC coalescing, deeper C-states, slower production-path ping),
+not a demonstrated cause. Open; details in STATUS.md.
+
+## Resource accounting (corrected)
+
+b08 and c12 place at **N 12 / E 12 / T 11 in pipe 0/1 ingress-egress, plus the pipe-1 egress READ padder at 7
+stages** (m11_09: N 11 / E 12 / T 11, no pipe-1 padder). The padder is an added control on a pass that already
+existed (the N→T handoff on port 180), so it adds no traversal; it is nonetheless additional occupied resource and
+is counted. The full per-control table against m11_09 is in COMPLETION_RECORD.md.

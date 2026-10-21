@@ -141,11 +141,23 @@ policy, reproduction and the completion record only.
   was 284); contract tests 7 pass (source interpreter). c01-c03 failed attempts retained (2c5f81211).
 - TIMING ATTRIBUTION (campaign rc01_hw_b08_20261021_03, control on the unchanged m11_09 build, 15:25-15:32Z,
   restore_verify ok): m11_09 TODAY fails the same precision gate (timing_only READ p99 abs CLRT error 3551 us,
-  median 1344; 18 Oct: 63 / 5). Off-arm request transit median 1101 us (b08 1161; 18 Oct 98). The discrepancy is
-  NOT the b08 build. It is environmental: even the restore ping through the PRODUCTION program to the relay is
-  slower (avg 2.8-3.7 ms today vs 0.66-0.89 ms on 18 Oct); data-path min RTT unchanged (0.364 vs 0.30-0.34 ms) but
-  jitter large (avg 3.46, max 9.0 ms), while Vision's management path is fast (avg 0.21 ms). Vision rebooted
+  median 1344; 18 Oct: 63 / 5). Off-arm request transit median 1101 us (b08 1161; 18 Oct 98). This rules out a
+  build-only cause: the degradation is NOT unique to b08 or to any candidate change. It does NOT identify a single
+  cause and does NOT exclude an additional candidate-specific component on top of the shared degradation. Leading
+  hypothesis (not demonstrated): the shared environment change. Even the restore ping through the PRODUCTION program
+  to the relay is slower (avg 2.8-3.7 ms today vs 0.66-0.89 ms on 18 Oct); data-path min RTT unchanged (0.364 vs
+  0.30-0.34 ms) but jitter large (avg 3.46, max 9.0 ms), while Vision's management path is fast (avg 0.21 ms). Vision
+  rebooted
   2026-10-19 23:32; now adaptive RX/TX coalescing on (rx-usecs 50), intel_idle max_cstate 9, docker services up
   since boot. No Vision latency tuning is recorded in the repo; sudo on Vision needs a password, so nothing was
-  changed. Hardware timing PRECISION cannot pass on this host state for any build until Philip restores the
-  pre-reboot latency (decision for Philip). Size/delivery/recovery hardware checks are not affected.
+  changed. Hardware timing PRECISION is unlikely to pass on this host state for any build until the pre-reboot
+  latency is restored (decision for Philip); this is a gate on all builds equally, not a candidate result.
+  Size/delivery/recovery hardware checks are not affected.
+
+- 2026-10-21 (later) m12p_c12 full 13-driver v3 gate: 13/13 rc 0 (policy 296/296, policy_boundary 99/99,
+  control_timing 483/483 incl. the per-class READ cycles); evidence committed (f243d85f6), gate recomputes
+  model_gate_passed on a fresh worktree. reproduce.sh now defaults to c12. Resource: N12/E12/T11 + pipe-1 egress
+  padder 7 stages, both SDKs (vs m11_09 N11/E12/T11). Segmented READ 377->401 is OPEN/under investigation (not
+  unsupported): the padded aggregate is link frames [24,292,85]; the first-block rewrite + continuation path is
+  being probed. Recovery for the added single-frame classes (analog 141, base class0/integrity 247) is being added
+  to the existing helpers; segmented recovery coordinates with the continuation probe.
