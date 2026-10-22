@@ -15,12 +15,15 @@ Read-only on both hosts. Passes only when all of these hold:
      fixture qdisc);
   5. a fresh ping through the restored path succeeds;
   6. Vision's parent NIC RX interrupt moderation (`ethtool -c`, adaptive RX and rx-usecs) equals the recorded
-     baseline -- the RX-coalescing host diagnostic (Philip, 2026-10-22) is never left in place.
+     baseline -- the RX-coalescing host diagnostic (Philip, 2026-10-22) is never left in place;
+  7. Vision's effective CPU latency constraint (/dev/cpu_dma_latency) equals the recorded baseline and no
+     CPU-latency hold helper is running -- the CPU-latency host diagnostic is never left in place.
 Writes restore_verify.json beside the evidence; exit 0 only when every check passes.
 """
 import argparse
 import glob
 import json
+import shlex
 import subprocess
 import sys
 import time
@@ -34,6 +37,18 @@ STATISTICS = frozenset({'$COUNTER_SPEC_PKTS', '$COUNTER_SPEC_BYTES', 'drop_count
                         'usage_cells', 'watermark_cells', 'shared_pool_usage_cells', 'guaranteed_min_usage_cells'})
 BASELINE = HERE / 'restore_baseline/vision_state_20261015.txt'
 RX_COALESCE_BASELINE = HERE / 'restore_baseline/vision_rx_coalesce_20261022.json'
+CPU_LATENCY_BASELINE = HERE / 'restore_baseline/vision_cpu_dma_latency_20261022.json'
+# read-only: the effective constraint, and any helper still running (its command line carries this marker)
+def cpu_latency_probe(device='/dev/cpu_dma_latency'):
+    """Read-only probe source: the effective constraint, then -- after closing its own descriptor -- whether any
+    process still holds the device open (fuser -s; the probe's own sudo/sh parents never hold it)."""
+    return ('import os, struct, subprocess; fd = os.open(%r, os.O_RDONLY); '
+            'v = struct.unpack("i", os.read(fd, 4))[0]; os.close(fd); '
+            'h = subprocess.run(["fuser", "-s", %r]).returncode == 0; '
+            'print("value", v, "helpers", int(h))' % (device, device))
+
+
+CPU_LATENCY_PROBE = cpu_latency_probe()
 REQUIRED_STEPS = ('cold-swap bf_switchd back to the observed production program',
                   'replay the pre-run $PORT snapshot on the production program',
                   'Vision: fixture off, namespace profile and NIC flag restored',
@@ -51,6 +66,20 @@ def rx_coalesce_failures(ethtool_text, baseline):
     want = (baseline['adaptive_rx'], baseline['rx_usecs'])
     return [] if got == want else ['Vision RX coalescing adaptive %s rx-usecs %d, baseline adaptive %s rx-usecs %d'
                                    % (got + want)]
+
+
+def cpu_latency_failures(probe_output, baseline):
+    """[failure] unless the probe reports the baseline constraint and no helper."""
+    import re
+    m = re.search(r'value (-?\d+) helpers (\d+)', probe_output or '')
+    if not m:
+        return ['Vision CPU latency unreadable: %s' % (probe_output or '')[-200:]]
+    fails = []
+    if int(m.group(1)) != baseline['value']:
+        fails.append('Vision CPU latency constraint %s, baseline %d' % (m.group(1), baseline['value']))
+    if int(m.group(2)):
+        fails.append('Vision /dev/cpu_dma_latency is still held open by a process')
+    return fails
 
 
 def ssh(host, cmd, timeout=180):
@@ -165,6 +194,14 @@ def main(argv=None):
     out['checks']['vision_rx_coalescing'] = {'rc': r.returncode, 'ethtool': r.stdout, 'baseline': str(RX_COALESCE_BASELINE),
                                              'failures': rx_fail}
     fails.extend(rx_fail)
+
+    cpu_base = json.loads(CPU_LATENCY_BASELINE.read_text())
+    r = ssh(hosts['vision'], 'sudo -n python3 -c %s' % shlex.quote(CPU_LATENCY_PROBE))
+    cpu_fail = cpu_latency_failures(r.stdout if not r.returncode else '', cpu_base)
+    out['checks']['vision_cpu_latency'] = {'rc': r.returncode, 'probe': r.stdout, 'stderr': r.stderr[-300:],
+                                           'baseline': str(CPU_LATENCY_BASELINE),
+                                           'failures': cpu_fail}
+    fails.extend(cpu_fail)
 
     pg = prod['ping']
     r = ssh(hosts['vision'], 'ping -c %d -I %s %s' % (pg['count'] + 1, pg['src'], pg['dst']))

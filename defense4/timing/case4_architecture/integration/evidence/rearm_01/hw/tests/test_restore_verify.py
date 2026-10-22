@@ -89,3 +89,35 @@ def test_rx_coalescing_must_equal_the_recorded_baseline():
     assert rv.rx_coalesce_failures('', base)
     recorded = __import__('json').loads(rv.RX_COALESCE_BASELINE.read_text())
     assert (recorded['adaptive_rx'], recorded['rx_usecs']) == ('on', 50)
+
+
+def test_cpu_latency_must_equal_the_baseline_with_no_helper():
+    base = {'value': 2000000000}
+    assert rv.cpu_latency_failures('value 2000000000 helpers 0\n', base) == []
+    assert rv.cpu_latency_failures('value 0 helpers 1\n', base)
+    assert rv.cpu_latency_failures('value 2000000000 helpers 1\n', base)
+    assert rv.cpu_latency_failures('value 0 helpers 0\n', base)
+    assert rv.cpu_latency_failures('', base)
+    assert __import__('json').loads(rv.CPU_LATENCY_BASELINE.read_text())['value'] == 2000000000
+
+
+def test_cpu_latency_probe_counts_holders_not_its_own_parents(tmp_path):
+    """The probe under a parent shell whose command line carries the probe text: no false helper; a process holding
+    the device open is a helper (a regular file stands in for /dev/cpu_dma_latency)."""
+    import shlex
+    import struct
+    import subprocess
+    import sys
+    import time
+    device = tmp_path / 'cpu_dma_latency'
+    device.write_bytes(struct.pack('i', 2000000000))
+    probe = rv.cpu_latency_probe(str(device))
+    run = lambda: subprocess.run(['sh', '-c', '%s -c %s; true' % (sys.executable, shlex.quote(probe))],
+                                 stdout=subprocess.PIPE, text=True).stdout
+    assert rv.cpu_latency_failures(run(), {'value': 2000000000}) == []
+    holder = subprocess.Popen([sys.executable, '-c', 'import time; f = open(%r, "rb"); time.sleep(30)' % str(device)])
+    try:
+        time.sleep(0.5)
+        assert rv.cpu_latency_failures(run(), {'value': 2000000000}) == ['Vision /dev/cpu_dma_latency is still held open by a process']
+    finally:
+        holder.kill()

@@ -155,6 +155,12 @@ SINGLE_CLASS_LOSS_SELECTORS = frozenset({'ack_sep', 'read_resp_padded', 'select_
                                          'master_ack_of_padded', 'master_ack_of_padded_data'})
 
 
+def gate_ok(record, precision_reported):
+    """The block verdict: strictly ok, or excused as precision-only reported -- but an invalid host diagnostic is
+    never excused (precision_only_soft looks only at trial failures, not at soft-failure strings)."""
+    return bool(record.get('ok') or precision_reported) and not record.get('host_diagnostic_invalid')
+
+
 def validate_read_classes(cfg):
     """endpoint.binary, traffic.read_schedule/db and every arm's per-class READ declaration, before anything runs: a
     schedule on an arm whose build declares no read_images/read_images_by_db, or a padded arm whose build does not
@@ -1016,7 +1022,7 @@ class Campaign:
         # record['ok'] keeps its strict meaning; gate_ok says the block passed every gate it is configured to apply
         precision_reported = (not failed) and restore_ok and bool(self.soft_failures) and \
             precision_only_soft(self.record, self.cfg.get('evaluation', {}))
-        self.record['gate_ok'] = bool(self.record['ok'] or precision_reported)
+        self.record['gate_ok'] = gate_ok(self.record, precision_reported)
         if precision_reported:
             self.record['host_precision_reported_not_gated'] = True
         if not dry:
@@ -1124,13 +1130,52 @@ class Campaign:
     def vision_setup(self):
         V = self.V
         self.vision_touched = True
-        diag = (self.cfg.get('host_diagnostic') or {}).get('rx_coalescing')
+        host = self.cfg.get('host_diagnostic') or {}
+        unknown = set(host) - {'rx_coalescing', 'cpu_latency', '_note', 'derived_from'}
+        if unknown:
+            raise ValueError('host_diagnostic has unknown keys %s' % sorted(unknown))
+        diag, cpu = host.get('rx_coalescing'), host.get('cpu_latency')
         if diag not in (None, 'off'):
             raise ValueError('host_diagnostic.rx_coalescing must be "off" when present, got %r' % (diag,))
-        self.step('vision', 'namespace TCP profile and NIC source-pruning (snapshots prior state)'
+        if cpu not in (None, 'zero'):
+            raise ValueError('host_diagnostic.cpu_latency must be "zero" when present, got %r' % (cpu,))
+        r = self.step('vision', 'namespace TCP profile and NIC source-pruning (snapshots prior state)'
                   + ('; HOST DIAGNOSTIC: RX interrupt coalescing off (baseline recorded, restored by restore)'
-                     if diag else ''),
-                  'sudo python3 %s/vision_run.py setup' % V + (' --rx-coalesce-diag' if diag else ''))
+                     if diag else '')
+                  + ('; HOST DIAGNOSTIC: CPU latency request 0 held by a supervised helper (released by restore)'
+                     if cpu else ''),
+                  'sudo python3 %s/vision_run.py setup' % V + (' --rx-coalesce-diag' if diag else '')
+                  + (' --cpu-latency-diag' if cpu else ''), check=not (diag or cpu))
+        if (diag or cpu) and not self.rn.dry:
+            self.save(self.root, 'vision_setup.out', r)          # the setup proof (or refusal), kept either way
+            if r.rc:
+                raise StepFailed('Vision setup with host diagnostic failed (rc %d): %s' % (r.rc, (r.err or r.out)[-400:]))
+
+    def host_diagnostic_evidence(self, output):
+        """The CPU-latency release evidence vision_run.py restore printed, into the record. A diagnostic that was not
+        verified in force at release fails the block (soft failure outside any trial, so never precision-only)."""
+        for line in (output or '').splitlines():
+            if line.startswith('cpu latency release evidence: '):
+                try:
+                    evidence = json.loads(line.split(': ', 1)[1])
+                    if not isinstance(evidence, dict):
+                        raise ValueError('not an object')
+                except ValueError:
+                    evidence = {'applied': True, 'diagnostic_valid': False, 'unparsed': line}
+                self.record['cpu_latency_diagnostic'] = evidence
+                wanted = (self.cfg.get('host_diagnostic') or {}).get('cpu_latency')
+                if evidence.get('applied') and not wanted:
+                    self.soft_failures.append('a CPU-latency hold was in force on a block that did not request it')
+                    self.record['host_diagnostic_invalid'] = True
+                    return
+                if (wanted or evidence.get('applied')) and evidence.get('diagnostic_valid') is not True:
+                    self.soft_failures.append('cpu latency diagnostic not verified in force at release')
+                    self.record['host_diagnostic_invalid'] = True
+                return
+        if (self.cfg.get('host_diagnostic') or {}).get('cpu_latency'):
+            self.record['cpu_latency_diagnostic'] = None
+            self.soft_failures.append('cpu latency diagnostic: no release evidence from vision_run.py restore')
+            self.record['host_diagnostic_invalid'] = True
 
     def set_fixture(self, fixture, delay_ms):
         """separate_ack: the emulated relay (separate ACK, delayed response); piggyback: fixture off."""
@@ -1687,6 +1732,9 @@ class Campaign:
             self.record['restore'].append({'step': label, 'rc': r.rc, 'ok': not bad})
             if not self.rn.dry:
                 self.out('[restore:%s] %s -> rc %d' % (where, label, r.rc))
+                if where == 'vision' and 'vision_run.py restore' in cmd:
+                    self.save(self.root, 'vision_restore.out', r)       # host-diagnostic release evidence, kept
+                    self.host_diagnostic_evidence(r.out)
             if bad:
                 ok = False
                 sys.stderr.write('RESTORE STEP FAILED: %s (rc %d) %s\n' % (label, r.rc, (r.err or r.out)[-300:]))

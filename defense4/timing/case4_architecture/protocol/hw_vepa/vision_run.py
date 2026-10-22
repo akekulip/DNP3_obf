@@ -10,7 +10,8 @@
                                  make the outstation side present a separate ACK followed by a late response,
                                  as the SEL-751 does: a quickack route in ns_vepa_b (immediate ACKs) and a netem
                                  delay of D ms on mvB applied only to the outstation's DNP3 response segments
-                                 (IP total length 89 or 77). This emulates relay processing time; say so in
+                                 (IP total lengths CASEA_DELAYED_IP_LEN: every declared single-frame native READ
+                                 response and the 37-byte SELECT/OPERATE response). This emulates relay processing time; say so in
                                  any result that uses it. Without it the OpenDNP3 outstation answers in about
                                  0.3 ms with the ACK on the response, so there is no separate ACK to time.
   vision_run.py run LABEL --master-port P --reads N [--range 8|16] [--gap-ms G] [--connect-must-fail]
@@ -43,6 +44,7 @@ PROFILE = ('net.ipv4.tcp_timestamps', 'net.ipv4.tcp_sack', 'net.ipv4.tcp_window_
 DEFAULT_RANGE = '32768 60999'
 OFFLOAD_BASELINE = HOME + '/offload_baseline.json'   # campaign receive-offload baseline (setup/restore)
 RX_COALESCE_BASELINE = HOME + '/rx_coalesce_baseline.json'   # host diagnostic only (setup --rx-coalesce-diag)
+CPU_LATENCY_STATE = HOME + '/cpu_latency_state.json'          # host diagnostic only (setup --cpu-latency-diag)
 READ_SCHEDULES = ('rotate4', 'mixed_full', 'mixed', 'full')   # CASE4_READ_SCHEDULE (read-schedule endpoint only)
 # CASE4_PAD_EXPECT (master only): the padding the switch is declared to add per READ class, '<class>=<n>[,...]'.
 # A padded arm passes it so the endpoint's STRICT check requires exactly that padding; a padding-off arm passes
@@ -504,6 +506,9 @@ def main():
                     help='maximum pre-connect delay; the applied delay is uniform in 0..N and fixed by --start-seed')
     ap.add_argument('--start-seed', type=int, default=0)
     ap.add_argument('--delay-ms', type=int, default=25)
+    ap.add_argument('--cpu-latency-diag', action='store_true',
+                    help='setup only: host diagnostic -- a supervised helper holds a zero request on '
+                         '/dev/cpu_dma_latency until restore stops it and verifies the baseline')
     ap.add_argument('--rx-coalesce-diag', action='store_true',
                     help='setup only: host diagnostic -- adaptive RX off, rx-usecs 0 (baseline recorded; restore '
                          'puts it back and verifies)')
@@ -528,11 +533,21 @@ def main():
     a = ap.parse_args()
 
     if a.mode == 'setup':
+        # before ANY change: no block (diagnostic or not) starts on a host carrying a CPU-latency state or constraint
+        if os.path.exists(CPU_LATENCY_STATE):
+            sys.exit('setup refused: a CPU-latency diagnostic state exists (%s); restore first' % CPU_LATENCY_STATE)
+        effective_now = capture_observation.read_cpu_latency()
+        if effective_now != capture_observation.CPU_LATENCY_UNCONSTRAINED or capture_observation.device_held():
+            sys.exit('setup refused: CPU latency constraint %r or the device is held before setup' % effective_now)
         capture_observation.record_offload_baseline(OFFLOAD_BASELINE, PARENT)
         if a.rx_coalesce_diag:
             baseline, effective = capture_observation.rx_coalesce_diagnostic(RX_COALESCE_BASELINE, PARENT)
             print('rx coalescing diagnostic: baseline adaptive-rx %s rx-usecs %d; effective adaptive-rx %s rx-usecs %d'
                   % (baseline['adaptive_rx'], baseline['rx_usecs'], effective['adaptive_rx'], effective['rx_usecs']))
+        if a.cpu_latency_diag:
+            held = capture_observation.cpu_latency_hold(CPU_LATENCY_STATE)
+            print('cpu latency diagnostic: baseline %d us; effective %d us; helper pid %d'
+                  % (held['baseline'], held['effective'], held['pid']))
         profile('0', DEFAULT_RANGE)
         if 'source-pruning : on' not in state():
             pruning('on')
@@ -541,20 +556,50 @@ def main():
             sys.exit('casea on|off')
         casea(a.label == 'on', a.delay_ms, a.jitter_ms, a.distribution)
     if a.mode == 'restore':
-        casea(False, 0)
-        profile('1', DEFAULT_RANGE)
-        if 'source-pruning : off' not in state():
-            pruning('off')
-        offload_errors = capture_observation.restore_offload_baseline(OFFLOAD_BASELINE, PARENT)
-        coalesce_errors = capture_observation.restore_rx_coalesce(RX_COALESCE_BASELINE, PARENT)
-        print('rx coalescing after restore: %s' % ' '.join(
-            '%s=%s' % kv for kv in sorted(capture_observation.snapshot_rx_coalesce(PARENT).items()) if kv[0] != 'raw'))
-        if coalesce_errors:
-            print(state())
-            sys.exit('rx coalescing restore failed: ' + '; '.join(coalesce_errors))
-        if offload_errors:
-            print(state())
-            sys.exit('receive offload restore failed: ' + '; '.join(offload_errors))
+        # CPU release first (independent and cheap), then every restore step isolated: an exception or sys.exit in
+        # one step never skips another; all failures are reported together at the end (nonzero exit)
+        messages = []
+
+        def attempt(label, step):
+            try:
+                result = step()
+            except BaseException as error:      # noqa: BLE001 - includes SystemExit from casea/pruning
+                messages.append('%s raised: %r' % (label, error))
+                return None
+            return result
+        released = attempt('cpu latency restore', lambda: capture_observation.cpu_latency_release(CPU_LATENCY_STATE))
+        if released is not None:
+            cpu_errors, evidence = released
+            print('cpu latency release evidence: %s' % json.dumps(evidence, sort_keys=True))
+            if evidence.get('applied') and not evidence.get('diagnostic_valid'):
+                print('CPU LATENCY DIAGNOSTIC INVALID: the zero request was not verified in force at release')
+            if cpu_errors:
+                messages.append('cpu latency restore failed: ' + '; '.join(cpu_errors))
+        attempt('fixture off', lambda: casea(False, 0))
+        attempt('namespace profile', lambda: profile('1', DEFAULT_RANGE))
+        attempt('source pruning', lambda: None if 'source-pruning : off' in state() else pruning('off'))
+        offload = attempt('receive offload restore',
+                          lambda: capture_observation.restore_offload_baseline(OFFLOAD_BASELINE, PARENT))
+        coalesce = attempt('rx coalescing restore',
+                           lambda: capture_observation.restore_rx_coalesce(RX_COALESCE_BASELINE, PARENT))
+        if coalesce:
+            messages.insert(0, 'rx coalescing restore failed: ' + '; '.join(coalesce))
+        if offload:
+            messages.append('receive offload restore failed: ' + '; '.join(offload))
+        for label, read in (('cpu latency after restore', lambda: '%d us' % capture_observation.read_cpu_latency()),
+                            ('rx coalescing after restore', lambda: ' '.join(
+                                '%s=%s' % kv for kv in sorted(capture_observation.snapshot_rx_coalesce(PARENT).items())
+                                if kv[0] != 'raw'))):
+            try:
+                print('%s: %s' % (label, read()))
+            except Exception as error:  # noqa: BLE001 - a read-back print never masks the restore outcome
+                print('%s: unreadable (%s)' % (label, error))
+        if messages:
+            try:
+                print(state())
+            except Exception:           # noqa: BLE001
+                pass
+            sys.exit('; '.join(messages))
     if a.mode != 'run':
         print(state())
         sys.exit(0)

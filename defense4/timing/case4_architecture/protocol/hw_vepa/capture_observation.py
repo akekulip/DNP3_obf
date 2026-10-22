@@ -9,6 +9,9 @@ recompute from the pcaps and JSON files.
 import argparse
 from contextlib import contextmanager
 import json
+import os
+import signal
+import sys
 from pathlib import Path
 import re
 import socket
@@ -171,6 +174,205 @@ def restore_rx_coalesce(path, interface=PARENT, run=sh):
     if not errors:
         path.unlink()
     return errors
+
+
+CPU_DMA_LATENCY = '/dev/cpu_dma_latency'
+CPU_LATENCY_UNCONSTRAINED = 2000000000      # the kernel default (no request): Vision's recorded baseline
+# The supervised helper (argv: helper_file, device): holds one signed 32-bit zero request open on the PM QoS device
+# until SIGTERM, then closes the descriptor (which withdraws the request) and exits. The marker in its command line
+# identifies it, together with its pid and start time.
+CPU_LATENCY_HOLD = r"""
+import json, os, signal, struct, sys, time  # cpu_latency_hold
+fd = os.open(sys.argv[2], os.O_WRONLY)
+os.write(fd, struct.pack('i', 0))
+def stop(*_):
+    os.close(fd)
+    sys.exit(0)
+signal.signal(signal.SIGTERM, stop)
+open(sys.argv[1], 'w').write(json.dumps({'pid': os.getpid(), 'holding': True}))
+while True:
+    time.sleep(3600)
+"""
+
+
+def read_cpu_latency(device=CPU_DMA_LATENCY):
+    """The effective PM QoS CPU latency constraint in microseconds (4-byte signed int read from the device)."""
+    fd = os.open(device, os.O_RDONLY)
+    try:
+        raw = os.read(fd, 4)
+    finally:
+        os.close(fd)
+    if len(raw) != 4:
+        raise RuntimeError('%s returned %d bytes' % (device, len(raw)))
+    return struct.unpack('i', raw)[0]
+
+
+def cpuidle_usage(root='/sys/devices/system/cpu'):
+    """{state name: summed entry count over all CPUs} from cpuidle (read-only). Under a zero latency request the
+    deep states (C1E, C6) should not be entered, so their counts should not grow between setup and release."""
+    totals = {}
+    for usage in sorted(Path(root).glob('cpu[0-9]*/cpuidle/state*/usage')):
+        try:
+            name = (usage.parent / 'name').read_text().strip()
+            totals[name] = totals.get(name, 0) + int(usage.read_text())
+        except (OSError, ValueError):
+            continue
+    return totals
+
+
+def device_held(device=CPU_DMA_LATENCY):
+    """True when any process holds the device open (fuser -s exit 0)."""
+    return subprocess.run(['fuser', '-s', device]).returncode == 0
+
+
+def process_identity(pid):
+    """(start time in clock ticks, command line) of a live pid, or None."""
+    try:
+        stat = Path('/proc/%d/stat' % pid).read_text()
+        cmdline = Path('/proc/%d/cmdline' % pid).read_bytes().replace(b'\0', b' ').decode(errors='replace')
+    except (OSError, ValueError):
+        return None
+    fields = stat[stat.rindex(')') + 2:].split()
+    if fields[0] == 'Z':
+        return None
+    return int(fields[19]), cmdline          # field 22 overall = index 19 after "(comm) state"
+
+
+def _is_helper(state):
+    ident = process_identity(state.get('pid', -1)) if isinstance(state.get('pid'), int) else None
+    return bool(ident and ident[0] == state.get('start_time') and 'cpu_latency_hold' in ident[1])
+
+
+def _stop(pid, timeout):
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    deadline = time.time() + timeout
+    while time.time() < deadline and process_identity(pid) is not None:
+        try:
+            os.waitpid(pid, os.WNOHANG)
+        except ChildProcessError:
+            pass
+        time.sleep(0.05)
+
+
+def cpu_latency_hold(state_path, device=CPU_DMA_LATENCY, expected_baseline=CPU_LATENCY_UNCONSTRAINED,
+                     read=None, held=None, spawn=None, timeout=5.0):
+    """Host diagnostic (Philip, 2026-10-22). Refuses unless no diagnostic state exists, the effective constraint is
+    the expected baseline and no process holds the device; then starts the supervised zero-request helper, records
+    its pid and start time, and verifies the effective constraint reads 0. On ANY failure after the spawn the helper
+    is stopped and the state removed before re-raising. Nothing else on the host is changed."""
+    read = read or (lambda: read_cpu_latency(device))
+    held = held or (lambda: device_held(device))
+    state_path = Path(state_path)
+    if state_path.exists():
+        raise RuntimeError('a CPU-latency diagnostic state already exists at %s: restore first' % state_path)
+    baseline = read()
+    if expected_baseline is not None and baseline != expected_baseline:
+        raise RuntimeError('effective CPU latency %r is not the expected baseline %r' % (baseline, expected_baseline))
+    if held():
+        raise RuntimeError('another process already holds %s' % device)
+    helper_file = Path(str(state_path) + '.helper')
+    if helper_file.exists():
+        helper_file.unlink()
+    spawn = spawn or (lambda: subprocess.Popen([sys.executable, '-c', CPU_LATENCY_HOLD, str(helper_file), device],
+                                               start_new_session=True, stdin=subprocess.DEVNULL,
+                                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+    proc = spawn()
+    try:
+        ident = process_identity(proc.pid)
+        if ident is None:
+            raise RuntimeError('helper %d has no readable identity' % proc.pid)
+        state = {'baseline': baseline, 'pid': proc.pid, 'start_time': ident[0],
+                 'helper_file': str(helper_file), 'device': device}
+        state_path.write_text(json.dumps(state) + '\n')
+        deadline = time.time() + timeout
+        effective = None
+        while time.time() < deadline:
+            if helper_file.exists():
+                effective = read()
+                if effective == 0:
+                    state['effective'] = 0
+                    state['cpuidle_usage_at_setup'] = cpuidle_usage()
+                    state_path.write_text(json.dumps(state) + '\n')
+                    return state
+            time.sleep(0.05)
+        raise RuntimeError('CPU-latency request not effective (effective %r)' % (effective,))
+    except BaseException:
+        _stop(proc.pid, timeout)
+        for path in (state_path, helper_file):
+            if path.exists():
+                path.unlink()
+        raise
+
+
+def cpu_latency_release(state_path, read=None, timeout=5.0, held=None):
+    """Release the diagnostic. Returns (host_errors, evidence). evidence['held_at_release'] is True only when the
+    recorded helper (pid + start time + marker) was still running AND the effective constraint read 0 just before
+    the release -- otherwise the diagnostic was not in force for the whole block (evidence['diagnostic_valid'] False).
+    host_errors (the restoration verdict) are only: the helper still running afterwards, or the effective constraint
+    not back at the recorded baseline. A pid that is no longer the helper is never signalled. The state files are
+    removed only when the host is verified restored. No state: ([], {'applied': False})."""
+    state_path = Path(state_path)
+    if not state_path.exists():
+        # no recorded diagnostic: the device itself must still be unconstrained and unheld (an orphaned helper from a
+        # setup killed before it wrote its state would otherwise survive a restore that exits 0)
+        errors = []
+        try:
+            effective = (read or read_cpu_latency)()
+            holder = (held or device_held)()
+        except Exception as error:      # noqa: BLE001
+            return ['CPU latency unreadable with no diagnostic state: %s' % error], {'applied': False}
+        if effective != CPU_LATENCY_UNCONSTRAINED or holder:
+            errors.append('no CPU-latency diagnostic state, but effective constraint %r and device held %s'
+                          % (effective, holder))
+        return errors, {'applied': False, 'effective': effective, 'device_held': holder}
+    try:
+        state = json.loads(state_path.read_text())
+        if not isinstance(state, dict):
+            raise ValueError('not an object')
+        device = state.get('device', CPU_DMA_LATENCY)
+        baseline = state['baseline']
+    except (ValueError, KeyError, TypeError) as error:
+        stopped = None
+        if isinstance(locals().get('state'), dict) and _is_helper(state):       # identity still checkable: stop it
+            _stop(state['pid'], timeout)
+            stopped = state['pid']
+        return ['CPU-latency state unreadable: %s' % error], {'applied': True, 'stopped_helper': stopped}
+    read = read or (lambda: read_cpu_latency(device))
+    alive = _is_helper(state)
+    try:
+        effective_before = read()       # a failed read must never prevent the stop below
+    except Exception as error:          # noqa: BLE001
+        effective_before = 'unreadable: %s' % error
+    evidence = {'applied': True, 'helper_alive_at_release': alive, 'effective_before_release': effective_before,
+                'held_at_release': alive and effective_before == 0}
+    try:
+        before, after = state.get('cpuidle_usage_at_setup') or {}, cpuidle_usage()
+        evidence['cpuidle_entries_during_hold'] = ({name: after.get(name, 0) - before.get(name, 0)
+                                                    for name in sorted(set(before) | set(after))}
+                                                   if before and after else 'cpuidle usage not available')
+    except Exception as error:          # noqa: BLE001 - informational, never blocks the release
+        evidence['cpuidle_entries_during_hold'] = 'unreadable: %s' % error
+    evidence['diagnostic_valid'] = evidence['held_at_release']
+    if alive:
+        _stop(state['pid'], timeout)
+    host_errors = []
+    if _is_helper(state):
+        host_errors.append('helper %d still running after SIGTERM' % state['pid'])
+    try:
+        effective = read()
+    except Exception as error:          # noqa: BLE001 - keep the evidence already collected
+        effective = 'unreadable: %s' % error
+    evidence['effective_after_release'] = effective
+    if effective != baseline:
+        host_errors.append('effective CPU latency constraint %r, baseline %r' % (effective, baseline))
+    if not host_errors:
+        for path in (Path(state.get('helper_file', str(state_path) + '.helper')), state_path):
+            if path.exists():
+                path.unlink()
+    return host_errors, evidence
 
 
 def restore_offload_baseline(path, interface=PARENT, run=sh):
