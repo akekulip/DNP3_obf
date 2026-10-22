@@ -359,6 +359,35 @@ class NoContactReconcileTests(unittest.TestCase):
         self.assertEqual(self.c.REPO / target.relative_to(self.c.REPO), target)
         self.assertEqual(self.c.ARCH.name, 'case4_architecture')
 
+    def test_freeze_refusal_passes_with_bound_exit_status(self):
+        self.log.write_text(FREEZE_LOG)
+        self.terminal['rc'] = 3
+        self.write_terminal()
+        self.c.FREEZE_CHECKS = self.root / 'no_freeze_checks'
+        before = {p: p.read_bytes() for p in (self.log, self.steps / 'terminal.json')}
+        record = Path(self.run_reconcile())
+        for path, raw in before.items():                       # the original failure record is preserved
+            self.assertEqual(path.read_bytes(), raw, path.name)
+        self.assertIs(json.loads(self.ownership.read_text())['unsafe_restoration'], False)
+        self.assertEqual(json.loads(record.read_text())['no_contact_evidence']['corroborating']['ending'],
+                         'freeze_refused')
+
+    def test_freeze_refusal_with_other_exit_status_refused(self):
+        self.log.write_text(FREEZE_LOG)
+        self.terminal['rc'] = 1
+        self.write_terminal()
+        self.c.FREEZE_CHECKS = self.root / 'no_freeze_checks'
+        self.assert_refused_with_record('terminal exit status')
+
+    def test_freeze_refusal_fresh_verifier_failure_leaves_flag_set(self):
+        self.log.write_text(FREEZE_LOG)
+        self.terminal['rc'] = 3
+        self.write_terminal()
+        self.c.FREEZE_CHECKS = self.root / 'no_freeze_checks'
+        with self.assertRaises(self.c.Refused):
+            self.run_reconcile(verifier=writer(False))
+        self.assert_flag_set()
+
     # --- no-contact proof -------------------------------------------------------------------------------------
     def test_hardware_marker_in_command_log_refused(self):
         self.log.write_text('[switch] make remote directories -> rc 0\n' + TRACEBACK_LOG)
@@ -575,6 +604,93 @@ class EvidenceClassificationTests(unittest.TestCase):
     def test_traceback_must_be_last(self):
         self.log.write_text(TRACEBACK_LOG + 'more output\n')
         self.assertEqual(self.classify()['classification'], 'ambiguous')
+
+
+FREEZE_LOG = ('freeze check: FAILED 1 changed, 0 missing\n'
+              '  changed defense4/timing/case4_architecture/protocol/hw_vepa/vision_run.py\n'
+              '  DIAGNOSTIC EXCEPTION (does not qualify): matched control; not a qualification\n')
+
+
+class FreezeRefusalClassificationTests(unittest.TestCase):
+    """guarded_block's pre-hardware freeze refusal (rc 3, freeze_gate's failure report only) is no-contact; every
+    weaker or contradicting form stays ambiguous (rc01_hw_c25_20261022_03, 2026-10-22)."""
+
+    def setUp(self):
+        self.c = load_module()
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.log = self.root / 'command.log'
+        self.log.write_text(FREEZE_LOG)
+        self.runlog = self.root / 'run_block.log'
+        self.runlog.write_text(block_log('START candidate_campaign other', 'END other block_rc=0 restore_verify_rc=0'))
+        self.checks = self.root / 'freeze_checks'
+        self.checks.mkdir()
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def classify(self, rc=3, run_root=None, terminal=None):
+        t = {'artifact_manifest': None, 'rc': rc} if terminal is None else terminal
+        return self.c.classify_step_evidence(run_root or self.root / 'run0', self.log, t, 'run0', self.runlog,
+                                             freeze_checks=self.checks)
+
+    def test_exact_freeze_refusal_is_no_contact(self):
+        r = self.classify()
+        self.assertEqual(r['classification'], 'no_hardware_contact', r['reasons'])
+        self.assertEqual(r['corroborating']['ending'], 'freeze_refused')
+        self.assertEqual(r['corroborating']['terminal_rc'], 3)
+
+    def test_other_exit_status_is_ambiguous(self):
+        for rc in (1, 2, 0, None, '3', True):
+            self.assertEqual(self.classify(rc=rc)['classification'], 'ambiguous', rc)
+
+    def test_retained_freeze_record_is_ambiguous(self):
+        (self.checks / 'run0.json').write_text('{}')
+        self.assertEqual(self.classify()['classification'], 'ambiguous')
+
+    def test_passing_freeze_check_is_not_a_refusal(self):
+        self.log.write_text('freeze check: OK 0 changed, 0 missing\n')
+        self.assertEqual(self.classify()['classification'], 'ambiguous')
+
+    def test_any_line_after_the_report_is_ambiguous(self):
+        for extra in ('plan output\n', 'block started\n', '[switch] x -> rc 0\n',
+                      '              $ ssh switch true\n', '  plan step indented\n'):
+            self.log.write_text(FREEZE_LOG + extra)
+            self.assertEqual(self.classify()['classification'], 'ambiguous', extra)
+
+    def test_listing_without_header_or_header_not_first_is_ambiguous(self):
+        self.log.write_text(FREEZE_LOG.split('\n', 1)[1])
+        self.assertEqual(self.classify()['classification'], 'ambiguous')
+        self.log.write_text('something else\n' + FREEZE_LOG)
+        self.assertEqual(self.classify()['classification'], 'ambiguous')
+
+    def test_primary_conditions_still_required(self):
+        (self.root / 'exists').mkdir()
+        self.assertEqual(self.classify(run_root=self.root / 'exists')['classification'], 'ambiguous')
+        self.assertEqual(self.classify(terminal={'artifact_manifest': {'path': 'x'}, 'rc': 3})['classification'],
+                         'ambiguous')
+        self.runlog.write_text(self.runlog.read_text() + block_log('START candidate_campaign run0'))
+        self.assertEqual(self.classify()['classification'], 'ambiguous')
+
+    def test_default_freeze_checks_is_guarded_blocks_directory(self):
+        self.assertEqual(self.c.FREEZE_CHECKS, self.c.HERE / 'freeze_checks')
+        self.assertIn("HW / 'freeze_checks' / (run_id + '.json')", (self.c.HERE / 'guarded_block.py').read_text())
+
+    def test_marker_inside_a_listing_line_is_ambiguous(self):
+        self.log.write_text('freeze check: FAILED 0 changed, 1 missing\n  missing a regenerate: ssh host make\n')
+        r = self.classify()
+        self.assertEqual(r['classification'], 'ambiguous')
+        self.assertTrue(r['corroborating']['markers'])
+
+    def test_listing_lines_must_have_their_exact_form(self):
+        for line in ('  changed a; plan: deployed pipeline', '  changed', '\tchanged a', '  deployed x'):
+            self.log.write_text('freeze check: FAILED 1 changed, 0 missing\n' + line + '\n')
+            self.assertEqual(self.classify()['classification'], 'ambiguous', line)
+
+    def test_hardware_evidence_file_is_hardware_run(self):
+        with tempfile.TemporaryDirectory() as temp:
+            (Path(temp) / 'freeze_check.json').write_text('{}')
+            self.assertEqual(self.classify(run_root=Path(temp))['classification'], 'hardware_run')
 
 
 class UnitListingTests(unittest.TestCase):

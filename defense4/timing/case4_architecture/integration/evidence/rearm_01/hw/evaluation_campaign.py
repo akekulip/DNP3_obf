@@ -573,6 +573,15 @@ HARDWARE_MARKER_PREFIXES = ('[switch', '[vision', '[local', '[restore')
 HARDWARE_MARKER_WORDS = ('ssh ', 'rsync ', 'scp ', 'bf_switchd', 'DEFENSE4_HW_AUTHORIZED', 'hardware entry',
                          'verifying restoration')
 EXCEPTION_LINE = re.compile(r'[A-Za-z_][A-Za-z0-9_.]*(Error|Exception|Interrupt)(: .*)?\Z')
+# guarded_block's pre-hardware freeze refusal: freeze_gate.py check prints this header and only indented listing
+# lines, and guarded_block then returns 3 -- its only exit with that status, before any plan, START entry, run root or
+# retained freeze record (guarded_block.block; freeze_gate.py check output).
+FREEZE_FAILED_HEADER = re.compile(r'freeze check: FAILED \d+ changed, \d+ missing\Z')
+# freeze_gate.py check's listing lines, one exact form each (paths carry no whitespace)
+FREEZE_LISTING = re.compile(r'  (changed \S+|missing \S+( regenerate: .*| )?|not bound: .+|'
+                            r'DIAGNOSTIC EXCEPTION \(does not qualify\): .*)\Z')
+FREEZE_REFUSAL_RC = 3
+FREEZE_CHECKS = HERE / 'freeze_checks'      # guarded_block retains <run_id>.json here only after a passing check
 ARCH = HERE.parents[3]              # guarded_block.py: ARCH = HW.parents[3]
 REPO = ARCH.parents[2]              # guarded_block.py chdirs here; freeze records hold repo-relative paths
 RUN_BLOCK_LOG = HERE / 'run_block.log'  # guarded_block.log_event: START before entry, END/REFUSED after
@@ -601,7 +610,7 @@ def run_block_entries(run_block_log):
     return entries
 
 
-def classify_step_evidence(run_root, command_log, terminal, run_id, run_block_log):
+def classify_step_evidence(run_root, command_log, terminal, run_id, run_block_log, freeze_checks=None):
     """Pure, read-only: hardware_run | no_hardware_contact | ambiguous, with the evidence for the verdict.
 
     hardware_run: any hardware-run file under the run root. no_hardware_contact needs positive proof. Primary:
@@ -609,8 +618,10 @@ def classify_step_evidence(run_root, command_log, terminal, run_id, run_block_lo
     (hash-bound in ownership.json) has artifact_manifest null (retain_artifact_hashes returns None only when the
     root was not a directory at block end), and run_block.log has no START for this run ID (guarded_block logs
     START before entering hardware). Corroborating: command.log exists, ends in a Python traceback (exception line
-    after the last 'Traceback' header) or a REFUSED line, and carries no hardware marker line. Anything else is
-    ambiguous."""
+    after the last 'Traceback' header) or a REFUSED line, and carries no hardware marker line -- or it is exactly a
+    pre-hardware FREEZE refusal: the whole log is freeze_gate's failure report (the FAILED header, then only its
+    indented listing lines), the terminal record binds exit status 3, and no freeze record was retained for this
+    run ID. Anything else is ambiguous."""
     run_root, command_log = Path(run_root), Path(command_log)
     primary = dict(run_root=str(run_root), run_root_exists=os.path.lexists(str(run_root)),
                    terminal_artifact_manifest_null=isinstance(terminal, dict) and 'artifact_manifest' in terminal
@@ -646,12 +657,24 @@ def classify_step_evidence(run_root, command_log, terminal, run_id, run_block_lo
     filled = [line for line in lines if line.strip()]
     last = filled[-1] if filled else ''
     headers = [i for i, line in enumerate(filled) if line == 'Traceback (most recent call last):']
+    freeze_report = (bool(filled) and FREEZE_FAILED_HEADER.match(filled[0]) is not None and
+                     all(FREEZE_LISTING.match(line) for line in filled[1:]))
     if last.startswith('REFUSED'):
         corroborating['ending'] = 'refused'
     elif headers and headers[-1] < len(filled) - 1 and EXCEPTION_LINE.match(last):
         corroborating['ending'] = 'traceback'
+    elif freeze_report:
+        corroborating['ending'] = 'freeze_refused'
+        retained = Path(freeze_checks or FREEZE_CHECKS) / ('%s.json' % run_id)
+        corroborating['freeze_record_retained'] = os.path.lexists(str(retained))
+        rc = terminal.get('rc') if isinstance(terminal, dict) else None
+        corroborating['terminal_rc'] = rc
+        if type(rc) is not int or rc != FREEZE_REFUSAL_RC:
+            reasons.append('freeze refusal log but terminal exit status %r, not %d' % (rc, FREEZE_REFUSAL_RC))
+        if corroborating['freeze_record_retained']:
+            reasons.append('a freeze record was retained for this run ID (the freeze check passed once)')
     else:
-        reasons.append('command.log does not end in a Python traceback or a REFUSED line')
+        reasons.append('command.log does not end in a Python traceback or a REFUSED line, and is not a freeze refusal')
     if corroborating['markers']:
         reasons.append('command.log carries hardware marker lines')
     summary['classification'] = 'ambiguous' if reasons else 'no_hardware_contact'
