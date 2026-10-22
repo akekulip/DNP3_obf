@@ -230,6 +230,7 @@ def derive_segmented(shape, sample):
              prefix_link_ctrl=hdr0[3],                               # copied from the native response (0x44)
              prefix_user_len=len(pu), padobj_head=pu[5:].hex(),      # the ONLY payload-content compile constant
              padobj_group_var_qual=pu[5:8].hex(), padobj_range=pu[8:12].hex(),
+             prefix_link_crc_delta=crc_be(prefix, 8) ^ crc_be(nf[0], 8),  # pll.crc = native frame0 link crc ^ this (invariant)
              reserved_first_index=PAD_START, reserved_last_index=PAD_START + r.padding_points - 1,
              moved_app_header_src='native frame0 user[1:5] (app ctrl, function, IIN) -> prefix user[1:5]',
              per_frame=per_frame)
@@ -279,7 +280,8 @@ def main():
         ci, pkt = derive_segmented(shape, lambda: (req, native))
         # the declared compile constants must not depend on live bytes
         for k in ('prefix_link_len', 'prefix_link_ctrl', 'padobj_head', 'padobj_group_var_qual',
-                  'padobj_range', 'target', 'added', 'padding_points', 'frames_out', 'tcp_packetization'):
+                  'padobj_range', 'target', 'added', 'padding_points', 'frames_out', 'tcp_packetization',
+                  'prefix_link_crc_delta'):
             assert ci[k] == c0[k], ('segmented constant depends on live bytes', k, ci[k], c0[k])
         # the rewritten byte offsets are structural and must be identical for every sample
         for a, b in zip(ci['per_frame'], c0['per_frame']):

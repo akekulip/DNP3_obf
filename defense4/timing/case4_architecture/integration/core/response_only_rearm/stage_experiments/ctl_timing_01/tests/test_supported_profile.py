@@ -129,7 +129,7 @@ def test_artifact_hashes_match_the_files():
             assert hashlib.sha256((BUILD / compile_dir / 'out' / rel).read_bytes()).hexdigest() == want
 
 
-@pytest.mark.parametrize('children', (1, 3))
+@pytest.mark.parametrize('children', (1, 2, 3))
 def test_successor_semantics_are_bound_to_source_instead_of_name(tmp_path, children):
     import model_profile
     source = tmp_path / 'response_only.p4'
@@ -157,7 +157,7 @@ def test_unknown_or_inconsistent_profile_cannot_select_old_expectations(tmp_path
     elif mutation == 'no_reset':
         inputs['supported_profile']['reset_restart_required'] = False
     elif mutation == 'bad_children':
-        inputs['supported_profile']['t_child_count'] = 2
+        inputs['supported_profile']['t_child_count'] = 4   # 1,2,3 are valid (2 = segmented second child); 4 is not
     else:
         inputs.pop('supported_profile')
         inputs['milestone'] = milestone = 'm9'

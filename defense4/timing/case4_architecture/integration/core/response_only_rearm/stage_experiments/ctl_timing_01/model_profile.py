@@ -39,8 +39,8 @@ def resolve(inputs, source, milestone=None):
         if not isinstance(profile, dict) or profile.get('reset_restart_required') is not True:
             raise ValueError('successor profile must require reset restart coverage')
         children = profile.get('t_child_count')
-        if type(children) is not int or children not in (1, 3):
-            raise ValueError('supported T child count must be 1 or 3')
+        if type(children) is not int or children not in (1, 2, 3):
+            raise ValueError('supported T child count must be 1, 2 or 3')
         candidate = profile.get('candidate')
         if not isinstance(candidate, dict) or candidate.get('source_sha256') != sha:
             raise ValueError('supported profile does not bind this source')

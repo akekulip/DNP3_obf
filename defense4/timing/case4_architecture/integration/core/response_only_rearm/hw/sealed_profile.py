@@ -98,7 +98,7 @@ def _legacy_select(build_out):
 
 def child_registers(descriptor):
     count = descriptor.get('t_child_count')
-    if type(count) is not int or count not in (1, 3):
+    if type(count) is not int or count not in (1, 2, 3):
         raise ValueError('unsupported T child count')
     return tuple('child_seen%d_reg' % index for index in range(count))
 

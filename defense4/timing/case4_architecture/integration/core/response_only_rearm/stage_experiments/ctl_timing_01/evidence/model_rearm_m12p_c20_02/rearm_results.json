@@ -1,0 +1,23 @@
+{
+ "cases": [
+  {
+   "expected": "none",
+   "name": "exception",
+   "observed": "Traceback (most recent call last):\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_rearm.py\", line 51, in main\n    child_regs = sealed_profile.child_registers(sealed_profile.describe(\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/sealed_profile.py\", line 176, in describe\n    descriptor = _source_profile(out)\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/sealed_profile.py\", line 130, in _source_profile\n    child_registers(supported)\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/sealed_profile.py\", line 102, in child_registers\n    raise ValueError('unsupported T child count')\nValueError: unsupported T child count\n",
+   "ok": false
+  }
+ ],
+ "meta": {
+  "driver_sha256": "5a0084452a4b73ffbffe59bf3d6a725f37b3c14c29e50e6d74ad95a20a264095",
+  "physical": false,
+  "scope": "E61 compiled protected reconnect; actual N/E/T; all 61 reverse distances and stale isolation"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "exception"
+  ],
+  "passed": 0,
+  "total": 1
+ }
+}

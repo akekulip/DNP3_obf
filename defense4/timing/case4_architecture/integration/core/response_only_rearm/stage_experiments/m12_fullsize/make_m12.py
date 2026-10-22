@@ -1103,10 +1103,241 @@ def transform_segmented_n2(src):
     return src
 
 
+CONSTANTS_SEG = STAGE / 'read_complete_01/vectors/constants_segmented.json'
+
+
+def segmented_shape(name='segmented_integrity_377'):
+    """Per-shape segmented-prefix constants, derived + proven byte-exact vs pad_read on 512 samples by
+    read_complete_01/vectors/derive.py (construct()==pad_read). No hand constants."""
+    return json.loads(CONSTANTS_SEG.read_text())['shapes'][name]
+
+
+def transform_segmented_pad_pipe1(src, c):
+    """FAITHFUL two-frame 377 -> 401 READ padder in PIPE-1 EGRESS (extends the range prefix padder of
+    transform_read_prefix_p1). The large-DB integrity/class0 READ response is two TCP segments on the
+    N->T handoff (port 180): segment 1 = the 292-B FIR link frame (ip.len 332, dl.len 0xff), segment 2 =
+    the 85-B FIN link frame (ip.len 125, dl.len 0x46). Each traverses pipe-1 egress once; the padder acts
+    per segment:
+
+      seg0 (ip.len 332): PREPEND the 24-B synthetic FIR frame (link LEN 0x11, moved application header +
+        padding-object header g1v2 q01 [1024..1027]) and REWRITE block 0 (transport FIR|s -> s+1 as a middle
+        segment, the 4 application-header octets -> 0, block-0 CRC recomputed); ip.len += 24; TCP seq unchanged.
+      seg1 (ip.len 125): REWRITE block 0 only (transport FIN|s1 -> FIN|s1+1, block-0 CRC recomputed); ip.len
+        unchanged; TCP seq += 24 (the prefix inserted 24 B earlier in the master-facing byte stream).
+
+    Only padobj_head, the prefix link LEN and the prefix link-CRC delta are compile constants
+    (constants_segmented.json); every block-0 CRC, the moved application header, the link addresses and the
+    IP/TCP checksums are derived on chip from live fields. The two continuation block-0s parse with the SAME
+    rh/robj/p03/p45/c0 headers as the range frame (16 user octets + CRC), so no new parser depth is needed;
+    the 274-B seg0 tail and the 57-B seg1 tail ride m.residual unparsed (the full-READ first-block pattern).
+    Byte-exactness is validated against derive.construct()/pad_read at the source-interpreter tier; the
+    deparser IP/TCP checksum externs are not executed there, so their incremental correctness is bounded to
+    the compiled model/ASIC exactly as the range padder's checksum is."""
+    delta = c['prefix_link_crc_delta']
+    padobj = int(c['padobj_head'], 16)
+    plen = c['prefix_link_len']
+    seg0_rows = ''.join('(8w0x%02x):set_tp(8w0x%02x,8w0x%02x);' % (0x40 | s, 0x40 | s, (s + 1) & 0x3f) for s in range(64))
+    seg1_rows = ''.join('(8w0x%02x):set_tp(8w0x00,8w0x%02x);' % (0x80 | s, 0x80 | ((s + 1) & 0x3f)) for s in range(64))
+
+    # --- 1) headers + metadata ---
+    src = once(src, 'header x_pl_u_h { bit<8> tp; bit<32> app; bit<56> padobj; bit<32> padobj2; }',
+               'header x_pl_u_h { bit<8> tp; bit<32> app; bit<56> padobj; bit<32> padobj2; }\n'
+               'header x_pl_u2_h { bit<8> tp; bit<32> app; bit<56> padobj; }   // 12-B segmented-prefix user (no padobj2/plz)\n'
+               'header x_segmark_h { bit<8> v; }   // seg1 deparser-branch marker (validity only; never emitted)')
+    src = once(src, 'x_pl_u_h plu; x_crc_h pluc;', 'x_pl_u_h plu; x_pl_u2_h plu2; x_segmark_h segmark; x_crc_h pluc;')
+    src = once(src, 'bit<1> conn_ok; bit<2> p1_res; }',
+               'bit<1> conn_ok; bit<2> p1_res; bit<2> seg; bit<16> pl_uc2; bit<16> s1_c0; }')
+
+    # --- 2) parser: admit both segment lengths, reuse the one block-0 extraction ---
+    src = once(src, 'transition select(hdr.tev.kind, hdr.tev.stage) { (8w11, 8w0): eth; default: accept; }',
+               'transition select(hdr.tev.kind, hdr.tev.stage) { (8w11, 8w0): eth; (8w11, 8w1): eth; default: accept; }')
+    src = once(src, 'state ip_len { transition select(hdr.ip.len) { 16w89: ip_frag; default: accept; } }',
+               'state ip_len { transition select(hdr.ip.len) { 16w89: ip_frag; 16w332: ip_frag; 16w125: ip_frag; default: accept; } }')
+    src = once(src, 'state dl { pkt.extract(hdr.dl); transition select(hdr.dl.len) { 8w0x26: dl_start; default: accept; } }',
+               'state dl { pkt.extract(hdr.dl); transition select(hdr.dl.len) { 8w0x26: dl_start; 8w0xff: dl_start; 8w0x46: dl_start; default: accept; } }')
+
+    # --- 3) control: segment class, extra CRC derivations, transport renumber rows, profiles, pad actions ---
+    src = once(src, '    action set_tp(bit<8> a, bit<8> b) { m.pl_tp = a; m.co_tp = b; }',
+               '    action set_seg(bit<2> s) { m.seg = s; }\n'
+               '    table seg_class_t { key = { hdr.dl.len : exact; } actions = { set_seg; NoAction; } size = 4;\n'
+               '        const default_action = set_seg(2w0);\n'
+               '        const entries = { (8w0xff): set_seg(2w1); (8w0x46): set_seg(2w2); } }\n'
+               '    action set_tp(bit<8> a, bit<8> b) { m.pl_tp = a; m.co_tp = b; }')
+    src = once(src, 'actions = { set_tp; NoAction; } size = 64;', 'actions = { set_tp; NoAction; } size = 192;')
+    src = once(src, '(8w0xff):set_tp(8w0x7f,8w0x80); } }',
+               '(8w0xff):set_tp(8w0x7f,8w0x80);' + seg0_rows + seg1_rows + ' } }')
+    # seg0 prefix block-0 CRC (12-B user, no padobj2) and seg1 block-0 CRC (16-B user, app header kept)
+    src = once(src, '    Hash<bit<16>>(HashAlgorithm_t.CUSTOM, poly) hash_co_c0;',
+               '    Hash<bit<16>>(HashAlgorithm_t.CUSTOM, poly) hash_co_c0;\n'
+               '    Hash<bit<16>>(HashAlgorithm_t.CUSTOM, poly) hash_pl_uc2;\n'
+               '    Hash<bit<16>>(HashAlgorithm_t.CUSTOM, poly) hash_s1_c0;')
+    src = once(src, '    table crc_co_c0_t { actions = { crc_co_c0; } size = 1; const default_action = crc_co_c0(); }',
+               '    table crc_co_c0_t { actions = { crc_co_c0; } size = 1; const default_action = crc_co_c0(); }\n'
+               '    action crc_pl_uc2() { m.pl_uc2 = hash_pl_uc2.get({m.pl_tp, hdr.rh.appctrl, hdr.rh.func, hdr.rh.iin, 56w%d}); }\n'
+               '    table crc_pl_uc2_t { actions = { crc_pl_uc2; } size = 1; const default_action = crc_pl_uc2(); }\n'
+               '    action crc_s1_c0() { m.s1_c0 = hash_s1_c0.get({m.co_tp, hdr.rh.appctrl, hdr.rh.func, hdr.rh.iin,\n'
+               '        hdr.robj.g_group, hdr.robj.g_var, hdr.robj.g_qual, hdr.robj.g_start, hdr.robj.g_stop, hdr.p03.d, hdr.p45.d}); }\n'
+               '    table crc_s1_c0_t { actions = { crc_s1_c0; } size = 1; const default_action = crc_s1_c0(); }' % padobj)
+    # seg0/seg1 gates (reuse range_read -> m.pad = 1). seg0: g1v2 q00 [0,15] FIR frame; seg1: FIN continuation.
+    src = once(src, '    action prefix() {',
+               '    table seg0_profile { key = { hdr.dl.len : exact; hdr.rh.tpctrl : ternary; hdr.rh.func : exact;\n'
+               '            hdr.robj.g_group : exact; hdr.robj.g_var : exact; hdr.robj.g_qual : exact; hdr.robj.g_start : exact; hdr.robj.g_stop : exact; }\n'
+               '        actions = { range_read; NoAction; } size = 1; const default_action = NoAction();\n'
+               '        const entries = { (8w0xff, 8w0x40 &&& 8w0xc0, 8w0x81, 8w0x01, 8w0x02, 8w0x00, 8w0x00, 8w0x0f): range_read(); } }\n'
+               '    table seg1_gate { key = { hdr.dl.len : exact; hdr.rh.tpctrl : ternary; }\n'
+               '        actions = { range_read; NoAction; } size = 1; const default_action = NoAction();\n'
+               '        const entries = { (8w0x46, 8w0x80 &&& 8w0x80): range_read(); } }\n'
+               '    action prefix_s0() {\n'
+               '        hdr.pll.setValid(); hdr.pll.start = 16w0x0564; hdr.pll.len = 8w0x%02x; hdr.pll.ctrl = hdr.dl.ctrl;\n'
+               '        hdr.pll.dst = hdr.dl.dst; hdr.pll.src = hdr.dl.src; hdr.pll.crc = hdr.dl.crc ^ 16w%d;\n'
+               '        hdr.plu2.setValid(); hdr.plu2.tp = m.pl_tp; hdr.plu2.app = hdr.rh.appctrl ++ hdr.rh.func ++ hdr.rh.iin; hdr.plu2.padobj = 56w%d;\n'
+               '        hdr.pluc.setValid(); hdr.pluc.crc = m.pl_uc2[7:0] ++ m.pl_uc2[15:8];\n'
+               '        hdr.rh.tpctrl = m.co_tp; hdr.rh.appctrl = 8w0; hdr.rh.func = 8w0; hdr.rh.iin = 16w0;\n'
+               '        hdr.c0.crc = m.co_c0[7:0] ++ m.co_c0[15:8];\n'
+               '        hdr.ip.len = hdr.ip.len + 16w24; m.len_delta = 16w24;\n'
+               '    }\n'
+               '    table prefix_s0_t { actions = { prefix_s0; } size = 1; const default_action = prefix_s0(); }\n'
+               '    action fix_s1() {\n'
+               '        hdr.rh.tpctrl = m.co_tp;\n'
+               '        hdr.c0.crc = m.s1_c0[7:0] ++ m.s1_c0[15:8];\n'
+               '        hdr.tcp.seq = hdr.tcp.seq + 32w24;\n'
+               '        hdr.segmark.setValid(); hdr.segmark.v = 8w0;\n'
+               '    }\n'
+               '    table fix_s1_t { actions = { fix_s1; } size = 1; const default_action = fix_s1(); }\n'
+               '    action prefix() {' % (plen, delta, padobj))
+
+    # --- 4) apply: branch on segment class ---
+    src = once(src,
+               '        if (hdr.c0.isValid()) {\n'
+               '            p1_conn.apply();\n'
+               '            in_rb0_t.apply(); set_tp_t.apply(); crc_pl_uc_t.apply(); crc_co_c0_t.apply();\n'
+               '            if (m.conn_ok == 1w1 && hdr.c0.crc == (m.in_rb0[7:0] ++ m.in_rb0[15:8])) { read_profile.apply(); }\n'
+               '            if (m.pad == 1w1) { prefix_t.apply(); m.p1_res = 2w1; }\n'
+               '            else if (m.conn_ok == 1w0) { m.p1_res = 2w2; }\n'
+               '            else { m.p1_res = 2w3; }\n'
+               '            p1_outcome.count(m.p1_res);\n'
+               '        }',
+               '        if (hdr.c0.isValid()) {\n'
+               '            p1_conn.apply();\n'
+               '            seg_class_t.apply();\n'
+               '            in_rb0_t.apply(); set_tp_t.apply();\n'
+               '            crc_pl_uc_t.apply(); crc_pl_uc2_t.apply(); crc_co_c0_t.apply(); crc_s1_c0_t.apply();\n'
+               '            if (m.conn_ok == 1w1 && hdr.c0.crc == (m.in_rb0[7:0] ++ m.in_rb0[15:8])) {\n'
+               '                if (m.seg == 2w0) { read_profile.apply(); }\n'
+               '                else if (m.seg == 2w1) { seg0_profile.apply(); }\n'
+               '                else { seg1_gate.apply(); }\n'
+               '            }\n'
+               '            if (m.pad == 1w1) {\n'
+               '                if (m.seg == 2w0) { prefix_t.apply(); }\n'
+               '                else if (m.seg == 2w1) { prefix_s0_t.apply(); }\n'
+               '                else { fix_s1_t.apply(); }\n'
+               '                m.p1_res = 2w1;\n'
+               '            }\n'
+               '            else if (m.conn_ok == 1w0) { m.p1_res = 2w2; }\n'
+               '            else { m.p1_res = 2w3; }\n'
+               '            p1_outcome.count(m.p1_res);\n'
+               '        }')
+
+    # --- 5) deparser: emit plu2; per-segment IP/TCP checksum (incremental; verified offline by checksum_oracle) ---
+    src = once(src, 'pkt.emit(hdr.pll); pkt.emit(hdr.plu); pkt.emit(hdr.pluc); pkt.emit(hdr.plz);',
+               'pkt.emit(hdr.pll); pkt.emit(hdr.plu); pkt.emit(hdr.plu2); pkt.emit(hdr.pluc); pkt.emit(hdr.plz);')
+    # extra Checksum engines for the two segmented paths (the TNA deparser branches on header validity, the
+    # same pattern as E's prefix padder -- nested metadata conditionals are rejected by the deparser frontend)
+    src = once(src, 'control x_EgDeparser(packet_out pkt, inout x_headers_t hdr, in x_meta_t m, in egress_intrinsic_metadata_for_deparser_t md) {\n'
+               '    Checksum() ip_new; Checksum() tcp_new;',
+               'control x_EgDeparser(packet_out pkt, inout x_headers_t hdr, in x_meta_t m, in egress_intrinsic_metadata_for_deparser_t md) {\n'
+               '    Checksum() ip_new; Checksum() tcp_new; Checksum() tcp_seg0; Checksum() tcp_seg1;')
+    # the existing range TCP checksum is guarded by plz validity (range sets plz valid); seg0 by plu2; seg1 by segmark
+    src = once(src,
+               '            hdr.tcp.checksum = tcp_new.update({m.len_delta,\n'
+               '                hdr.pll.start, hdr.pll.len, hdr.pll.ctrl, hdr.pll.dst, hdr.pll.src, hdr.pll.crc,\n'
+               '                hdr.plu.tp, hdr.plu.app, hdr.plu.padobj, hdr.plu.padobj2, hdr.pluc.crc,\n'
+               '                hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src, hdr.dl.crc,\n'
+               '                hdr.rh.tpctrl, hdr.rh.appctrl, hdr.rh.func, hdr.rh.iin, hdr.robj.g_group, hdr.robj.g_var, hdr.robj.g_qual,\n'
+               '                hdr.robj.g_start, hdr.robj.g_stop, hdr.p03.d, hdr.p45.d, hdr.c0.crc,\n'
+               '                m.residual});\n'
+               '        }',
+               '        }\n'
+               '        if (hdr.plz.isValid()) {   // range: existing 92-B prefix path\n'
+               '            hdr.tcp.checksum = tcp_new.update({m.len_delta,\n'
+               '                hdr.pll.start, hdr.pll.len, hdr.pll.ctrl, hdr.pll.dst, hdr.pll.src, hdr.pll.crc,\n'
+               '                hdr.plu.tp, hdr.plu.app, hdr.plu.padobj, hdr.plu.padobj2, hdr.pluc.crc,\n'
+               '                hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src, hdr.dl.crc,\n'
+               '                hdr.rh.tpctrl, hdr.rh.appctrl, hdr.rh.func, hdr.rh.iin, hdr.robj.g_group, hdr.robj.g_var, hdr.robj.g_qual,\n'
+               '                hdr.robj.g_start, hdr.robj.g_stop, hdr.p03.d, hdr.p45.d, hdr.c0.crc,\n'
+               '                m.residual});\n'
+               '        }\n'
+               '        if (hdr.plu2.isValid()) {   // seg0: 24-B prefix + rewritten block 0 (len +24)\n'
+               '            hdr.tcp.checksum = tcp_seg0.update({m.len_delta,\n'
+               '                hdr.pll.start, hdr.pll.len, hdr.pll.ctrl, hdr.pll.dst, hdr.pll.src, hdr.pll.crc,\n'
+               '                hdr.plu2.tp, hdr.plu2.app, hdr.plu2.padobj, hdr.pluc.crc,\n'
+               '                hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src, hdr.dl.crc,\n'
+               '                hdr.rh.tpctrl, hdr.rh.appctrl, hdr.rh.func, hdr.rh.iin, hdr.robj.g_group, hdr.robj.g_var, hdr.robj.g_qual,\n'
+               '                hdr.robj.g_start, hdr.robj.g_stop, hdr.p03.d, hdr.p45.d, hdr.c0.crc,\n'
+               '                m.residual});\n'
+               '        }\n'
+               '        if (hdr.segmark.isValid()) {   // seg1: block-0 rewrite + tcp.seq += 24 (len unchanged)\n'
+               '            hdr.tcp.checksum = tcp_seg1.update({hdr.tcp.seq,\n'
+               '                hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src, hdr.dl.crc,\n'
+               '                hdr.rh.tpctrl, hdr.rh.appctrl, hdr.rh.func, hdr.rh.iin, hdr.robj.g_group, hdr.robj.g_var, hdr.robj.g_qual,\n'
+               '                hdr.robj.g_start, hdr.robj.g_stop, hdr.p03.d, hdr.p45.d, hdr.c0.crc,\n'
+               '                m.residual});\n'
+               '        }')
+    return src
+
+
+def transform_segmented_classifier(src):
+    """N (pipe-0 ingress) classifies the two link frames of the 377 READ response as ONE READ transaction and
+    tags the child index into the tev handoff (step 1 of the faithful path, built on the c13/c14/c15 probes).
+
+    seg0 (ip.len 332, dl.len 0xff): FIR frame, first-block parse, admitted through the ordinary response
+      profile (g1v2 q00 [0,15], the same object header as the 247 class0/integrity response) -> child 0.
+    seg1 (ip.len 125, dl.len 0x46): FIN continuation whose block 0 is mid-stream object data (no object
+      header to profile); admitted by a dedicated continuation table keyed on dl.len + FIN transport, with its
+      real block-0 CRC checked (crc_head_first) and the shallow-admit of the pass-through classes -> child 1.
+    The child index is written into the handoff event (emit_tev set 0x0b00; child_tag_t rewrites it to 0x0b01
+    for seg1 so T's parser sees tev.stage 1); sequence accounting advances by each frame's native length
+    (seg0 +292, seg1 +85 = 377). This is the p0-ingress half of the integration; its ADMISSION of both
+    segments is checked at the source-interpreter tier, while the child-tag -> T handoff and the two-frame
+    transaction commit are structural here (they need the compiled model, not run in this task)."""
+    # a) ip + dl length admission (reuses the pass-through rx_response path; 0 MAU per probe segmented_n)
+    src = once(src, '(4w4,4w5,8w6,16w287):rx_response_ip_flags;',
+               '(4w4,4w5,8w6,16w287):rx_response_ip_flags;(4w4,4w5,8w6,16w332):rx_response_ip_flags;(4w4,4w5,8w6,16w125):rx_response_ip_flags;')
+    src = once(src, 'transition select(hdr.dl.len,hdr.ip.len){(8w0x78,16w181):read_response_fb;(8w0xd6,16w287):read_response_fb;default:accept;}',
+               'transition select(hdr.dl.len,hdr.ip.len){(8w0x78,16w181):read_response_fb;(8w0xd6,16w287):read_response_fb;(8w0xff,16w332):read_response_fb;(8w0x46,16w125):read_response_fb;default:accept;}')
+    # b) seg0 response profile row (FIR g1v2 q00 [0,15]); bump the table size
+    src = once(src, 'size=3;const default_action=NoAction();const entries={(16w0x0564,8w38',
+               'size=5;const default_action=NoAction();const entries={(16w0x0564,8w38')
+    src = once(src, '(16w0x0564,8w0xd6,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w0x81,8w1,8w2,8w0,8w0,8w0x0f):eligible();}}',
+               '(16w0x0564,8w0xd6,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w0x81,8w1,8w2,8w0,8w0,8w0x0f):eligible();'
+               '(16w0x0564,8w0xff,8w0x44,8w0x40&&&8w0xc0,8w0xc0&&&8w0xf0,8w0x81,8w1,8w2,8w0,8w0,8w0x0f):eligible();}}')
+    # c) seg1 continuation admit (dl.len 0x46 + FIN transport -> eligible), applied after the response profile
+    src = once(src, 'Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_second;',
+               'table seg1_admit_t{key={hdr.dl.len:exact;hdr.first.w0[31:24]:ternary;}actions={eligible;NoAction;}size=1;'
+               'const default_action=NoAction();const entries={(8w0x46,8w0x80&&&8w0xc0):eligible();}}\n'
+               'Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_second;')
+    src = once(src, 'else{read_response_profile.apply();if(hdr.second.isValid()){rd_second_crc_t.apply();rd_tail_crc_t.apply();}else{read_shallow_admit_t.apply();}}',
+               'else{read_response_profile.apply();seg1_admit_t.apply();if(hdr.second.isValid()){rd_second_crc_t.apply();rd_tail_crc_t.apply();}else{read_shallow_admit_t.apply();}}')
+    # d) sequence accounting per segment native length (seg0 +292, seg1 +85)
+    src = once(src, '(8w11,8w0xd6):next_read_len(247);(8w9,_):next_read_request();',
+               '(8w11,8w0xd6):next_read_len(247);(8w11,8w0xff):next_read_len(292);(8w11,8w0x46):next_read_len(85);(8w9,_):next_read_request();')
+    src = once(src, 'next_read_response;next_read_len;}size=12;', 'next_read_response;next_read_len;}size=14;')
+    # e) child-index tag into the handoff event: emit_tev set 0x0b00; seg1 (kind 11, dl.len 0x46) -> 0x0b01
+    src = once(src, 'action emit_tev(bit<16> event){',
+               'action set_child1(){hdr.event.event=16w0x0b01;}\n'
+               'table child_tag_t{key={m.kind:exact;hdr.dl.len:exact;}actions={set_child1;NoAction;}size=1;'
+               'const default_action=NoAction();const entries={(8w11,8w0x46):set_child1();}}\n'
+               'action emit_tev(bit<16> event){')
+    src = once(src, '}else if(m.work_phase==32w3){read_terminal_t.apply();}',
+               '}else if(m.work_phase==32w3){read_terminal_t.apply();child_tag_t.apply();}')
+    return src
+
+
 TRANSFORMS = ['mapper_var', 'read_prefix']  # step 1: variable image (READ 73 + inherited SBO 61); full READ uses read_prefix_full
 
 
-def build(image, only=None, full=False, policy=False, c3='ladder', shapes='none', segmented=False, seg_n=False, seg_n2=False):
+def build(image, only=None, full=False, policy=False, c3='ladder', shapes='none', segmented=False, seg_n=False, seg_n2=False,
+          segmented_pad=False, segmented_full=False):
     src = M11_09.read_text()
     if hashlib.sha256(src.encode()).hexdigest() != M11_09_SHA:
         raise SystemExit('m11_09 source changed')
@@ -1124,9 +1355,20 @@ def build(image, only=None, full=False, policy=False, c3='ladder', shapes='none'
             transforms.append('segmented_n')
         if seg_n2:
             transforms.append('segmented_n2')
+        if segmented_pad:
+            transforms.append('segmented_pad_pipe1')
+        if segmented_full:
+            transforms += ['segmented_pad_pipe1', 'segmented_classifier', 'segmented_t']
         shape_image = {'read': c['target'], 'ctl': 61}
         read_native = c['native_total']
         per_image = {c['native_total']: c['target'], 37: 61, 61: 61}   # 61: handshake virtual image
+        if segmented_full:
+            # step 4 (E mapper): the committed 401-octet segmented image needs its own reverse-ACK withhold
+            # window so the master's ACKs are remapped across the +24 shift for the WHOLE 401 image (not just
+            # the 141 range image). native 377 -> image 401; keyed in classify_rev on native length mod 256
+            # (377 & 0xFF = 121, distinct). This is the documented p0-egress risk: the per-image reverse window
+            # extended to 401 stresses classify_rev's TCAM.
+            per_image[segmented_shape()['native_total']] = segmented_shape()['target']
     else:
         transforms = ['mapper_var', 'read_prefix_full'] if full else TRANSFORMS
         shape_image = {'read': 269, 'ctl': 61} if full else SHAPE_IMAGE
@@ -1144,6 +1386,10 @@ def build(image, only=None, full=False, policy=False, c3='ladder', shapes='none'
             src = transform_segmented_n(src)
         elif name == 'segmented_n2':
             src = transform_segmented_n2(src)
+        elif name == 'segmented_pad_pipe1':
+            src = transform_segmented_pad_pipe1(src, segmented_shape())
+        elif name == 'segmented_classifier':
+            src = transform_segmented_classifier(src)
         elif name in ('read_prefix_p1', 'read_prepadded_e'):
             src = globals()['transform_' + name](src, policy_shape())
         else:
@@ -1171,6 +1417,10 @@ def main():
                     help='SEGMENTED probe step 2: also add N admission of the 332/125 segment lengths (requires --segmented)')
     ap.add_argument('--seg-n2', dest='seg_n2', action='store_true',
                     help='SEGMENTED probe step 3: also add the N child-index MAU table (requires --seg-n)')
+    ap.add_argument('--segmented-pad', dest='segmented_pad', action='store_true',
+                    help='FAITHFUL segmented 377->401 READ padder in pipe-1 egress (requires --policy; builds m12p_c16+)')
+    ap.add_argument('--segmented-full', dest='segmented_full', action='store_true',
+                    help='FULL faithful segmented path: pipe-1 padder + N two-segment classifier/child-tag + T second child (requires --policy)')
     a = ap.parse_args()
     if a.shapes != 'none' and not a.policy:
         ap.error('--shapes requires --policy')
@@ -1180,13 +1430,20 @@ def main():
         ap.error('--seg-n requires --segmented')
     if a.seg_n2 and not a.seg_n:
         ap.error('--seg-n2 requires --seg-n')
+    if a.segmented_pad and not a.policy:
+        ap.error('--segmented-pad requires --policy')
+    if a.segmented_full and not a.policy:
+        ap.error('--segmented-full requires --policy')
+    if a.segmented_full and a.segmented_pad:
+        ap.error('--segmented-full already includes the padder; do not combine with --segmented-pad')
     if a.full:
         a.image = 269
     if a.policy:
         a.image = policy_shape()['target']
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    src, applied = build(a.image, a.only, full=a.full, policy=a.policy, c3=a.c3, shapes=a.shapes, segmented=a.segmented, seg_n=a.seg_n, seg_n2=a.seg_n2)
+    src, applied = build(a.image, a.only, full=a.full, policy=a.policy, c3=a.c3, shapes=a.shapes, segmented=a.segmented, seg_n=a.seg_n, seg_n2=a.seg_n2,
+                         segmented_pad=a.segmented_pad, segmented_full=a.segmented_full)
     (out / 'response_only.p4').write_text(src)
     sha = hashlib.sha256(src.encode()).hexdigest()
     # The candidate is runnable only when the mapper AND every size-path transform agree. A partial set
@@ -1218,9 +1475,12 @@ def main():
         scope = 'range READ 49->%d + inherited SBO 37->61 (variable-image proof build)' % a.image
     runnable = required.issubset(set(applied))
     segs = {role: hashlib.sha256(_combined.segment(src, role).encode()).hexdigest() for role in ('N', 'E', 'T')}
+    # segmented_t adds the second response-child register (child_seen1_reg), so the sealed profile must declare two
+    # T child banks for the segmented build; every other build keeps the single child_seen0_reg (t_child_count 1).
+    t_child_count = 2 if 'segmented_t' in applied else 1
     profile = {'candidate': {'build': str(out), 'milestone': 'm12', 'source_sha256': sha, 'segment_sha256': segs,
                              'artifact_sha256': {}},
-               'reset_restart_required': True, 't_child_count': 1}
+               'reset_restart_required': True, 't_child_count': t_child_count}
     if a.policy:
         # complete supported profile (candidate_campaign's control-timing contract): N/T values inherited
         # unchanged from m11_09; the READ image is stated separately from the control image
