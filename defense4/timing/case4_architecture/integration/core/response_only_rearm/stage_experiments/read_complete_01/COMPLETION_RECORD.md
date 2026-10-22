@@ -17,23 +17,47 @@ history in §3.
 | Encoding tests | Handoff tests 51/51; policy coverage 25/25 over 10,243 profile cases; range constants byte-exact vs `pad_read` on 512 samples (`vectors/constants.json`, byte-stable at `6f819e7e…`); **segmented shape byte-exact vs `pad_read` on 512 samples** (`vectors/constants_segmented.json`; `prefix_link_crc_delta` 0x79bf invariant across samples); new interpreter tests `test_segmented_pad` (7) + `test_segmented_classifier` (2) + `test_segmented_mapper` (2). |
 | Live software endpoints | Pinned OpenDNP3 4648fcb (binary `ea734720…`): range 49→141, analog/class0/integrity at target, large 377→401, 16+16 each, IIN 0x9000, no errors (`evidence/m3_live_policy_01`). Endpoint acceptance, not an IEEE 1815 conformance claim. |
 | Compiler placement | m12p_c20 source `1e94c31d80e6…`: SDK **9.13.1 and 9.13.2 both exit 0**; **N 12 / E 12 / T 11** stages + the **pipe-1 egress padder, 7 stages** (same profile as c12; m11_09 is N 11 / E 12 / T 11). The segmented padder lives in pipe-1 egress, off the pipe-0 MAU budget, so the p0 wall feared in the c13/c15 probes did not materialize. The c16/c17 deparser nested-conditional wall was diagnosed and fixed with separate top-level validity-guarded checksums. |
-| Compiled model | **v3 gate: `model_gate_passed`, blocked_reasons [], all 13 drivers, 0 failures** (smoke, packets, rearm 799/799, dup 102/102, repeat, select_lifecycle, control_timing, contention, abort, abandon, policy, policy_boundary, smoke_sizeoff). Committed `33e21fd07`; **recomputes `model_gate_passed` on a fresh detached worktree** at that HEAD after `restore_retained_logs.py` (both bound contention logs restore to their pinned sha). **Scope of this gate on c20:** it exercises the range/analog/class0/integrity shapes and the R→S→O→R timing, and confirms c20 does not regress the existing behaviour; `rearm`/`dup` exercise the **two-child child-bank mechanism** (which the segmented second child reuses). It does **NOT yet inject an end-to-end 377→401 segmented response** — none of the 13 drivers sends the 292+85 wire shape. Driving a segmented response through the compiled model is a dedicated driver (Workstream D), tracked below as model-tier pending. |
-| Physical switch (c20) | **PENDING — not yet run.** Testbed idle and restored. No c20 silicon size/timing/recovery result exists yet; none is claimed. |
+| Compiled model (baseline shapes) | **v3 gate: `model_gate_passed`, blocked_reasons [], all 13 drivers, 0 failures** (smoke, packets, rearm 799/799, dup 102/102, repeat, select_lifecycle, control_timing, contention, abort, abandon, policy, policy_boundary, smoke_sizeoff). Committed `33e21fd07`; **recomputes `model_gate_passed` on a fresh detached worktree** after `restore_retained_logs.py`. This gate exercises the range/analog/class0/integrity shapes and the R→S→O→R timing and confirms c20 does not regress; `rearm`/`dup` exercise the two-child child-bank mechanism. None of the 13 drivers sends the 292+85 segmented wire shape. |
+| Compiled model (segmented) | **PARTIAL — measured, seg0 only.** A dedicated driver (`seg61_02/model_segmented.py`, run `model_segmented_m12p_c20_01`, 10/10) injects a real 377-B two-segment integrity response through the compiled c20 model. **seg0 (native 292 B, ip.len 332) is admitted and padded to the exact 316-B first image at the wire-start TCP seq** (via E `out_translate` + the pipe-1 padder, `p1_outcome.p1_padded`) — the segmented padder fires correctly. **seg1 (85 B, ip.len 125, FIN continuation) is NOT forwarded:** it is admitted by N's parser (`read_response_fb`, kind 11) but dropped in N's pipe-0 ingress control before egress (0 egress frames, no E outcome code, no `p1_outcome`/`count_busy`/T-outcome bump). **The end-to-end 401 image is therefore NOT delivered by c20 — it emits only the padded first segment.** See §3a. |
+| Physical switch (c20) | **PENDING — not yet run** and must not run for the segmented class until seg1 forwarding is fixed (a seg0-only build cannot deliver the 401 image on silicon). Testbed idle and restored. No c20 silicon result exists; none is claimed. |
 
 ## 2. Tier boundaries (honest)
 
 - **Proven (source + encoding + placement):** the segmented construction's bytes (prefix frame, per-frame
   block-0 rewrite + recomputed CRCs, continuation renumbering) are byte-exact against the reference padder, and
   the integrated source places on both SDKs at the stage budget above.
-- **Compile-placed, not yet model-exercised:** the T two-child hold/release **ordering**, the forward two-frame
-  **single-commit**, and the deparser **IP/TCP checksum externs**. The c20 image places them and the gate confirms
-  the two-child child-bank mechanism via `rearm`/`dup`, but **no model driver yet injects a 377→401 segmented
-  response**, so the end-to-end segmented flow is not model-demonstrated. The byte-level interpreter cannot check
-  these either (it validates the construction's bytes, not the compiled control flow). **Model-tier pending: a
-  dedicated segmented driver (Workstream D).**
+- **Model-measured, seg0 only:** the segmented padder forwards and pads the **first** segment correctly on the
+  compiled model (seg0 → 316 B at the wire start), but the **second-segment continuation is dropped in N ingress**
+  (§3a), so the forward two-frame single-commit is **non-functional**, not merely unexercised, in c20. The deparser
+  **IP/TCP checksum externs** on the seg0 path are compile-placed and seg0's 316-B bytes match the reference exactly,
+  but the externs' wire-checksum correctness is not offline-checkable (same caveat as the range padder).
 - **Content-blind gating:** seg1 admission keys on `dl.len==0x46 && FIN`, not on segment content.
 - **Hardware:** segmented READ on silicon — size, first-frame vs complete-response timing, OPERATE hold J, ACK
   mapping, and recovery — is **pending**, not shown.
+
+## 3a. Open finding: the segmented second segment is not forwarded by c20 (model-measured)
+
+The driver `seg61_02/model_segmented.py` and the counter localization (`SEG_DIAG` run) establish, on the exact
+c20 image:
+
+- **seg0 works.** The FIR response segment (native 292 B, ip.len 332) is admitted, the pipe-1 egress padder
+  prepends the 24-B frame and rewrites block 0, and the switch emits the exact 316-B first image at the wire-start
+  TCP seq. Counters: E `TRANSLATE` +1, `p1_outcome.p1_padded` +1.
+- **seg1 does not.** The FIN continuation (85 B, ip.len 125) is admitted by N's parser (`read_response_fb`,
+  `packet_kind` 11 — the parser already carries the 332/125 entries from `segmented_classifier`) but is **dropped
+  in N's pipe-0 ingress control before egress**: 0 egress frames, and across seg1 **no** counter moves — not E's
+  `outcome` (no drop code either), not `p1_outcome`, not N's `count_busy`, not the T outcomes register. It is a
+  silent read-lane drop, consistent with seg1 arriving after seg0 has consumed the outstanding read, with no
+  continuation state to forward it.
+- **Consequence.** c20 delivers only the padded first segment; the end-to-end two-segment 401 image is not
+  delivered. The `--segmented-full` build applies `segmented_pad_pipe1` + `segmented_classifier` + `segmented_t`;
+  the missing piece is **N read-lane continuation handling** — recognizing seg1 as the second segment of one
+  in-progress response and forwarding it (the plan's "one commit at segment 1 with the continuation mapped by
+  `out_translate`/`wend_fwd`"). `transform_segmented_n` only adds parser admission (already effectively present);
+  it does not supply the N-control continuation, and its probe anchors no longer match the full+passthrough base.
+- **Diagnosed, not fixed.** The fix is a non-trivial N-control change and is the next scoped step. The hardware
+  campaign for the segmented class must wait for it — a seg0-only build cannot deliver the 401 image on silicon.
+  The range/analog/class0/integrity classes are unaffected (single-frame; seg0-style path).
 
 ## 3. Physical-switch history (b08, 2026-10-21)
 
@@ -60,11 +84,14 @@ latency is restored (Philip's decision). Size / delivery / recovery hardware che
 
 ## 5. Coverage: software vs hardware
 
-Software + compiled model cover the full declared profile: range 49→141, analog 141 and class0/integrity 247 at
-target (pass-through), and **the 377→401 segmented class** (now implemented in P4, model-validated). Per-class
-recovery covers the single-frame classes (analog 141; one 247-B loss selector `read_resp_247`, since class0 and
-integrity are byte-indistinguishable at 247 B — length-level claim only); **segmented recovery is NOT_EXERCISED**.
-**Hardware coverage for c20 is pending** — no class has a c20 silicon result yet.
+Software + compiled model cover the full declared profile for the **single-frame** classes: range 49→141, analog
+141 and class0/integrity 247 at target (pass-through). The **377→401 segmented class** is implemented in P4 and
+its construction is byte-exact at the interpreter tier, but on the compiled model it is **seg0-only**: the first
+segment pads and forwards correctly, the second-segment continuation is dropped in N ingress (§3a), so the
+end-to-end 401 is not delivered. Per-class recovery covers the single-frame classes (analog 141; one 247-B loss
+selector `read_resp_247`, since class0 and integrity are byte-indistinguishable at 247 B — length-level claim
+only); **segmented recovery is NOT_EXERCISED** (its forwarding is not yet functional). **Hardware coverage for c20
+is pending** for all classes; the segmented class is additionally blocked at the model tier by §3a.
 
 ## 6. Residual limitations
 

@@ -211,3 +211,23 @@ policy, reproduction and the completion record only.
   Vision; dry-run; authorized detached campaign with restoration verification; report all occupied pipelines incl.
   the 7-stage padder; first-frame vs complete-response timing separately. Timing PRECISION stays gated by the Vision
   environment (Philip decision to restore pre-reboot latency); size/delivery/recovery are not blocked by it.
+
+## 2026-10-22 (cont.) — segmented exercised through the compiled model: seg0 pads, seg1 continuation DROPPED (open)
+- Built `seg61_02/model_segmented.py` (+ `read_complete_01/vectors/make_segmented_vectors.py` and the committed
+  `segmented_vectors.json`, 16 samples cross-checked == pad_read). It injects a real 377-B two-segment integrity
+  response through the compiled c20 model. The driver runs under the system Python 3.8 inside the model namespace,
+  so the natives/expecteds are precomputed under the research Python (derive.py cannot import under 3.8).
+- MEASURED (run model_segmented_m12p_c20_01, 10/10; SEG_DIAG counter run): **seg0 (ip.len 332) is admitted and
+  padded to the exact 316-B first image at the wire-start seq** (E out_translate + p1_outcome.p1_padded) -- the
+  segmented padder fires correctly on silicon-model. **seg1 (ip.len 125, FIN) is dropped in N pipe-0 ingress**:
+  0 egress frames, no E outcome code, no p1_outcome/count_busy/T-outcome bump, though N's parser admits it
+  (read_response_fb, kind 11). So c20 emits only the first segment; the end-to-end 401 is NOT delivered.
+- ROOT CAUSE: --segmented-full applies segmented_pad_pipe1 + segmented_classifier + segmented_t but has NO N
+  read-lane CONTINUATION handling (forward seg1 as the 2nd segment of one in-progress read). segmented_n only adds
+  parser admission (already present via the classifier) and its probe anchors no longer match the full+passthrough
+  base; a --seg-n-full attempt was reverted (wrong layer: the parser already admits 332/125; the drop is in the
+  N control). The real fix is a new N-control change -- the next scoped step; the segmented hardware campaign must
+  wait for it (a seg0-only build cannot deliver 401 on silicon). Recorded in COMPLETION_RECORD §3a.
+- The driver ASSERTS seg0 (positive evidence) and RECORDS seg1 as a disclosed OPEN finding; it is runnable
+  (registered in run_model) but NOT in the enforced 13-driver gate (segmented is not end-to-end functional). The
+  c20 v3 gate still recomputes model_gate_passed with it registered. Single-frame classes are unaffected.
