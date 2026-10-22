@@ -1179,6 +1179,14 @@ def transform_segmented_pad_pipe1(src, c):
                '        hdr.robj.g_group, hdr.robj.g_var, hdr.robj.g_qual, hdr.robj.g_start, hdr.robj.g_stop, hdr.p03.d, hdr.p45.d}); }\n'
                '    table crc_s1_c0_t { actions = { crc_s1_c0; } size = 1; const default_action = crc_s1_c0(); }' % padobj)
     # seg0/seg1 gates (reuse range_read -> m.pad = 1). seg0: g1v2 q00 [0,15] FIR frame; seg1: FIN continuation.
+    # SCOPE ASSUMPTION (review 33e21fd07): fix_s1 is stateless -- seg_class_t classifies seg1 purely by
+    # (dl.len==0x46 && FIN) and fix_s1 then applies tcp.seq += 24 unconditionally, with NO per-flow state
+    # confirming this flow's seg0 (FIR) was actually prefixed. This is correct ONLY because the obfuscated
+    # connection carries exactly the 292+85 integrity/class0 segmented shape: every 70-byte FIN link frame on
+    # it IS the continuation of a prefixed seg0. A different multi-frame response ending in a 70-byte FIN frame
+    # would be mis-renumbered (+24 with no inserted bytes), desynchronizing the master's TCP stream. No guard is
+    # added here (a per-flow "seg0 prefixed" register costs stages and the connection is single-shape by scope);
+    # hardware bring-up of the segmented class MUST cover a mixed-response flow before this assumption is relied on.
     src = once(src, '    action prefix() {',
                '    table seg0_profile { key = { hdr.dl.len : exact; hdr.rh.tpctrl : ternary; hdr.rh.func : exact;\n'
                '            hdr.robj.g_group : exact; hdr.robj.g_var : exact; hdr.robj.g_qual : exact; hdr.robj.g_start : exact; hdr.robj.g_stop : exact; }\n'

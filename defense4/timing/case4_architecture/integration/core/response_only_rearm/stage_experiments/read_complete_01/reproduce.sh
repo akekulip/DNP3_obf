@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # read_complete_01: one entry point that re-derives every offline result and re-checks the recorded evidence.
 #
-#   bash reproduce.sh                                # offline, the current candidate (CANDIDATE=c12 by default)
+#   bash reproduce.sh                                # offline, the preserved checkpoint (CANDIDATE=c12 by default)
+#   CANDIDATE=c20 bash reproduce.sh                  # the faithful segmented READ 377->401 delivery candidate
 #   CANDIDATE=b08 bash reproduce.sh                  # the earlier range-only candidate (b08, historical)
 #   bash reproduce.sh --readout BLOCK_DIR CONFIG [ARMS] # also the independent readout of one recorded block
 #                                                      (exit nonzero when that readout fails)
@@ -19,9 +20,11 @@ CANDIDATE="${CANDIDATE:-c12}"
 case "$CANDIDATE" in
   c12) GEN_ARGS="--policy --c3 cimg --shapes passthrough"
        SOURCE_SHA=742089cbe7629b754b47418245da9c22f1c2dc4949d8bd8a9f7e4bebaff8bbe5 ;;
+  c20) GEN_ARGS="--policy --c3 cimg --shapes passthrough --segmented-full"
+       SOURCE_SHA=1e94c31d80e6708ab31ca117f066d15f5ec23244fc6f7bf7b9ca68dc81a2a27b ;;
   b08) GEN_ARGS="--policy"
        SOURCE_SHA=7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f ;;
-  *) echo "unknown CANDIDATE $CANDIDATE (c12 | b08)"; exit 2 ;;
+  *) echo "unknown CANDIDATE $CANDIDATE (c12 | c20 | b08)"; exit 2 ;;
 esac
 BUILD="$STAGE/ctl_timing_01/evidence/m12p_$CANDIDATE"
 FREEZE="$BUILD/freeze_v3.json"
@@ -39,7 +42,7 @@ git -C "$HERE" diff --exit-code -- policy/policy.json
 
 step "3. switch constants: derive.py reproduces constants.json (byte-exact proof vs pad_read inside)"
 (cd "$HERE/vectors" && "$PY312" derive.py >/dev/null)
-git -C "$HERE" diff --exit-code -- vectors/constants.json
+git -C "$HERE" diff --exit-code -- vectors/constants.json vectors/constants_segmented.json
 
 step "4. P4: make_m12.py $GEN_ARGS regenerates the m12p_$CANDIDATE source byte for byte"
 python3 "$STAGE/m12_fullsize/make_m12.py" "$SCRATCH/m12p" $GEN_ARGS >/dev/null

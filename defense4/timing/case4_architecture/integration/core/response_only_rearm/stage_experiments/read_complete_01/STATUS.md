@@ -177,3 +177,37 @@ policy, reproduction and the completion record only.
 - NEXT: faithful segmented padder c16 (decision: attempt now vs proceed to freeze c12 + hardware with segmented open);
   c12 freeze + per-class recovery hardware configs; hardware campaign (reference rotate4 + per-class recovery);
   timing PRECISION on hardware remains gated by the Vision environment (Philip decision to restore pre-reboot latency).
+
+## 2026-10-22 — faithful segmented READ 377->401 landed (m12p_c20), software+model tier DONE
+- Decision applied: option 1 (continue the faithful segmented implementation; c12 preserved as the reproducible
+  checkpoint). The probe-only length tagging (c13/c14/c15) is replaced by the actual construction.
+- make_m12.py --segmented-full: pipe-1 egress prefix padder (prepend 24-B synthetic FIR carrying the moved app
+  header + padding-object header; rewrite block 0 of BOTH original frames -- frame 1 transport byte + its 4
+  app-header bytes -> last 4 padding points, frame 2 transport byte -- recompute each block-0 CRC) + N classifier
+  (admits ip.len 332/125) + T second child (child_seen1_reg) + E 401 reverse-ACK window. Link frames [24,292,85]=401;
+  TCP packetization kept distinct, not assumed.
+- derive.py / constants_segmented.json: segmented shape proved byte-equal to general_read_padding.pad_read over 512
+  samples; prefix_link_crc_delta 0x79bf invariant across samples; written to a SEPARATE file so constants.json stays
+  byte-stable at c12's binding 6f819e7e13660632. Per-frame block-0 CRCs and IP/TCP checksums are derived on chip
+  (vary per response), not constants.
+- c16/c17 wall DIAGNOSED: the TNA deparser rejects nested metadata conditionals on the checksum externs; FIXED by
+  branching each checksum under a separate top-level header-validity guard. c18 (padder only) / c19 (+N classifier
+  +T child) are the retained intermediate probes.
+- m12p_c20 (source sha 1e94c31d80e6) compiles clean on bf-p4c 9.13.1 AND 9.13.2 at N12/E12/T11 PLUS the 7-stage
+  pipe-1 egress padder (off the pipe-0 budget -- the feared p0 MAU wall from c13/c15 did not materialize because the
+  padder lives in pipe-1 egress, same profile as c12). Resource line unchanged from c12.
+- Profiles widened to t_child_count in (1,2,3): model_profile.py, hw/sealed_profile.py, test_supported_profile.py
+  (bad-children mutation now 4). New interpreter tests: test_segmented_pad (7) + test_segmented_classifier (2) +
+  test_segmented_mapper (2), byte-exactness vs pad_read.
+- Full 13-driver v3 model gate on c20: qualification model_gate_passed, blocked_reasons [], all 13 drivers (rearm
+  799/799 and dup 102/102 exercise the two-child hold/release). Committed 33e21fd07 with the per-run result/provenance
+  files + the two bound contention logs as byte-exact xz (hash-checked restore). Gate RECOMPUTES model_gate_passed on
+  a fresh detached worktree at 33e21fd07 after restore_retained_logs.py (both c20 logs restore to their pinned sha).
+- TIER BOUNDARIES (honest): software construction + encoding byte-exactness and both-SDK placement are proven;
+  the T two-child hold/release ORDER, the forward two-frame single-commit, and the deparser IP/TCP checksum externs
+  are COMPILED-MODEL tier only (not interpreter-validatable, same caveat as the range padder). seg1 admission is
+  content-blind (dl.len==0x46 && FIN gating). HARDWARE coverage of the segmented class is PENDING -- not claimed.
+- NEXT: c20 freeze + hardware configs (reference rotate4 + per-class recovery, segmented block); endpoint deploy to
+  Vision; dry-run; authorized detached campaign with restoration verification; report all occupied pipelines incl.
+  the 7-stage padder; first-frame vs complete-response timing separately. Timing PRECISION stays gated by the Vision
+  environment (Philip decision to restore pre-reboot latency); size/delivery/recovery are not blocked by it.
