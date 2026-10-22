@@ -398,3 +398,9 @@ policy, reproduction and the completion record only.
   errors [], read back "Adaptive RX: on", rx-usecs 50, tx-usecs 50, baseline file removed. The refused reconcile at
   21:24:18Z then saw check 6 pass. A bounded, reviewed repair path (nic_repair.py + reconcile acceptance) records the
   repair formally; its record states the NIC was already at baseline and cites this entry.
+- 2026-10-22 21:49-21:50Z: nic_repair.py --apply for the campaign 04 block (under the lock): ok, already at baseline
+  before, action "none: already at the bound settings (no ethtool -C written)", staged hashes = the reviewed 774300eed
+  blobs, independent read-back adaptive RX on / rx-usecs 50. NOTE: the record's `result` text reads "re-applied and
+  verified"; its `action` field is the accurate one -- nothing was written in this run (the repair was the earlier ad
+  hoc one, recorded above). Reconcile (regular path + repair acceptance) cleared the flag: all fresh switch, Vision and
+  NIC checks passed; the runner restore result stays FAILED (reconcile_..._20261022T215002Z/reconciliation.json).

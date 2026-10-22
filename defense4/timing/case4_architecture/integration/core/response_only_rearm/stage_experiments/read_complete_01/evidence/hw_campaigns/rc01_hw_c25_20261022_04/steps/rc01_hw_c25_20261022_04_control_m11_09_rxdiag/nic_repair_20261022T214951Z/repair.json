@@ -1,0 +1,74 @@
+{
+  "action": "none: already at the bound settings (no ethtool -C written)",
+  "actual_settings": {
+    "adaptive_rx": "on",
+    "rx_usecs": 50
+  },
+  "already_at_baseline_before": true,
+  "apply_output": "{\"errors\": [], \"staged_sha256\": {\"capture_observation.py\": \"483a47aef6a2eab897de25175dc4b81e491f29b3deccfb7e90b03ca498ec88b0\", \"wire_check.py\": \"d9bb1be873e1dbd1c8257341130ce662f5e262b005d1d3578a5484ffa87b55c8\"}, \"action\": \"none: already at the bound settings (no ethtool -C written)\"}\n",
+  "at": 1792705791.5131195,
+  "bound_sha256": {
+    "artifact_manifest": "e303374e2e648c70359b2a8a3d12de1f322bb3a346f03b48d4d3087535c77d26",
+    "campaign_run.json": "fe2fde9da6686239de3279610ce3785155ffb9bdca621fd84d704ba5c8ac8b9e",
+    "freeze_check.json": "b331836aa473727bcfa4bfb8df4c0a7648df00708dd95d33ba7b5b444f82501f",
+    "run_block_run.out": "be8961d886438bfb2d78509677a630d226cb38e8bb031cdc711c5a0bb1ecb1ff",
+    "terminal": "8e2f6760ab2c60db68189acb9b2ceee1159833258fc47d835d44a7fe847bfd44"
+  },
+  "campaign_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/rc01_hw_c25_20261022_04",
+  "earlier_repair": "the NIC was first repaired ad hoc, OUTSIDE the testbed lock and before this tool existed: the operator staged capture_observation.py + wire_check.py in /tmp/rxfix_20261022 on Vision (stat: 2026-10-22 21:24:05 UTC; capture_observation.py sha256 483a47ae..., equal to the 774300eed blob) and ran restore_rx_coalesce via sudo python3 against the runner's own baseline file, read back adaptive RX on, rx-usecs 50 and the file removed (read_complete_01/STATUS.md, 2026-10-22 NIC repair entry)",
+  "errors": [],
+  "ethtool_after": "Coalesce parameters for enp59s0f0np0:\nAdaptive RX: on  TX: on\nstats-block-usecs:\tn/a\nsample-interval:\tn/a\npkt-rate-low:\t\tn/a\npkt-rate-high:\t\tn/a\n\nrx-usecs:\t50\nrx-frames:\tn/a\nrx-usecs-irq:\tn/a\nrx-frames-irq:\tn/a\n\ntx-usecs:\t50\ntx-frames:\tn/a\ntx-usecs-irq:\tn/a\ntx-frames-irq:\t256\n\nrx-usecs-low:\tn/a\nrx-frame-low:\tn/a\ntx-usecs-low:\tn/a\ntx-frame-low:\tn/a\n\nrx-usecs-high:\t0\nrx-frame-high:\tn/a\ntx-usecs-high:\t0\ntx-frame-high:\tn/a\n\nCQE mode RX: n/a  TX: n/a\n\ntx-aggr-max-bytes:\tn/a\ntx-aggr-max-frames:\tn/a\ntx-aggr-time-usecs\tn/a\n\n",
+  "ethtool_before": "Coalesce parameters for enp59s0f0np0:\nAdaptive RX: on  TX: on\nstats-block-usecs:\tn/a\nsample-interval:\tn/a\npkt-rate-low:\t\tn/a\npkt-rate-high:\t\tn/a\n\nrx-usecs:\t50\nrx-frames:\tn/a\nrx-usecs-irq:\tn/a\nrx-frames-irq:\tn/a\n\ntx-usecs:\t50\ntx-frames:\tn/a\ntx-usecs-irq:\tn/a\ntx-frames-irq:\t256\n\nrx-usecs-low:\tn/a\nrx-frame-low:\tn/a\ntx-usecs-low:\tn/a\ntx-frame-low:\tn/a\n\nrx-usecs-high:\t0\nrx-frame-high:\tn/a\ntx-usecs-high:\t0\ntx-frame-high:\tn/a\n\nCQE mode RX: n/a  TX: n/a\n\ntx-aggr-max-bytes:\tn/a\ntx-aggr-max-frames:\tn/a\ntx-aggr-time-usecs\tn/a\n\n",
+  "failed_restoration": {
+    "line": "RESTORE STEP FAILED: Vision: fixture off, namespace profile and NIC flag restored (rc 1) rx coalescing restore failed: ethtool -C restore rc 1: netlink error: Invalid argument; RX coalescing is adaptive off rx-usecs 0, baseline adaptive on rx-usecs 50",
+    "steps": [
+      {
+        "ok": false,
+        "rc": 1,
+        "step": "Vision: fixture off, namespace profile and NIC flag restored"
+      }
+    ]
+  },
+  "independent_baseline": {
+    "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_baseline/vision_rx_coalesce_20261022.json",
+    "sha256": "65b2761cd3e6ed1385ee66ff1612fa93064b60166fa494740d64a247c8571ea8"
+  },
+  "ok": true,
+  "original_runner_result": "left unchanged (failed)",
+  "remote_dir": "/tmp/nic_repair.ntU7zZeo",
+  "restore_function": {
+    "deployed": {
+      "blobs": {
+        "capture_observation.py": "d4d627f267347dfec82ac66aa039b9bdb2bc214c",
+        "wire_check.py": "46aa9edef7eb9036937dca898ef43e1fe287e5e0"
+      },
+      "commit": "06ea4007fc3eaee3df919ffe3d726118e8cc2187",
+      "sha256": {
+        "capture_observation.py": "483a47aef6a2eab897de25175dc4b81e491f29b3deccfb7e90b03ca498ec88b0",
+        "wire_check.py": "d9bb1be873e1dbd1c8257341130ce662f5e262b005d1d3578a5484ffa87b55c8"
+      }
+    },
+    "function": "restore_rx_coalesce",
+    "source_sha256": "afe92338adf3139ea7e3ed5a2e4bba297cbae066a4185bb6b73733b561551fe7"
+  },
+  "result": "re-applied and verified (the NIC was already at baseline before this run; the earlier ad hoc repair is described in earlier_repair)",
+  "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c25_20261022_04_control_m11_09_rxdiag",
+  "saved_settings": {
+    "adaptive_rx": "on",
+    "rx_usecs": 50
+  },
+  "saved_settings_source": "run_block_run.out line",
+  "settings_before": {
+    "adaptive_rx": "on",
+    "rx_usecs": 50
+  },
+  "staged_sha256": {
+    "capture_observation.py": "483a47aef6a2eab897de25175dc4b81e491f29b3deccfb7e90b03ca498ec88b0",
+    "wire_check.py": "d9bb1be873e1dbd1c8257341130ce662f5e262b005d1d3578a5484ffa87b55c8"
+  },
+  "step_id": "rc01_hw_c25_20261022_04_control_m11_09_rxdiag",
+  "upload_rcs": {
+    "capture_observation.py": 0,
+    "wire_check.py": 0
+  }
+}
