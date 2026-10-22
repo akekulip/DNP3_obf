@@ -72,8 +72,9 @@ def main():
                     source_hashes={name: sha(HERE / 'sources' / name) for name in PARENT_PINS},
                     parent_source_hashes=PARENT_PINS,
                     read_schedule_endpoint=dict(
-                        scope='the same fork plus the opt-in READ-class schedule (CASE4_READ_SCHEDULE=rotate4) and '
-                              'database (CASE4_DB=base|large); unset, its wire bytes are the existing workload',
+                        scope='the same fork plus the opt-in READ-class schedule (CASE4_READ_SCHEDULE=rotate4|mixed_full|'
+                              'mixed|full), database (CASE4_DB=base|large) and the strict declared-padding check '
+                              '(CASE4_PAD_EXPECT); unset, its wire bytes are the existing workload',
                         command=schedule_command,
                         binary_sha256=sha(output / 'case4_socket_gate_read_schedule'),
                         library_sha256=sha(output / 'lib/libopendnp3.so'),

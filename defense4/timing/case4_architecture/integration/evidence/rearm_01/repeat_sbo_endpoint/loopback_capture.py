@@ -120,6 +120,8 @@ def request_kind(app):
         return 'READ:class0'
     if sorted(groups) == [(60, 1), (60, 2), (60, 3), (60, 4)]:
         return 'READ:integrity'
+    if groups == [(1, 2), (30, 1)]:            # one READ, two headers, in this order
+        return 'READ:mixed'
     return 'READ:' + ','.join('g%dv%d' % gv for gv in groups)
 
 

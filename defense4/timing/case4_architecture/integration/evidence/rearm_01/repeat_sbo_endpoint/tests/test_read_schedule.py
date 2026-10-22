@@ -49,7 +49,19 @@ class ReadSchedule(unittest.TestCase):
             stop = Path(temp) / 'stop'; stop.touch()
             for role, env, word in (('master', dict(CASE4_READ_SCHEDULE='rotate5', CASE4_DB='base'), 'CASE4_READ_SCHEDULE'),
                                     ('master', dict(CASE4_READ_SCHEDULE='rotate4'), 'CASE4_DB'),
-                                    ('outstation', dict(CASE4_DB='huge'), 'CASE4_DB')):
+                                    ('outstation', dict(CASE4_DB='huge'), 'CASE4_DB'),
+                                    # two-READ-target controls (2026-10-22)
+                                    ('master', dict(CASE4_READ_SCHEDULE='mixed_full', CASE4_DB='large'), 'requires CASE4_DB=base'),
+                                    ('master', dict(CASE4_PAD_EXPECT='mixed=0'), 'CASE4_PAD_EXPECT'),
+                                    ('master', dict(CASE4_PAD_EXPECT='mixed=26,mixed=26'), 'CASE4_PAD_EXPECT'),
+                                    ('master', dict(CASE4_PAD_EXPECT='bogus=4'), 'CASE4_PAD_EXPECT'),
+                                    ('master', dict(CASE4_PAD_EXPECT=''), 'CASE4_PAD_EXPECT'),
+                                    ('outstation', dict(CASE4_PAD_EXPECT='mixed=26'), 'CASE4_PAD_EXPECT'),
+                                    ('master', dict(CASE4_READ_SCHEDULE='mixed_full', CASE4_DB='base',
+                                                    CASE4_PAD_EXPECT='range=5'), 'never issues'),
+                                    ('master', dict(CASE4_PAD_EXPECT='mixed=26'), 'never issues'),
+                                    ('master', dict(CASE4_FIXTURE_VARIANT='1'), 'CASE4_FIXTURE_VARIANT requires'),
+                                    ('master', dict(CASE4_FIXTURE_VARIANT='10'), 'CASE4_FIXTURE_VARIANT')):
                 with self.subTest(role=role, env=env):
                     run = subprocess.run([str(BINARY), role, '127.0.0.1', '1', str(stop), '1'],
                                          env=dict(CASE4_PAD58B_SOCKET_GATE='1', **env), capture_output=True,
@@ -100,6 +112,37 @@ class ReadSchedule(unittest.TestCase):
                     self.assertEqual(row['tcp_segments'], row['response_frames'])
                     self.assertEqual((record['response_link_octets'], record['response_apdu_octets']),
                                      (row['response_octets'], row['response_apdu_octets']))
+
+    @unittest.skipUnless(CAN_CAPTURE, 'needs dumpcap and unprivileged user namespaces')
+    def test_mixed_full_schedule_on_base(self):
+        """Two-READ-target workload: the mixed READ is ONE request with g1v2 0-15 and g30v1 0-7 (25 octets) whose
+        native response is one 91-octet link frame in one TCP segment; the full READ is the integrity poll (27 -> 247).
+        Strict fixture check with no padding declared, on two fixture variants."""
+        cycles, reads = 6, 1
+        slots = [('mixed', 'integrity')[k % 2] for k in range(reads + cycles)]
+        sizes = {'mixed': (25, [91]), 'integrity': (27, [247])}
+        for variant in ('0', '1'):
+            with self.subTest(variant=variant), tempfile.TemporaryDirectory() as temp:
+                out = Path(temp) / ('v' + variant)
+                rc = LOOP.run(BINARY, out, reads, dict(CASE4_SBO_CYCLES=str(cycles), CASE4_READ_PAUSE_MS='0',
+                                                       CASE4_READ_SCHEDULE='mixed_full', CASE4_DB='base',
+                                                       CASE4_FIXTURE_VARIANT=variant))
+                self.assertEqual(rc, 0, (out / 'master.log').read_text())
+                master = last_json(out / 'master.log')
+                self.assertTrue(master['success'] and master['read_commands_ok'])
+                self.assertEqual((master['read_schedule'], master['pad_expect']), ('mixed_full', 'none'))
+                self.assertEqual([r['class'] for r in master['read_commands']], slots)
+                self.assertTrue(all(r['padding_points'] == 0 for r in master['read_commands']))
+                mixed = [r for r in master['read_commands'] if r['class'] == 'mixed'][0]
+                self.assertEqual([(h['g'], h['v'], h['q'], h['count']) for h in mixed['response_headers']],
+                                 [(1, 2, 0, 16), (30, 1, 0, 8)])
+                decoded = LOOP.decode(out)
+                rows = [e for e in decoded['exchanges'] if e['kind'].startswith('READ:')]
+                self.assertEqual([e['kind'] for e in rows], ['READ:' + s for s in slots])
+                for record, row in zip(master['read_commands'], rows):
+                    self.assertEqual((row['request_octets'], row['response_frames']), sizes[record['class']])
+                    self.assertEqual(row['tcp_segments'], row['response_frames'])
+                    self.assertEqual(record['response_link_octets'], row['response_octets'])
 
 
 if __name__ == '__main__':

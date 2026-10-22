@@ -34,6 +34,23 @@
 // class0 = ScanClasses(Class0); integrity = ScanClasses(AllClasses). With both variables unset every wire byte is the
 // existing workload's. The master appends one read_commands record per issued READ (class, request objects, response
 // headers, response APDU and link octets derived from the decoded headers, fixture match, success).
+//
+// Two-READ-target extension (2026-10-22). A fifth class, mixed = ONE READ request carrying two object headers,
+// Scan({Range8(1,2,0,15), Range8(30,1,0,7)}): G1V2 binary inputs 0..15 and G30V1 analog inputs 0..7 from the base
+// database (one native link frame, 91 encoded octets). New schedules: mixed_full (slot k: mixed if k even, integrity
+// if odd), and the single-class mixed and full (= integrity) for recovery blocks. rotate4 is unchanged.
+//   CASE4_PAD_EXPECT=<class>=<n>[,<class>=<n>]  (master) the padding a switch is declared to add, per class: exactly n
+//                                G1V2 points at indices 1024..1024+n-1, each value 0 and flags 0x00 (the encoder's zero
+//                                object octets), in ONE header (qualifier 0x01) that precedes every original header.
+//                                The check is strict: the original points must be exactly the class fixture (values,
+//                                flags), with no repeated index of any type, and -- for mixed, integrity and class0 --
+//                                in the class's exact native header structure (group/variation, qualifier, count, in
+//                                order); the padding must be exactly the declared set. A class with no declaration (or
+//                                the variable unset) must contain NO added point, so a padding-off arm fails on any
+//                                padding. Declaring a class the schedule never issues is rejected. The master does
+//                                NOT see the response IIN or link/transport octets: the capture readout checks those.
+// The derived response_*_octets fields count the ORIGINAL headers only (the native size); padding_points reports the
+// added points. The capture, not this derivation, is the authority on wire length.
 #include "DecoyGateCommandHandler.h"
 #include <opendnp3/DNP3Manager.h>
 #include <opendnp3/app/ClassField.h>
@@ -137,20 +154,34 @@ struct Cycle {
     bool read_completed = false, read_matches_seed = false; size_t read_scan = 0; const char* read_class = "range";
 };
 
-// READ classes of the fixed schedule, in schedule order.
-enum ReadClass { RANGE = 0, ANALOG = 1, CLASS0 = 2, INTEGRITY = 3 };
-static const char* const READ_CLASS_NAME[4] = {"range", "analog", "class0", "integrity"};
+// READ classes of the fixed schedules, in schedule order.
+enum ReadClass { RANGE = 0, ANALOG = 1, CLASS0 = 2, INTEGRITY = 3, MIXED = 4 };
+static const int READ_CLASSES = 5;
+static const char* const READ_CLASS_NAME[READ_CLASSES] = {"range", "analog", "class0", "integrity", "mixed"};
 static const ReadClass ROTATE4[4] = {RANGE, ANALOG, CLASS0, INTEGRITY};
+static const ReadClass MIXED_FULL[2] = {MIXED, INTEGRITY};
+
+// Reserved padding contract (read_complete_01 vectors, fixture range 1024..4095): the first padding index and the
+// object a padded response carries there. Original points never use these indices (the base database ends at 41).
+static const uint16_t PAD_FIRST = 1024;
 
 // FullReadGate.cpp fixture (full_read_01), copied unchanged. Analog 0..20 follow the SEL-751 analog map; large adds 21..41.
 static const int32_t ANALOG_FIXTURE[42] = {
     412, 405, 418, 3, 9, 412, 2, 60, 13210, 13195, 13230, 7625, 4, 9310, 2120, 9550, 97, 0, 0, 0, 0,
     388, 391, 379, 2, 6, 386, 1, 60, 13180, 13170, 13205, 7610, 3, 8790, 1985, 9010, 98, 0, 0, 0, 0};
-static bool biValue(uint16_t i) { return (i % 3) == 0; }
-static uint32_t counterValue(uint16_t i) { return 1000u * (i + 1) + 7u; }
+// CASE4_FIXTURE_VARIANT=v (both endpoints, 0..9, default 0 = the values above exactly): shifts the binary-input
+// pattern, the analog and counter values, and (odd v) adds the RESTART quality bit (0x02) to BI/AI/counter flags, so
+// focused cases can show that nothing downstream depends on one capture's measurement bytes. BOS is unchanged.
+static int g_variant = 0;
+static bool biValue(uint16_t i) { return ((i + g_variant) % 3) == 0; }
+static int32_t analogValue(uint16_t i) { return ANALOG_FIXTURE[i] + 1000 * g_variant; }
+static uint32_t counterValue(uint16_t i) { return 1000u * (i + 1) + 7u + 100u * static_cast<uint32_t>(g_variant); }
+static uint8_t fixtureFlags() { return static_cast<uint8_t>(0x01 | ((g_variant & 1) ? 0x02 : 0x00)); }
 
 // One object header of a received response, as the master's parser delivered it.
-struct HeaderRecord { uint16_t gv; uint8_t qualifier; size_t count; bool event; };
+// reserved: every object of the header has an index in the reserved padding range (>= PAD_FIRST). A header that mixes
+// reserved and original indices is not reserved, and fails the strict check below.
+struct HeaderRecord { uint16_t gv; uint8_t qualifier; size_t count; bool event; bool reserved; bool mixes_reserved; };
 
 // One scan's worth of received points: index -> (value, raw flags byte). points holds Binary Output Status (as
 // before); bi/ai/ctr hold the other configured types; other counts objects of any type the fixture never configures.
@@ -160,6 +191,7 @@ struct ScanResult {
     std::map<uint16_t, std::pair<double, uint8_t>> ai, ctr;
     std::vector<HeaderRecord> headers;
     size_t other = 0;
+    size_t duplicates = 0;                 // objects whose index repeated one already delivered in this scan
     bool completed = false;
 };
 
@@ -181,28 +213,42 @@ public:
     ScanResult& note(const HeaderInfo& info, size_t count) {
         if (scans.empty()) scans.emplace_back();
         scans.back().headers.push_back({static_cast<uint16_t>(info.gv), static_cast<uint8_t>(info.qualifier), count,
-                                        info.isEventVariation});
+                                        info.isEventVariation, false, false});
         return scans.back();
+    }
+    // Classify the header just noted by the indices it actually carried.
+    static void markReserved(ScanResult& scan, size_t reserved, size_t total) {
+        auto& h = scan.headers.back();
+        h.reserved = total > 0 && reserved == total;
+        h.mixes_reserved = reserved > 0 && reserved != total;
     }
     template<class T> void otherType(const HeaderInfo& info, const ICollection<T>& values) {
         note(info, values.Count()).other += values.Count();
     }
     void Process(const HeaderInfo& info, const ICollection<Indexed<Binary>>& values) override {
         auto& scan = note(info, values.Count());
+        size_t reserved = 0;
         values.ForeachItem([&](const Indexed<Binary>& item) {
+            if (item.index >= PAD_FIRST) ++reserved;
+            // A repeated index (an original and a padding point colliding) is kept as a duplicate count so the strict
+            // check fails instead of one silently overwriting the other.
+            if (scan.bi.count(item.index)) ++scan.duplicates;
             scan.bi[item.index] = std::make_pair(item.value.value, item.value.flags.value);
         });
+        markReserved(scan, reserved, values.Count());
     }
     void Process(const HeaderInfo& info, const ICollection<Indexed<DoubleBitBinary>>& values) override { otherType(info, values); }
     void Process(const HeaderInfo& info, const ICollection<Indexed<Analog>>& values) override {
         auto& scan = note(info, values.Count());
         values.ForeachItem([&](const Indexed<Analog>& item) {
+            if (scan.ai.count(item.index)) ++scan.duplicates;
             scan.ai[item.index] = std::make_pair(item.value.value, item.value.flags.value);
         });
     }
     void Process(const HeaderInfo& info, const ICollection<Indexed<Counter>>& values) override {
         auto& scan = note(info, values.Count());
         values.ForeachItem([&](const Indexed<Counter>& item) {
+            if (scan.ctr.count(item.index)) ++scan.duplicates;
             scan.ctr[item.index] = std::make_pair(static_cast<double>(item.value.value), item.value.flags.value);
         });
     }
@@ -210,6 +256,7 @@ public:
     void Process(const HeaderInfo& info, const ICollection<Indexed<BinaryOutputStatus>>& values) override {
         auto& scan = note(info, values.Count());
         values.ForeachItem([&](const Indexed<BinaryOutputStatus>& item) {
+            if (scan.points.count(item.index)) ++scan.duplicates;
             scan.points[item.index] = std::make_pair(item.value.value, item.value.flags.value);
         });
     }
@@ -240,12 +287,21 @@ static bool matchesSeed(const ScanResult& scan) {
     return true;
 }
 
-// Binary inputs fold the state bit into the wire byte the same way Group10Var2 does.
+// Original (non-reserved) binary inputs delivered in the scan.
+static size_t originalBinaryInputs(const ScanResult& scan) {
+    size_t n = 0;
+    for (const auto& kv : scan.bi) if (kv.first < PAD_FIRST) ++n;
+    return n;
+}
+
+// Binary inputs fold the state bit into the wire byte the same way Group10Var2 does. Only the original indices count
+// here; reserved-range points are judged by matchesPadding.
 static bool matchesBinaryInputs(const ScanResult& scan) {
-    if (scan.bi.size() != 16) return false;
+    if (originalBinaryInputs(scan) != 16) return false;
     for (uint16_t i = 0; i < 16; ++i) {
         auto it = scan.bi.find(i);
-        if (it == scan.bi.end() || it->second.first != biValue(i) || it->second.second != (biValue(i) ? 0x81 : 0x01))
+        if (it == scan.bi.end() || it->second.first != biValue(i) ||
+            it->second.second != ((biValue(i) ? 0x80 : 0x00) | fixtureFlags()))
             return false;
     }
     return true;
@@ -255,7 +311,7 @@ static bool matchesAnalogs(const ScanResult& scan, uint16_t count) {
     if (scan.ai.size() != count) return false;
     for (uint16_t i = 0; i < count; ++i) {
         auto it = scan.ai.find(i);
-        if (it == scan.ai.end() || it->second.first != ANALOG_FIXTURE[i] || it->second.second != 0x01) return false;
+        if (it == scan.ai.end() || it->second.first != analogValue(i) || it->second.second != fixtureFlags()) return false;
     }
     return true;
 }
@@ -264,30 +320,87 @@ static bool matchesCounters(const ScanResult& scan) {
     if (scan.ctr.size() != 8) return false;
     for (uint16_t i = 0; i < 8; ++i) {
         auto it = scan.ctr.find(i);
-        if (it == scan.ctr.end() || it->second.first != counterValue(i) || it->second.second != 0x01) return false;
+        if (it == scan.ctr.end() || it->second.first != counterValue(i) || it->second.second != fixtureFlags()) return false;
     }
     return true;
 }
 
-// The exact point set each class must return from the fixture, and nothing else (no event objects, no other types).
-static bool matchesFixture(const ScanResult& scan, ReadClass cls, bool large) {
-    if (!scan.completed || scan.other) return false;
+// Strict padding check. expected = the declared padding point count for this READ's class (0 = none declared).
+// Declared: exactly `expected` G1V2 points at PAD_FIRST..PAD_FIRST+expected-1, each value 0 / flags 0x00, carried in
+// exactly one reserved header (G1V2, qualifier 0x01, count expected) that is the FIRST header of the response, so every
+// original header follows it in its native order. Not declared: no reserved point and no reserved header at all.
+// Any header mixing reserved and original indices, or any repeated index, fails.
+static bool matchesPadding(const ScanResult& scan, int expected) {
+    if (scan.duplicates) return false;
+    size_t reservedHeaders = 0;
+    for (const auto& h : scan.headers) {
+        if (h.mixes_reserved) return false;
+        if (h.reserved) ++reservedHeaders;
+    }
+    size_t reservedPoints = 0;
+    for (const auto& kv : scan.bi) {
+        if (kv.first < PAD_FIRST) continue;
+        ++reservedPoints;
+        if (expected <= 0 || kv.first >= PAD_FIRST + expected) return false;
+        if (kv.second.first != false || kv.second.second != 0x00) return false;
+    }
+    if (expected <= 0) return reservedPoints == 0 && reservedHeaders == 0;
+    if (reservedPoints != static_cast<size_t>(expected) || reservedHeaders != 1) return false;
+    const auto& first = scan.headers.front();
+    return first.reserved && first.gv == 0x0102 && first.qualifier == 0x01 && first.count == static_cast<size_t>(expected);
+}
+
+// Exact ORIGINAL header structure for the classes of the two-READ-target profile, as the live master decoded the
+// native responses (read_complete_01/evidence/m1_two_read_01): group/variation, qualifier and object count of every
+// non-reserved header, in order. The originals must arrive in this structure, not merely as the right index->value
+// pairs: a reordered, split, re-qualified or extended original header fails. range and analog keep their existing
+// value-set check only.
+static bool matchesStructure(const ScanResult& scan, ReadClass cls, bool large) {
+    struct Shape { uint16_t gv; uint8_t qualifier; size_t count; };
+    std::vector<Shape> want;
+    if (cls == MIXED) want = {{0x0102, 0x00, 16}, {0x1E01, 0x00, 8}};
+    else if (cls == CLASS0 || cls == INTEGRITY)
+        want = {{0x0102, 0x00, 16}, {0x1E01, 0x00, static_cast<size_t>(large ? 42 : 21)}, {0x1401, 0x00, 8}, {0x0A02, 0x00, 23}};
+    else return true;
+    size_t k = 0;
+    for (const auto& h : scan.headers) {
+        if (h.reserved) continue;
+        if (k >= want.size() || h.gv != want[k].gv || h.qualifier != want[k].qualifier || h.count != want[k].count)
+            return false;
+        ++k;
+    }
+    return k == want.size();
+}
+
+// The exact point set each class must return from the fixture, and nothing else (no event objects, no other types,
+// no repeated index of any type), in the class's exact original header structure, plus exactly the declared padding
+// (pad_expected points) and no other added point.
+static bool matchesFixture(const ScanResult& scan, ReadClass cls, bool large, int pad_expected) {
+    if (!scan.completed || scan.other || scan.duplicates) return false;
     for (const auto& h : scan.headers) if (h.event) return false;
+    if (!matchesPadding(scan, pad_expected)) return false;
+    if (!matchesStructure(scan, cls, large)) return false;
     switch (cls) {
-    case RANGE: return matchesSeed(scan) && scan.bi.empty() && scan.ai.empty() && scan.ctr.empty();
-    case ANALOG: return matchesAnalogs(scan, 21) && scan.points.empty() && scan.bi.empty() && scan.ctr.empty();
+    case RANGE: return matchesSeed(scan) && originalBinaryInputs(scan) == 0 && scan.ai.empty() && scan.ctr.empty();
+    case ANALOG: return matchesAnalogs(scan, 21) && scan.points.empty() && originalBinaryInputs(scan) == 0 && scan.ctr.empty();
+    case MIXED: return matchesBinaryInputs(scan) && matchesAnalogs(scan, 8) && scan.points.empty() && scan.ctr.empty();
     default: return matchesSeed(scan) && matchesBinaryInputs(scan) && matchesAnalogs(scan, large ? 42 : 21) &&
                     matchesCounters(scan);
     }
 }
 
+// Padding points actually delivered in the scan (reserved-range binary inputs), for the record.
+static size_t paddingPoints(const ScanResult& scan) { return scan.bi.size() - originalBinaryInputs(scan); }
+
 // Response APDU octets implied by the decoded headers: control, function, IIN (4), then per header group, variation,
 // qualifier (3), its range or count field, and count objects (with their index prefix). Only the static variations
 // the fixture uses have a size here; any other header makes the result -1. This is derived, not observed: the
 // capture is the authority on wire length.
+// Reserved (padding) headers are excluded, so the result is the ORIGINAL response's size; padding is reported apart.
 static long apduOctets(const ScanResult& scan) {
     long total = 4;
     for (const auto& h : scan.headers) {
+        if (h.reserved) continue;
         long size;
         switch (h.gv) {
         case 0x0102: case 0x0A02: size = 1; break;   // G1V2, G10V2: one flags+state octet
@@ -353,7 +466,8 @@ int main(int argc, char** argv) {
         !envUnsigned("CASE4_RUN_SBO", 1, 1, run_sbo) ||
         !envUnsigned("CASE4_CLOSE_GRACE_MS", 0, 5000, close_grace_ms) ||
         !envUnsigned("CASE4_PRE_READ_GRACE_MS", 0, 5000, pre_read_grace_ms) ||
-        !envUnsigned("CASE4_SBO_CYCLES", 0, 64, sbo_cycles)) return 64;
+        !envUnsigned("CASE4_SBO_CYCLES", 0, 64, sbo_cycles) ||
+        !envUnsigned("CASE4_FIXTURE_VARIANT", 0, 9, g_variant)) return 64;
     // CASE4_SBO_CYCLES=0 (default) keeps the single trailing SBO. N>0 runs N cycles of SELECT->OPERATE then one
     // READ on the same connection after the initial READs, i.e. READ->SELECT->OPERATE->READ repeated N times.
     if (sbo_cycles && !run_sbo) { std::cerr << "CASE4_SBO_CYCLES requires CASE4_RUN_SBO=1\n"; return 64; }
@@ -363,11 +477,57 @@ int main(int argc, char** argv) {
     const char* db_text = std::getenv("CASE4_DB");
     const std::string schedule = schedule_text ? schedule_text : "";
     const std::string dbname = db_text ? db_text : "legacy";
-    if (schedule_text && schedule != "rotate4") { std::cerr << "CASE4_READ_SCHEDULE must be rotate4 or unset\n"; return 64; }
+    std::vector<ReadClass> order;
+    if (schedule == "rotate4") order.assign(ROTATE4, ROTATE4 + 4);
+    else if (schedule == "mixed_full") order.assign(MIXED_FULL, MIXED_FULL + 2);
+    else if (schedule == "mixed") order = {MIXED};
+    else if (schedule == "full") order = {INTEGRITY};
+    if (schedule_text && order.empty()) {
+        std::cerr << "CASE4_READ_SCHEDULE must be rotate4, mixed_full, mixed, full or unset\n"; return 64;
+    }
     if (db_text && dbname != "base" && dbname != "large") { std::cerr << "CASE4_DB must be base, large or unset\n"; return 64; }
     if (schedule_text && role == "master" && !db_text) { std::cerr << "CASE4_READ_SCHEDULE requires CASE4_DB=base|large\n"; return 64; }
+    // The mixed READ's analog header (0..7) and its 91-octet native are defined for the base database only.
+    if (schedule_text && schedule != "rotate4" && dbname != "base") {
+        std::cerr << "CASE4_READ_SCHEDULE " << schedule << " requires CASE4_DB=base\n"; return 64;
+    }
     const bool scheduled = schedule_text != nullptr, large = dbname == "large";
-    auto classOf = [&](int slot) { return scheduled ? ROTATE4[slot % 4] : RANGE; };
+    auto classOf = [&](int slot) { return scheduled ? order[static_cast<size_t>(slot) % order.size()] : RANGE; };
+    // Declared padding per class (see the header comment); strict parse, every class at most once.
+    int pad_expect[READ_CLASSES] = {0, 0, 0, 0, 0};
+    if (const char* pad_text = std::getenv("CASE4_PAD_EXPECT")) {
+        if (role != "master") { std::cerr << "CASE4_PAD_EXPECT is a master control\n"; return 64; }
+        bool seen[READ_CLASSES] = {false, false, false, false, false};
+        std::string spec = pad_text;
+        if (spec.empty()) { std::cerr << "CASE4_PAD_EXPECT must not be empty\n"; return 64; }
+        size_t pos = 0;
+        while (pos <= spec.size()) {
+            const size_t comma = spec.find(',', pos);
+            const std::string item = spec.substr(pos, comma == std::string::npos ? std::string::npos : comma - pos);
+            const size_t eq = item.find('=');
+            int cls = -1;
+            if (eq != std::string::npos)
+                for (int c = 0; c < READ_CLASSES; ++c) if (item.substr(0, eq) == READ_CLASS_NAME[c]) cls = c;
+            const std::string num = eq == std::string::npos ? "" : item.substr(eq + 1);
+            bool digits = !num.empty() && num.size() <= 4;
+            for (char ch : num) digits = digits && ch >= '0' && ch <= '9';
+            const int n = digits ? std::atoi(num.c_str()) : 0;
+            if (cls < 0 || seen[cls] || !digits || n < 1 || n > 4095 - PAD_FIRST + 1) {
+                std::cerr << "CASE4_PAD_EXPECT item '" << item << "' must be <class>=<1.." << (4095 - PAD_FIRST + 1)
+                          << ">, each class at most once\n";
+                return 64;
+            }
+            seen[cls] = true; pad_expect[cls] = n;
+            if (comma == std::string::npos) break;
+            pos = comma + 1;
+        }
+        for (int c = 0; c < READ_CLASSES; ++c)
+            if (pad_expect[c] && std::find(order.begin(), order.end(), static_cast<ReadClass>(c)) == order.end()) {
+                std::cerr << "CASE4_PAD_EXPECT declares " << READ_CLASS_NAME[c] << ", which the schedule never issues\n";
+                return 64;
+            }
+    }
+    if (g_variant && !db_text) { std::cerr << "CASE4_FIXTURE_VARIANT requires CASE4_DB=base|large\n"; return 64; }
     DNP3Manager manager(1); auto listener = std::make_shared<Listener>();
     if (role == "outstation") {
         if (lifetime_s <= 0) return 64;
@@ -386,10 +546,10 @@ int main(int argc, char** argv) {
         config.link.LocalAddr = 10; config.link.RemoteAddr = 1; config.link.KeepAliveTimeout = TimeDuration::Max();
         auto station = channel->AddOutstation("outstation", handler, DefaultOutstationApplication::Create(), config);
         UpdateBuilder builder;
-        if (full) for (uint16_t i = 0; i < 16; ++i) builder.Update(Binary(biValue(i), Flags(0x01)), i);
+        if (full) for (uint16_t i = 0; i < 16; ++i) builder.Update(Binary(biValue(i), Flags(fixtureFlags())), i);
         for (uint16_t i = 0; i < 23; ++i) builder.Update(BinaryOutputStatus((i % 2) == 0, Flags(0x01)), i);
-        if (full) for (uint16_t i = 0; i < analogs; ++i) builder.Update(Analog(ANALOG_FIXTURE[i], Flags(0x01)), i);
-        if (full) for (uint16_t i = 0; i < 8; ++i) builder.Update(Counter(counterValue(i), Flags(0x01)), i);
+        if (full) for (uint16_t i = 0; i < analogs; ++i) builder.Update(Analog(analogValue(i), Flags(fixtureFlags())), i);
+        if (full) for (uint16_t i = 0; i < 8; ++i) builder.Update(Counter(counterValue(i), Flags(fixtureFlags())), i);
         station->Apply(builder.Build());
         station->Enable(); std::cout<<"READY\n"<<std::flush;
         const auto end = Clock::now() + std::chrono::seconds(lifetime_s);
@@ -442,7 +602,8 @@ int main(int argc, char** argv) {
         ReadCommand rc; rc.slot = i; rc.cls = cls; rc.scan_before = soe->scans.size();
         if (i == 0) first_read_issued_ns = now_ns();
         rc.issued_ns = now_ns();
-        if (cls == ANALOG) master->ScanRange(GroupVariationID(30, 0), 0, 20, soe);
+        if (cls == MIXED) master->Scan({Header::Range8(1, 2, 0, 15), Header::Range8(30, 1, 0, 7)}, soe);
+        else if (cls == ANALOG) master->ScanRange(GroupVariationID(30, 0), 0, 20, soe);
         else if (cls == CLASS0) master->ScanClasses(ClassField(PointClass::Class0), soe);
         else if (cls == INTEGRITY) master->ScanClasses(ClassField::AllClasses(), soe);
         else if (range_bits == 8) master->Scan({Header::Range8(10, 2, 0, 22)}, soe);
@@ -485,7 +646,8 @@ int main(int argc, char** argv) {
         cy->read_class = READ_CLASS_NAME[classOf(reads + c)];
         cy->read_completed = doRead(reads + c);
         cy->read_matches_seed = cy->read_completed && cy->read_scan < soe->scans.size() &&
-                                matchesFixture(soe->scans[cy->read_scan], classOf(reads + c), large);
+                                matchesFixture(soe->scans[cy->read_scan], classOf(reads + c), large,
+                                               pad_expect[classOf(reads + c)]);
         if (!cy->read_matches_seed) break;
     }
     bool success = run_sbo == 0;
@@ -507,7 +669,8 @@ int main(int argc, char** argv) {
         reads_json << "{\"completed\":" << (scan.completed ? "true" : "false")
                    << ",\"points_received\":" << scan.points.size()
                    << ",\"class\":\"" << READ_CLASS_NAME[classOf(static_cast<int>(i))] << "\""
-                   << ",\"matches_seed\":" << (matchesFixture(scan, classOf(static_cast<int>(i)), large) ? "true" : "false") << "}";
+                   << ",\"matches_seed\":" << (matchesFixture(scan, classOf(static_cast<int>(i)), large,
+                                                              pad_expect[classOf(static_cast<int>(i))]) ? "true" : "false") << "}";
     }
     reads_json << "]";
     std::ostringstream cycles_json;
@@ -528,11 +691,13 @@ int main(int argc, char** argv) {
     const size_t expectedScans = static_cast<size_t>(reads) + static_cast<size_t>(sbo_cycles);
     const bool allReadsMatch = soe->scans.size() == expectedScans &&
         [&]() { for (size_t i = 0; i < soe->scans.size(); ++i)
-                    if (!matchesFixture(soe->scans[i], classOf(static_cast<int>(i)), large)) return false;
+                    if (!matchesFixture(soe->scans[i], classOf(static_cast<int>(i)), large,
+                                        pad_expect[classOf(static_cast<int>(i))])) return false;
                 return true; }();
     // Per issued READ: class, request objects, the response(s) delivered during it, and the fixture check.
-    static const char* const REQUEST_OBJECTS[4] = {"", "g30v0 q0x01 0-20", "g60v1 q0x06",
-                                                   "g60v2 q0x06,g60v3 q0x06,g60v4 q0x06,g60v1 q0x06"};
+    static const char* const REQUEST_OBJECTS[READ_CLASSES] = {"", "g30v0 q0x01 0-20", "g60v1 q0x06",
+                                                   "g60v2 q0x06,g60v3 q0x06,g60v4 q0x06,g60v1 q0x06",
+                                                   "g1v2 q0x00 0-15,g30v1 q0x00 0-7"};
     std::ostringstream commands_json;
     commands_json << "[";
     std::map<std::string, int> issued_per_class, succeeded_per_class;
@@ -541,7 +706,7 @@ int main(int argc, char** argv) {
         const size_t fragments = rc.scan_after - rc.scan_before;
         const ScanResult* scan = fragments == 1 ? &soe->scans[rc.scan_before] : nullptr;
         const long apdu = scan ? apduOctets(*scan) : -1;
-        const bool fixture = scan && matchesFixture(*scan, rc.cls, large);
+        const bool fixture = scan && matchesFixture(*scan, rc.cls, large, pad_expect[rc.cls]);
         const bool ok = rc.completed && fixture && apdu > 0;
         issued_per_class[READ_CLASS_NAME[rc.cls]]++; if (ok) succeeded_per_class[READ_CLASS_NAME[rc.cls]]++;
         commands_json << (k ? "," : "") << "{\"seq\":" << k << ",\"slot\":" << rc.slot
@@ -555,10 +720,13 @@ int main(int argc, char** argv) {
             const auto& hd = scan->headers[h];
             commands_json << (h ? "," : "") << "{\"g\":" << (hd.gv >> 8) << ",\"v\":" << (hd.gv & 0xFF)
                           << ",\"q\":" << static_cast<int>(hd.qualifier) << ",\"count\":" << hd.count
-                          << ",\"event\":" << (hd.event ? "true" : "false") << "}";
+                          << ",\"event\":" << (hd.event ? "true" : "false")
+                          << ",\"reserved\":" << (hd.reserved ? "true" : "false") << "}";
         }
         commands_json << "],\"response_apdu_octets\":" << apdu << ",\"response_link_octets\":" << linkOctets(apdu)
                       << ",\"length_basis\":\"derived_from_decoded_headers\""
+                      << ",\"padding_expected\":" << pad_expect[rc.cls]
+                      << ",\"padding_points\":" << (scan ? paddingPoints(*scan) : 0)
                       << ",\"points_received\":" << (scan ? scan->points.size() + scan->bi.size() + scan->ai.size() +
                                                                scan->ctr.size() + scan->other : 0)
                       << ",\"matches_fixture\":" << (fixture ? "true" : "false")
@@ -567,13 +735,15 @@ int main(int argc, char** argv) {
     commands_json << "]";
     std::ostringstream per_class_json;
     per_class_json << "{";
-    for (int c = 0; c < 4; ++c)
+    // The four original classes are always listed (the existing record); mixed only when the schedule issues it.
+    const bool lists_mixed = std::find(order.begin(), order.end(), MIXED) != order.end();
+    for (int c = 0; c < (lists_mixed ? READ_CLASSES : 4); ++c)
         per_class_json << (c ? "," : "") << "\"" << READ_CLASS_NAME[c] << "\":{\"issued\":" << issued_per_class[READ_CLASS_NAME[c]]
                        << ",\"succeeded\":" << succeeded_per_class[READ_CLASS_NAME[c]] << "}";
     per_class_json << "}";
     const bool allCommandsOk = std::all_of(read_commands.begin(), read_commands.end(), [&](const ReadCommand& rc) {
         const size_t f = rc.scan_after - rc.scan_before;
-        return rc.completed && f == 1 && matchesFixture(soe->scans[rc.scan_before], rc.cls, large) &&
+        return rc.completed && f == 1 && matchesFixture(soe->scans[rc.scan_before], rc.cls, large, pad_expect[rc.cls]) &&
                apduOctets(soe->scans[rc.scan_before]) > 0; });
     std::cout << "{\"success\":" << (success && allReadsMatch && allCommandsOk ? "true" : "false")
                << ",\"application_calls\":" << cycles.size() << ",\"opens\":" << listener->opens
@@ -587,6 +757,7 @@ int main(int argc, char** argv) {
                << ",\"reads_requested\":" << expectedScans << ",\"reads_completed\":" << soe->scans.size()
                << ",\"all_reads_match_seed\":" << (allReadsMatch ? "true" : "false")
                << ",\"read_schedule\":\"" << (scheduled ? schedule : "none") << "\",\"db\":\"" << dbname << "\""
+               << ",\"pad_expect\":\"" << (std::getenv("CASE4_PAD_EXPECT") ? std::getenv("CASE4_PAD_EXPECT") : "none") << "\""
                << ",\"read_commands_ok\":" << (allCommandsOk ? "true" : "false")
                << ",\"reads_per_class\":" << per_class_json.str()
                << ",\"reads\":" << reads_json.str() << ",\"cycles\":" << cycles_json.str()

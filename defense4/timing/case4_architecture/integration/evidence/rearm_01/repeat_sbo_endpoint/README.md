@@ -70,3 +70,60 @@ class. For range that is still the 23-point seed. The outstation JSON gains `db`
 
 **Loopback check.** `loopback_capture.py run|decode|compare` runs both endpoints in `unshare -rn` with dumpcap on
 `lo`. It decodes the capture with `read_complete_01`'s `capture.py` and `dnp3_std.py`.
+
+## Two-READ-target schedules (2026-10-22)
+
+The schedule binary adds a fifth READ class and three schedules. With none of the new controls set, the wire bytes
+and records are unchanged (`test_unset_schedule_is_the_existing_workload_on_the_wire`, rotate4 tests).
+
+- **`mixed`**: ONE READ request carrying two object headers, `Scan({Range8(1,2,0,15), Range8(30,1,0,7)})`
+  (G1V2 binary inputs 0–15 and G30V1 analog inputs 0–7, base database). It is not two READs and not a binary-only READ.
+- **Schedules** (`CASE4_READ_SCHEDULE`; base database only): `mixed_full` alternates mixed and integrity over every
+  READ slot (mixed, SELECT, OPERATE, integrity, SELECT, OPERATE, ...); `mixed` and `full` issue one class only, for
+  recovery blocks that must isolate a class.
+- **`CASE4_PAD_EXPECT=<class>=<n>[,...]`** (master): the padding a switch is declared to add. The check is strict.
+  A padded READ fails unless all of the following hold:
+  - The original points equal the class fixture (values and flags).
+  - No index repeats, for any object type.
+  - For mixed, integrity and class0, the original headers match the class's native header structure: group and
+    variation, qualifier and object count of every header, in order.
+  - The padding is exactly n G1V2 points at 1024..1024+n-1, each with value 0 and flags 0x00, in one q0x01 header
+    placed before every original header.
+
+  A class with no declaration must contain no added point, so a padding-off arm fails on any padding. Declaring a
+  class the schedule never issues is rejected.
+
+  The master never sees the response's IIN or its link and transport octets. Those are checked only by the capture
+  readout.
+
+  The record changes as follows:
+  - Each READ gains `padding_expected` and `padding_points`.
+  - Each response header gains `reserved`.
+  - The top level gains `pad_expect`.
+  - `response_*_octets` count the original headers only, so they give the native size.
+
+  With no new control set, the extra keys are the only change to the record.
+- **`CASE4_FIXTURE_VARIANT=0..9`** (both endpoints; default 0 keeps the existing values): shifts the BI pattern and
+  the AI and counter values. Odd values also add the RESTART quality bit (0x02) to the BI/AI/counter flags. Focused
+  cases use it to show that no consumer depends on one capture's measurement bytes.
+
+Measured on loopback (base database, variants 0 and 1, `read_complete_01/evidence/m1_two_read_01/native_capture_v*`):
+
+| class | request octets | response octets: link frame (TCP segment) | response headers |
+|---|---|---|---|
+| mixed | 25 | 91 (91) | G1V2 q0x00 ×16, G30V1 q0x00 ×8 |
+| integrity | 27 | 247 (247) | G1V2 ×16, G30V1 ×21, G20V1 ×8, G10V2 ×23 (q0x00) |
+
+The padded encodings (91 → [50, 91] = 141, 247 → [24, 247] = 271) are accepted live by the master's strict check,
+with the stream passing through a software padding proxy. Every rejection rule has a negative case:
+- padding added but not declared, or declared but missing
+- wrong padding count
+- a changed original value
+- padding at the wrong index, with non-zero flags, after the originals, in a header that also carries original
+  indices, or encoded as G1V1
+- a repeated analog point
+- reordered original headers
+
+See `read_complete_01/software/live_two_read.py` and `read_complete_01/evidence/m1_two_read_01/summary.json`. With
+`rotate4` and variant 0, the request and response streams and the TCP segmentation are byte-identical to the
+pre-change build, on both databases (`m1_two_read_01/rotate4_unchanged_vs_head.json`).

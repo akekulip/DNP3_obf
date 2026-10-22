@@ -1,0 +1,145 @@
+{
+ "profile": "two-READ-target (mixed 91 -> 141, integrity 247 -> 271)",
+ "policy_targets": [
+  141,
+  271
+ ],
+ "reserved_range": [
+  1024,
+  4095
+ ],
+ "seed": 11949,
+ "encoder_sha256": "8a5f6b68988c59860699149a49c897b453c1b1bb133fa945779816966bcc5295",
+ "templates_sha256": "df8685c0b9326ab13746a9c1bebfe0ea379247240fd5fc77f89d5cba2cd00e03",
+ "note": "271 is NOT a target of the frozen policy (policy.json: 141/247/401, under which a 247 native is already_at_target); this profile declares targets [141, 271] for these two workloads only.",
+ "live_checks": {
+  "v0/mixed": {
+   "native_sha256": "18c412fd3d152abf7b5b634974312fcbc1aba299343efcb14876e6113e8d9ba4",
+   "construct_equals_pad_read": true
+  },
+  "v0/integrity": {
+   "native_sha256": "c458335e5993bbbf63a0145143e306c27815a50992e383e9427f6492857f7281",
+   "construct_equals_pad_read": true
+  },
+  "v1/mixed": {
+   "native_sha256": "a634105a661130a35e2d6e0afaa221ee3239841437767d316eb0bc6a4fd6bf6a",
+   "construct_equals_pad_read": true
+  },
+  "v1/integrity": {
+   "native_sha256": "73e5c38b04a225ae2805144544764d75ded103ea2ca8524c3ea77d0bd0df41b4",
+   "construct_equals_pad_read": true
+  }
+ },
+ "shapes": {
+  "mixed_g1v2_g30v1_91": {
+   "shape": "mixed_g1v2_g30v1_91",
+   "native_total": 91,
+   "native_link_len": 76,
+   "native_ip_len": 131,
+   "target": 141,
+   "added": 50,
+   "padding_points": 26,
+   "padding_indices": [
+    1024,
+    1049
+   ],
+   "padding_object": "g1v2 q0x01 (16-bit start/stop), every point octet 0x00 = state 0, flags 0x00",
+   "frames_out": [
+    50,
+    91
+   ],
+   "prefix_frame_len": 50,
+   "prefix_link_len": 39,
+   "prefix_link_ctrl": 68,
+   "prefix_user_len": 34,
+   "padobj_head": "0102010004190400000000000000000000000000000000000000000000",
+   "padobj_header": "01020100041904",
+   "block0_tail": "0102010004190400000000",
+   "rest": "00000000000000000000000000000000ffff0000ffff",
+   "link_crc_delta": 29526,
+   "request_len": 25,
+   "request_link_len": 18,
+   "request_ip_len": 65,
+   "request_objects": "010200000f1e01000007",
+   "response_headers": [
+    [
+     1,
+     2,
+     0,
+     0,
+     15
+    ],
+    [
+     30,
+     1,
+     0,
+     0,
+     7
+    ]
+   ],
+   "verified_samples": 512
+  },
+  "integrity_247": {
+   "shape": "integrity_247",
+   "native_total": 247,
+   "native_link_len": 214,
+   "native_ip_len": 287,
+   "target": 271,
+   "added": 24,
+   "padding_points": 4,
+   "padding_indices": [
+    1024,
+    1027
+   ],
+   "padding_object": "g1v2 q0x01 (16-bit start/stop), every point octet 0x00 = state 0, flags 0x00",
+   "frames_out": [
+    24,
+    247
+   ],
+   "prefix_frame_len": 24,
+   "prefix_link_len": 17,
+   "prefix_link_ctrl": 68,
+   "prefix_user_len": 12,
+   "padobj_head": "01020100040304",
+   "padobj_header": "01020100040304",
+   "block0_tail": "01020100040304",
+   "rest": "",
+   "link_crc_delta": 49249,
+   "request_len": 27,
+   "request_link_len": 20,
+   "request_ip_len": 67,
+   "request_objects": "3c02063c03063c04063c0106",
+   "response_headers": [
+    [
+     1,
+     2,
+     0,
+     0,
+     15
+    ],
+    [
+     30,
+     1,
+     0,
+     0,
+     20
+    ],
+    [
+     20,
+     1,
+     0,
+     0,
+     7
+    ],
+    [
+     10,
+     2,
+     0,
+     0,
+     22
+    ]
+   ],
+   "verified_samples": 512
+  }
+ }
+}

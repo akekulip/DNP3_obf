@@ -231,3 +231,31 @@ policy, reproduction and the completion record only.
 - The driver ASSERTS seg0 (positive evidence) and RECORDS seg1 as a disclosed OPEN finding; it is runnable
   (registered in run_model) but NOT in the enforced 13-driver gate (segmented is not end-to-end functional). The
   c20 v3 gate still recomputes model_gate_passed with it registered. Single-frame classes are unaffected.
+
+## 2026-10-22 — two-READ-target directive (Claude_Two_READ_Targets_Hardware_Directive.md), candidate m12p_c21
+- Start: HEAD c432d195e (= origin/main = the directive's inspected source). Pre-existing tracked changes left alone:
+  `D DNP3_Implementation_Directive_492013014.md`, `M WORKING_NOTES.md`. Scope: mixed READ 91->141 + base full
+  (integrity) READ 247->271 with unchanged SBO 37->61 and timing/J; the native 377 segmented work is out of scope
+  (history kept). Binding corrections from Philip: strict endpoint checks; the shallow tcp_sum=0xffeb is a WAIVER,
+  not a computed checksum; loss.parse_drop's bound is payload-layer; placement choices are hypotheses.
+- M1 DONE (live software tier; NOT switch, NOT timing). Endpoint SocketGateReadSchedule.cpp: class `mixed` = ONE READ
+  Scan({Range8(1,2,0,15), Range8(30,1,0,7)}); schedules mixed_full / mixed / full; strict CASE4_PAD_EXPECT; fixture
+  variants. Binary fdddba4f0b858091 (pinned lib 6b99199e...; pad58b binary unchanged 8d78cf2f; the pre-change build is
+  kept untracked at repeat_sbo_endpoint/build_pre_two_read_20261022). Live captures (evidence/m1_two_read_01/
+  native_capture_v0,v1): mixed request 25 B -> one 91-B frame in one TCP segment, headers G1V2 q00 x16 + G30V1 q00 x8;
+  integrity 27 -> 247 (G1V2 16, G30V1 21, G20V1 8, G10V2 23); SBO 35 -> 37; variants carry different values/flags.
+  live_two_read.py (live master through a pad_read proxy, targets [141,271]): 15/15 cases reach the intended outcome:
+  4 positive (values/flags varied; exact [50,91]/141/26 and [24,247]/271/4 prefix), 11 negative each rejected by the
+  master's fixture check on a delivered READ (undeclared, missing, wrong count, changed value, shifted index, non-zero
+  flags, padding after originals, mixed reserved header, G1V1 padding, repeated analog, reordered originals).
+- M1 review (code-reviewer, BLOCKING) found two live-confirmed loopholes in the first strict check: repeated AI/counter/
+  BOS indices overwrote silently, and reordered/restructured original headers passed. FIXED: duplicates counted for every
+  type; exact native header structure (gv, qualifier, count, order) required for mixed/integrity/class0. Both loopholes
+  are now negative cases that fail. Also fixed: verdicts require the intended failure reason and the exact shapes;
+  README/comment claims narrowed (the master does not see IIN/link octets -- the capture readout does); padding
+  declared for an unscheduled class and a fixture variant without CASE4_DB are rejected. rotate4/variant 0 is
+  byte-identical to the pre-change build on base and large (rotate4_unchanged_vs_head.json).
+- M2-B1 DONE: vectors/derive_two_read.py -> constants_two_read.json (targets [141,271]; 512 fully varied samples per
+  shape construct==pad_read; every constant invariant; live captures v0/v1 reproduced). mixed prefix LEN 0x27, link-CRC
+  delta 29526, 22-B constant remainder; full prefix LEN 0x11, delta 49249. constants.json / constants_segmented.json
+  unchanged (6f819e7e / 72beff03); derive.py not edited.
