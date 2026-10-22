@@ -12,7 +12,9 @@ each READ must look like at the master:
                                smallest prefix frame (a G1V2 q0x01 block of 4 zero flags); anything in between is
                                refused as unreachable
   builds[b].read_images_by_db  {db: {class: image length | null}}, overriding read_images on that database
-  traffic.read_schedule        'rotate4' (absent: the existing range READ in every slot)
+  traffic.read_schedule        'rotate4' (absent: the existing range READ in every slot); the two-READ-target profile's
+                               'mixed_full' (slot k: mixed if k even, integrity if odd), 'mixed' or 'full' (one class
+                               only, for recovery blocks), all on the base database
   traffic.db                   'base' | 'large' (required with a schedule); a trial may override both
 
 A build declaring neither read_images nor read_images_by_db keeps every legacy behaviour; expectations() then
@@ -27,15 +29,19 @@ profile_check and check_capture compare the reassembled aggregate and accept any
 """
 import struct
 
-CLASSES = ('range', 'analog', 'class0', 'integrity')
-SCHEDULES = {'rotate4': CLASSES}
+# mixed: the two-READ-target profile's ONE READ request with g1v2 q00 0..15 + g30v1 q00 0..7 (base database)
+CLASSES = ('range', 'analog', 'class0', 'integrity', 'mixed')
+SCHEDULES = {'rotate4': ('range', 'analog', 'class0', 'integrity'),
+             'mixed_full': ('mixed', 'integrity'), 'mixed': ('mixed',), 'full': ('integrity',)}
+BASE_ONLY_SCHEDULES = frozenset({'mixed_full', 'mixed', 'full'})
 DBS = ('base', 'large')
 # Native aggregate response link octets and their TCP segments, measured on loopback 2026-10-21
 # (repeat_sbo_endpoint/README.md, loopback_evidence_20261021/b_rotate4_{base,large}). No database: the existing
 # 23-point BOS fixture, range only.
 NATIVE_SEGMENTS = {
     None: {'range': (49,)},
-    'base': {'range': (49,), 'analog': (141,), 'class0': (247,), 'integrity': (247,)},
+    'base': {'range': (49,), 'analog': (141,), 'class0': (247,), 'integrity': (247,),
+             'mixed': (91,)},       # measured 2026-10-22 (read_complete_01/evidence/m1_two_read_01/native_capture_v*)
     'large': {'range': (49,), 'analog': (141,), 'class0': (292, 85), 'integrity': (292, 85)},
 }
 INTEGRITY = {(60, 1), (60, 2), (60, 3), (60, 4)}
@@ -73,6 +79,8 @@ def classify_request(app):
         return {10: 'range', 30: 'analog'}.get(headers[0][0])
     if headers == [(60, 1, 0x06)]:
         return 'class0'
+    if headers == [(1, 2, 0x00), (30, 1, 0x00)]:
+        return 'mixed'                     # exactly these two range headers, in this order
     if len(headers) == 4 and all(q == 0x06 for _g, _v, q in headers) and \
             {(g, v) for g, v, _q in headers} == INTEGRITY:
         return 'integrity'
@@ -136,6 +144,8 @@ def schedule_and_db(config, trial=None):
         raise ReadClassError('db %r is not one of %s' % (db, list(DBS)))
     if name is not None and db is None:
         raise ReadClassError('read_schedule %r needs db (base or large) on both endpoints' % name)
+    if name in BASE_ONLY_SCHEDULES and db != 'base':
+        raise ReadClassError('read_schedule %r is defined for the base database only, got %r' % (name, db))
     return name, (SCHEDULES[name] if name else ('range',)), db
 
 

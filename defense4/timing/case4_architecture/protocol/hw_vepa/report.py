@@ -39,6 +39,12 @@ def _standards_lengths(path):
     return lengths if isinstance(lengths, dict) else {}
 
 
+def _standards_read_classes(path):
+    """standards.json's per-class READ declaration (class -> {native, image, ...}), or None on a legacy build."""
+    classes = (((_json(path) or {}).get('expected') or {}).get('read_classes'))
+    return classes if isinstance(classes, dict) and classes else None
+
+
 def _delta(a, b, getter):
     try:
         return getter(a) - getter(b)
@@ -54,6 +60,7 @@ def trial_metrics(root, fixture, arm, trial, gap_ns):
     t = _json(os.path.join(d, 'timing.json'))
     w = _json(os.path.join(d, 'wire.json'))
     std_lengths = _standards_lengths(os.path.join(d, 'standards.json'))
+    read_classes = _standards_read_classes(os.path.join(d, 'standards.json'))
     m = {'label': label, 'fixture': fixture, 'arm': arm, 'preset': trial.get('preset')}
     m['per_port'] = {}
     pk = by = bad = 0
@@ -100,9 +107,27 @@ def trial_metrics(root, fixture, arm, trial, gap_ns):
     exs = [e for e in (t or {}).get('exchanges', []) if e.get('resp_len')]
     reads = [e for e in exs if e.get('kind') == 'READ']
     native = {'READ': 49, 'SELECT': 37, 'OPERATE': 37}
-    padded = [e for e in exs if e['resp_len'] > native.get(e['kind'], e['resp_len'])]
+    def native_len(e):
+        if e.get('kind') == 'READ' and read_classes and e.get('read_class') in read_classes:
+            c = read_classes[e['read_class']]
+            return (c.get('native_segments') or [c['native']])[0]      # resp_len is the first response packet
+        return native.get(e['kind'], e['resp_len'])
+    padded = [e for e in exs if e['resp_len'] > native_len(e)]
     read_target = (std_lengths.get('READ') or [None])[0]
-    if read_target is not None and reads:
+    if read_classes and reads:
+        # per-class declaration: each READ against its own class (clrt_check labels read_class; resp_len is the
+        # first response packet, checks.first_packet_len of the class), never against one length shared by every class
+        def want(e, key):
+            c = read_classes.get(e.get('read_class'))
+            return c and (checks.first_packet_len(c) if key == 'image' else native_len(e))
+        exact = [e for e in reads if e['resp_len'] == want(e, 'image')]
+        m['exact_length_eligible'] = len(reads)
+        m['exact_length_correct'] = len(exact)
+        m['native_or_ineligible'] = len([e for e in reads if e['resp_len'] == want(e, 'native')])
+        m['length_failed'] = len(reads) - len(exact)
+        m['padding_coverage'] = (round(len(exact) / len(reads), 4)
+                                 if any(c['image'] != c['native'] for c in read_classes.values()) else None)
+    elif read_target is not None and reads:
         exact = [e for e in reads if e['resp_len'] == read_target]
         native_or_ineligible = [e for e in reads if e['resp_len'] == native['READ']]
         m['exact_length_eligible'] = len(reads)
@@ -120,7 +145,7 @@ def trial_metrics(root, fixture, arm, trial, gap_ns):
     m['growth_bytes'] = ((trial.get('observed') or {}).get('growth_bytes'))
     if m['growth_bytes'] is None and exs:
         native = {'READ': 49, 'SELECT': 37, 'OPERATE': 37}
-        m['growth_bytes'] = sum(e['resp_len'] - native.get(e['kind'], e['resp_len']) for e in exs)
+        m['growth_bytes'] = sum(e['resp_len'] - native_len(e) for e in exs)
     m['padded_responses'] = len(padded) if exs else None
     return m
 

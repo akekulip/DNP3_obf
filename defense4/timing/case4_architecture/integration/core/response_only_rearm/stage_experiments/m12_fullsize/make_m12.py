@@ -1302,9 +1302,13 @@ def transform_two_read_admit_n(src, _image=None):
     rd_req_full (integrity, 27 B) and rd_req_mx (mixed, 25 B), one exact profile each, and ONE request-CRC table
     keyed on which header is valid (2 x 16 immediate hash bits, the per-table limit; a hash action is never the
     default). Responses (first block only, as the pass-through classes): 247 (integrity/class0 shape) and 91 (mixed).
-    Disposition of the replaced classes, by declaration: an analog or class0 READ request or response is not recognised
-    as a READ by N, so it is forwarded natively OUTSIDE the timing and size mechanism (not held, not padded) -- not
-    dropped (review of m12p_c23); the range READ keeps m11_09's own admission and timing (native, unpadded).
+    Disposition of the replaced classes, MEASURED on the model (two_read_robust X, m12p_c24): N does not admit an
+    analog or class0 READ request on an admitted connection -- it is WITHHELD, nothing reaching the outstation or
+    the master, also when retransmitted -- and the connection state is unchanged (a supported READ at the same
+    client sequence still pads byte-exact). A master that issues one stalls until its application times out. (The
+    c23 review's reading, "forwarded natively, not dropped", was a source reading that the model contradicted; the
+    m12p_c24 profile text carried it and is corrected from m12p_c25.) The range READ keeps m11_09's own admission and
+    timing (native, unpadded).
 
     Validation, stated exactly: requests are fully parsed (link and block CRCs, TCP checksum verified); responses
     are parsed first block only -- link-header and block-0 CRCs checked, block-1+ CRCs derived from block 0, and the
@@ -1973,10 +1977,11 @@ def main():
                  'g1v2 q00 0-15 + g30v1 q00 0-7) %d->%d as [%s] with %d G1V2 points %d..%d, and the base-database full '
                  'READ (integrity poll) %d->%d as [%s] with %d points %d..%d, both by the pipe-1 prefix construction; '
                  'SELECT/OPERATE 37->61 unchanged. By declaration: the range READ keeps m11_09 admission and timing '
-                 'and passes at native 49 (not padded); analog and class0 READ requests are NOT recognised as READs by '
-                 'N (their admission was replaced by the mixed one, m12p_c23) and are therefore forwarded natively, '
-                 'outside the timing and size mechanism (not held, not padded); the native two-segment 377 response '
-                 'is out of scope. '
+                 'and passes at native 49 (not padded); analog and class0 READ requests are NOT admitted by N (their '
+                 'admission was replaced by the mixed one, m12p_c23): on an admitted connection N withholds them, '
+                 'also when retransmitted, forwarding nothing either way and leaving the connection state unchanged '
+                 '(measured on the model, two_read_robust X), so a master that issues one stalls until its '
+                 'application times out; the native two-segment 377 response is out of scope. '
                  'READ responses are admitted by N first block only (link and block-0 CRCs checked; TCP checksum '
                  'WAIVED -- m.tcp_sum written 0xffeb -- not computed)'
                  % (cm['native_total'], cm['target'], ', '.join(map(str, cm['frames_out'])), cm['padding_points'],

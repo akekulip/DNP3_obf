@@ -62,6 +62,45 @@ def expect(control_padding=1, image_len=58, read_image_len=None):
         '1': {'read_resp_len': [read_image_len or image_len], 'sbo_resp_len': [image_len if control_padding else 37]}}}
 
 
+def read_controls(padding, reads, read_schedule=None, db=None, endpoint_binary=None, pad_expect=None,
+                  read_classes=None):
+    """Validate the optional READ-schedule declaration; returns the parsed per-class expectation (or None).
+    --read-schedule needs --db and --read-classes (the workstation-computed read_classes.expectations dict);
+    --db, --pad-expect and --read-classes need --read-schedule; --pad-expect is a padded-arm declaration only."""
+    if read_schedule is None:
+        if db is not None or pad_expect is not None or read_classes is not None:
+            raise ValueError('--db, --pad-expect and --read-classes require --read-schedule')
+    else:
+        if read_schedule not in vr.READ_SCHEDULES:
+            raise ValueError('--read-schedule must be one of %s' % (vr.READ_SCHEDULES,))
+        if db is None or read_classes is None:
+            raise ValueError('--read-schedule requires --db and --read-classes')
+        if db not in vr.DBS:
+            raise ValueError('--db must be one of %s' % (vr.DBS,))
+    if pad_expect is not None:
+        if not vr.PAD_EXPECT_RE.fullmatch(str(pad_expect)):
+            raise ValueError('--pad-expect must be <class>=<n>[,...], got %r' % (pad_expect,))
+        if padding != 1:
+            raise ValueError('--pad-expect is a padded-arm declaration; padding 0 must declare none')
+    if endpoint_binary is not None and (not re.fullmatch(r'[A-Za-z0-9_.-]+', str(endpoint_binary)) or
+                                        endpoint_binary in ('.', '..')):
+        raise ValueError('--endpoint-binary must be a file name beside vision_run.py, got %r' % (endpoint_binary,))
+    if read_classes is None:
+        return None
+    if isinstance(read_classes, str):
+        read_classes = json.loads(read_classes)
+    classes = read_classes.get('classes') if isinstance(read_classes, dict) else None
+    if not isinstance(classes, dict) or not classes or not isinstance(read_classes.get('order'), list) or any(
+            not isinstance(e, dict) or type(e.get('count')) is not int for e in classes.values()):
+        raise ValueError('--read-classes must be a per-class READ expectation with classes and order')
+    if (read_classes.get('schedule'), read_classes.get('db')) != (read_schedule, db):
+        raise ValueError('--read-classes schedule/db %r/%r disagree with --read-schedule/--db %r/%r'
+                         % (read_classes.get('schedule'), read_classes.get('db'), read_schedule, db))
+    if sum(e['count'] for e in classes.values()) != reads:
+        raise ValueError('--read-classes counts must sum to --reads %d' % reads)
+    return read_classes
+
+
 def guard(port, apply=False):
     if type(port) is not int or not 1024 <= port <= 65535 or port == SERVER_PORT:
         raise ValueError('unsafe master source port')
@@ -250,7 +289,8 @@ def held_operate_duplicates(out_pcap, unmatched):
 
 def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0, control_padding=1,
              image_len=58,
-             expect_held_operate_dup=0, read_image_len=None):
+             expect_held_operate_dup=0, read_image_len=None, read_schedule=None, db=None, pad_expect=None,
+             read_classes=None):
     failures, ev = [], {}
     required = ('out.pcap', 'in.pcap', 'master.json', 'outstation.json', 'result.json', 'state.txt')
     for name in required:
@@ -262,12 +302,21 @@ def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre
             data = json.loads((Path(dest) / (name + '.json')).read_text())
             ev[name] = data if isinstance(data, dict) else None
         ev['wire'] = wc.analyze(Path(dest) / 'out.pcap', Path(dest) / 'in.pcap')
-        ev['timing'] = clrt.analyze(Path(dest) / 'out.pcap', Path(dest) / 'in.pcap')
+        ev['timing'] = clrt.analyze(Path(dest) / 'out.pcap', Path(dest) / 'in.pcap',
+                                    **({'read_policy': {'classes': read_classes['classes']}} if read_classes else {}))
         write_json(Path(dest) / 'wire.json', ev['wire']); write_json(Path(dest) / 'timing.json', ev['timing'])
         failures += checks.application_checks(expect(control_padding, image_len, read_image_len), padding, reads, ev,
-                                              run_sbo=True)
+                                              run_sbo=True, read_classes=read_classes)
         master = ev['master'] or {}
         controls = dict(read_pause_ms=25, run_sbo=True, close_grace_ms=rst_grace_ms if mode == 'rst' else 0)
+        endpoint_controls = dict(controls)
+        if read_schedule is not None:
+            controls.update(read_schedule=read_schedule, db=db)
+            endpoint_controls.update(read_schedule=read_schedule, db=db)
+            if pad_expect:
+                endpoint_controls['pad_expect'] = pad_expect
+            padding_decl = {k: int(v) for k, v in (kv.split('=') for kv in pad_expect.split(','))} if pad_expect else {}
+            failures += checks.read_padding_record_checks(master, padding_decl)
         if any(type(master.get(key)) is not type(value) or master.get(key) != value for key, value in controls.items()):
             failures.append('missing or wrong master effective controls')
         failures += pre_read_evidence(dest, pre_read_grace_ms)[0]
@@ -275,7 +324,7 @@ def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre
             failures.append('master application_calls must equal 1')
         if type(master.get('opens')) is not int or master.get('opens') != 1:
             failures.append('master must report exactly one connection open')
-        if result.get('ok') is not True or result.get('master_rc') != 0 or result.get('endpoint_controls') != controls:
+        if result.get('ok') is not True or result.get('master_rc') != 0 or result.get('endpoint_controls') != endpoint_controls:
             failures.append('connection result or effective controls failed')
         unmatched_sent = ev['wire'].get('unmatched_sent')
         if expect_held_operate_dup and unmatched_sent:
@@ -297,7 +346,8 @@ def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre
 
 
 def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0,
-             control_padding=1, expect_held_operate_dup=0, image_len=58, qualify_capture=False, read_image_len=None):
+             control_padding=1, expect_held_operate_dup=0, image_len=58, qualify_capture=False, read_image_len=None,
+             read_schedule=None, db=None, endpoint_binary=None, pad_expect=None, read_classes=None):
     guard(port, apply)
     if not re.fullmatch('[A-Za-z0-9_]+', label) or mode not in ('graceful', 'rst') or padding not in (0, 1):
         raise ValueError('invalid label, close mode or padding')
@@ -309,6 +359,13 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
         raise ValueError('pre-READ grace must be an integer in 0..%d ms' % PRE_READ_GRACE_MS)
     if type(qualify_capture) is not bool:
         raise ValueError('qualify_capture must be a boolean')
+    read_classes = read_controls(padding, reads, read_schedule, db, endpoint_binary, pad_expect, read_classes)
+    endpoint_kwargs, gate_kwargs = {}, {}
+    if read_schedule is not None:
+        endpoint_kwargs.update(read_schedule=read_schedule, db=db, pad_expect=pad_expect)
+        gate_kwargs.update(read_schedule=read_schedule, db=db, pad_expect=pad_expect, read_classes=read_classes)
+    if endpoint_binary is not None:
+        endpoint_kwargs['endpoint_binary_name'] = endpoint_binary
     parent = Path(vr.RUNS) / label
     record = dict(scenario='candidate_same_tuple', label=label, close_mode=mode, master_port=port,
                   tuple=[MASTER, port, OUTSTATION, SERVER_PORT], namespaces=[NAMESPACE_M, NAMESPACE_O], nic=NIC,
@@ -316,6 +373,9 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
                   pre_read_grace_ms=pre_read_grace_ms,
                   qualify_capture=qualify_capture,
                   switch_mutations=False, applied=apply, connections=[], ok=False)
+    if read_schedule is not None or endpoint_binary is not None:
+        record.update(read_schedule=read_schedule, db=db, pad_expect=pad_expect, read_classes=read_classes,
+                      endpoint_binary=endpoint_binary)
     if not apply:
         record['plan'] = [dict(name='c%d' % index, master_port=port, start_seed=12344 + index,
                              marker_path=str(parent / ('c%d' % index) / 'pre_read_ready.json') if pre_read_grace_ms else None)
@@ -340,6 +400,7 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
                                   capture_immediate=mode == 'rst')
                     if qualify_capture:
                         kwargs['qualify_capture'] = True
+                    kwargs.update(endpoint_kwargs)
                     result = vr.run_connection(str(dest), label + '_' + dest.name, port, reads, 8, 0, 0, 12344 + index,
                                                **kwargs)
                 connection['result'] = result
@@ -360,7 +421,8 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
                                                reads=reads, pre_read_grace_ms=pre_read_grace_ms,
                                                control_padding=control_padding, image_len=image_len,
                                                expect_held_operate_dup=expect_held_operate_dup,
-                                               **({'read_image_len': read_image_len} if read_image_len else {}))
+                                               **({'read_image_len': read_image_len} if read_image_len else {}),
+                                               **gate_kwargs)
             connection['pre_read_hook'] = pre_read_evidence(dest, pre_read_grace_ms)[1]
             connection['ok'] = not connection['failures']
             write_json(dest / 'verdict.json', connection)
@@ -398,13 +460,22 @@ def main(argv=None):
     parser.add_argument('--pre-read-grace-ms', type=int, default=0)
     parser.add_argument('--qualify-capture', action='store_true',
                         help='opt-in physical packet-boundary qualification evidence for each connection')
+    parser.add_argument('--read-schedule', choices=vr.READ_SCHEDULES, default=None,
+                        help='read-schedule endpoint READ schedule (needs --db and --read-classes)')
+    parser.add_argument('--db', choices=vr.DBS, default=None, help='read-schedule endpoint database')
+    parser.add_argument('--endpoint-binary', default=None, help='endpoint file beside vision_run.py')
+    parser.add_argument('--pad-expect', default=None,
+                        help='padded arm: the declared per-class READ padding, <class>=<n>[,...] (needs --read-schedule)')
+    parser.add_argument('--read-classes', default=None,
+                        help='JSON per-class READ expectation computed on the workstation (needs --read-schedule)')
     parser.add_argument('--apply', action='store_true')
     args = parser.parse_args(argv)
     result = scenario(args.label, args.master_port, args.close_mode, args.padding, args.apply,
                       rst_grace_ms=args.rst_grace_ms, reads=args.reads, pre_read_grace_ms=args.pre_read_grace_ms,
                       control_padding=args.control_padding, expect_held_operate_dup=args.expect_held_operate_dup,
                       image_len=args.image_len, qualify_capture=args.qualify_capture,
-                      read_image_len=args.read_image_len)
+                      read_image_len=args.read_image_len, read_schedule=args.read_schedule, db=args.db,
+                      endpoint_binary=args.endpoint_binary, pad_expect=args.pad_expect, read_classes=args.read_classes)
     print(json.dumps(result, indent=2))
     return 0 if result['ok'] else 1
 

@@ -238,3 +238,53 @@ def test_read_classes_are_taken_from_real_request_bytes():
             if user[2] == 0x01:                                 # application function READ
                 seen.append(m.read_class(user[1:]))
     assert seen[:8] == list(m.ROTATE4) * 2
+
+
+# ---- two-READ-target profile (mixed 91 -> 141, full 247 -> 271) ----
+TWO = json.loads((ROOT / 'vectors/two_read_templates.json').read_text())
+TWO_DECL = ({'mixed': 141, 'integrity': 271}, {'mixed': 26, 'integrity': 4})
+
+
+def test_two_read_schedule_counts():
+    m = module()
+    assert m.schedule_counts('mixed_full', 65) == {'mixed': 33, 'integrity': 32}
+    assert m.schedule_counts('mixed', 20) == {'mixed': 20}
+    assert m.schedule_counts('full', 20) == {'integrity': 20}
+
+
+def test_two_read_classes_from_the_captured_requests():
+    m = module()
+    sys.path.insert(0, str(ROOT / 'software/source/read_reencode_01'))
+    import dnp3_std as std
+    for cls in ('mixed', 'integrity'):
+        user = std.deframe(bytes.fromhex(TWO['variants']['v0']['classes'][cls]['request']))[1]
+        assert m.read_class(user[1:]) == cls
+
+
+def test_two_read_expected_images_and_declaration():
+    m = module()
+    targets = m.read_targets(TWO_DECL)
+    assert targets == [141, 271]
+    for name, variant in TWO['variants'].items():
+        for cls, t in variant['classes'].items():
+            want, info = m.expected_image('READ', bytes.fromhex(t['request']), bytes.fromhex(t['native']), 1, targets)
+            assert want.hex() == t['expected'], (name, cls)
+            assert m.check_read_encoding(cls, info, len(want), TWO_DECL) == []
+            # the frozen policy's targets would leave the 247 full READ native: the declaration catches it
+            frozen, finfo = m.expected_image('READ', bytes.fromhex(t['request']), bytes.fromhex(t['native']), 1)
+            if cls == 'integrity':
+                assert len(frozen) == 247 and m.check_read_encoding(cls, finfo, len(frozen), TWO_DECL)
+            # a wrong declared count or image fails
+            assert m.check_read_encoding(cls, dict(info, padding_points=info['padding_points'] + 1), len(want),
+                                         TWO_DECL)
+            assert m.check_read_encoding(cls, info, len(want) + 1, TWO_DECL)
+
+
+def test_two_read_declaration_comes_from_the_frozen_config():
+    m = module()
+    cfg = {'arms': [{'name': 'combined', 'build': 'b'}, {'name': 'off', 'build': 'b'}],
+           'builds': {'b': {'read_images': {'mixed': 141, 'integrity': 271}, 'read_padding': {'mixed': 26,
+                                                                                               'integrity': 4}}}}
+    assert m.two_read_declaration(cfg, 'combined') == TWO_DECL
+    del cfg['builds']['b']['read_padding']
+    assert m.two_read_declaration(cfg, 'combined') is None and m.read_targets(None) == m.TARGETS

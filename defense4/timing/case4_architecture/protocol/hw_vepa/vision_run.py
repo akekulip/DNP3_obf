@@ -42,7 +42,11 @@ BIN, LIB, RUNS = HOME + '/case4_socket_gate_pad58b', HOME + '/lib', HOME + '/run
 PROFILE = ('net.ipv4.tcp_timestamps', 'net.ipv4.tcp_sack', 'net.ipv4.tcp_window_scaling')
 DEFAULT_RANGE = '32768 60999'
 OFFLOAD_BASELINE = HOME + '/offload_baseline.json'   # campaign receive-offload baseline (setup/restore)
-READ_SCHEDULES = ('rotate4',)                        # CASE4_READ_SCHEDULE (read-schedule endpoint only)
+READ_SCHEDULES = ('rotate4', 'mixed_full', 'mixed', 'full')   # CASE4_READ_SCHEDULE (read-schedule endpoint only)
+# CASE4_PAD_EXPECT (master only): the padding the switch is declared to add per READ class, '<class>=<n>[,...]'.
+# A padded arm passes it so the endpoint's STRICT check requires exactly that padding; a padding-off arm passes
+# nothing, so any added point fails the master.
+PAD_EXPECT_RE = re.compile(r'(range|analog|class0|integrity|mixed)=[1-9][0-9]{0,3}(,(range|analog|class0|integrity|mixed)=[1-9][0-9]{0,3})*')
 DBS = ('base', 'large')                              # CASE4_DB
 
 
@@ -258,7 +262,8 @@ def _run_master_evidence(run_dir, master_port, command, timeout):
 
 def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
                    connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False,
-                   qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None, endpoint_binary_name=None):
+                   qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None, endpoint_binary_name=None,
+                   pad_expect=None):
     """One connection with its own captures, outstation and master. run_dir must not exist (a label is never
     reused). capture_immediate enables tcpdump's immediate mode for live observers.
     sbo_cycles N>0 (repeated-SBO endpoint only): reads is the total READ count; the master issues reads-N READs,
@@ -285,6 +290,8 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
         raise ValueError('db must be one of %s' % (DBS,))
     if read_schedule is not None and db is None:
         raise ValueError('read_schedule needs db on both endpoints')
+    if pad_expect is not None and (read_schedule is None or not PAD_EXPECT_RE.fullmatch(str(pad_expect))):
+        raise ValueError('pad_expect must be <class>=<n>[,...] and needs a read_schedule, got %r' % (pad_expect,))
     if endpoint_binary_name is not None and not re.fullmatch(r'[A-Za-z0-9_.-]+', str(endpoint_binary_name)) or \
             endpoint_binary_name in ('.', '..'):
         raise ValueError('endpoint binary must be a file name beside vision_run.py, got %r' % (endpoint_binary_name,))
@@ -294,7 +301,7 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
         return _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed,
                                        drop, connect_must_fail, read_pause_ms, run_sbo, close_grace_ms,
                                        capture_immediate, qualify_capture, sbo_cycles, read_schedule, db,
-                                       endpoint_binary_name)
+                                       endpoint_binary_name, pad_expect)
 
     if qualify_capture:
         return capture_observation.run_with_qualified_capture(run_dir, run_main, interface=PARENT)
@@ -304,7 +311,7 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
 def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
                             connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0,
                             capture_immediate=False, qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None,
-                            endpoint_binary_name=None):
+                            endpoint_binary_name=None, pad_expect=None):
 
     # snapshot the prior state before touching anything
     open(os.path.join(run_dir, 'state.txt'), 'w').write(state() + '\n')
@@ -327,6 +334,8 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
         result['endpoint_controls']['read_schedule'] = read_schedule
     if db:
         result['endpoint_controls']['db'] = db
+    if pad_expect:
+        result['endpoint_controls']['pad_expect'] = pad_expect
     if endpoint_binary_name is not None:
         result['endpoint_binary'] = binary
     result['capture_immediate'] = capture_immediate
@@ -366,7 +375,8 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
                 rule = loss.LossRule(nsx, drop, IP_M, IP_O, master_port, PORT_O).install()
             time.sleep(result['start_delay_ms_applied'] / 1000.0)        # the connection start phase
             t0 = time.time()
-            command = env + [binary, 'master', IP_O, str(PORT_O), stop + '.master', str(reads - sbo_cycles),
+            command = env + (['CASE4_PAD_EXPECT=%s' % pad_expect] if pad_expect else []) + [
+                binary, 'master', IP_O, str(PORT_O), stop + '.master', str(reads - sbo_cycles),
                              IP_M, str(rng), str(gap_ms)]
             result.update(_run_master_evidence(run_dir, master_port, command,
                                               reads * 4 + sbo_cycles * 4 + 30 + extra_seconds))
@@ -420,7 +430,8 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
 
 
 def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_delay_max, start_seed,
-                  read_pause_ms=25, run_sbo=True, close_grace_ms=0, qualify_capture=False, sbo_cycles=0):
+                  read_pause_ms=25, run_sbo=True, close_grace_ms=0, qualify_capture=False, sbo_cycles=0,
+                  read_schedule=None, db=None, endpoint_binary_name=None, pad_expect=None):
     """Reconnect scenario: RUNS/label/{c1,c2,c3}, each a complete connection with its own pcaps and endpoint JSON.
 
       c1  the installed master port: READs + SBO + normal close (must succeed, else the scenario stops)
@@ -428,7 +439,11 @@ def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_
       c3  the SAME installed tuple again, once TIME-WAIT clears: N does not re-arm, so nothing is asserted here;
           the connect result, application result and timeouts are recorded to characterize the limitation.
     A failed c1 or c2 stops the scenario; c3 is not comparable after a failed prerequisite.
-    ok = c1 and c2 completed; c3 never changes it."""
+    ok = c1 and c2 completed; c3 never changes it.
+    read_schedule/db/endpoint_binary_name go to every connection; pad_expect (the switch's declared READ padding) only
+    to the installed tuple (c1, c3): c2 has no switch rows, so its master must see native READs with no added point."""
+    if pad_expect is not None and (read_schedule is None or not PAD_EXPECT_RE.fullmatch(str(pad_expect))):
+        raise ValueError('pad_expect needs read_schedule and the form <class>=<n>[,...]')
     parent = os.path.join(RUNS, label)
     os.makedirs(parent)                                   # refuses to reuse a label
     open(os.path.join(parent, 'state.txt'), 'w').write(state() + '\n')
@@ -440,7 +455,9 @@ def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_
             res = run_connection(os.path.join(parent, name), '%s_%s' % (label, name), port, reads, rng, gap_ms,
                                  start_delay_max, start_seed, read_pause_ms=read_pause_ms,
                                  run_sbo=run_sbo, close_grace_ms=close_grace_ms,
-                                 qualify_capture=qualify_capture, sbo_cycles=sbo_cycles)
+                                 qualify_capture=qualify_capture, sbo_cycles=sbo_cycles,
+                                 read_schedule=read_schedule, db=db, endpoint_binary_name=endpoint_binary_name,
+                                 pad_expect=pad_expect if name != 'c2' else None)
         except RuntimeError as e:                         # e.g. the port never left TIME-WAIT: recorded, not fatal
             res = {'label': '%s_%s' % (label, name), 'master_port': port, 'ok': False, 'error': str(e)}
         res['role'] = role
@@ -496,6 +513,8 @@ def main():
                     help='read-schedule endpoint: CASE4_READ_SCHEDULE for the master (needs --db)')
     ap.add_argument('--db', choices=DBS, help='read-schedule endpoint: CASE4_DB for both endpoints')
     ap.add_argument('--endpoint-binary', help='endpoint file beside this script (default case4_socket_gate_pad58b)')
+    ap.add_argument('--pad-expect', help='read-schedule endpoint, padded arm: CASE4_PAD_EXPECT for the master only '
+                                         '(<class>=<n>[,...]; needs --read-schedule)')
     a = ap.parse_args()
 
     if a.mode == 'setup':
@@ -529,11 +548,13 @@ def main():
         except ValueError as e:
             sys.exit(str(e))
     if a.scenario == 'reconnect':
-        if a.read_schedule or a.db or a.endpoint_binary:
-            sys.exit('--scenario reconnect does not carry --read-schedule/--db/--endpoint-binary')
-        out = run_reconnect(a.label, a.master_port, a.reconnect_port or a.master_port + 1, a.reads, a.range, a.gap_ms,
-                            a.start_delay_ms, a.start_seed, a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms,
-                            a.qualify_capture, a.sbo_cycles)
+        try:
+            out = run_reconnect(a.label, a.master_port, a.reconnect_port or a.master_port + 1, a.reads, a.range,
+                                a.gap_ms, a.start_delay_ms, a.start_seed, a.read_pause_ms, bool(a.run_sbo),
+                                a.close_grace_ms, a.qualify_capture, a.sbo_cycles, read_schedule=a.read_schedule,
+                                db=a.db, endpoint_binary_name=a.endpoint_binary, pad_expect=a.pad_expect)
+        except ValueError as e:
+            sys.exit(str(e))
         print(json.dumps(out))
         sys.exit(0 if out['ok'] else 1)
     try:
@@ -541,7 +562,8 @@ def main():
                                 a.start_delay_ms, a.start_seed, drop, a.connect_must_fail,
                                 a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms,
                                 qualify_capture=a.qualify_capture, sbo_cycles=a.sbo_cycles,
-                                read_schedule=a.read_schedule, db=a.db, endpoint_binary_name=a.endpoint_binary)
+                                read_schedule=a.read_schedule, db=a.db, endpoint_binary_name=a.endpoint_binary,
+                                pad_expect=a.pad_expect)
     except (RuntimeError, ValueError) as e:
         sys.exit(str(e))
     print(json.dumps(result))

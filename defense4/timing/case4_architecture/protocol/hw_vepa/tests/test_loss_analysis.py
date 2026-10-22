@@ -374,7 +374,10 @@ class ImageLength(unittest.TestCase):
         self.assertEqual((spec['ip_len'], spec['padded_len'], spec['occurrence']), (101, 61, 3))
         self.assertEqual(loss.parse_drop('read_resp_padded:3', reads=3)['ip_len'], 98)
         self.assertEqual(loss.parse_drop('request:3@61', reads=3)['ip_len'], 60)      # only the padded class moves
-        for bad in ('request:3@abc', 'request:3@20', 'request:3@300'):
+        # @LEN is the padded response's TCP payload length (bound 50..1460, the IP/TCP packet capacity): 300 is a
+        # valid payload length now (the old 249 bound was one link frame's user octets -- the wrong layer); the
+        # out-of-range case is tested at the real boundary
+        for bad in ('request:3@abc', 'request:3@20', 'request:3@1461', 'request:3@61/'):
             with self.assertRaises(ValueError):
                 loss.parse_drop(bad, reads=3)
 

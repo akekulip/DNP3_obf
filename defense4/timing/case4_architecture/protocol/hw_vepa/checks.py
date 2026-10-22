@@ -162,6 +162,27 @@ def read_class_record_checks(master, expectation, read_points):
     return fails
 
 
+def read_padding_record_checks(master, padding):
+    """The master's strict padding verdict, checked independently of its own matches_fixture: the endpoint must have
+    been told exactly `padding` (class -> declared padding points; {} on an arm that pads nothing, which the endpoint
+    reports as pad_expect 'none'), and every READ record must carry that class's declared count both as expected
+    and as received."""
+    fails, m = [], master or {}
+    want = ','.join('%s=%d' % kv for kv in padding.items()) if padding else 'none'
+    if m.get('pad_expect') != want:
+        fails.append('master pad_expect=%r, expected %r' % (m.get('pad_expect'), want))
+    commands = m.get('read_commands') if isinstance(m.get('read_commands'), list) else []
+    if not commands:
+        fails.append('master has no read_commands records to check the padding against')
+    for i, c in enumerate(commands):
+        c = c if isinstance(c, dict) else {}
+        n = padding.get(c.get('class'), 0)
+        if (c.get('padding_expected'), c.get('padding_points')) != (n, n):
+            fails.append('read_commands[%d] %s: padding expected %r received %r, declared %d'
+                         % (i, c.get('class'), c.get('padding_expected'), c.get('padding_points'), n))
+    return fails
+
+
 def read_class_timing_checks(summary, expectation):
     """clrt_check's READ by_class summary (a read_policy run): every declared class complete exactly count times at
     its first-segment length, and no READ outside the declared classes."""

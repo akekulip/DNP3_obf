@@ -286,3 +286,63 @@ policy, reproduction and the completion record only.
     checksum is verified (bad checksum -> network_valid 0, refused).
   * Shared driver module read_policy_expect.py now carries a per-native SHAPES map (single-shape builds unchanged);
     consequence: c12/c20 model gates recompute only at their last current commit (c432d195e), as b08 at its pin.
+
+- 2026-10-22 (two-READ M3 + harness, c24 gate -> c25). Model gate on m12p_c24 (1st full run):
+  control_timing 415, policy 281, policy_boundary 206, smoke 30, packets 622, smoke_sizeoff 30, dup 102, repeat 523,
+  select_lifecycle 120, abandon 12, abort 79 all passed. Two non-passes, both diagnosed:
+  * rearm 99/339 (240 inverse_distance cases): a DRIVER expectation, not the P4. The driver probed ACKs inside "the
+    image" of its default READ, the range READ, which c24 leaves native (49): the switch returned every such ACK
+    unchanged, which is the correct mapping for an unpadded response; the driver's padded-image formula expected
+    ack 901 and a shrunk window. Fixed in the driver: on a two-READ build it drives the padded mixed READ (91 -> 141,
+    captured bytes) and every hard-coded range offset is derived (READ_REQ, READ_NATIVE, READ_IMAGE_LEN; c12 values
+    asserted unchanged). Re-run (attempt 02): 799/799, inverse distances 1..141.
+  * contention rc=3 twice: bf_switchd gRPC not up within the launcher's 15 s WAIT (startup 9-10 s normally; both
+    attempts overlapped heavy host load I had caused, load average 24). Re-run with WAIT=60 (startup allowance only):
+    413/413.
+  * two_read_robust (new driver): R retransmission (mixed, full, range control; each retransmitted response copy
+    replayed exact, 1 copy each) and C corruption -- bad block-0 point CRC, bad TCP checksum, bad tail CRC with a valid
+    TCP checksum, each on mixed and full -- all pass (108 checks). X FAILED as written: it expected analog/class0
+    requests "forwarded natively" (the c23-review wording above); the model WITHHOLDS them. That wording was a source
+    reading, never exercised; it was wrong. X rewritten to the measured disposition (request and its retransmission
+    withheld, nothing either way; a supported READ at the same client sequence still pads byte-exact) -> passes.
+    Z failed at the new connection's SYN-ACK after a BARE RST (no ACK flag): the reset reached the outstation but did
+    not retire the connection. Z now uses the reset a Linux master sends (RST|ACK acknowledging the padded image, as
+    ss -K in the persistence_rst block; the rearm driver's qualified_RST path); the bare RST is kept as a recorded,
+    unasserted characterization run last (limitation, not compared with m11_09).
+  * Correction carried forward: m12p_c25 = m12p_c24's P4 byte for byte (61f9af0fa141) with the profile scope text
+    corrected to the measured disposition; c24 stays as the record. c25 is recompiled on both SDKs and the WHOLE gate
+    re-runs once on it with the final drivers (the c24 runs above bind c24's inputs.json and mixed driver revisions).
+  * Hardware harness for the two READs (protocol/hw_vepa): per-arm strict padding declaration
+    (campaign.pad_expect_arg: padded arm 'mixed=26,integrity=4' restricted to the scheduled classes; off arm none) +
+    an independent check of the master's pad_expect and per-READ padding_expected/padding_points
+    (checks.read_padding_record_checks); report.py per-class targets/natives; single-class loss workloads (schedule
+    mixed or full) with request_mixed/request_full selectors, class-image @LEN suffixes and per-class growth;
+    reconnect carries the schedule on every connection and the declaration on c1/c3 only (c2 has no rows: native).
+    Series path (vision_candidate/candidate_series) delegated with a spec; pending its review.
+  * Recovery configs (make_two_read_configs.py, default build m12p_c25): loss_mixed_950 / loss_full_950 (one READ
+    class each, core preset with the class's own request selector), persistence graceful/rst, reconnect and
+    held_operate on mixed_full (no length selector involved). Expected per-class counts are written into each config
+    (traffic.expected_reads_per_class).
+- 2026-10-22 (c25 gate + review). m12p_c25 (P4 61f9af0fa141 = c24; corrected profile) compiled 9.13.1 + 9.13.2
+  exit 0, N12/E12/T11 + pipe-1 egress 7 (assembly identical to c24 apart from the compiler run_id); artifacts pinned;
+  resource_review.json written. Full gate, attempt 01, one run each, WAIT=60: control_timing 415, policy 281,
+  policy_boundary 206, smoke 30, packets 622, smoke_sizeoff 30, rearm 799, dup 102, repeat 523, select_lifecycle
+  120, abandon 12, abort 79, contention 413, two_read_robust 163 -- all passed. rearm re-run as attempt 02 after
+  the review added an explicit padded-image check to the driver (see below).
+  * two_read_robust c25_01 bare-RST characterization (recorded, not asserted): RST forwarded, next connection's SYN
+    and SYN-ACK both passed. On c24_02 (Z, same shape, as an asserted step) the SYN-ACK was dropped. The two runs
+    disagree; bare-RST behaviour is OPEN, not characterized.
+  * Series path (builder, verified here): vision_candidate/candidate_series carry the schedule, db, endpoint
+    binary, declaration and per-class expectation to every series connection; series suite 624 pass; the three
+    series blocks plan with mixed_full and mixed=26,integrity=4. Nit kept: --endpoint-binary/--pad-expect appear twice
+    in the series command (both copies from the same functions; argparse takes the last).
+  * Independent review of the harness/driver/readout changes: no BLOCKING. Acted on: loss presets refused on
+    multi-class two-READ schedules; read_padding required on padded two-READ arms; the independent padding check
+    added to verdict_loss; robust R now requires >= 1 forwarded retransmission copy (it could pass on zero); robust
+    module docstring corrected (X withheld); rearm two-READ path raises unless its probe image is the declared padded
+    target; empty read_commands fail the padding check; pad_expect_arg never emits an empty flag; reproduce.sh
+    prunes worktrees and no longer hides the git error. DISCLOSED behaviour change: report.py now takes per-class
+    targets whenever standards.json carries read_classes, so rotate4 (c12) report metrics change -- they were
+    comparing every READ class to one length and are corrected, not just the two-READ ones.
+  * reproduce.sh pins: c20 recomputes at c432d195e (passes); c12 at 83498d4c1, the last commit before c20 changed
+    model_profile.py (378306a89 lacked c12's abort run; c432d195e fails on model_profile.py).

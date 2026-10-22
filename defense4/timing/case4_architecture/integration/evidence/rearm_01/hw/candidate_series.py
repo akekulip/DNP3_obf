@@ -26,6 +26,7 @@ import candidate_campaign  # noqa: E402
 import campaign as base  # noqa: E402
 import checks  # noqa: E402
 import read_classes  # noqa: E402
+import standards  # noqa: E402
 import wire_check as wc  # noqa: E402
 from privileged_python import authorized_python
 
@@ -233,6 +234,13 @@ def series_read_shape(cfg, build, default=None):
     return image, native
 
 
+def scheduled_read_growth(cfg, arm, reads):
+    """External growth of one connection's READs under traffic.read_schedule: sum over the scheduled classes of
+    count * (image - native), from the per-class expectation for `reads` (vision_candidate issues the schedule)."""
+    expectation = standards.read_class_expectations(cfg, arm, {'reads': reads})
+    return sum(e['count'] * (e['image'] - e['native']) for e in expectation['classes'].values())
+
+
 def series_switch_gate(cfg, arm, reads, ev, lifecycle):
     """Switch-only aggregate gate for a three-connection protected candidate series."""
     run_sbo = cfg['traffic'].get('run_sbo', True)
@@ -250,8 +258,12 @@ def series_switch_gate(cfg, arm, reads, ev, lifecycle):
         growth = (_mapper_reg(lifecycle, 'acct', '.lo') - _mapper_reg(lifecycle, 'front')) & 0xffffffff
         unacked = _mapper_reg(lifecycle, 'acct', '.hi')
         image = build.get('image_len', 58)
-        read_image, read_native = series_read_shape(cfg, build, image)   # a chosen single-frame class, else range
-        expected = (reads * (read_image - read_native) + (2 * (image - 37) if build.get('control_padding', True) else 0)
+        if cfg['traffic'].get('read_schedule') is not None:              # per-class growth of the scheduled READs
+            read_growth = scheduled_read_growth(cfg, arm, reads)
+        else:
+            read_image, read_native = series_read_shape(cfg, build, image)   # a chosen single-frame class, else range
+            read_growth = reads * (read_image - read_native)
+        expected = (read_growth + (2 * (image - 37) if build.get('control_padding', True) else 0)
                     if arm['padding'] else 0)
         observed.update(external_growth_bytes=growth, external_growth_expected=expected, unacked=unacked)
         if growth != expected:
@@ -281,6 +293,7 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
         self.close_mode = close_mode
         self.rst_grace_ms = rst_grace_ms
         self._series_padding = None
+        self._series_arm = None
         self._validate_series_shape()
         self.record['candidate_series'] = {
             'close_mode': close_mode, 'rst_grace_ms': rst_grace_ms, 'connections': 3,
@@ -309,11 +322,17 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
             raise ValueError('candidate series requires SBO enabled')
         if 'sbo_cycles' in self.cfg['traffic']:
             raise ValueError('candidate series does not carry traffic.sbo_cycles (vision_candidate runs one SBO)')
-        if 'read_schedule' in self.cfg['traffic']:
-            raise ValueError('candidate series does not carry traffic.read_schedule (vision_candidate runs one '
-                             'chosen single-frame class or the range READ, not a rotating schedule)')
         series_class = self.cfg['traffic'].get('series_read_class')
-        if series_class is not None:
+        if 'read_schedule' in self.cfg['traffic']:
+            build = self.cfg['builds'].get(self.arms[0].get('build')) or {}
+            if series_class is not None:
+                raise ValueError('traffic.read_schedule and traffic.series_read_class are mutually exclusive')
+            if not read_classes.declared(build) or self.cfg['traffic']['read_schedule'] is None:
+                raise ValueError('candidate series carries traffic.read_schedule only on a series build that declares '
+                                 'read_images (vision_candidate checks the schedule per class)')
+            # refuses a malformed schedule/db or a scheduled class the build does not declare (ReadClassError)
+            standards.read_class_expectations(self.cfg, self.arms[0], {'reads': self.cfg['trials']['reads_per_trial']})
+        elif series_class is not None:
             db = self.cfg['traffic'].get('db')
             if series_class not in read_classes.CLASSES or series_class == 'range':
                 raise ValueError('traffic.series_read_class must be one of the added single-frame READ classes '
@@ -381,7 +400,10 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
                           connect_must_fail=False, drop=None, scenario=None, reconnect_port=None):
         if connect_must_fail or drop or scenario or reconnect_port is not None:
             raise ValueError('candidate series traffic must be one protected installed tuple with no base scenario/drop')
-        read_image, _native = series_read_shape(self.cfg, self.cfg['builds'][self._series_build])
+        traffic = self.cfg['traffic']
+        scheduled = traffic.get('read_schedule') is not None
+        # a schedule is checked per class (--read-classes), so no single READ image is passed
+        read_image = None if scheduled else series_read_shape(self.cfg, self.cfg['builds'][self._series_build])[0]
         args = [label, '--master-port', master_port, '--padding', self._series_padding,
                 '--control-padding', self._series_control_padding,
                 '--image-len', int(self.cfg['builds'][self._series_build].get('image_len', 58)),
@@ -391,6 +413,16 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
                 '--rst-grace-ms', self.rst_grace_ms, '--reads', reads, '--apply']
         if self.cfg['builds'][self._series_build].get('profile') == 'candidate61':
             args.append('--qualify-capture')
+        if scheduled:
+            arm = self._series_arm
+            args += ['--read-schedule', traffic['read_schedule'], '--db', traffic['db']]
+            if 'binary' in self.cfg['endpoint']:
+                args += ['--endpoint-binary', self.endpoint_binary_name()]
+            decl = self.pad_expect_arg(arm).split()[-1] if self.pad_expect_arg(arm) else ''
+            if decl:
+                args += ['--pad-expect', decl]
+            args += ['--read-classes', json.dumps(standards.read_class_expectations(self.cfg, arm, {'reads': reads}),
+                                                  sort_keys=True, separators=(',', ':'))]
         return authorized_python(base.runner.V_RUN + '/vision_candidate.py', args)
 
     def run_unit(self, unit, port):
@@ -398,12 +430,14 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
         self._series_padding = unit['arm']['padding']
         self._series_control_padding = int(self.cfg['builds'][unit['arm']['build']].get('control_padding', True))
         self._series_build = unit['arm']['build']
+        self._series_arm = unit['arm']
         base.runner.vision_cmd = self.series_vision_cmd
         try:
             return super().run_unit(unit, port)
         finally:
             base.runner.vision_cmd = old
             self._series_padding = None
+            self._series_arm = None
 
     def snapshot(self, out_remote, name, check=True, preset=None):
         result = super().snapshot(out_remote, name, check=check, preset=preset)
@@ -446,6 +480,9 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
 
     def verdict(self, trial, rec, label, dest, v, arm, fixture):
         tool_rcs = {}
+        scheduled = self.cfg['traffic'].get('read_schedule') is not None
+        policy = self.read_policy_arg(trial, arm) if scheduled else ''
+        expectation = standards.read_class_expectations(self.cfg, arm, trial) if scheduled else None
         for cn in ('c1', 'c2', 'c3'):
             d = os.path.join(dest, cn)
             wire = self.step('local', '%s/%s: independent wire verification' % (label, cn),
@@ -455,7 +492,7 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
             timing = self.step('local', '%s/%s: per-exchange timing extraction' % (label, cn),
                                '%s %s/clrt_check.py %s %s --json %s' %
                                (base.runner.PY, base.q(ARCH / 'protocol/hw_vepa'), base.q(d + '/out.pcap'),
-                                base.q(d + '/in.pcap'), base.q(d + '/timing.json')), check=False)
+                                base.q(d + '/in.pcap'), base.q(d + '/timing.json')) + policy, check=False)
             tool_rcs[cn] = {'wire_rc': wire.rc, 'clrt_rc': timing.rc}
         if self.rn.dry:
             return
@@ -464,7 +501,12 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
         run_sbo = self.cfg['traffic'].get('run_sbo', True)
         for cn in ('c1', 'c2', 'c3'):
             ev = self._connection_evidence(dest, cn)
-            cfail = checks.application_checks(self.cfg['expectations'], arm['padding'], trial['reads'], ev, run_sbo)
+            if scheduled:
+                cfail = checks.application_checks(self.cfg['expectations'], arm['padding'], trial['reads'], ev, run_sbo,
+                                                  read_classes=expectation)
+                cfail += self.read_padding_checks(ev['master'], arm)
+            else:
+                cfail = checks.application_checks(self.cfg['expectations'], arm['padding'], trial['reads'], ev, run_sbo)
             fresh = None
             try:
                 fresh = freshness_gate(wc.parse(os.path.join(dest, cn, 'out.pcap'))[0],

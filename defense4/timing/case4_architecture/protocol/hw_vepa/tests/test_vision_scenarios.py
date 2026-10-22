@@ -309,3 +309,39 @@ class Cli(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ReconnectReadControls(Base):
+    """Two-READ profile: the READ schedule, database and endpoint binary reach every connection; the switch's padding
+    declaration reaches only the installed tuple (c1, c3), never c2, which has no switch rows."""
+
+
+    def test_controls_per_connection(self):
+        calls = []
+
+        def fake(run_dir, label, port, *args, **kw):
+            calls.append((os.path.basename(run_dir), kw))
+            return {'ok': True, 'label': label, 'master_port': port}
+        with patch.object(vr, 'run_connection', fake):
+            out = vr.run_reconnect('lbl', 54500, 55500, 20, 8, 0, 0, 0, read_schedule='mixed_full', db='base',
+                                   endpoint_binary_name='case4_socket_gate_read_schedule',
+                                   pad_expect='mixed=26,integrity=4')
+        self.assertTrue(out['ok'])
+        self.assertEqual([c for c, _ in calls], ['c1', 'c2', 'c3'])
+        for name, kw in calls:
+            self.assertEqual((kw['read_schedule'], kw['db'], kw['endpoint_binary_name']),
+                             ('mixed_full', 'base', 'case4_socket_gate_read_schedule'), name)
+        self.assertEqual({c: kw['pad_expect'] for c, kw in calls},
+                         {'c1': 'mixed=26,integrity=4', 'c2': None, 'c3': 'mixed=26,integrity=4'})
+
+    def test_bad_declaration_is_refused_before_the_run_directory(self):
+        for kw in (dict(pad_expect='mixed=26'), dict(read_schedule='mixed_full', db='base', pad_expect='mixed=x')):
+            with self.assertRaises(ValueError):
+                vr.run_reconnect('bad', 54500, 55500, 20, 8, 0, 0, 0, **kw)
+            self.assertFalse(os.path.exists(os.path.join(self.runs, 'bad')))
+
+    def test_legacy_reconnect_passes_no_read_controls(self):
+        calls = []
+        with patch.object(vr, 'run_connection', lambda d, l, p, *a, **kw: calls.append(kw) or {'ok': True}):
+            vr.run_reconnect('legacy', 54500, 55500, 5, 8, 0, 0, 0)
+        self.assertTrue(all(kw['read_schedule'] is None and kw['pad_expect'] is None for kw in calls))

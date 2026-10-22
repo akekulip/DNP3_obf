@@ -17,12 +17,14 @@ reassembled into application fragments. A response is the whole fragment: its li
 carried them and its aggregate octets are recorded separately, never assuming one response is one TCP payload.
 Requests and responses pair by application sequence in order; any missing, extra or mismatched exchange fails.
 Each response the master received must equal its expected image exactly:
-  READ   padding on: general_read_padding.pad_read(request at the outstation, native, policy targets) (the
-         reference encoder); padding off: the native bytes;
+  READ   padding on: general_read_padding.pad_read(request at the outstation, native, targets) (the reference
+         encoder); targets are the frozen policy's, or on a two-READ-target build (builds[b].read_padding declared)
+         the config's own read_images values, and then each padded READ must also be its class's declared image
+         (target), declared padding point count and the prefix construction; padding off: the native bytes;
   SELECT/OPERATE   padding on: the candidate61 control image (read_reencode_01/profile_check.expected_image);
                    padding off: the native bytes.
 Latency is reported to the first response frame and to the complete response (the segment that delivered its
-last byte), both from the master's request in integer ns. Percentiles are nearest-rank.
+last byte), both from the master's request in integer ns, per kind and per READ class. Percentiles are nearest-rank.
 
   python3 hw_read_readout.py BLOCK_DIR --config FROZEN_CONFIG.json [--arms a,b] [--fixtures f] [--out R.json]
 Exit 0 only when every planned trial is present and every check passes.
@@ -44,6 +46,7 @@ sys.path.insert(0, str(ROOT / 'software/source/full_read_01'))
 sys.path.insert(0, str(ROOT / 'software/source/read_reencode_01'))
 sys.path.insert(0, str(ARCH / 'protocol/hw_vepa'))
 import general_read_padding as gp  # noqa: E402
+import read_classes as rcls  # noqa: E402  (the harness's schedules: one source of the endpoint's slot order)
 import wire_check  # noqa: E402
 
 std = gp.std
@@ -59,6 +62,8 @@ def read_class(request_app):
     g, v = request_app[2], request_app[3]
     if g == 10:
         return 'range'
+    if (g, v) == (1, 2):
+        return 'mixed'
     if g == 30:
         return 'analog'
     if g == 60:
@@ -67,12 +72,36 @@ def read_class(request_app):
 
 
 def schedule_counts(schedule, total):
-    """Per-class READ counts of one trial of the fixed schedule: class j gets floor(T/4) + (j < T mod 4)."""
+    """Per-class READ counts of one trial of the fixed schedule of n classes: class j gets floor(T/n) + (j < T mod n)."""
     if not schedule:
         return {'range': total}
-    if schedule != 'rotate4':
+    if schedule not in rcls.SCHEDULES:
         raise ReadoutError('unknown READ schedule %r' % schedule)
-    return {c: total // 4 + (1 if j < total % 4 else 0) for j, c in enumerate(ROTATE4)}
+    order = rcls.SCHEDULES[schedule]
+    return {c: total // len(order) + (1 if j < total % len(order) else 0) for j, c in enumerate(order)}
+
+
+def two_read_declaration(cfg, arm):
+    """(read_images, read_padding) of a two-READ-target build (read_padding declared), else None."""
+    build = cfg['builds'][next(a['build'] for a in cfg['arms'] if a['name'] == arm)]
+    if build.get('read_padding') is None:
+        return None
+    return build['read_images'], build['read_padding']
+
+
+def read_targets(declaration):
+    return sorted(set(declaration[0].values())) if declaration else TARGETS
+
+
+def check_read_encoding(rclass, info, master_len, declaration):
+    """[failure] for a padded READ of a two-READ-target build: its class's declared image, padding and the prefix."""
+    images, padding = declaration
+    want = (images.get(rclass), padding.get(rclass), 'prefix', 'padded')
+    got = (master_len, (info or {}).get('padding_points'), (info or {}).get('construction'), (info or {}).get('status'))
+    if images.get(rclass) is None or got != want or (info or {}).get('target') != images[rclass]:
+        return ['READ %s: (image, padding points, construction, status) %r, target %r; declared %r'
+                % (rclass, got, (info or {}).get('target'), want)]
+    return []
 SYN, ACK = 0x02, 0x10
 
 
@@ -201,11 +230,11 @@ def fragments(buf, times, segs):
     return out
 
 
-def expected_image(kind, request_at_outstation, native, padding):
+def expected_image(kind, request_at_outstation, native, padding, targets=None):
     if not padding:
         return native, None
     if kind == 'READ':
-        r = gp.pad_read(request_at_outstation, native, TARGETS, pad_start=PAD_START, pad_stop=PAD_STOP)
+        r = gp.pad_read(request_at_outstation, native, targets or TARGETS, pad_start=PAD_START, pad_stop=PAD_STOP)
         if r.status not in ('padded', 'already_at_target'):
             raise ReadoutError('padding-on READ of %d octets is %s under the policy: %s'
                                % (len(native), r.status, r.reason))
@@ -237,6 +266,8 @@ def analyse_trial(tdir, spec, cfg):
     if len(set(lens)) != 1:
         fail.append('exchange counts differ: master requests %d, outstation requests %d, native responses %d, '
                     'master responses %d' % lens)
+    declaration = two_read_declaration(cfg, spec['arm'])
+    targets = read_targets(declaration)
     rows = []
     for i in range(min(lens)):
         q, qo, n, g = req_m[i], req_o[i], nat[i], got[i]
@@ -246,7 +277,7 @@ def analyse_trial(tdir, spec, cfg):
             fail.append('exchange %d: request/response application sequences or request bytes differ %r' % (i, seqs))
             continue
         try:
-            want, info = expected_image(kind, bytes(qo['bytes']), bytes(n['bytes']), spec['padding'])
+            want, info = expected_image(kind, bytes(qo['bytes']), bytes(n['bytes']), spec['padding'], targets)
         except (gp.UnsupportedRead, std.StdError, ValueError, AssertionError) as error:
             fail.append('exchange %d (%s): no expected image: %s' % (i, kind, error))
             continue
@@ -255,6 +286,8 @@ def analyse_trial(tdir, spec, cfg):
             fail.append('exchange %d (%s): master received %d octets, expected image %d octets%s'
                         % (i, kind, len(g['bytes']), len(want), '' if len(g['bytes']) != len(want) else ' (bytes differ)'))
         rclass = read_class(bytes(qo['app'])) if kind == 'READ' else None
+        if declaration and kind == 'READ' and spec['padding']:
+            fail += ['exchange %d: %s' % (i, f) for f in check_read_encoding(rclass, info, len(g['bytes']), declaration)]
         rows.append(dict(index=i, kind=kind, read_class=rclass, app_seq=seqs[0], native_len=len(n['bytes']), master_len=len(g['bytes']),
                          native_frames=n['frames'], master_frames=g['frames'], native_tcp=n['tcp_segments'],
                          master_tcp=g['tcp_segments'], exact=exact, encoding=info,
@@ -286,6 +319,15 @@ def analyse_trial(tdir, spec, cfg):
             master_tcp=sorted(collections.Counter(tuple(r['master_tcp']) for r in sel).items()),
             latency_first_ns={q: nearest_rank([r['latency_first_ns'] for r in sel], q) for q in (50, 99)},
             latency_complete_ns={q: nearest_rank([r['latency_complete_ns'] for r in sel], q) for q in (50, 99)})
+        if kind == 'READ':
+            by_kind[kind]['by_class'] = {
+                c: dict(n=len(cs), exact=sum(r['exact'] for r in cs),
+                        master_lens=sorted(collections.Counter(r['master_len'] for r in cs).items()),
+                        latency_first_ns={q: nearest_rank([r['latency_first_ns'] for r in cs], q) for q in (50, 99)},
+                        latency_complete_ns={q: nearest_rank([r['latency_complete_ns'] for r in cs], q)
+                                             for q in (50, 99)})
+                for c in sorted({r['read_class'] for r in sel})
+                for cs in [[r for r in sel if r['read_class'] == c]]}
     summary = dict(planned=spec['counts'], by_kind=by_kind, retransmissions=dict(
                        native_o2m=o_rsp[3], master_o2m=m_rsp[3], m2o_sent=m_req[3], m2o_received=o_req[3]),
                    o2m_unique_segment_frame_octets=dict(native=o2m_native, master=o2m_master,
@@ -340,6 +382,7 @@ def main(argv=None):
     partial = sorted(set(cfg['evaluation']['arm_order']) - set(arms))
     report = dict(block=str(block), config=str(a.config), config_sha256=config_sha, partial_arms_omitted=partial,
                   planned=sorted(planned), policy_targets=TARGETS,
+                  read_targets={a: read_targets(two_read_declaration(cfg, a)) for a in arms},
                   trials=trials, failures=failures, ok=bool(planned) and not failures)
     if a.out:
         Path(a.out).write_text(json.dumps(report, indent=1) + '\n')

@@ -54,7 +54,7 @@ class ClassTable(unittest.TestCase):
         for name in ('read_resp_class0', 'read_resp_integrity'):
             self.assertNotIn(name, c, name)
             self.assertNotIn(name, loss.names(), name)
-        self.assertEqual(loss.READ_RESP_LEN, {'read_resp_analog': 141, 'read_resp_247': 247})
+        self.assertEqual(loss.READ_RESP_LEN, {'read_resp_analog': 141, 'read_resp_247': 247, 'read_resp_91': 91})
 
     def test_segmented_read_class_response_is_not_exercised(self):
         # base single-frame response lengths {range 49, analog 141, class0/integrity 247}: both selectors valid
@@ -82,7 +82,43 @@ class ClassTable(unittest.TestCase):
             self.assertIn('single-frame READ response', c[name]['what'], name)
             self.assertIn('not distinguished', c[name]['what'], name)        # no single-class claim
         self.assertNotEqual(c['read_resp_analog']['what'], 'a 141 B single-frame READ response (analog)')
-        self.assertEqual(loss.LENGTH_ONLY, frozenset({'read_resp_analog', 'read_resp_247'}))
+        self.assertEqual(loss.LENGTH_ONLY, frozenset({'read_resp_analog', 'read_resp_247', 'read_resp_91',
+                                                      'read_resp_padded_141', 'read_resp_padded_271'}))
+
+
+class TwoReadProfile(unittest.TestCase):
+    """Selectors and the @LEN bound for the two-READ-target profile (mixed 91 -> 141, full 247 -> 271)."""
+
+    def test_selectors_target_the_profile_lengths(self):
+        c = loss.CLASSES
+        for name, ip in (('read_resp_91', 131), ('read_resp_247', 287),
+                         ('read_resp_padded_141', 181), ('read_resp_padded_271', 311)):
+            self.assertEqual((c[name]['ip_len'], c[name]['dir'], c[name]['flags']), (ip, 'O>M', 'ACK,PSH'), name)
+            spec = loss.parse_drop(name + ':2', reads=20)
+            self.assertEqual((spec['ip_len'], spec['occurrence'], spec['length_only']), (ip, 2, True), name)
+        self.assertEqual(loss.PADDED_READ_LEN, {'read_resp_padded_141': 141, 'read_resp_padded_271': 271})
+        # the padded-image selectors describe an IMAGE in one TCP segment, not a single frame
+        for name in loss.PADDED_READ_LEN:
+            self.assertIn('padded READ image in one TCP segment', c[name]['what'], name)
+
+    def test_profile_lengths_are_distinct(self):
+        # no two of the profile's response lengths (READ native/padded, SBO native/padded) share an IP length
+        ips = [loss.CLASSES[n]['ip_len'] for n in ('read_resp_91', 'read_resp_247', 'read_resp_padded_141',
+                                                   'read_resp_padded_271', 'control_resp_native')] + [40 + 61]
+        self.assertEqual(len(ips), len(set(ips)))
+
+    def test_len_bound_is_the_tcp_payload_not_one_link_frame(self):
+        # 271 (the full READ's padded aggregate, [24, 247]) exceeds one link frame's 249 user octets but is a
+        # valid TCP payload length: accepted, and it sets the padded class's IP length
+        spec = loss.parse_drop('read_resp_padded@271', reads=20)
+        self.assertEqual((spec['ip_len'], spec['padded_len']), (311, 271))
+        spec = loss.parse_drop('select_resp_padded@61/271', reads=20)
+        self.assertEqual((spec['ip_len'], spec['padded_len']), (101, 61))
+        self.assertEqual(loss.parse_drop('read_resp_padded@1460', reads=20)['ip_len'], 1500)
+        for bad in ('read_resp_padded@1461', 'read_resp_padded@49', 'read_resp_padded@0',
+                    'read_resp_padded@61/1461', 'read_resp_padded@x', 'read_resp_padded@61/'):
+            with self.assertRaises(ValueError, msg=bad):
+                loss.parse_drop(bad, reads=20)
 
 
 class Parse(unittest.TestCase):

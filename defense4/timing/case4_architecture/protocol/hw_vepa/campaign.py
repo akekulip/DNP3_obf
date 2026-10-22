@@ -144,6 +144,17 @@ def load_config(path):
     return cfg
 
 
+# Loss selectors on a single-class two-READ workload: the class's own READ request / native / padded-image
+# selectors, plus the class-agnostic ones (separate ACK, control request/response, master ACK, and the read_resp_padded
+# alias, which _padded_suffix resolves to the class image).
+TWO_READ_LOSS_SELECTORS = {'mixed': frozenset({'request_mixed', 'read_resp_91', 'read_resp_padded_141'}),
+                           'integrity': frozenset({'request_full', 'read_resp_247', 'read_resp_padded_271'})}
+SINGLE_CLASS_LOSS_SELECTORS = frozenset({'ack_sep', 'read_resp_padded', 'select_resp_padded', 'operate_resp_padded',
+                                         'select_resp_native', 'operate_resp_native', 'control_resp_native',
+                                         'select_req', 'operate_req', 'control_req', 'master_ack',
+                                         'master_ack_of_padded', 'master_ack_of_padded_data'})
+
+
 def validate_read_classes(cfg):
     """endpoint.binary, traffic.read_schedule/db and every arm's per-class READ declaration, before anything runs: a
     schedule on an arm whose build declares no read_images/read_images_by_db, or a padded arm whose build does not
@@ -171,6 +182,23 @@ def validate_read_classes(cfg):
             # series_read_class). On the large database class0/integrity are segmented (292 + 85), so no 247-byte
             # single-frame response exists and read_resp_247 is refused (NOT_EXERCISED).
             single_frame = {sum(segs) for segs in read_classes.NATIVE_SEGMENTS.get(db, {}).values() if len(segs) == 1}
+            if len(_classes) == 1 and _classes[0] in TWO_READ_LOSS_SELECTORS:
+                # a single-class two-READ workload (schedule mixed or full): its READ is the only READ on the
+                # connection, so its request/response/frontier selectors name that class; the range `request`
+                # (20 B) and the other class's selectors would match nothing and are refused
+                allowed = SINGLE_CLASS_LOSS_SELECTORS | TWO_READ_LOSS_SELECTORS[_classes[0]]
+                for pname, entries in presets.items():
+                    for e in entries:
+                        if e['class'] not in allowed:
+                            raise ValueError('traffic.read_schedule %s with loss preset %s: %r is not a selector of '
+                                             'this single-class workload (allowed: %s)'
+                                             % (name, pname, e['class'], ', '.join(sorted(allowed))))
+                presets = {}
+            elif name in read_classes.BASE_ONLY_SCHEDULES:
+                # a multi-class two-READ schedule (mixed_full): a length or frontier selector could not name the
+                # class it hit (instruction: no length-only match attributed to a class) -- loss runs per class
+                raise ValueError('traffic.read_schedule %s carries %d READ classes; a loss preset needs a single-class '
+                                 'workload (schedule mixed or full)' % (name, len(set(_classes))))
             for pname, entries in presets.items():
                 for e in entries:
                     if e['class'] not in loss.READ_RESP_LEN:
@@ -184,7 +212,21 @@ def validate_read_classes(cfg):
         reads = cfg['trials']['reads_per_trial'] * (cfg['trials']['trials_per_arm']
                                                     if cfg.get('trial_mode') == 'one_connection' else 1)
         for arm in cfg.get('arms', []):
-            standards.read_class_expectations(cfg, arm, {'reads': reads})
+            expectation = standards.read_class_expectations(cfg, arm, {'reads': reads})
+            padding = cfg['builds'][arm['build']].get('read_padding')
+            if (name in read_classes.BASE_ONLY_SCHEDULES and arm.get('padding') and expectation is not None
+                    and expectation.get('padded') and padding is None):
+                raise ValueError('builds.%s.read_padding is required on padded arm %s: the two-READ schedule %s '
+                                 'tells the endpoint exactly what padding to expect' % (arm['build'], arm['name'], name))
+            if padding is not None and expectation is not None and arm.get('padding'):
+                if not isinstance(padding, dict) or any(type(v) is not int or v < 1 for v in padding.values()):
+                    raise ValueError('builds.%s.read_padding must map class -> padding point count >= 1' % arm['build'])
+                for cls, e in expectation['classes'].items():
+                    padded_class = e['image'] != e['native']
+                    if padded_class != (cls in padding):
+                        raise ValueError('builds.%s.read_padding must declare exactly the padded scheduled classes: '
+                                         '%s image %d, native %d, read_padding %r'
+                                         % (arm['build'], cls, e['image'], e['native'], padding.get(cls)))
     except read_classes.ReadClassError as error:
         raise ValueError(str(error))
 
@@ -530,8 +572,12 @@ class Campaign:
         if scenario is not None:
             if 'sbo_cycles' in cfg['traffic']:
                 raise ValueError('scenario %r is not supported with traffic.sbo_cycles (unsupported shape)' % scenario)
-            if 'read_schedule' in cfg['traffic']:
-                raise ValueError('scenario %r is not supported with traffic.read_schedule (unsupported shape)' % scenario)
+            # a READ schedule runs on every reconnect connection (vision_run.run_reconnect), checked per connection
+            # with c2 native (verdict_scenario); only a build with a per-class declaration can carry one
+            if 'read_schedule' in cfg['traffic'] and not any(
+                    read_classes.declared(cfg['builds'][a['build']]) for a in cfg.get('arms', [])
+                    if a['name'] == cfg.get('scenarios', {}).get(scenario, {}).get('arm')):
+                raise ValueError('scenario %r with traffic.read_schedule needs a build declaring read_images' % scenario)
             if scenario not in cfg.get('scenarios', {}):
                 raise ValueError('unknown scenario %r; the config defines %s' % (scenario, sorted(cfg.get('scenarios', {}))))
             want = [cfg['scenarios'][scenario]['arm']]
@@ -764,12 +810,27 @@ class Campaign:
         return module
 
     # ---- groups, gates, bound identity ------------------------------------------------------------------
+    def single_read_class(self, arm, trial=None):
+        """(class, native, image) of a single-class READ workload (schedule mixed or full) on a build with a per-class
+        declaration, image = native on an unpadded arm; None otherwise. With one READ class on the connection a
+        READ-length or READ-frontier selector names that class's READ (loss presets, verdict_loss)."""
+        name, classes, _db = read_classes.schedule_and_db(self.cfg, trial)
+        if name is None or len(set(classes)) != 1:          # from the schedule, never from a READ count
+            return None
+        expectation = standards.read_class_expectations(self.cfg, arm, dict(trial or {}, reads=1))
+        if expectation is None:
+            return None
+        e = expectation['classes'][classes[0]]
+        return classes[0], e['native'], e['image']
+
     def _padded_suffix(self, arm, cls=None):
         """'@LEN' for builds whose padded response is not 58 octets (loss.parse_drop), else ''. A READ drop class
-        uses the build's read_image_len when its READ image differs from the control image."""
+        uses the build's read_image_len when its READ image differs from the control image; on a single-class READ
+        workload, that class's image."""
         build = self.cfg['builds'][arm['build']]
         image = build.get('image_len', 58)
-        read = read_classes.range_image_len(build, image)      # read_images['range'], else read_image_len
+        single = self.single_read_class(arm)
+        read = single[2] if single else read_classes.range_image_len(build, image)   # else read_images['range']/read_image_len
         if cls is not None and (str(cls).startswith('read_') or str(cls).startswith('master_ack')):
             image = read          # a READ class, or the master's ACK of the first padded frontier (a READ)
         elif cls is not None and read != image and str(cls).endswith('_resp_padded'):
@@ -881,6 +942,19 @@ class Campaign:
         return ''.join(' --%s %s' % (key.replace('_', '-'), value if isinstance(value, str) else int(value))
                        for key, value in self.endpoint_controls().items())
 
+    def pad_expect_arg(self, arm):
+        """' --pad-expect <class>=<n>,...' on a PADDED arm whose build declares read_padding (the two-READ-target
+        profile): the padding the switch is declared to add per scheduled class, so the endpoint's strict check
+        requires exactly it. An off arm, or a build without read_padding, passes nothing -- the endpoint then fails on
+        any added point."""
+        build = self.cfg['builds'][arm['build']]
+        padding = build.get('read_padding')
+        if not arm.get('padding') or not padding or not self.cfg['traffic'].get('read_schedule'):
+            return ''
+        _name, classes, _db = read_classes.schedule_and_db(self.cfg)
+        decl = ','.join('%s=%d' % (cls, padding[cls]) for cls in dict.fromkeys(classes) if cls in padding)
+        return ' --pad-expect %s' % decl if decl else ''
+
     def endpoint_binary_name(self):
         """The endpoint file on Vision: endpoint.binary when configured, else the pad58b endpoint."""
         return self.cfg['endpoint'].get('binary', os.path.basename(vr.BIN))
@@ -888,9 +962,10 @@ class Campaign:
     def endpoint_binary_arg(self):
         return ' --endpoint-binary %s' % q(self.cfg['endpoint']['binary']) if 'binary' in self.cfg['endpoint'] else ''
 
-    def read_policy_arg(self, trial, arm):
-        """clrt_check --read-policy for a build with a per-class READ declaration, else ''."""
-        expectation = standards.read_class_expectations(self.cfg, arm, trial)
+    def read_policy_arg(self, trial, arm, unbound_native=False):
+        """clrt_check --read-policy for a build with a per-class READ declaration, else ''. unbound_native: a
+        connection the switch has no rows for (reconnect c2), whose READs are expected native."""
+        expectation = standards.read_class_expectations(self.cfg, arm, trial, unbound_native)
         if expectation is None:
             return ''
         return ' --read-policy %s' % q(json.dumps({'classes': expectation['classes']}, sort_keys=True,
@@ -1143,7 +1218,8 @@ class Campaign:
                                             reconnect_port=(port + c['scenarios'][unit['scenario']]['reconnect_port_offset']
                                                             if unit.get('scenario') else None)
                                             ).replace(runner.V_RUN, self.V) + self.endpoint_control_args()
-                          + self.endpoint_binary_arg() + self.qualify_capture_arg(arm), check=False)
+                          + self.endpoint_binary_arg() + self.pad_expect_arg(arm) + self.qualify_capture_arg(arm),
+                          check=False)
             self.save(dest, 'vision_run.out', v)
             state['after'] = True
             self.snapshot(out_remote, label + '_after', check=False, preset=preset)
@@ -1280,6 +1356,7 @@ class Campaign:
                                      gen_exhausted_outcome=self.cfg['builds'][arm['build']].get('gen_exhausted_outcome'),
                                      read_classes=standards.read_class_expectations(self.cfg, arm, trial))
         cfail += self.endpoint_control_checks(ev['master'])
+        cfail += self.read_padding_checks(ev['master'], arm)
         trial['observed'] = obs
         ok, fails = ok and not cfail, fails + cfail
         outstation = ev.get('outstation') or {}
@@ -1328,6 +1405,15 @@ class Campaign:
             else:
                 raise StepFailed('%s failed: %s' % (label, '; '.join(fails)))
 
+    def read_padding_checks(self, master, arm):
+        """With a build that declares read_padding: the master's padding fields against the declaration this arm
+        sent (pad_expect_arg), so a padded arm proves exactly the declared points arrived and an off arm proves none."""
+        if self.cfg['builds'][arm['build']].get('read_padding') is None:
+            return []
+        decl = self.pad_expect_arg(arm).split()[-1] if self.pad_expect_arg(arm) else ''
+        padding = {k: int(v) for k, v in (kv.split('=') for kv in decl.split(','))} if decl else {}
+        return checks.read_padding_record_checks(master, padding)
+
     def endpoint_control_checks(self, master):
         fails = []
         controls = self.endpoint_controls()
@@ -1363,8 +1449,8 @@ class Campaign:
                       check=False)
         k = self.step('local', '%s: per-exchange timing extraction' % label,
                       '%s %s/clrt_check.py %s %s --json %s' % (runner.PY, q(HERE), q(dest + '/out.pcap'),
-                                                                q(dest + '/in.pcap'), q(dest + '/timing.json')),
-                      check=False)
+                                                                q(dest + '/in.pcap'), q(dest + '/timing.json'))
+                      + self.read_policy_arg(trial, arm), check=False)
         if self.rn.dry:
             return
         c = self.cfg
@@ -1384,11 +1470,15 @@ class Campaign:
             ident = {'identified': False, 'candidates': None, 'packet': None, 'error': str(e)}
         base = self._baseline_completion_s(fixture, arm['name'])
         build = c['builds'][arm['build']]
+        single = self.single_read_class(arm, trial)
         arm = dict(arm, control_padding=build.get('control_padding', True), image_len=build.get('image_len', 58),
-                   read_image_len=read_classes.range_image_len(build, build.get('image_len', 58)))
+                   read_image_len=(single[2] if single else
+                                   read_classes.range_image_len(build, build.get('image_len', 58))),
+                   read_native=single[1] if single else loss.NATIVE['READ'])
         fails, res = loss.evaluate_loss(arm, trial['reads'], c['loss'].get('max_recovery_s', 5.0), spec,
                                         result.get('loss'), ident, ev['master'], ev['outstation'], ev['wire'],
                                         ev['timing'], c['expectations'], base)
+        fails += self.read_padding_checks(ev['master'], arm)       # the declaration, independently of the endpoint
         for f in ('out.pcap', 'in.pcap', 'wire.json', 'timing.json', 'master.json', 'outstation.json'):
             if not os.path.exists(os.path.join(dest, f)):
                 fails.append('missing expected artifact: %s' % f)
@@ -1442,7 +1532,8 @@ class Campaign:
                                                                     q(d + '/in.pcap'), q(d + '/wire.json')), check=False),
                 self.step('local', '%s/%s: per-exchange timing extraction' % (label, cn),
                           '%s %s/clrt_check.py %s %s --json %s' % (runner.PY, q(HERE), q(d + '/out.pcap'),
-                                                                    q(d + '/in.pcap'), q(d + '/timing.json')), check=False))
+                                                                    q(d + '/in.pcap'), q(d + '/timing.json'))
+                          + self.read_policy_arg(trial, arm, cn == 'c2'), check=False))
         if self.rn.dry:
             return
         result = self._vision_json(v)
@@ -1464,8 +1555,14 @@ class Campaign:
                            if isinstance(length, int) and not isinstance(length, bool)})
             m, ent = e['master'] or {}, vc.get(cn, {})
             padded = arm['padding'] if cn != 'c2' else 0
-            connection_failures = checks.application_checks(self.cfg['expectations'], padded, trial['reads'], e, run_sbo)
+            connection_failures = checks.application_checks(
+                self.cfg['expectations'], padded, trial['reads'], e, run_sbo,
+                read_classes=standards.read_class_expectations(self.cfg, arm, trial, cn == 'c2'))
             connection_failures += self.endpoint_control_checks(m)
+            if cn == 'c2' and self.cfg['builds'][arm['build']].get('read_padding') is not None:
+                connection_failures += checks.read_padding_record_checks(m, {})      # no rows: nothing added
+            elif cn != 'c2':
+                connection_failures += self.read_padding_checks(m, arm)
             precision = checks.read_precision_gate(e['timing'] or {}, self.cfg['timing_params_ns']['gap'])
             precision['gated'] = bool(self.reconnect_policy == 'protected' and cn != 'c2' and arm['T'] and
                                       trial.get('fixture', self.fixtures[0]) == 'separate_ack' and

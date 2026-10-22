@@ -53,15 +53,31 @@ CLASSES = {
     # large-DB class0/integrity (two frames) have no single-length selector at all (read_resp_class -> NOT_EXERCISED).
     'read_resp_analog': {'dir': 'O>M', 'ip_len': 40 + 141, 'flags': 'ACK,PSH', 'what': 'a 141 B single-frame READ response (base analog or a range READ padded to 141; not distinguished)'},
     'read_resp_247': {'dir': 'O>M', 'ip_len': 40 + 247, 'flags': 'ACK,PSH', 'what': 'a 247 B single-frame READ response (base class0 or integrity; not distinguished)'},
+    # Two-READ-target profile (m12p_c23+). Native arms: the mixed READ's 91 B single-frame response (the full READ's
+    # native is read_resp_247). Padded arms: each READ leaves as a padded IMAGE -- two link frames in ONE TCP segment
+    # (141 = [50, 91], 271 = [24, 247]) -- so these selectors name the image length, not a single frame. Every one is
+    # length-level (LENGTH_ONLY). Within this profile's mixed_full workload the four READ lengths (91/247 native,
+    # 141/271 padded) and the SBO lengths (37/61) do not collide, so a drop at one of them is the one workload READ
+    # of that length; the selector still claims only the length, and a class claim rests on the workload declaration.
+    'read_resp_91': {'dir': 'O>M', 'ip_len': 40 + 91, 'flags': 'ACK,PSH', 'what': 'a 91 B single-frame READ response (two-READ profile: the native mixed READ)'},
+    'read_resp_padded_141': {'dir': 'O>M', 'ip_len': 40 + 141, 'flags': 'ACK,PSH', 'what': 'a 141 B padded READ image in one TCP segment (two-READ profile: link frames [50, 91])'},
+    'read_resp_padded_271': {'dir': 'O>M', 'ip_len': 40 + 271, 'flags': 'ACK,PSH', 'what': 'a 271 B padded READ image in one TCP segment (two-READ profile: link frames [24, 247])'},
+    # Two-READ profile requests (the range `request` above is 20 B): measured from the M1 live capture
+    # (read_complete_01/vectors/two_read_templates.json, request_len). Used with a single-class workload (schedule
+    # mixed or full), where the request of that length is the only READ request on the connection.
+    'request_mixed': {'dir': 'M>O', 'ip_len': 40 + 25, 'flags': 'ACK,PSH', 'what': 'mixed READ request (g1v2 0-15 + g30v1 0-7), 25 B payload'},
+    'request_full': {'dir': 'M>O', 'ip_len': 40 + 27, 'flags': 'ACK,PSH', 'what': 'full/integrity READ request (class 0-3), 27 B payload'},
 }
 # Single-frame READ-response drop selector -> the response link-octet length it targets. One selector per length:
 # the selector is length-unique and makes no per-class claim. A campaign that combines a READ-class schedule with
 # a loss preset is restricted to these, and only when that length exists as a single link frame on the database.
-READ_RESP_LEN = {'read_resp_analog': 141, 'read_resp_247': 247}
+READ_RESP_LEN = {'read_resp_analog': 141, 'read_resp_247': 247, 'read_resp_91': 91}
+# Padded-image selectors (two-READ profile): selector -> the padded image length (TCP payload octets) it targets.
+PADDED_READ_LEN = {'read_resp_padded_141': 141, 'read_resp_padded_271': 271}
 # The length selectors are length-level: a drop they pick is stamped `length_only` in the spec/record so no reader
 # or downstream check reads it as a per-class claim. A class-specific recovery claim comes from a single-class
 # workload (candidate_series series_read_class), not from one of these selectors in a mixed schedule.
-LENGTH_ONLY = frozenset(READ_RESP_LEN)
+LENGTH_ONLY = frozenset(READ_RESP_LEN) | frozenset(PADDED_READ_LEN)
 # alias -> (base class, occurrence offset given the READ count): the position of the packet inside the base class
 ALIASES = {
     'read_resp_padded': ('resp_padded', lambda reads: 0),
@@ -79,6 +95,13 @@ ALIASES = {
 # by occurrence only; on candidate56r_single_loss_03 its n=2 hit the ACK of the outstation FIN.
 DATA_ACK = {'master_ack_of_padded_data'}
 PADDED_LEN = 58
+# @LEN / @LEN/READLEN bound. LEN is the padded response's TCP PAYLOAD length -- the aggregate encoded DNP3 octets of
+# one solicited response carried in one TCP segment (e.g. 271 = link frames [24, 247]) -- and the selector matches
+# ONE IP packet of total length 40 + LEN. Its bound is therefore the IP/TCP packet capacity (Ethernet MTU 1500 - 20
+# IP - 20 TCP = 1460), NOT the user-octet capacity of one DNP3 link frame (<= 250 user octets, <= 292 encoded): the
+# earlier upper bound 249 conflated the two and rejected the 271-octet aggregate. Per-frame limits are not checked
+# here; they stay with the DNP3 frame checks (wire_check / dnp3_std deframe), which verify every link frame and CRC.
+MIN_PAYLOAD_LEN, MAX_PAYLOAD_LEN = 50, 1460
 
 
 def names():
@@ -118,10 +141,13 @@ def parse_drop(text, reads):
         # @LEN, or @LEN/READLEN on a build whose padded READ length differs from the control length
         # (read_complete_01 policy: @61/141): the SELECT/OPERATE padded responses are then the only packets of
         # IP length 40+LEN, so their aliases count from the first of them, not after the READs.
-        plen, _, rlen = plen.partition('/')
+        plen, slash, rlen = plen.partition('/')
+        if slash and not rlen:
+            raise ValueError('--drop %s@%s/: READLEN missing after /' % (text, plen))
         for value in (plen, rlen) if rlen else (plen,):
-            if not value.isdigit() or not 50 <= int(value) <= 249:
-                raise ValueError('--drop %s@%s: LEN must be an integer 50..249' % (text, value))
+            if not value.isdigit() or not MIN_PAYLOAD_LEN <= int(value) <= MAX_PAYLOAD_LEN:
+                raise ValueError('--drop %s@%s: LEN must be an integer %d..%d (the response TCP payload octets)'
+                                 % (text, value, MIN_PAYLOAD_LEN, MAX_PAYLOAD_LEN))
         padded_len = int(plen)
         read_len = int(rlen) if rlen else None
     parts = text.split(':')
@@ -374,12 +400,14 @@ def data_ack_facts(ins, outs, t, padded_len=PADDED_LEN):
             'cover_us': by['t_us'] - t['t_us'] if by else None, 'covered_retransmitted': retx is not None}
 
 
-def _growth(timing, padded, control_padding=True, image_len=58, read_image_len=None):
+def _growth(timing, padded, control_padding=True, image_len=58, read_image_len=None, read_native=None):
     """(observed growth bytes over native, expected from the exchanges that actually completed). Under the
-    strict-response policy (control_padding False) SELECT/OPERATE responses stay native and add nothing."""
+    strict-response policy (control_padding False) SELECT/OPERATE responses stay native and add nothing.
+    read_native: the native length of the workload's one READ class (default the range READ's 49)."""
+    native = dict(NATIVE, READ=read_native or NATIVE['READ'])
     ex = [e for e in (timing or {}).get('exchanges', []) if e.get('resp_len') and e.get('complete', True)]
-    obs = sum(e['resp_len'] - NATIVE.get(e['kind'], e['resp_len']) for e in ex)
-    exp = (((read_image_len or image_len) - NATIVE['READ']) * sum(1 for e in ex if e['kind'] == 'READ') +
+    obs = sum(e['resp_len'] - native.get(e['kind'], e['resp_len']) for e in ex)
+    exp = (((read_image_len or image_len) - native['READ']) * sum(1 for e in ex if e['kind'] == 'READ') +
            ((image_len - NATIVE['SELECT']) if control_padding else 0) *
            sum(1 for e in ex if e['kind'] in ('SELECT', 'OPERATE'))) if padded else 0
     return obs, exp
@@ -477,9 +505,11 @@ def evaluate_loss(arm, reads, max_recovery_s, spec, rule, ident, master, ost, wi
     res['duplicate_returned'] = len(w.get('duplicate_returned') or [])
     ctl, image = bool(arm.get('control_padding', True)), int(arm.get('image_len', 58))
     read_image = int(arm.get('read_image_len', image))
-    res['growth_bytes'], res['expected_growth_bytes'] = _growth(timing, bool(arm['padding']), ctl, image, read_image)
+    read_native = int(arm.get('read_native', NATIVE['READ']))
+    res['growth_bytes'], res['expected_growth_bytes'] = _growth(timing, bool(arm['padding']), ctl, image, read_image,
+                                                                read_native)
     if res['growth_bytes'] != res['expected_growth_bytes']:
         fails.append('growth %d B != %d B expected from the responses delivered (%d per READ, %d per control response)'
-                     % (res['growth_bytes'], res['expected_growth_bytes'], read_image - NATIVE['READ'],
+                     % (res['growth_bytes'], res['expected_growth_bytes'], read_image - read_native,
                         image - NATIVE['SELECT'] if ctl else 0))
     return fails, res

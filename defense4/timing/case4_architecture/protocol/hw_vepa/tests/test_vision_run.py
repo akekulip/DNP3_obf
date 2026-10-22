@@ -159,3 +159,30 @@ class CaseaNetem(unittest.TestCase):
     def test_jitter_without_a_distribution_is_refused(self):
         with self.assertRaises(SystemExit):
             self.run_casea(2, 2, None)
+
+
+class PadExpectControl(unittest.TestCase):
+    """CASE4_PAD_EXPECT (two-READ-target profile): validated before anything is created, master-only."""
+
+    def test_pattern(self):
+        self.assertTrue(vr.PAD_EXPECT_RE.fullmatch('mixed=26,integrity=4'))
+        self.assertTrue(vr.PAD_EXPECT_RE.fullmatch('mixed=26'))
+        for bad in ('', 'mixed=0', 'mixed=26,', 'bogus=4', 'mixed=26;integrity=4', 'mixed=12345', 'mixed'):
+            self.assertIsNone(vr.PAD_EXPECT_RE.fullmatch(bad), bad)
+        self.assertEqual(vr.READ_SCHEDULES, ('rotate4', 'mixed_full', 'mixed', 'full'))
+
+    def test_invalid_or_unscheduled_declaration_refused_before_any_side_effect(self):
+        with tempfile.TemporaryDirectory() as temp:
+            run_dir = Path(temp) / 'run'
+            for kwargs in (dict(pad_expect='bogus=4', read_schedule='mixed_full', db='base'),
+                           dict(pad_expect='mixed=26')):
+                with self.assertRaises(ValueError, msg=kwargs):
+                    vr.run_connection(str(run_dir), 'lbl', 40000, 3, 8, 0, 0, 0, **kwargs)
+                self.assertFalse(run_dir.exists(), kwargs)      # refused before os.makedirs
+
+    def test_declaration_goes_to_the_master_command_only(self):
+        source = Path(vr.__file__).read_text()
+        self.assertIn("command = env + (['CASE4_PAD_EXPECT=%s' % pad_expect] if pad_expect else []) + [", source)
+        outstation = source[source.index("ost = subprocess.Popen(['ip', 'netns', 'exec', NS_O] + env +"):]
+        self.assertNotIn('CASE4_PAD_EXPECT', outstation[:outstation.index('\n', outstation.index('outstation'))])
+        self.assertNotIn('PAD_EXPECT', ''.join(vr.endpoint_env(25, True, 0, 4, 'mixed_full', 'base')))

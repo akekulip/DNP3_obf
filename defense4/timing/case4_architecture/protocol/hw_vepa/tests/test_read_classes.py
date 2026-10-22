@@ -648,3 +648,102 @@ class CampaignPerClass(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TwoReadProfile(unittest.TestCase):
+    """The two-READ-target profile's classes and schedules (mixed 91 -> 141, integrity 247 -> 271; base DB only)."""
+    TEMPLATES = (Path(__file__).resolve().parents[3] / 'integration/core/response_only_rearm/stage_experiments/'
+                 'read_complete_01/vectors/two_read_templates.json')
+
+    def test_live_requests_classify(self):
+        import json
+        t = json.loads(self.TEMPLATES.read_text())['variants']['v0']['classes']
+        for cls in ('mixed', 'integrity'):
+            payload = bytes.fromhex(t[cls]['request'])
+            self.assertEqual(rc.classify_request_frames(payload), cls, cls)
+
+    def test_mixed_needs_both_headers_in_order(self):
+        mixed = bytes([0xc0, 0x01]) + bytes.fromhex('010200000f1e01000007')
+        self.assertEqual(rc.classify_request(mixed), 'mixed')
+        swapped = bytes([0xc0, 0x01]) + bytes.fromhex('1e01000007010200000f')
+        self.assertIsNone(rc.classify_request(swapped))
+        binary_only = bytes([0xc0, 0x01]) + bytes.fromhex('010200000f')
+        self.assertIsNone(rc.classify_request(binary_only))
+
+    def test_mixed_full_expectations(self):
+        config = {'builds': {'b': {'read_images': {'mixed': 141, 'integrity': 271}}},
+                  'traffic': {'read_schedule': 'mixed_full', 'db': 'base'}}
+        arm = {'build': 'b'}
+        e = rc.expectations(config, arm, {'reads': 65}, padded=True)
+        self.assertEqual(e['order'], ['mixed', 'integrity'])
+        self.assertEqual({c: (v['native'], v['image'], v['count']) for c, v in e['classes'].items()},
+                         {'mixed': (91, 141, 33), 'integrity': (247, 271, 32)})
+        native = rc.expectations(config, arm, {'reads': 65}, padded=False)
+        self.assertEqual({c: v['image'] for c, v in native['classes'].items()}, {'mixed': 91, 'integrity': 247})
+
+    def test_single_class_schedules(self):
+        config = {'builds': {'b': {'read_images': {'mixed': 141, 'integrity': 271}}}, 'traffic': {'db': 'base'}}
+        for name, cls in (('mixed', 'mixed'), ('full', 'integrity')):
+            config['traffic']['read_schedule'] = name
+            e = rc.expectations(config, {'build': 'b'}, {'reads': 20}, padded=True)
+            self.assertEqual(list(e['classes']), [cls], name)
+
+    def test_profile_schedules_are_base_only(self):
+        for name in ('mixed_full', 'mixed', 'full'):
+            with self.assertRaises(rc.ReadClassError, msg=name):
+                rc.schedule_and_db({'traffic': {'read_schedule': name, 'db': 'large'}})
+
+    def test_rotate4_unchanged(self):
+        self.assertEqual(rc.SCHEDULES['rotate4'], ('range', 'analog', 'class0', 'integrity'))
+
+
+class TwoReadPadExpect(unittest.TestCase):
+    """campaign.Campaign.pad_expect_arg: a padded arm on a build that declares read_padding tells the endpoint's
+    strict check exactly the padding the switch adds per scheduled class; an off arm declares none (the endpoint then
+    fails on any added point)."""
+
+    def cfg(self, schedule='mixed_full', padding=None):
+        return {'builds': {'b': {'read_images': {'mixed': 141, 'integrity': 271},
+                                 'read_padding': padding if padding is not None else {'mixed': 26, 'integrity': 4}}},
+                'traffic': {'read_schedule': schedule, 'db': 'base'}}
+
+    def arg(self, cfg, padding):
+        stub = type('C', (), {'cfg': cfg})()
+        return cp.Campaign.pad_expect_arg(stub, {'build': 'b', 'padding': padding})
+
+    def test_padded_arm_declares_every_scheduled_class(self):
+        self.assertEqual(self.arg(self.cfg(), 1), ' --pad-expect mixed=26,integrity=4')
+
+    def test_off_arm_declares_nothing(self):
+        self.assertEqual(self.arg(self.cfg(), 0), '')
+
+    def test_schedule_restricts_the_classes(self):
+        self.assertEqual(self.arg(self.cfg('mixed'), 1), ' --pad-expect mixed=26')
+        self.assertEqual(self.arg(self.cfg('full'), 1), ' --pad-expect integrity=4')
+
+    def test_build_without_read_padding_declares_nothing(self):
+        cfg = self.cfg()
+        del cfg['builds']['b']['read_padding']
+        self.assertEqual(self.arg(cfg, 1), '')
+
+    def test_declaration_is_accepted_by_vision_run(self):
+        decl = self.arg(self.cfg(), 1).split()[-1]
+        self.assertIsNotNone(vr.PAD_EXPECT_RE.fullmatch(decl), decl)
+
+    def validate(self, padding, arms):
+        cfg = self.cfg(padding=padding)
+        cfg.update(endpoint={'binary': 'case4_socket_gate_read_schedule'},
+                   trials={'reads_per_trial': 65, 'trials_per_arm': 1},
+                   arms=[{'build': 'b', 'padding': p} for p in arms])
+        cp.validate_read_classes(cfg)
+
+    def test_validator_accepts_the_exact_declaration(self):
+        self.validate({'mixed': 26, 'integrity': 4}, (0, 1))
+
+    def test_validator_refuses_a_missing_padded_class(self):
+        with self.assertRaisesRegex(ValueError, 'exactly the padded scheduled classes'):
+            self.validate({'mixed': 26}, (1,))
+
+    def test_validator_refuses_a_non_positive_count(self):
+        with self.assertRaisesRegex(ValueError, 'padding point count'):
+            self.validate({'mixed': 0, 'integrity': 4}, (1,))
