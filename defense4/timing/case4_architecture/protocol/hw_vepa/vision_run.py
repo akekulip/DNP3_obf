@@ -42,6 +42,7 @@ BIN, LIB, RUNS = HOME + '/case4_socket_gate_pad58b', HOME + '/lib', HOME + '/run
 PROFILE = ('net.ipv4.tcp_timestamps', 'net.ipv4.tcp_sack', 'net.ipv4.tcp_window_scaling')
 DEFAULT_RANGE = '32768 60999'
 OFFLOAD_BASELINE = HOME + '/offload_baseline.json'   # campaign receive-offload baseline (setup/restore)
+RX_COALESCE_BASELINE = HOME + '/rx_coalesce_baseline.json'   # host diagnostic only (setup --rx-coalesce-diag)
 READ_SCHEDULES = ('rotate4', 'mixed_full', 'mixed', 'full')   # CASE4_READ_SCHEDULE (read-schedule endpoint only)
 # CASE4_PAD_EXPECT (master only): the padding the switch is declared to add per READ class, '<class>=<n>[,...]'.
 # A padded arm passes it so the endpoint's STRICT check requires exactly that padding; a padding-off arm passes
@@ -503,6 +504,9 @@ def main():
                     help='maximum pre-connect delay; the applied delay is uniform in 0..N and fixed by --start-seed')
     ap.add_argument('--start-seed', type=int, default=0)
     ap.add_argument('--delay-ms', type=int, default=25)
+    ap.add_argument('--rx-coalesce-diag', action='store_true',
+                    help='setup only: host diagnostic -- adaptive RX off, rx-usecs 0 (baseline recorded; restore '
+                         'puts it back and verifies)')
     ap.add_argument('--jitter-ms', type=int, default=0, help='netem jitter of the separate_ack response delay')
     ap.add_argument('--distribution', choices=DISTRIBUTIONS, help='netem jitter distribution (needed with --jitter-ms)')
     ap.add_argument('--connect-must-fail', action='store_true')
@@ -525,6 +529,10 @@ def main():
 
     if a.mode == 'setup':
         capture_observation.record_offload_baseline(OFFLOAD_BASELINE, PARENT)
+        if a.rx_coalesce_diag:
+            baseline, effective = capture_observation.rx_coalesce_diagnostic(RX_COALESCE_BASELINE, PARENT)
+            print('rx coalescing diagnostic: baseline adaptive-rx %s rx-usecs %d; effective adaptive-rx %s rx-usecs %d'
+                  % (baseline['adaptive_rx'], baseline['rx_usecs'], effective['adaptive_rx'], effective['rx_usecs']))
         profile('0', DEFAULT_RANGE)
         if 'source-pruning : on' not in state():
             pruning('on')
@@ -538,6 +546,12 @@ def main():
         if 'source-pruning : off' not in state():
             pruning('off')
         offload_errors = capture_observation.restore_offload_baseline(OFFLOAD_BASELINE, PARENT)
+        coalesce_errors = capture_observation.restore_rx_coalesce(RX_COALESCE_BASELINE, PARENT)
+        print('rx coalescing after restore: %s' % ' '.join(
+            '%s=%s' % kv for kv in sorted(capture_observation.snapshot_rx_coalesce(PARENT).items()) if kv[0] != 'raw'))
+        if coalesce_errors:
+            print(state())
+            sys.exit('rx coalescing restore failed: ' + '; '.join(coalesce_errors))
         if offload_errors:
             print(state())
             sys.exit('receive offload restore failed: ' + '; '.join(offload_errors))

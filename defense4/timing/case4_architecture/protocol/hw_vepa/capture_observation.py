@@ -111,6 +111,65 @@ def record_offload_baseline(path, interface=PARENT, run=sh):
     return baseline
 
 
+def snapshot_rx_coalesce(interface=PARENT, run=sh):
+    """{'adaptive_rx': 'on'|'off', 'rx_usecs': int, 'raw': text} from `ethtool -c` (RX moderation only)."""
+    result = run(['ethtool', '-c', interface])
+    if getattr(result, 'returncode', 0):
+        raise RuntimeError('ethtool -c %s failed: %s' % (interface, getattr(result, 'stderr', '').strip()))
+    text = result.stdout
+    adaptive = re.search(r'^Adaptive RX:\s*(on|off)\b', text, re.M)
+    usecs = re.search(r'^rx-usecs:\s*(\d+)\s*$', text, re.M)
+    if not adaptive or not usecs:
+        raise RuntimeError('ethtool -c %s: adaptive RX or rx-usecs not reported' % interface)
+    return {'adaptive_rx': adaptive.group(1), 'rx_usecs': int(usecs.group(1)), 'raw': text}
+
+
+def rx_coalesce_diagnostic(path, interface=PARENT, run=sh):
+    """Host diagnostic (Philip, 2026-10-22): record the RX interrupt-moderation baseline once (an existing file means
+    an earlier diagnostic was never restored, so the NIC state is not taken as the baseline), then set adaptive RX
+    off and rx-usecs 0 -- RX only; TX, offloads, IRQ affinity and CPU power are not touched -- and read back.
+    Returns (baseline, effective); raises if the NIC did not take the setting."""
+    path = Path(path)
+    if path.exists():
+        baseline = json.loads(path.read_text())
+    else:
+        snap = snapshot_rx_coalesce(interface, run=run)
+        baseline = {'interface': interface, 'adaptive_rx': snap['adaptive_rx'], 'rx_usecs': snap['rx_usecs'],
+                    'raw': snap['raw']}
+        path.write_text(json.dumps(baseline, indent=2) + '\n')
+    result = run(['ethtool', '-C', interface, 'adaptive-rx', 'off', 'rx-usecs', '0'])
+    effective = snapshot_rx_coalesce(interface, run=run)
+    if (effective['adaptive_rx'], effective['rx_usecs']) != ('off', 0):
+        raise RuntimeError('RX coalescing diagnostic not effective (ethtool -C rc %s): adaptive RX %s, rx-usecs %d'
+                           % (getattr(result, 'returncode', None), effective['adaptive_rx'], effective['rx_usecs']))
+    return baseline, effective
+
+
+def restore_rx_coalesce(path, interface=PARENT, run=sh):
+    """Re-apply and verify a recorded RX-moderation baseline. No baseline file: the diagnostic was never applied,
+    nothing to restore (returns []). The file is removed only after the NIC reads back equal to it."""
+    path = Path(path)
+    if not path.exists():
+        return []
+    baseline = json.loads(path.read_text())
+    errors = []
+    result = run(['ethtool', '-C', interface, 'adaptive-rx', baseline['adaptive_rx'], 'rx-usecs',
+                  str(baseline['rx_usecs'])])
+    if getattr(result, 'returncode', 0):
+        errors.append('ethtool -C restore rc %s: %s' % (result.returncode, getattr(result, 'stderr', '').strip()))
+    try:
+        after = snapshot_rx_coalesce(interface, run=run)
+    except Exception as error:
+        return errors + [str(error)]
+    # with adaptive RX on, the driver reports its own rx-usecs; the recorded value is compared all the same
+    if (after['adaptive_rx'], after['rx_usecs']) != (baseline['adaptive_rx'], baseline['rx_usecs']):
+        errors.append('RX coalescing is adaptive %s rx-usecs %d, baseline adaptive %s rx-usecs %d'
+                      % (after['adaptive_rx'], after['rx_usecs'], baseline['adaptive_rx'], baseline['rx_usecs']))
+    if not errors:
+        path.unlink()
+    return errors
+
+
 def restore_offload_baseline(path, interface=PARENT, run=sh):
     """Re-apply and verify the campaign baseline independently of any per-run context. Returns the errors; the
     baseline file is removed only after the NIC is verified equal to it."""

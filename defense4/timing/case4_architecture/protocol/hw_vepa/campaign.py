@@ -1124,8 +1124,13 @@ class Campaign:
     def vision_setup(self):
         V = self.V
         self.vision_touched = True
-        self.step('vision', 'namespace TCP profile and NIC source-pruning (snapshots prior state)',
-                  'sudo python3 %s/vision_run.py setup' % V)
+        diag = (self.cfg.get('host_diagnostic') or {}).get('rx_coalescing')
+        if diag not in (None, 'off'):
+            raise ValueError('host_diagnostic.rx_coalescing must be "off" when present, got %r' % (diag,))
+        self.step('vision', 'namespace TCP profile and NIC source-pruning (snapshots prior state)'
+                  + ('; HOST DIAGNOSTIC: RX interrupt coalescing off (baseline recorded, restored by restore)'
+                     if diag else ''),
+                  'sudo python3 %s/vision_run.py setup' % V + (' --rx-coalesce-diag' if diag else ''))
 
     def set_fixture(self, fixture, delay_ms):
         """separate_ack: the emulated relay (separate ACK, delayed response); piggyback: fixture off."""

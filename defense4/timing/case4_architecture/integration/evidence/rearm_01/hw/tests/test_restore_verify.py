@@ -78,3 +78,14 @@ def test_runner_record_is_found_and_failed_or_missing_steps_are_reported(tmp_pat
     path, record = rv.run_record(tmp_path)
     assert path.name == 'series_run.json' and len(record['restore']) == 4
     assert rv.run_record(tmp_path / 'absent') == (None, None)
+
+
+def test_rx_coalescing_must_equal_the_recorded_baseline():
+    base = {'adaptive_rx': 'on', 'rx_usecs': 50}
+    text = 'Coalesce parameters for x:\nAdaptive RX: %s  TX: on\n\nrx-usecs:\t%d\n'
+    assert rv.rx_coalesce_failures(text % ('on', 50), base) == []
+    assert rv.rx_coalesce_failures(text % ('off', 0), base)
+    assert rv.rx_coalesce_failures(text % ('on', 0), base)
+    assert rv.rx_coalesce_failures('', base)
+    recorded = __import__('json').loads(rv.RX_COALESCE_BASELINE.read_text())
+    assert (recorded['adaptive_rx'], recorded['rx_usecs']) == ('on', 50)

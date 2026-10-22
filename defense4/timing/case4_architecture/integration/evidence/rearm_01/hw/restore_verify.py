@@ -13,7 +13,9 @@ Read-only on both hosts. Passes only when all of these hold:
      with the packet, drop and occupancy statistics in STATISTICS removed from entry data first;
   4. Vision's `vision_run.py state` equals the recorded baseline (source pruning, namespace TCP profile, route,
      fixture qdisc);
-  5. a fresh ping through the restored path succeeds.
+  5. a fresh ping through the restored path succeeds;
+  6. Vision's parent NIC RX interrupt moderation (`ethtool -c`, adaptive RX and rx-usecs) equals the recorded
+     baseline -- the RX-coalescing host diagnostic (Philip, 2026-10-22) is never left in place.
 Writes restore_verify.json beside the evidence; exit 0 only when every check passes.
 """
 import argparse
@@ -31,10 +33,24 @@ VOLATILE = frozenset({'$PORT_STAT', 'log_tbl_counter', 'tbl_dbg_counter', 'tf1.l
 STATISTICS = frozenset({'$COUNTER_SPEC_PKTS', '$COUNTER_SPEC_BYTES', 'drop_count_packets', 'drop_count_bytes',
                         'usage_cells', 'watermark_cells', 'shared_pool_usage_cells', 'guaranteed_min_usage_cells'})
 BASELINE = HERE / 'restore_baseline/vision_state_20261015.txt'
+RX_COALESCE_BASELINE = HERE / 'restore_baseline/vision_rx_coalesce_20261022.json'
 REQUIRED_STEPS = ('cold-swap bf_switchd back to the observed production program',
                   'replay the pre-run $PORT snapshot on the production program',
                   'Vision: fixture off, namespace profile and NIC flag restored',
                   'ping through the restored switch path')
+
+
+def rx_coalesce_failures(ethtool_text, baseline):
+    """[failure] unless `ethtool -c` reports the baseline's adaptive RX and rx-usecs."""
+    import re
+    adaptive = re.search(r'^Adaptive RX:\s*(on|off)\b', ethtool_text or '', re.M)
+    usecs = re.search(r'^rx-usecs:\s*(\d+)\s*$', ethtool_text or '', re.M)
+    if not adaptive or not usecs:
+        return ['Vision RX coalescing unreadable: %s' % (ethtool_text or '')[-200:]]
+    got = (adaptive.group(1), int(usecs.group(1)))
+    want = (baseline['adaptive_rx'], baseline['rx_usecs'])
+    return [] if got == want else ['Vision RX coalescing adaptive %s rx-usecs %d, baseline adaptive %s rx-usecs %d'
+                                   % (got + want)]
 
 
 def ssh(host, cmd, timeout=180):
@@ -142,6 +158,13 @@ def main(argv=None):
     out['checks']['vision_state'] = {'rc': r.returncode, 'state': r.stdout, 'baseline': a.vision_baseline}
     if r.returncode or r.stdout != want:
         fails.append('Vision state differs from the baseline (rc %d): %s' % (r.returncode, r.stdout[-300:]))
+
+    rx_base = json.loads(RX_COALESCE_BASELINE.read_text())
+    r = ssh(hosts['vision'], 'ethtool -c %s' % rx_base['interface'])
+    rx_fail = rx_coalesce_failures(r.stdout if not r.returncode else '', rx_base)
+    out['checks']['vision_rx_coalescing'] = {'rc': r.returncode, 'ethtool': r.stdout, 'baseline': str(RX_COALESCE_BASELINE),
+                                             'failures': rx_fail}
+    fails.extend(rx_fail)
 
     pg = prod['ping']
     r = ssh(hosts['vision'], 'ping -c %d -I %s %s' % (pg['count'] + 1, pg['src'], pg['dst']))
