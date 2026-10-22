@@ -1,0 +1,76 @@
+{
+  "at": 1792702605.0918226,
+  "baseline_run_id": "rc01_hw_c25_20261022_02_reference",
+  "baseline_run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c25_20261022_02_reference",
+  "baseline_terminal": "../../../core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/rc01_hw_c25_20261022_02/steps/rc01_hw_c25_20261022_02_reference/terminal.json",
+  "bound_sha256": {
+    "baseline": {
+      "artifact_manifest.json": "d7a5d5b28ade464d6c2a9c3e987c60f78ac6c0aa1b3f4d8134621df115acf24e",
+      "campaign_run.json": "4748c51e2560ab8289605930f1819787a630d9e3d944b8c20eb0e77ac07c1f32",
+      "config": "114c9009359e32ac1348b27b5c724fcbd1ef3a58a5930d0b4b87a216d3a942c9",
+      "freeze_check.json": "a0ffb27648ce387598b720f4d7cdbfb55455cfcb98f2be0a4d5802a5c61fae9e",
+      "rc01_hw_c25_20261022_02_reference_prerun.json": "aaa9886ed8491e778f475d9b8444b9c9644f5da7d614ed0d5d6ef469fdf67731",
+      "restore_verify.json": "fc14f9a10dacf71f723f3a52679c3b6bb8520322a5ab219164ad3af3cbc872b2",
+      "terminal": "25e96e7daed0f842bb7af4b478de4e5c5278aae741d306341a3934736c9ff8f9"
+    },
+    "command_log": "0f5968e2aa2d72146fb5bc3e56abb48c1ba98b11e9ff185aeb4939ac0c686427",
+    "ownership": "c760552256062f88bba5173f5192dcc8b528f3cf5f46552f217f13ed5274abcb",
+    "run_block_log": "9ecd2f22d3f32edecae10202c53d60dc5974b79be90ea8498b94242df12dcf45",
+    "step_config": "7b5a6cfa8b08472b334a5cf82dab063df5006b60f084b68e0b6f15f726f9b59b",
+    "terminal": "917f2b3d19c720f01865908296e216036eaadd7441071700356af4fac52a1fce"
+  },
+  "campaign_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/rc01_hw_c25_20261022_03",
+  "config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_c25_reference.json",
+  "flag_left_set": true,
+  "fresh_checks_note": "restore_verify check 1 (runner restore record) is satisfied by the BASELINE block's historical campaign_run.json copied here, not by a new restore; only checks 2-5 (running program, live snapshot against the baseline pre-run snapshot, Vision state, ping) observe the testbed afresh",
+  "mode": "no_hardware_contact",
+  "no_contact_evidence": {
+    "classification": "ambiguous",
+    "corroborating": {
+      "command_log": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/rc01_hw_c25_20261022_03/steps/rc01_hw_c25_20261022_03_control_m11_09_reference/command.log",
+      "command_log_sha256": "0f5968e2aa2d72146fb5bc3e56abb48c1ba98b11e9ff185aeb4939ac0c686427",
+      "ending": null,
+      "markers": []
+    },
+    "hardware_evidence": [],
+    "primary": {
+      "run_block_log": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block.log",
+      "run_block_log_entries": [],
+      "run_id": "rc01_hw_c25_20261022_03_control_m11_09_reference",
+      "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c25_20261022_03_control_m11_09_reference",
+      "run_root_exists": false,
+      "terminal_artifact_manifest_null": true
+    },
+    "reasons": [
+      "command.log does not end in a Python traceback or a REFUSED line"
+    ]
+  },
+  "problems": [
+    "no positive proof of no hardware contact (ambiguous): command.log does not end in a Python traceback or a REFUSED line"
+  ],
+  "restore_verify_tool": {
+    "last_commit": "291e8cb30e8121ada8aae2422bb87f757d6e5002 2026-10-19T19:58:40-04:00 restore_verify: compare counter tables without their statistics; device study amendments 1-2",
+    "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_verify.py",
+    "rule_note": "comparison rules as committed at reconcile time; the baseline check may predate later rule commits (see last_commit)",
+    "sha256": "799d38076089914584c66f80c30bfe78721770cf3cd794ee5252594a92f3d79d",
+    "stripped_statistics": [
+      "$COUNTER_SPEC_BYTES",
+      "$COUNTER_SPEC_PKTS",
+      "drop_count_bytes",
+      "drop_count_packets",
+      "guaranteed_min_usage_cells",
+      "shared_pool_usage_cells",
+      "usage_cells",
+      "watermark_cells"
+    ],
+    "uncommitted_changes": false,
+    "volatile_tables": [
+      "$PORT_STAT",
+      "log_tbl_counter",
+      "tbl_dbg_counter",
+      "tf1.log_tbl_counter"
+    ]
+  },
+  "step_config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_control_m11_09_reference.json",
+  "step_id": "rc01_hw_c25_20261022_03_control_m11_09_reference"
+}

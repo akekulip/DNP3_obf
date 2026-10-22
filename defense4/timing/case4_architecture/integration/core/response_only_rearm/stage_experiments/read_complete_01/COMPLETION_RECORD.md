@@ -1,4 +1,34 @@
-# read_complete_01 — completion record (updated 2026-10-22)
+# read_complete_01 — completion record (updated 2026-10-22, two-READ-target directive)
+
+## 0. Two-READ-target candidate m12p_c25 (Claude_Two_READ_Targets_Hardware_Directive.md)
+
+m12p_c25 (P4 `61f9af0fa141…`, = m12p_c24's P4 with the corrected declared disposition) pads the mixed READ
+(g1v2 0-15 + g30v1 0-7 in one request) 91 → 141 as link frames [50, 91] (26 G1V2 points 1024-1049, value 0, flags 0)
+and the base-database full/integrity READ 247 → 271 as [24, 247] (4 points 1024-1027); SELECT/OPERATE 37 → 61
+unchanged; timing and J unchanged. Range READ admitted and timed at native 49 (not padded). analog/class0 READ
+requests are WITHHELD on an admitted connection (measured; a master issuing one stalls).
+
+| workload | software (live endpoints) | compiler (9.13.1 + 9.13.2) | model (v3 gate, exact source) | physical switch |
+|---|---|---|---|---|
+| mixed READ 91→141 | live master via pad_read proxy, strict padding check (M1) | exit 0, N12/E12/T11 + pipe-1 egress 7 | gate passed (14 drivers; timed rounds, boundaries, retransmission, 3 corruption cases) | **size: 33/33 exact at 141** (size_only, combined; campaign 02); **timing precision FAILED** (p99 2.0-3.6 ms vs 100 us) |
+| full READ 247→271 | same | same | same | **size: 32/32 exact at 271**; timing precision FAILED |
+| SELECT/OPERATE 37→61 | unchanged | same | same | 64/64 exact at 61 per arm; timing precision FAILED |
+| recovery (loss per class, persistence graceful/rst, reconnect, held OPERATE) | harness + configs ready, dry-runs rc 0 | — | robust driver green | **NOT EXECUTED** (campaign stopped on the timing failure; then hardware stopped, below) |
+
+Hardware state: `unsafe_restoration=true` set by the supervisor on matched-control block rc01_hw_c25_20261022_03,
+which failed its freeze check BEFORE any hardware contact (my unrewritten control freeze). The reviewed no-contact
+reconcile refused (classifier does not recognise a freeze-check refusal). Flag not edited; hardware stopped pending
+Philip. The timing failure is therefore NOT yet attributed: the matched m11_09 control has not run today (on
+2026-10-21 it failed with p99 3,551 us on this host, see §4).
+
+Limitations specific to this candidate: the READ-response TCP checksum on the shallow path is a WAIVER (0xffeb written,
+not computed); responses are validated first block only; bare-RST behaviour is open (two model runs disagree); no
+general READ-length support, no whole-response switch validation, no indistinguishability or conformance claim;
+padding is visible to the master (declared, strictly checked).
+
+Reproduce offline: `bash reproduce.sh` (CANDIDATE=c25 default); readout:
+`bash reproduce.sh --readout evidence/hw_blocks/rc01_hw_c25_20261022_02_reference hw/config/rc01_m12p_c25_reference.json`.
+
 
 **Delivery candidate: m12p_c20** (source sha `1e94c31d80e6…`), the faithful segmented READ 377→401 build.
 **m12p_c12** (source sha `742089cbe762…`) is preserved unchanged as the reproducible checkpoint.

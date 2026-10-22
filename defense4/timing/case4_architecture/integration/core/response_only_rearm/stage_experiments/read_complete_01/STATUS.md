@@ -356,3 +356,15 @@ policy, reproduction and the completion record only.
   CASEA_DELAYED_IP_LEN covers every declared single-frame native READ (49/91/141/247) + 37, with a test. No switch
   image is implicated (the failing arm had the switch's padding and timing off). Re-frozen (first freeze kept as
   freeze_v3_campaign01_SUPERSEDED.json); campaign 02 under a new id.
+- 2026-10-22 (M4 campaigns 02-03). Campaign 02 block 1 (reference, m12p_c25): all four arms ran; independent readout
+  OK (4/4 trials, 0 failures): size_only and combined deliver mixed 141 (33/33) and full 271 (32/32) byte-exact,
+  SBO 61, +21.06% o2m wire octets, 0 retransmissions; off/timing_only native. timing_only and combined FAIL the CLRT
+  precision gate (nearest-rank p99 READ 2013/3624 us, SELECT 3384/2014, OPERATE 3310/3625 vs 100 us). restore_verify
+  ok. Recovery blocks unexecuted (campaign stops on a failed block).
+  Campaign 03 (m11_09 matched control, now in scope because timing failed) NEVER REACHED HARDWARE: my error -- the
+  control freeze was written before the vision_run.py fixture fix and not rewritten, so guarded_block's freeze check
+  failed (rc 3, before any plan/run; no run root created). The supervisor set unsafe_restoration fail-closed. The
+  reviewed reconcile (no-contact path, baseline = campaign 02 reference, fresh restore_verify) REFUSED: its classifier
+  needs command.log to end in a traceback or a REFUSED line; a freeze-check failure is not recognised. Flag LEFT SET,
+  not edited. HARDWARE STOPPED pending Philip's decision (extend the no-contact classifier for guarded_block's
+  freeze-check refusal, with tests, or another route).
