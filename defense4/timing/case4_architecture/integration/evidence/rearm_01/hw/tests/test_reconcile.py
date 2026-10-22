@@ -207,6 +207,83 @@ def busy_after(calls):
     return units
 
 
+class RepairedRestoreReconcileTests(ReconcileTests):
+    """Regular reconcile of a block whose runner Vision restore failed and was repaired by nic_repair.py."""
+    STEP = 'Vision: fixture off, namespace profile and NIC flag restored'
+
+    def setUp(self):
+        super().setUp()
+        run_root = self.root / 'run0'
+        (run_root / 'campaign_run.json').write_text(json.dumps({'restore': [{'step': self.STEP, 'rc': 1, 'ok': False}]}))
+        files = {p.name: {'sha256': sha(p), 'size': p.stat().st_size} for p in run_root.iterdir()
+                 if p.name != 'artifact_manifest.json'}
+        (run_root / 'artifact_manifest.json').write_text(json.dumps({'files': files}))
+        steps = self.campaign / 'steps' / 'block0'
+        terminal = json.loads((steps / 'terminal.json').read_text())
+        terminal['artifact_manifest']['sha256'] = sha(run_root / 'artifact_manifest.json')
+        (steps / 'terminal.json').write_text(json.dumps(terminal))
+        own = json.loads(self.ownership.read_text())
+        own['terminal_sha256'] = sha(steps / 'terminal.json')
+        self.ownership.write_text(json.dumps(own))
+        self.original = {p: p.read_bytes() for p in run_root.iterdir()}
+        self.repair_dir = steps / 'nic_repair_20261022T220000Z'
+
+    def write_repair(self, **change):
+        steps = self.campaign / 'steps' / 'block0'
+        repair = {'ok': True, 'bound_sha256': {'terminal': sha(steps / 'terminal.json'),
+                                               'campaign_run.json': sha(self.root / 'run0' / 'campaign_run.json')},
+                  'saved_settings': {'adaptive_rx': 'on', 'rx_usecs': 50},
+                  'actual_settings': {'adaptive_rx': 'on', 'rx_usecs': 50},
+                  'restore_function': {'source_sha256': self.c.REVIEWED_RESTORE_RX_COALESCE_SHA256,
+                                       'deployed': {'commit': 'abc', 'sha256': dict(self.c.REVIEWED_DEPLOYED_SHA256)}},
+                  'staged_sha256': dict(self.c.REVIEWED_DEPLOYED_SHA256),
+                  'failed_restoration': {'steps': [{'step': self.STEP, 'ok': False}]}}
+        repair.update(change)
+        self.repair_dir.mkdir(exist_ok=True)
+        (self.repair_dir / 'repair.json').write_text(json.dumps(repair))
+
+    def fresh(self, failures, nic_ok=True):
+        code = ('import json,sys; from pathlib import Path; Path(%r).joinpath("restore_verify.json").write_text('
+                'json.dumps({"ok": False, "failures": %r, "checks": {"vision_rx_coalescing": {"rc": 0, "failures": %r}}}));'
+                ' sys.exit(1)')
+        return lambda config, out: [sys.executable, '-c', code % (str(out), list(failures), [] if nic_ok else ['x'])]
+
+    ONLY = ["runner restore step(s) failed: ['Vision: fixture off, namespace profile and NIC flag restored']"]
+
+    def test_bound_repair_with_only_the_historical_step_clears(self):
+        self.write_repair()
+        record = Path(self.run_reconcile(verifier=self.fresh(self.ONLY)))
+        self.assertIs(json.loads(self.ownership.read_text())['unsafe_restoration'], False)
+        data = json.loads(record.read_text())
+        self.assertIn('remains FAILED', data['result'])
+        self.assertEqual(data['nic_repair']['problems'], [])
+        self.assert_original_untouched()                    # the runner result is not rewritten
+
+    def test_without_a_repair_record_refused(self):
+        with self.assertRaises(self.c.Refused):
+            self.run_reconcile(verifier=self.fresh(self.ONLY))
+        self.assert_flag_set()
+        self.assert_original_untouched()
+
+    def test_additional_fresh_failure_refused(self):
+        self.write_repair()
+        with self.assertRaises(self.c.Refused):
+            self.run_reconcile(verifier=self.fresh(self.ONLY + ['ping through the restored path failed (rc 1)']))
+        self.assert_flag_set()
+
+    def test_nic_not_at_baseline_refused(self):
+        self.write_repair()
+        with self.assertRaises(self.c.Refused):
+            self.run_reconcile(verifier=self.fresh(self.ONLY, nic_ok=False))
+        self.assert_flag_set()
+
+    def test_repair_bound_to_another_runner_record_refused(self):
+        self.write_repair(bound_sha256={'terminal': 'x', 'campaign_run.json': 'y'})
+        with self.assertRaises(self.c.Refused):
+            self.run_reconcile(verifier=self.fresh(self.ONLY))
+        self.assert_flag_set()
+
+
 class NoContactReconcileTests(unittest.TestCase):
     """A block that failed before any hardware contact: no run root, a traceback in command.log."""
 

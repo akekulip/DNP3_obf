@@ -891,6 +891,63 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
         return reconciliation
 
 
+VISION_RESTORE_STEP = 'Vision: fixture off, namespace profile and NIC flag restored'
+REPAIRED_ONLY_FAILURE = "runner restore step(s) failed: ['%s']" % VISION_RESTORE_STEP
+# sha256 of capture_observation.restore_rx_coalesce's source as reviewed (the two-step restore, commit 774300eed);
+# a repair is accepted only when it ran exactly this function (nic_repair.py deploys the committed blobs)
+REVIEWED_RESTORE_RX_COALESCE_SHA256 = 'afe92338adf3139ea7e3ed5a2e4bba297cbae066a4185bb6b73733b561551fe7'
+# whole-file sha256 of the deployed blobs at the reviewed commit 774300eed (both run as root on Vision)
+REVIEWED_DEPLOYED_SHA256 = {'capture_observation.py': '483a47aef6a2eab897de25175dc4b81e491f29b3deccfb7e90b03ca498ec88b0',
+                            'wire_check.py': 'd9bb1be873e1dbd1c8257341130ce662f5e262b005d1d3578a5484ffa87b55c8'}
+
+
+def nic_repair_acceptance(records, terminal_sha, campaign_run_sha, fresh, independent_baseline):
+    """Pure (reads files only). (binding or None, problems): the fresh restoration check may differ from a full pass
+    ONLY by the block's historical failed Vision restore step, and only when a nic_repair.py record (latest
+    nic_repair_*/repair.json) is ok, bound to this terminal record and runner record, verified the ACTUAL NIC
+    settings equal to the saved ones and to the independent baseline, and recorded matching local and remote
+    restore-function hashes; the fresh check must also have verified the NIC itself (vision_rx_coalescing)."""
+    problems = []
+    failures = (fresh or {}).get('failures')
+    if failures != [REPAIRED_ONLY_FAILURE]:
+        problems.append('fresh check failures %r are not exactly the historical Vision restore step' % (failures,))
+    nic = ((fresh or {}).get('checks') or {}).get('vision_rx_coalescing') or {}
+    if nic.get('rc') != 0 or nic.get('failures') != []:
+        problems.append('fresh check did not verify the Vision NIC against its baseline')
+    repairs = sorted(Path(records).glob('nic_repair_*/repair.json'))
+    if not repairs:
+        return None, problems + ['no nic_repair record for this step']
+    path = repairs[-1]                      # nic_repair_<UTC> names sort chronologically: the latest decides
+    raw = path.read_bytes()
+    try:
+        repair = json.loads(raw)
+        if not isinstance(repair, dict):
+            raise ValueError('not an object')
+    except ValueError as error:
+        return dict(path=str(path), sha256=digest(raw)), problems + ['nic_repair record unreadable: %s' % error]
+    bound = repair.get('bound_sha256') or {}
+    want = {k: independent_baseline[k] for k in ('adaptive_rx', 'rx_usecs')}
+    if repair.get('ok') is not True:
+        problems.append('latest nic_repair record is not ok')
+    if bound.get('terminal') != terminal_sha or bound.get('campaign_run.json') != campaign_run_sha:
+        problems.append('nic_repair record is bound to a different terminal or runner record')
+    if repair.get('actual_settings') != want or repair.get('saved_settings') != want:
+        problems.append('nic_repair actual/saved settings %r/%r differ from the baseline %r'
+                        % (repair.get('actual_settings'), repair.get('saved_settings'), want))
+    fn = repair.get('restore_function') or {}
+    deployed = (fn.get('deployed') or {}).get('sha256') or {}
+    if fn.get('source_sha256') != REVIEWED_RESTORE_RX_COALESCE_SHA256:
+        problems.append('nic_repair ran restore_rx_coalesce source %r, not the reviewed one' % fn.get('source_sha256'))
+    if deployed != REVIEWED_DEPLOYED_SHA256 or repair.get('staged_sha256') != REVIEWED_DEPLOYED_SHA256:
+        problems.append('nic_repair deployed/staged files are not the reviewed blobs: %r / %r'
+                        % (deployed, repair.get('staged_sha256')))
+    steps = (repair.get('failed_restoration') or {}).get('steps') or [{}]
+    if [s.get('step') for s in steps] != [VISION_RESTORE_STEP]:
+        problems.append('nic_repair record does not name exactly the failed Vision restore step')
+    return dict(path=str(path), sha256=digest(raw), restore_function_sha256=fn.get('source_sha256'),
+                already_at_baseline_before=repair.get('already_at_baseline_before')), problems
+
+
 def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=None, now=None,
               baseline_run_root=None, baseline_terminal=None):
     """Clear an unverified-restoration refusal ONLY on a fresh, complete restoration check.
@@ -1002,14 +1059,29 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
         except (OSError, ValueError):
             fresh = None
         ok = rc == 0 and isinstance(fresh, dict) and fresh.get('ok') is True and not fresh.get('failures')
+        repair = None
+        if not ok and isinstance(fresh, dict) and rc == 1:
+            # the runner's own restore step failed and was repaired afterwards (nic_repair.py): the historical runner
+            # record stays failed; every fresh switch, Vision and NIC check must pass and the repair must be bound
+            try:
+                baseline = json.loads((HERE / 'restore_baseline/vision_rx_coalesce_20261022.json').read_text())
+                repair, repair_problems = nic_repair_acceptance(
+                    directory / 'steps' / step_id, bound.get('terminal'),
+                    digest((run_root / 'campaign_run.json').read_bytes()), fresh, baseline)
+            except (OSError, ValueError, KeyError) as error:
+                repair, repair_problems = None, ['repair acceptance inputs unusable: %s' % error]
+            record['nic_repair'] = dict(binding=repair, problems=repair_problems)
+            ok = not repair_problems
         record.update(command=command, rc=rc, fresh_restore_verify=digest(fresh_path.read_bytes()) if fresh_path.is_file() else None)
         if not ok:
             atomic_json(out / 'reconciliation_refused.json', dict(record, problems=['fresh restoration check did not pass'],
                                                                   flag_left_set=True), exclusive=True)
             raise Refused('fresh restoration check did not pass; unsafe_restoration left set')
         reconciliation = out / 'reconciliation.json'
-        atomic_json(reconciliation, dict(record, result='restoration verified afresh; ownership update follows '
-                                                        '(the clear is proven by reconciliation_sha256 in ownership.json)'),
+        atomic_json(reconciliation, dict(record, result=(
+            'restoration verified afresh; ownership update follows (the clear is proven by reconciliation_sha256 in '
+            'ownership.json)' + ('' if repair is None else '; the runner restore result remains FAILED as recorded -- '
+                                 'the Vision NIC was repaired by the bound nic_repair record and verified afresh'))),
                     exclusive=True)
         atomic_json(state_path, dict(active=False, unsafe_restoration=False, campaign_dir=str(directory),
                                      step_id=step_id, previous_terminal_sha256=ownership.get('terminal_sha256'),

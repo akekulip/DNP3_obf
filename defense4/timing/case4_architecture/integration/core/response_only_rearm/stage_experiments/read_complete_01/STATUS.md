@@ -389,3 +389,12 @@ policy, reproduction and the completion record only.
   * Reconcile of campaign 04 REFUSED: every fresh check passes (program, snapshot, Vision state, ping, RX
     coalescing) but check 1 reads the block's historical runner record, whose Vision restore step truthfully failed.
     Flag LEFT SET (not edited). Hardware stopped pending Philip.
+- 2026-10-22 NIC repair entry (campaign 04 block). After vision_run restore failed (i40e rejected the one-call
+  ethtool restore), I repaired Vision's RX coalescing ad hoc, OUTSIDE the testbed lock and before nic_repair.py
+  existed: staged capture_observation.py + wire_check.py in /tmp/rxfix_20261022 on Vision (stat 2026-10-22 21:24:05
+  UTC; capture_observation.py sha256 483a47aef6a2..., equal to the 774300eed blob) and ran
+  capture_observation.restore_rx_coalesce via sudo python3 against the runner's own baseline file
+  (/home/decps/pad58b_repeat_sbo_20261014c/rx_coalesce_baseline.json: adaptive on, rx-usecs 50). Output: restore
+  errors [], read back "Adaptive RX: on", rx-usecs 50, tx-usecs 50, baseline file removed. The refused reconcile at
+  21:24:18Z then saw check 6 pass. A bounded, reviewed repair path (nic_repair.py + reconcile acceptance) records the
+  repair formally; its record states the NIC was already at baseline and cites this entry.
