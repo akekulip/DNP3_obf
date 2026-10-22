@@ -35,6 +35,25 @@ EXTRA_FILES = (CANDIDATE + '/cp.py', CANDIDATE + '/hw/bringup_composite.py',
                CANDIDATE + '/hw/generation_headroom.py')
 
 
+def _native_inputs_supported(encoding):
+    """The control-timing contract's native inputs: SELECT/OPERATE 37 and either the range READ (49, the single-READ
+    builds) or the two-READ-target profile's READ list, which must equal the keys of its declared read_images map,
+    each image larger than its native (mixed 91 -> 141, full 247 -> 271). Anything else is refused."""
+    native = encoding.get('native_input_octets')
+    if not isinstance(native, dict) or set(native) != {'READ', 'SELECT', 'OPERATE'} or \
+            native.get('SELECT') != 37 or native.get('OPERATE') != 37:
+        return False
+    if native['READ'] == 49 and 'read_images' not in encoding:
+        return True
+    reads, images = native['READ'], encoding.get('read_images')
+    if type(reads) is not list or not reads or not isinstance(images, dict) or len(set(reads)) != len(reads):
+        return False
+    if any(type(n) is not int for n in reads) or sorted(images) != sorted(str(n) for n in reads):
+        return False
+    return all(type(images[str(n)]) is int and images[str(n)] > n for n in reads) and \
+        encoding.get('read_output_octets') == [images[str(n)] for n in reads]
+
+
 class CandidateCampaign(base.Campaign):
     def _require_hardware_authorization(self):
         if not self.rn.dry and os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':
@@ -150,7 +169,7 @@ class CandidateCampaign(base.Campaign):
             raise HEADROOM.HeadroomError('supported profile source identity does not match the build and inputs')
         encoding, timing = profile.get('encoding', {}), profile.get('timing_ns', {})
         keys = ('D_release_budget', 'J_operate_hold', 'pb_piggyback_bound', 'readiness', 'da', 'cap')
-        if encoding.get('native_input_octets') != {'READ': 49, 'SELECT': 37, 'OPERATE': 37} or \
+        if not _native_inputs_supported(encoding) or \
                 encoding.get('output_octets') != 61 or type(profile.get('t_child_count')) is not int or \
                 profile['t_child_count'] not in (1, 3) or \
                 any(type(timing.get(key)) is not int or timing[key] <= 0 for key in keys):

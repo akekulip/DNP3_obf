@@ -329,6 +329,28 @@ def main():
                     sbo(130 + rnd)
             report.record['meta']['class_cycles'] = {'rounds': 4, 'order': ['range', 'analog', 'class0', 'integrity'],
                                                      'passthrough_lengths': passthrough}
+        if rb.rp.TWO_READ:
+            # Two-READ-target build: the directive's schedule on ONE connection with T and J enabled --
+            # mixed READ -> SELECT -> OPERATE -> full READ -> SELECT -> OPERATE, repeated -- from the hardware workload's
+            # own captured requests and responses (read_complete_01/vectors/two_read_templates.json), alternating the two
+            # fixture variants so the measurement bytes differ between rounds. Each READ must be held by T and released
+            # ACK-then-response with ITS OWN padded image (mixed 141, full 271: rp.construct by native length, exactly
+            # equal); each OPERATE held for J; the mapper's growth advances by each image (both transition directions).
+            two = json.loads((HERE.parent / 'read_complete_01/vectors/two_read_templates.json').read_text())
+            rounds = 6
+            for rnd in range(rounds):
+                variant = two['variants']['v%d' % (rnd % 2)]['classes']
+                for cls in ('mixed', 'integrity'):
+                    t = variant[cls]
+                    q_user = encode61.std.deframe(bytes.fromhex(t['request']))[1]
+                    r_user = encode61.std.deframe(bytes.fromhex(t['native']))[1]
+                    transaction('READ', 1, q_user[3:], r_user[3:])
+                    sbo(140 + 2 * rnd + (cls == 'integrity'))
+            report.record['meta']['two_read_cycles'] = {
+                'rounds': rounds, 'order': ['mixed', 'SELECT', 'OPERATE', 'integrity', 'SELECT', 'OPERATE'],
+                'images': {str(k): v['target'] for k, v in rb.rp.SHAPES.items()},
+                'templates_sha256': hashlib.sha256((HERE.parent / 'read_complete_01/vectors/two_read_templates.json')
+                                                   .read_bytes()).hexdigest()}
 
         def reconnect(tag, client, server):
             nonlocal c, s, growth, seqs

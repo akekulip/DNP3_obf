@@ -259,3 +259,30 @@ policy, reproduction and the completion record only.
   shape construct==pad_read; every constant invariant; live captures v0/v1 reproduced). mixed prefix LEN 0x27, link-CRC
   delta 29526, 22-B constant remainder; full prefix LEN 0x11, delta 49249. constants.json / constants_segmented.json
   unchanged (6f819e7e / 72beff03); derive.py not edited.
+- M2 (2026-10-22/23) -- integrated P4 candidate, attempts recorded in order (make_m12.py --policy --c3 cimg --shapes
+  passthrough --two-read; new transforms two_read_pad_pipe1 / two_read_e / two_read_admit_n; the range-READ padder
+  is REPLACED, not stacked):
+  * m12p_c21 compile_failed (9.13.1): action data as the second operand of a subtraction (out_reset_front_rd).
+  * m12p_c22 compile_failed: 13 pipe-0 stages in BOTH gresses (critical path 11 -> resource contention, not depth).
+    Isolation probes: m12p_c22_probe_e (every E/pipe-1 change, no mixed N admission) placed N12/E12;
+    m12p_c22_probe_n (c12 + the stacked mixed N admission only) 13/13 -> the N transform cost the stage.
+  * m12p_c23 placed N12/E12/T11 + pipe-1 egress 7 on 9.13.1 AND 9.13.2 by REPLACING the analog/class0 READ admission
+    with the mixed one (net fewer N tables than c12). Model (c23): control_timing 415/415 incl. 6 timed rounds of
+    mixed->S->O->full->S->O (READ images left as 141 x6 and 271 x6, held/released ACK-then-response, byte-exact incl.
+    IP/TCP checksums); policy 281/281 (11 mixed @141 + 10 full @271, independent decode); policy_boundary 206/206
+    (per-image C3 for 141/271/61 + every transition order incl. mixed<->full, C5 per READ image); smoke 30, packets
+    622, smoke_sizeoff 30, repeat 523, select_lifecycle 120, abandon 12. rearm/dup stopped on the unpinned-artifact
+    gate (not behavioural); abort/contention not completed (gate stopped for c24).
+  * Review of c23 (code-reviewer): construction/arithmetic sound (independent incremental-vs-full checksum
+    simulation 0/600 mismatches); findings acted on in m12p_c24: range READ RST row (49) restored; pipe-1 profile keys
+    the exact (ip.len, LEN) pair (c23 padded a crossed IP-287/LEN-0x4c frame -- shown; c24 refuses it); generator
+    cross-checks of the integrity request/object headers; the bad-block-0-CRC interpreter test now corrupts a point
+    octet and a CRC octet (it had hit the profile) + a mutation test proving the CRC condition load-bearing; scope
+    wording: analog/class0 are FORWARDED NATIVELY outside timing/size (not dropped); the control-timing profile gate
+    accepts the two-READ native list strictly (candidate_campaign._native_inputs_supported + tests).
+  * m12p_c24 (source 61f9af0fa141) placed N12/E12/T11 + pipe-1 egress 7 on 9.13.1 and 9.13.2; artifacts pinned for
+    both SDKs. Full 13-driver gate running. The shallow READ-response TCP checksum is a WAIVER (finish_shallow writes
+    0xffeb, the network table's accept residual): asserted as a limitation in the interpreter tests; a request's TCP
+    checksum is verified (bad checksum -> network_valid 0, refused).
+  * Shared driver module read_policy_expect.py now carries a per-native SHAPES map (single-shape builds unchanged);
+    consequence: c12/c20 model gates recompute only at their last current commit (c432d195e), as b08 at its pin.

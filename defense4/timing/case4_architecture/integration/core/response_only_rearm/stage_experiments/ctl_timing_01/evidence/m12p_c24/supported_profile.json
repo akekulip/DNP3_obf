@@ -1,0 +1,106 @@
+{
+  "candidate": {
+    "build": "ctl_timing_01/evidence/m12p_c24",
+    "milestone": "m12",
+    "source_sha256": "61f9af0fa141a1b4d0a93938893119909e792c1e98e1665156e0011969aadc07",
+    "segment_sha256": {
+      "N": "ab86c638e1efb967d17684289e19f6aacac003064d143e8ceaf974b4f2225bad",
+      "E": "9429359bc2d25f8ccd14721918cee95ee892fc31a05dc317b71494f209ad4bd6",
+      "T": "d815791974504e53542872b739959aa033ddb5d5862c67096198e23a7631bbcc"
+    },
+    "artifact_sha256": {
+      "compile_local": {
+        "bfrt.json": "f2d97261fc148b4da319cd88f0f47d662d6a91b7feb1582530bf11bca40b00e3",
+        "manifest.json": "9dd7ef21668b5896958d0ed71f8509a6c16582c599eefd1a2d7e50f61d791d54",
+        "p0/context.json": "6bc3f5fc6067defffe77d4acc816e018ecb06f8c3a03ff0762a7172d58d15bcd",
+        "p0/response_only.bfa": "8a7351f6892e2352e5739ec13543a2d45fa28eedd4a35eeb68a2ee54c5ad59f8",
+        "p0/tofino.bin": "ce7407e3f9c168b2dab628229d46c403b90acd8cd55565e886a7197b196a3439",
+        "p1/context.json": "558277de79d118e34acc733abcdc50657b6e4d70d51d58cae759cea8ea0c7815",
+        "p1/response_only.bfa": "012df40bf8009b97b90439a8bdd6d63f14e858ae9b8af497a151adfe829c6605",
+        "p1/tofino.bin": "b2633c0950ec008923f3b7597e0e158a4c273e1daec59dd79d46922fc2ae5532",
+        "response_only.conf": "3f87f750bed9d5a3bd2c8126d7b4e42c106921b748abacbf5992f5a69168b72c",
+        "response_only.p4pp": "9cff19f3f54fc97a91b7ff33ae6745f1b484c6970eb728e630f887153a593fee"
+      },
+      "compile_switch_9132": {
+        "bfrt.json": "c26a74c3aeea72097444deeba7d75d716d11c1a25d2953e981e1eb45c9e47d98",
+        "manifest.json": "89dbda63d6881880a5b009028d7e83979fee6f361677768f63e1eb7d06108b75",
+        "p0/context.json": "f933f90f4da0408059480ec93658d07e4087b02da012bde8055f07d40b1b9ee8",
+        "p0/response_only.bfa": "ebd90a680463a00acf5a7fb29ed5400bf65ff4d6caf3e3729dee52f1e8a0627e",
+        "p0/tofino.bin": "09196a8148710fde0db65af7dbe4a3528f4490729d11d2c7b002f9b5c7d7d397",
+        "p1/context.json": "75b05168ae1e9fb02903b6a8575ce29689816f34a57b09253713948aec63d560",
+        "p1/response_only.bfa": "cf6e770106ecadd9e755da4a20a0a5e202a844e8bf9e56d3d0ce8d5c1377c309",
+        "p1/tofino.bin": "33f9ab8af19df740b64242d16bc4e8686f4e863b664eeb946d592084b04ece8d",
+        "response_only.conf": "74d5a98ad53b6dec923d39b8fa529e85e35b02d0e4146e418946754150ed3f96",
+        "response_only.p4pp": "f746d3d96ce07e055b4387372d58538d9e0f993e76d2c8eb4d19927c6c47bf63"
+      }
+    }
+  },
+  "reset_restart_required": true,
+  "t_child_count": 1,
+  "profile_version": "supported-profile-v1-20261017",
+  "clock": {
+    "t_unit_ns": 256,
+    "t_grid_ns": 512,
+    "t_source": "global_tstamp[39:8] & ~1",
+    "rounding": "durations in ns are converted to T units by t_config.t_units (one shared writer)"
+  },
+  "timing_ns": {
+    "D_release_budget": 950000,
+    "J_operate_hold": 2400000,
+    "pb_piggyback_bound": 4000000,
+    "readiness": 30000000,
+    "da": 2000000,
+    "cap": 40000000,
+    "held_operate_overrides": {
+      "D_release_budget": 800000,
+      "J_operate_hold": 350000000,
+      "pb_piggyback_bound": 360000000,
+      "readiness": 380000000,
+      "cap": 400000000
+    },
+    "note": "qualification values of the ctl_m10_* configs; the held-OPERATE block uses held_operate_overrides"
+  },
+  "n": {
+    "retry_budget_laps": 32,
+    "restart_counter": "count_busy[5]"
+  },
+  "ports": {
+    "master_dev": 9,
+    "relay_dev": 9,
+    "n_ack_return": 48,
+    "t_in": 180,
+    "hb_return": 181,
+    "held_return": 182,
+    "recirc": 68,
+    "stat_ports": "9,64",
+    "note": "the ctl_m10_* configs' ports_map: both software endpoints on device port 9 (VEPA hairpin); no physical relay in this profile"
+  },
+  "encoding": {
+    "native_input_octets": {
+      "READ": [
+        91,
+        247
+      ],
+      "SELECT": 37,
+      "OPERATE": 37
+    },
+    "output_octets": 61,
+    "output_octets_note": "SELECT/OPERATE image (the control-timing contract field); the READ image is read_output_octets",
+    "read_output_octets": [
+      141,
+      271
+    ],
+    "read_construction": "prefix (read_complete_01/vectors/constants_two_read.json shapes mixed_g1v2_g30v1_91, integrity_247)",
+    "control_application_partition": [
+      15,
+      6,
+      1
+    ],
+    "control_partition_note": "the 22 native SELECT/OPERATE application octets split 15/6/1 into transport frames 28/19/14",
+    "read_images": {
+      "91": 141,
+      "247": 271
+    }
+  },
+  "_note": "two-READ-target build: N/T values unchanged from m11_09 (T segment and timing parameters inherited); encoding: SELECT/OPERATE output 61 (output_octets); READ images per native length (read_images): mixed 91->141 and full 247->271 by the pipe-1 egress prefix (G1V2 points 1024..). Other READ lengths are not padded; arbitrary input sizes are not supported."
+}

@@ -34,6 +34,12 @@ std = mp.std
 C = json.loads((HERE.parent / 'read_complete_01/vectors/constants.json').read_text())['shapes']['range_g10v2_23']
 TEMPLATES = json.loads((HERE.parent / 'read_complete_01/vectors/read_class_templates.json').read_text())['databases']['base']
 CLASS_ORDER = ('range', 'analog', 'class0', 'integrity')      # the fixture endpoint's rotate4 order
+# Two-READ-target build (inputs.json policy.constants_file): every READ slot alternates the two workloads from the
+# hardware endpoint's own captures (two_read_templates.json, fixture variants v0/v1), each padded to its own image.
+TWO_READ = mp.rp.TWO_READ
+TWO_TEMPLATES = (json.loads((HERE.parent / 'read_complete_01/vectors/two_read_templates.json').read_text())['variants']
+                 if TWO_READ else None)
+TWO_ORDER = ('mixed', 'integrity')
 
 
 def build_passthrough():
@@ -125,7 +131,45 @@ class PolicyGate(pfx.PrefixGate):
                       self.v.packet(16, cseq + qlen, native_sseq + n))
         return cseq + qlen, native_sseq + n, wire_sseq + n
 
+    def two_read_frames(self, cls, k, seq):
+        """Request and native response of one two-READ workload (captured bytes, fixture variant k % 2), re-addressed
+        to the model connection and re-sequenced (transport 0, application sequence seq)."""
+        t = TWO_TEMPLATES['v%d' % (k % 2)]['classes'][cls]
+        request = resequence(bytes.fromhex(t['request']), 0, 0xC0 | (seq & 15), dst=0x0000, src=0x0100)
+        native = resequence(bytes.fromhex(t['native']), 0, 0xC0 | (seq & 15), dst=0x0100, src=0x0000)
+        return request, native
+
+    def two_read_exchange(self, name, cls, cseq, nsq, wsq, k):
+        """One two-READ workload: N admits the request, the response leaves padded to ITS OWN image byte-exact
+        (rp.construct, the derivation proved == pad_read), the wire bytes decode independently (dnp3_std: one
+        fragment, originals unchanged as the suffix, exactly the reserved padding as the prefix), and the master's ACK
+        of the whole image maps back to the native end."""
+        request, native = self.two_read_frames(cls, k, k & 63)
+        qlen = len(request)
+        self.exchange(name + '_request', self.v.packet(24, cseq, wsq, payload=request),
+                      self.v.packet(24, cseq, nsq, payload=request))
+        self.exchange(name + '_server_ack', self.rs.ack_packet(seq=nsq, ack=cseq + qlen),
+                      self.rs.ack_packet(seq=wsq, ack=cseq + qlen), reverse=True)
+        image = mp.rp.construct(native)
+        target = mp.rp.SHAPES[len(native)]['target']
+        self.add(name + '_expected_image', target, len(image))
+        got = self.exchange(name + '_response',
+                            self.v.packet(24, nsq, cseq + qlen, reverse=True, payload=native),
+                            self.v.packet(24, wsq, cseq + qlen, reverse=True, payload=image), reverse=True)
+        wire = mp.tcp_payload(got)
+        self.add(name + '_payload_len', target, len(wire))
+        info = mp.rp.check_read_image(native, wire)
+        self.add(name + '_independent_decode', (target, mp.rp.SHAPES[len(native)]['padding_points']),
+                 (info['image_len'], info['padding_points']), frames=info['frames'])
+        n, img = len(native), len(image)
+        self.exchange(name + '_mapped_ack', self.v.packet(16, cseq + qlen, wsq + img),
+                      self.v.packet(16, cseq + qlen, nsq + n))
+        return cseq + qlen, nsq + n, wsq + img
+
     def read(self, cseq, nsq, wsq, k):
+        if TWO_READ:
+            cls = TWO_ORDER[k % 2]
+            return self.two_read_exchange('read_%03d_%s' % (k, cls), cls, cseq, nsq, wsq, k)
         cls = CLASS_ORDER[k % 4] if PASSTHROUGH else 'range'
         if cls != 'range':
             if cls not in PASSTHROUGH:
@@ -178,6 +222,67 @@ class PolicyBoundaryGate(PolicyGate):
                       self.v.packet(24, wsq, cseq, reverse=True, payload=construct(native)), reverse=True)
         return cseq, nsq + mp.READ_NATIVE, wsq + IMAGE, wsq, IMAGE
 
+    def _commit_two(self, cseq, nsq, wsq, tag, cls, seq=0):
+        """Commit one two-READ workload's padded image and leave it OUTSTANDING (image start, image length L)."""
+        request, native = self.two_read_frames(cls, seq, seq)
+        qlen = len(request)
+        self.exchange(tag + '_request', self.v.packet(24, cseq, wsq, payload=request),
+                      self.v.packet(24, cseq, nsq, payload=request))
+        self.exchange(tag + '_server_ack', self.rs.ack_packet(seq=nsq, ack=cseq + qlen),
+                      self.rs.ack_packet(seq=wsq, ack=cseq + qlen), reverse=True)
+        image = mp.rp.construct(native)
+        self.exchange(tag + '_response', self.v.packet(24, nsq, cseq + qlen, reverse=True, payload=native),
+                      self.v.packet(24, wsq, cseq + qlen, reverse=True, payload=image), reverse=True)
+        return cseq + qlen, nsq + len(native), wsq + len(image), wsq, len(image)
+
+    def run_two(self):
+        """Two-READ build: the per-committed-image reverse boundary (d = 0 translate, d = L withhold, d = L + 1 stale)
+        for each image ALONE -- mixed 141, full 271, SBO 61 -- and right after a transition in every order between
+        them (READ->SBO, SBO->READ, mixed->full, full->mixed, READ->READ, SBO->SBO); then C5 for each READ image."""
+        commit = {'mx': lambda c, n, w, t: self._commit_two(c, n, w, t, 'mixed'),
+                  'full': lambda c, n, w, t: self._commit_two(c, n, w, t, 'integrity', seq=1),
+                  'sbo': self._commit_sbo}
+        isn = 1000
+        for name, label in (('mx', 'READ141'), ('full', 'READ271'), ('sbo', 'SBO61')):
+            cseq, nsq, wsq = self.handshake(isn, isn + 800, name + '_')
+            cseq, nsq, we, _s, L = commit[name](cseq, nsq, wsq, name)
+            self._bound(label, cseq, we, L)
+            self.close(cseq, nsq, we, name + '_close')
+            isn += 4000
+        orders = (('mx', 'sbo'), ('sbo', 'mx'), ('full', 'sbo'), ('sbo', 'full'), ('mx', 'full'), ('full', 'mx'),
+                  ('mx', 'mx'), ('full', 'full'), ('sbo', 'sbo'))
+        for i, (a, b) in enumerate(orders):
+            cseq, nsq, wsq = self.handshake(isn, isn + 800, 'tr%d_' % i)
+            cseq, nsq, we, _s, _L = commit[a](cseq, nsq, wsq, 'tr%da' % i)
+            self._retire(cseq, we, 'tr%da' % i)
+            cseq, nsq, we, _s, L = commit[b](cseq, nsq, we, 'tr%db' % i)
+            self._bound('TR_%s_to_%s_%d' % (a, b, L), cseq, we, L)
+            self._retire(cseq, we, 'tr%db' % i)
+            self.close(cseq, nsq, we, 'tr%d_close' % i)
+            isn += 4000
+        for cls, seq in (('mixed', 2), ('integrity', 3)):
+            self.c5_two(cls, seq, isn)
+            isn += 4000
+
+    def c5_two(self, cls, seq, isn):
+        """C5 per READ image: an outstation pure ACK at the committed image's NATIVE START, delivered after the
+        response, must not be mis-mapped (any emitted frame carries the image's WIRE START); control: a pure ACK at
+        the native END is forwarded at the wire END."""
+        cseq, nsq, wsq = self.handshake(isn, isn + 800, 'c5%s_' % cls)
+        native_start, wire_start = nsq, wsq
+        cseq, nsq, we, _s, L = self._commit_two(cseq, nsq, wsq, 'c5%s' % cls, cls, seq=seq)
+        pkt = self.v.packet(16, native_start, cseq, reverse=True)
+        got = self.m.exchange(self.relay.dev_port, pkt, self.ports, timeout=3, quiet=.15)
+        frames = [f for fs in got.values() for f in fs]
+        expected = self.v.packet(16, wire_start, cseq, reverse=True)
+        self.report.add('c5_%s_%d_native_start' % (cls, L), 'no mis-mapped emission (any frame == wire start)',
+                        'frames %d' % len(frames), ok=all(bytes(f) == bytes(expected) for f in frames),
+                        sent=pkt, received=got)
+        self.exchange('c5_%s_control_native_end' % cls, self.v.packet(16, nsq, cseq, reverse=True),
+                      self.v.packet(16, we, cseq, reverse=True), reverse=True)
+        self._retire(cseq, we, 'c5%s' % cls)
+        self.close(cseq, nsq, we, 'c5%s_close' % cls)
+
     def _bound(self, prefix, cseq, we, L):
         """Classification at the edges of the outstanding image as THIS build implements them. The withhold
         window is the max image (141), so the READ image boundary is exact; for the 61-octet SBO image the
@@ -223,6 +328,8 @@ class PolicyBoundaryGate(PolicyGate):
         self.close(cseq, nsq, we, 'c5_close')
 
     def run(self):
+        if TWO_READ:
+            return self.run_two()
         cseq, nsq, wsq = self.handshake(1000, 1800, 'rd_')
         cseq, nsq, we, _s, L = self._commit_read(cseq, nsq, wsq, 'rd')
         self._bound('READ141', cseq, we, L)
