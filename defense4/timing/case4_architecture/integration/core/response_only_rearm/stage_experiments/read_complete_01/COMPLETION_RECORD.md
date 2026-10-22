@@ -17,7 +17,7 @@ history in §3.
 | Encoding tests | Handoff tests 51/51; policy coverage 25/25 over 10,243 profile cases; range constants byte-exact vs `pad_read` on 512 samples (`vectors/constants.json`, byte-stable at `6f819e7e…`); **segmented shape byte-exact vs `pad_read` on 512 samples** (`vectors/constants_segmented.json`; `prefix_link_crc_delta` 0x79bf invariant across samples); new interpreter tests `test_segmented_pad` (7) + `test_segmented_classifier` (2) + `test_segmented_mapper` (2). |
 | Live software endpoints | Pinned OpenDNP3 4648fcb (binary `ea734720…`): range 49→141, analog/class0/integrity at target, large 377→401, 16+16 each, IIN 0x9000, no errors (`evidence/m3_live_policy_01`). Endpoint acceptance, not an IEEE 1815 conformance claim. |
 | Compiler placement | m12p_c20 source `1e94c31d80e6…`: SDK **9.13.1 and 9.13.2 both exit 0**; **N 12 / E 12 / T 11** stages + the **pipe-1 egress padder, 7 stages** (same profile as c12; m11_09 is N 11 / E 12 / T 11). The segmented padder lives in pipe-1 egress, off the pipe-0 MAU budget, so the p0 wall feared in the c13/c15 probes did not materialize. The c16/c17 deparser nested-conditional wall was diagnosed and fixed with separate top-level validity-guarded checksums. |
-| Compiled model | **v3 gate: `model_gate_passed`, blocked_reasons [], all 13 drivers, 0 failures** (rearm 799/799 and dup 102/102 exercise the T two-child hold/release; smoke, packets, repeat, select_lifecycle, control_timing, contention, abort, abandon, policy, policy_boundary, smoke_sizeoff). Committed `33e21fd07`; **recomputes `model_gate_passed` on a fresh detached worktree** at that HEAD after `restore_retained_logs.py` (both bound contention logs restore to their pinned sha). |
+| Compiled model | **v3 gate: `model_gate_passed`, blocked_reasons [], all 13 drivers, 0 failures** (smoke, packets, rearm 799/799, dup 102/102, repeat, select_lifecycle, control_timing, contention, abort, abandon, policy, policy_boundary, smoke_sizeoff). Committed `33e21fd07`; **recomputes `model_gate_passed` on a fresh detached worktree** at that HEAD after `restore_retained_logs.py` (both bound contention logs restore to their pinned sha). **Scope of this gate on c20:** it exercises the range/analog/class0/integrity shapes and the R→S→O→R timing, and confirms c20 does not regress the existing behaviour; `rearm`/`dup` exercise the **two-child child-bank mechanism** (which the segmented second child reuses). It does **NOT yet inject an end-to-end 377→401 segmented response** — none of the 13 drivers sends the 292+85 wire shape. Driving a segmented response through the compiled model is a dedicated driver (Workstream D), tracked below as model-tier pending. |
 | Physical switch (c20) | **PENDING — not yet run.** Testbed idle and restored. No c20 silicon size/timing/recovery result exists yet; none is claimed. |
 
 ## 2. Tier boundaries (honest)
@@ -25,9 +25,12 @@ history in §3.
 - **Proven (source + encoding + placement):** the segmented construction's bytes (prefix frame, per-frame
   block-0 rewrite + recomputed CRCs, continuation renumbering) are byte-exact against the reference padder, and
   the integrated source places on both SDKs at the stage budget above.
-- **Compiled-model tier only (not interpreter-validatable):** the T two-child hold/release **ordering**, the
-  forward two-frame **single-commit**, and the deparser **IP/TCP checksum externs**. These are exercised by the
-  compiled model but cannot be checked by the byte-level interpreter — the same caveat the range padder carries.
+- **Compile-placed, not yet model-exercised:** the T two-child hold/release **ordering**, the forward two-frame
+  **single-commit**, and the deparser **IP/TCP checksum externs**. The c20 image places them and the gate confirms
+  the two-child child-bank mechanism via `rearm`/`dup`, but **no model driver yet injects a 377→401 segmented
+  response**, so the end-to-end segmented flow is not model-demonstrated. The byte-level interpreter cannot check
+  these either (it validates the construction's bytes, not the compiled control flow). **Model-tier pending: a
+  dedicated segmented driver (Workstream D).**
 - **Content-blind gating:** seg1 admission keys on `dl.len==0x46 && FIN`, not on segment content.
 - **Hardware:** segmented READ on silicon — size, first-frame vs complete-response timing, OPERATE hold J, ACK
   mapping, and recovery — is **pending**, not shown.
