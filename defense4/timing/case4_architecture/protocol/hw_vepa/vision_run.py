@@ -124,6 +124,12 @@ def pruning(value):
 
 
 DISTRIBUTIONS = ('normal', 'paretonormal')
+# IP total lengths of the outstation responses the separate-ACK fixture delays (SEL-751 emulation: separate ACK, then
+# the delayed response): the native single-frame READ responses of every declared READ class -- range 49, mixed 91,
+# analog 141, class0/integrity 247 (read_classes.NATIVE_SEGMENTS, base database) -- and the 37-byte SELECT/OPERATE
+# response. Until 2026-10-22 only 89 and 77 were listed, so the mixed (131) and full (287) READ responses left
+# undelayed and a quarter of them piggybacked on the ACK (rc01_hw_c25_20261022_01_reference, off arm).
+CASEA_DELAYED_IP_LEN = (40 + 49, 40 + 91, 40 + 141, 40 + 247, 40 + 37)
 
 
 def casea(on, delay_ms, jitter_ms=0, distribution=None):
@@ -138,7 +144,7 @@ def casea(on, delay_ms, jitter_ms=0, distribution=None):
         r = nsx(NS_O, *route, 'quickack', '1')
         cmds = [['tc', 'qdisc', 'add', 'dev', 'mvB', 'root', 'handle', '1:', 'prio', 'bands', '3', 'priomap'] + ['0'] * 16,
                 ['tc', 'qdisc', 'add', 'dev', 'mvB', 'parent', '1:2', 'handle', '20:', 'netem', 'delay', '%dms' % delay_ms] + spread + ['limit', '1000']]
-        for total_len in (89, 77):       # 49-byte READ response, 37-byte SELECT/OPERATE response
+        for total_len in CASEA_DELAYED_IP_LEN:
             cmds.append(['tc', 'filter', 'add', 'dev', 'mvB', 'parent', '1:', 'protocol', 'ip', 'u32', 'match', 'ip', 'protocol', '6', '0xff',
                          'match', 'u16', '0x%04x' % total_len, '0xffff', 'at', '2', 'flowid', '1:2'])
         for c in cmds:

@@ -345,3 +345,16 @@ class ReconnectReadControls(Base):
         with patch.object(vr, 'run_connection', lambda d, l, p, *a, **kw: calls.append(kw) or {'ok': True}):
             vr.run_reconnect('legacy', 54500, 55500, 5, 8, 0, 0, 0)
         self.assertTrue(all(kw['read_schedule'] is None and kw['pad_expect'] is None for kw in calls))
+
+
+class CaseADelayFilter(unittest.TestCase):
+    """The separate-ACK fixture delays every declared native READ response and the SELECT/OPERATE response."""
+
+    def test_filter_lengths(self):
+        calls = []
+        with patch.object(vr, 'nsx', lambda ns, *cmd, **kw: calls.append(cmd) or SimpleNamespace(returncode=0,
+                                                                                             stderr='')):
+            vr.casea(True, 5)
+        lens = [int(c[c.index('u16') + 1], 16) for c in calls if 'filter' in c]
+        self.assertEqual(lens, [89, 131, 181, 287, 77])
+        self.assertTrue(all(c[-1] == '1:2' for c in calls if 'filter' in c))

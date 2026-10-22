@@ -1,0 +1,2494 @@
+{
+ "run_id": "rc01_hw_c25_20261022_01_reference",
+ "ok": false,
+ "failure": "rc01_hw_c25_20261022_01_reference_separate_ack_off_t0 failed: piggyback fraction 0.262 outside [0.0, 0.05] for fixture separate_ack; standards: observed.failures is non-empty: ['piggyback fraction 0.262 outside [0.0, 0.05] for fixture separate_ack']; standards: observed.aggregate_verdict is False, expected True",
+ "arms": [
+  {
+   "fixture": "separate_ack",
+   "arm": "off",
+   "T": 0,
+   "padding": 0,
+   "build": "m12p_c25",
+   "trials": [
+    {
+     "fixture": "separate_ack",
+     "label": "rc01_hw_c25_20261022_01_reference_separate_ack_off_t0",
+     "master_port": 60000,
+     "reads": 65,
+     "ok": false,
+     "failures": [
+      "piggyback fraction 0.262 outside [0.0, 0.05] for fixture separate_ack",
+      "standards: observed.failures is non-empty: ['piggyback fraction 0.262 outside [0.0, 0.05] for fixture separate_ack']",
+      "standards: observed.aggregate_verdict is False, expected True"
+     ],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 5,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57101
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65516,
+       "read": 65516
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 18,
+       "read": 18
+      },
+      "reserves": {
+       "operate": 18,
+       "read": 18
+      },
+      "snapshot": {
+       "bfrt_sha256": "f2d97261fc148b4da319cd88f0f47d662d6a91b7feb1582530bf11bca40b00e3",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792701714.811808,
+       "valid": true
+      },
+      "time": 1792701714.8202193,
+      "budget": {
+       "reads": 65,
+       "sbo_cycles": 64,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": false,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 0,
+       "operate_per_connection": 0,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c25_20261022_01_reference_separate_ack_off_t0_before_generation_headroom.json"
+     },
+     "vision": {
+      "label": "rc01_hw_c25_20261022_01_reference_separate_ack_off_t0",
+      "master_port": 60000,
+      "reads": 65,
+      "range": 8,
+      "gap_ms": 0,
+      "start_delay_ms_max": 50,
+      "start_seed": 57101,
+      "start_delay_ms_applied": 8,
+      "endpoint_controls": {
+       "read_pause_ms": 25,
+       "run_sbo": true,
+       "close_grace_ms": 0,
+       "sbo_cycles": 64,
+       "read_schedule": "mixed_full",
+       "db": "base"
+      },
+      "endpoint_binary": "/home/decps/pad58b_repeat_sbo_20261014c/case4_socket_gate_read_schedule",
+      "capture_immediate": false,
+      "qualify_capture": true,
+      "capture_commands": {
+       "out": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "out",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/rc01_hw_c25_20261022_01_reference_separate_ack_off_t0/out.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ],
+       "in": [
+        "tcpdump",
+        "-i",
+        "enp59s0f0np0",
+        "-Q",
+        "in",
+        "-s0",
+        "-U",
+        "-n",
+        "-w",
+        "/home/decps/pad58b_repeat_sbo_20261014c/runs/rc01_hw_c25_20261022_01_reference_separate_ack_off_t0/in.pcap",
+        "tcp and host 192.168.10.61 and host 192.168.10.62"
+       ]
+      },
+      "source_port_wait": {
+       "port": 60000,
+       "polls": 1,
+       "elapsed_s": 0.033,
+       "result": "free"
+      },
+      "outstation_ready": true,
+      "master_rc": 0,
+      "master_timeout": false,
+      "endpoint_collection": {
+       "schema_version": "vision-endpoint-collection-v1",
+       "status": "completed",
+       "partial": false,
+       "stdout": "master.stdout",
+       "stderr": "master.stderr"
+      },
+      "tcp_rto": {
+       "schema_version": "vision-tcp-rto-v2",
+       "samples": [
+        {
+         "observed_at_epoch_ns": 1792701717947743696,
+         "observed_at_monotonic_ns": 248969908640673,
+         "endpoint": "master",
+         "namespace": "ns_vepa_a",
+         "local_port": 60000,
+         "peer_port": 20000,
+         "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :60000 and dport = :20000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          202.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60000 192.168.10.62:20000\n\t cubic rto:202 rtt:1.876/0.859 ato:43 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:122 bytes_acked:123 bytes_received:412 segs_out:7 segs_in:9 data_segs_out:4 data_segs_in:4 send 62260128bps lastsnd:1 pacing_rate 124495368bps delivery_rate 52850672bps delivered:5 app_limited busy:5ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.221 snd_wnd:64118\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701717981022695,
+         "observed_at_monotonic_ns": 248969941918757,
+         "endpoint": "outstation",
+         "namespace": "ns_vepa_b",
+         "local_port": 20000,
+         "peer_port": 60000,
+         "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :20000 and dport = :60000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          208.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      37     192.168.10.62:20000 192.168.10.61:60000\n\t cubic rto:208 rtt:7.545/5.599 ato:44 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:486 bytes_acked:449 bytes_received:192 segs_out:12 segs_in:9 data_segs_out:6 data_segs_in:6 send 15480451bps lastsnd:6 lastrcv:6 lastack:6 pacing_rate 30960896bps delivery_rate 5120560bps delivered:6 app_limited busy:58ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:2.281 snd_wnd:64075\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701718265087134,
+         "observed_at_monotonic_ns": 248970225983046,
+         "endpoint": "master",
+         "namespace": "ns_vepa_a",
+         "local_port": 60000,
+         "peer_port": 20000,
+         "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :60000 and dport = :20000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          203.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60000 192.168.10.62:20000\n\t cubic rto:203 rtt:2.024/1.669 ato:57 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:768 bytes_acked:769 bytes_received:1907 segs_out:27 segs_in:46 data_segs_out:24 data_segs_in:23 send 57707510bps lastsnd:1 lastrcv:2 lastack:1 pacing_rate 115415016bps delivery_rate 66742856bps delivered:25 app_limited busy:48ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.175 snd_wnd:64048\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701718298275031,
+         "observed_at_monotonic_ns": 248970259170848,
+         "endpoint": "outstation",
+         "namespace": "ns_vepa_b",
+         "local_port": 20000,
+         "peer_port": 60000,
+         "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :20000 and dport = :60000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          216.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      37     192.168.10.62:20000 192.168.10.61:60000\n\t cubic rto:216 rtt:15.897/8.914 ato:49 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:2072 bytes_acked:2035 bytes_received:828 segs_out:52 segs_in:29 data_segs_out:26 data_segs_in:26 send 7347298bps lastsnd:3 lastrcv:3 lastack:3 pacing_rate 14694016bps delivery_rate 5120560bps delivered:26 app_limited busy:370ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:2.281 snd_wnd:64075\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701718584504020,
+         "observed_at_monotonic_ns": 248970545399994,
+         "endpoint": "master",
+         "namespace": "ns_vepa_a",
+         "local_port": 60000,
+         "peer_port": 20000,
+         "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :60000 and dport = :20000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          202.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60000 192.168.10.62:20000\n\t cubic rto:202 rtt:1.841/1.262 ato:44 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:1404 bytes_acked:1405 bytes_received:3493 segs_out:47 segs_in:84 data_segs_out:44 data_segs_in:43 send 63443781bps lastsnd:5 lastrcv:32 lastack:5 pacing_rate 126827280bps delivery_rate 82836872bps delivered:45 app_limited busy:81ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.141 snd_wnd:64048\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701718618080549,
+         "observed_at_monotonic_ns": 248970578976363,
+         "endpoint": "outstation",
+         "namespace": "ns_vepa_b",
+         "local_port": 20000,
+         "peer_port": 60000,
+         "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :20000 and dport = :60000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          215.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      247    192.168.10.62:20000 192.168.10.61:60000\n\t cubic rto:215 rtt:14.513/9.287 ato:43 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:3814 bytes_acked:3567 bytes_received:1466 segs_out:92 segs_in:49 data_segs_out:46 data_segs_in:46 send 8047957bps lastsnd:26 lastrcv:27 lastack:27 pacing_rate 16095632bps delivery_rate 5120560bps delivered:46 app_limited busy:683ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:2.281 snd_wnd:64075\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701718900215227,
+         "observed_at_monotonic_ns": 248970861111132,
+         "endpoint": "master",
+         "namespace": "ns_vepa_a",
+         "local_port": 60000,
+         "peer_port": 20000,
+         "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :60000 and dport = :20000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          202.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60000 192.168.10.62:20000\n\t cubic rto:202 rtt:1.859/0.58 ato:44 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:2042 bytes_acked:2043 bytes_received:5272 segs_out:67 segs_in:123 data_segs_out:64 data_segs_in:64 send 62829478bps lastsnd:18 lastrcv:16 lastack:16 pacing_rate 125625168bps delivery_rate 85255472bps delivered:65 app_limited busy:118ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.137 snd_wnd:64048\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701718927865257,
+         "observed_at_monotonic_ns": 248970888761083,
+         "endpoint": "outstation",
+         "namespace": "ns_vepa_b",
+         "local_port": 20000,
+         "peer_port": 60000,
+         "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :20000 and dport = :60000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          215.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      91     192.168.10.62:20000 192.168.10.61:60000\n\t cubic rto:215 rtt:14.681/9.142 ato:43 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:5437 bytes_acked:5346 bytes_received:2137 segs_out:134 segs_in:70 data_segs_out:67 data_segs_in:67 send 7955861bps lastsnd:7 lastrcv:7 lastack:7 pacing_rate 15911040bps delivery_rate 5120560bps delivered:67 app_limited busy:990ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:2.281 snd_wnd:64075\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701719209391239,
+         "observed_at_monotonic_ns": 248971170287158,
+         "endpoint": "master",
+         "namespace": "ns_vepa_a",
+         "local_port": 60000,
+         "peer_port": 20000,
+         "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :60000 and dport = :20000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          202.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60000 192.168.10.62:20000\n\t cubic rto:202 rtt:1.59/1.456 ato:43 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:2713 bytes_acked:2714 bytes_received:6895 segs_out:88 segs_in:162 data_segs_out:85 data_segs_in:85 send 73459119bps lastsnd:9 lastrcv:6 lastack:6 pacing_rate 146918232bps delivery_rate 94193544bps delivered:86 app_limited busy:153ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.124 snd_wnd:64048\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701719244852787,
+         "observed_at_monotonic_ns": 248971205748536,
+         "endpoint": "outstation",
+         "namespace": "ns_vepa_b",
+         "local_port": 20000,
+         "peer_port": 60000,
+         "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :20000 and dport = :60000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          215.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      247    192.168.10.62:20000 192.168.10.61:60000\n\t cubic rto:215 rtt:14.167/9.641 ato:42 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:7216 bytes_acked:6969 bytes_received:2810 segs_out:176 segs_in:91 data_segs_out:88 data_segs_in:88 send 8244512bps lastsnd:4 lastrcv:4 lastack:4 pacing_rate 16488296bps delivery_rate 5120560bps delivered:88 app_limited busy:1307ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:2.281 snd_wnd:64075\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701719529061517,
+         "observed_at_monotonic_ns": 248971489957450,
+         "endpoint": "master",
+         "namespace": "ns_vepa_a",
+         "local_port": 60000,
+         "peer_port": 20000,
+         "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :60000 and dport = :20000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          202.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      27     192.168.10.61:60000 192.168.10.62:20000\n\t cubic rto:202 rtt:1.684/0.758 ato:47 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:3386 bytes_acked:3360 bytes_received:8427 segs_out:109 segs_in:199 data_segs_out:106 data_segs_in:105 send 69358670bps lastrcv:1 lastack:1 pacing_rate 138707040bps delivery_rate 94193544bps delivered:106 app_limited busy:189ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:0.124 snd_wnd:64048\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701719561719019,
+         "observed_at_monotonic_ns": 248971522614895,
+         "endpoint": "outstation",
+         "namespace": "ns_vepa_b",
+         "local_port": 20000,
+         "peer_port": 60000,
+         "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :20000 and dport = :60000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          217.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      37     192.168.10.62:20000 192.168.10.61:60000\n\t cubic rto:217 rtt:16.25/10.129 ato:49 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:8711 bytes_acked:8674 bytes_received:3421 segs_out:214 segs_in:110 data_segs_out:107 data_segs_in:107 send 7187692bps lastsnd:3 lastrcv:3 lastack:3 pacing_rate 14375272bps delivery_rate 5120560bps delivered:107 app_limited busy:1614ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:2.281 snd_wnd:64075\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701719839529500,
+         "observed_at_monotonic_ns": 248971800425440,
+         "endpoint": "master",
+         "namespace": "ns_vepa_a",
+         "local_port": 60000,
+         "peer_port": 20000,
+         "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :60000 and dport = :20000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          203.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60000 192.168.10.62:20000\n\t cubic rto:203 rtt:2.143/1.56 ato:43 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:3962 bytes_acked:3963 bytes_received:10132 segs_out:127 segs_in:235 data_segs_out:124 data_segs_in:124 send 54503033bps lastsnd:27 lastrcv:21 lastack:21 pacing_rate 108993344bps delivery_rate 94193544bps delivered:125 app_limited busy:234ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.124 snd_wnd:64048\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701719868705365,
+         "observed_at_monotonic_ns": 248971829601077,
+         "endpoint": "outstation",
+         "namespace": "ns_vepa_b",
+         "local_port": 20000,
+         "peer_port": 60000,
+         "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :20000 and dport = :60000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          216.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      91     192.168.10.62:20000 192.168.10.61:60000\n\t cubic rto:216 rtt:15.628/7.817 ato:43 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:10297 bytes_acked:10206 bytes_received:4057 segs_out:254 segs_in:130 data_segs_out:127 data_segs_in:127 send 7473765bps lastsnd:7 lastrcv:7 lastack:7 pacing_rate 14947168bps delivery_rate 5120560bps delivered:127 app_limited busy:1924ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:2.281 snd_wnd:64075\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701720155022463,
+         "observed_at_monotonic_ns": 248972115918373,
+         "endpoint": "master",
+         "namespace": "ns_vepa_a",
+         "local_port": 60000,
+         "peer_port": 20000,
+         "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :60000 and dport = :20000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          202.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60000 192.168.10.62:20000\n\t cubic rto:202 rtt:1.494/0.895 ato:43 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:4633 bytes_acked:4634 bytes_received:11755 segs_out:148 segs_in:277 data_segs_out:145 data_segs_in:145 send 78179384bps lastsnd:12 lastrcv:9 lastack:9 pacing_rate 156319528bps delivery_rate 94193544bps delivered:146 app_limited busy:273ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.124 snd_wnd:64048\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701720189632538,
+         "observed_at_monotonic_ns": 248972150528262,
+         "endpoint": "outstation",
+         "namespace": "ns_vepa_b",
+         "local_port": 20000,
+         "peer_port": 60000,
+         "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :20000 and dport = :60000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          216.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      37     192.168.10.62:20000 192.168.10.61:60000\n\t cubic rto:216 rtt:15.274/9.547 ato:45 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:11829 bytes_acked:11792 bytes_received:4703 segs_out:294 segs_in:150 data_segs_out:147 data_segs_in:147 send 7646982bps lastsnd:3 lastrcv:3 lastack:3 pacing_rate 15293336bps delivery_rate 5120560bps delivered:147 app_limited busy:2230ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:2.281 snd_wnd:64075\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701720463161903,
+         "observed_at_monotonic_ns": 248972424057803,
+         "endpoint": "master",
+         "namespace": "ns_vepa_a",
+         "local_port": 60000,
+         "peer_port": 20000,
+         "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :60000 and dport = :20000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          202.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      0      192.168.10.61:60000 192.168.10.62:20000\n\t cubic rto:202 rtt:1.832/1.174 ato:55 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:5279 bytes_acked:5280 bytes_received:13250 segs_out:168 segs_in:315 data_segs_out:165 data_segs_in:164 send 63755459bps lastsnd:3 lastrcv:3 lastack:1 pacing_rate 127493512bps delivery_rate 94193544bps delivered:166 app_limited busy:304ms rcv_space:14600 rcv_ssthresh:64076 minrtt:0.124 snd_wnd:64048\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701720496594236,
+         "observed_at_monotonic_ns": 248972457490000,
+         "endpoint": "outstation",
+         "namespace": "ns_vepa_b",
+         "local_port": 20000,
+         "peer_port": 60000,
+         "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :20000 and dport = :60000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          217.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      37     192.168.10.62:20000 192.168.10.61:60000\n\t cubic rto:217 rtt:16.496/9.246 ato:49 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:13571 bytes_acked:13534 bytes_received:5341 segs_out:334 segs_in:170 data_segs_out:167 data_segs_in:167 send 7080504bps lastsnd:2 lastrcv:3 lastack:3 pacing_rate 14160576bps delivery_rate 5120560bps delivered:167 app_limited busy:2543ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:2.281 snd_wnd:64075\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701720783551388,
+         "observed_at_monotonic_ns": 248972744447322,
+         "endpoint": "master",
+         "namespace": "ns_vepa_a",
+         "local_port": 60000,
+         "peer_port": 20000,
+         "source": "ip netns exec ns_vepa_a ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :60000 and dport = :20000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          202.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      35     192.168.10.61:60000 192.168.10.62:20000\n\t cubic rto:202 rtt:1.946/1.006 ato:52 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:5952 bytes_acked:5918 bytes_received:15029 segs_out:189 segs_in:354 data_segs_out:186 data_segs_in:185 send 60020555bps lastsnd:2 lastrcv:3 lastack:3 pacing_rate 120025688bps delivery_rate 94193544bps delivered:186 app_limited busy:341ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:0.124 snd_wnd:64048\n",
+         "stderr": ""
+        },
+        {
+         "observed_at_epoch_ns": 1792701720817168365,
+         "observed_at_monotonic_ns": 248972778064098,
+         "endpoint": "outstation",
+         "namespace": "ns_vepa_b",
+         "local_port": 20000,
+         "peer_port": 60000,
+         "source": "ip netns exec ns_vepa_b ss -tin (Linux TCP_INFO)",
+         "command": [
+          "ss",
+          "-tin",
+          "state",
+          "established",
+          "( sport = :20000 and dport = :60000 )"
+         ],
+         "units": "ms",
+         "status": "ok",
+         "rto_ms": [
+          214.0
+         ],
+         "returncode": 0,
+         "stdout": "Recv-Q Send-Q Local Address:Port   Peer Address:Port Process\n0      91     192.168.10.62:20000 192.168.10.61:60000\n\t cubic rto:214 rtt:13.945/8.807 ato:42 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_sent:15157 bytes_acked:15066 bytes_received:5977 segs_out:374 segs_in:190 data_segs_out:187 data_segs_in:187 send 8375762bps lastsnd:25 lastrcv:25 lastack:25 pacing_rate 16751520bps delivery_rate 5120560bps delivered:187 app_limited busy:2851ms unacked:1 rcv_space:14600 rcv_ssthresh:64076 minrtt:2.281 snd_wnd:64075\n",
+         "stderr": ""
+        }
+       ],
+       "endpoints": {
+        "master": {
+         "status": "ok",
+         "sample_count": 10,
+         "reason": null
+        },
+        "outstation": {
+         "status": "ok",
+         "sample_count": 10,
+         "reason": null
+        }
+       },
+       "status": "ok",
+       "maximum_samples": 240,
+       "maximum_samples_per_endpoint": 120,
+       "command_timeout_s": 2,
+       "sample_interval_s": 0.25,
+       "reason": null
+      },
+      "master_wall_s": 3.041,
+      "outstation_collection": {
+       "schema_version": "vision-endpoint-collection-v1",
+       "status": "completed",
+       "partial": false,
+       "ready_line": "READY"
+      },
+      "tcpdump": {
+       "out": {
+        "captured": 587,
+        "received": 1157,
+        "dropped_kernel": 0
+       },
+       "in": {
+        "captured": 570,
+        "received": 1157,
+        "dropped_kernel": 0
+       }
+      },
+      "frames_out": 587,
+      "frames_in": 570,
+      "ok": true
+     },
+     "wire_rc": 0,
+     "clrt_rc": 0,
+     "achieved_shaping": {
+      "ACK_BLOCK": {
+       "dev_port": 182,
+       "qid": 7,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "ACK_HOLD": {
+       "dev_port": 182,
+       "qid": 6,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "RESP_BLOCK": {
+       "dev_port": 182,
+       "qid": 5,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "RESP_HOLD": {
+       "dev_port": 182,
+       "qid": 4,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      },
+      "OP_BLOCK": {
+       "dev_port": 181,
+       "qid": 3,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 64
+      },
+      "OP_HOLD": {
+       "dev_port": 181,
+       "qid": 2,
+       "max_rate_enable": true,
+       "unit": "PPS",
+       "requested_pps": 59570,
+       "achieved_pps": 59570,
+       "max_burst_size": 1
+      }
+     },
+     "observed": {
+      "piggyback_fraction": 0.2615,
+      "growth_bytes": 0,
+      "read_precision": {
+       "gap_us": 950.0,
+       "read_rows": 65,
+       "eligible": 48,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 17,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "absolute_error_us": {
+        "n": 48,
+        "min": 711.0,
+        "median": 911,
+        "iqr": 522.0,
+        "p95": 1448.0,
+        "p99": 3367.0,
+        "max": 3367.0,
+        "sd_population": 425.7,
+        "sd_sample": 430.2
+       },
+       "signed_error_us": {
+        "n": 48,
+        "min": -947.0,
+        "median": -737,
+        "iqr": 2042.0,
+        "p95": 1448.0,
+        "p99": 3367.0,
+        "max": 3367.0,
+        "sd_population": 1104.4,
+        "sd_sample": 1116.1
+       },
+       "tails": [
+        {
+         "t_req": 1792701720850342,
+         "clrt_us": 4317,
+         "error_us": 3367.0
+        },
+        {
+         "t_req": 1792701718419289,
+         "clrt_us": 2405,
+         "error_us": 1455.0
+        },
+        {
+         "t_req": 1792701717914526,
+         "clrt_us": 2398,
+         "error_us": 1448.0
+        },
+        {
+         "t_req": 1792701720247404,
+         "clrt_us": 2338,
+         "error_us": 1388.0
+        },
+        {
+         "t_req": 1792701719124409,
+         "clrt_us": 2296,
+         "error_us": 1346.0
+        }
+       ],
+       "pass": false,
+       "p99_nearest_rank_abs_error_us": 3367.0,
+       "gated": false
+      },
+      "select_precision": {
+       "kind": "SELECT",
+       "gap_us": 950.0,
+       "rows": 64,
+       "eligible": 64,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "p99": 9702.0,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest absolute error",
+       "absolute_error_us": {
+        "n": 64,
+        "min": 2062.0,
+        "median": 4608,
+        "iqr": 1471.0,
+        "p95": 7869.0,
+        "p99": 8583.0,
+        "max": 9702.0,
+        "sd_population": 1372.3,
+        "sd_sample": 1383.1
+       },
+       "signed_error_us": {
+        "n": 64,
+        "min": 2062.0,
+        "median": 4608,
+        "iqr": 1471.0,
+        "p95": 7869.0,
+        "p99": 8583.0,
+        "max": 9702.0,
+        "sd_population": 1372.3,
+        "sd_sample": 1383.1
+       },
+       "stats_convention": "absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), reported only; the gate is p99",
+       "max_absolute_error_us": 9702.0,
+       "tails": [
+        {
+         "t_req": 1792701719761137,
+         "app_seq": 6,
+         "clrt_us": 10652,
+         "error_us": 9702.0
+        },
+        {
+         "t_req": 1792701720370551,
+         "app_seq": 13,
+         "clrt_us": 9533,
+         "error_us": 8583.0
+        },
+        {
+         "t_req": 1792701718266315,
+         "app_seq": 6,
+         "clrt_us": 9058,
+         "error_us": 8108.0
+        },
+        {
+         "t_req": 1792701718542245,
+         "app_seq": 8,
+         "clrt_us": 8819,
+         "error_us": 7869.0
+        },
+        {
+         "t_req": 1792701720464052,
+         "app_seq": 3,
+         "clrt_us": 7657,
+         "error_us": 6707.0
+        }
+       ],
+       "over_bound": [
+        {
+         "t_req": 1792701717945892,
+         "app_seq": 1,
+         "clrt_us": 4685,
+         "error_us": 3735.0
+        },
+        {
+         "t_req": 1792701717988135,
+         "app_seq": 4,
+         "clrt_us": 5309,
+         "error_us": 4359.0
+        },
+        {
+         "t_req": 1792701718032520,
+         "app_seq": 7,
+         "clrt_us": 3012,
+         "error_us": 2062.0
+        },
+        {
+         "t_req": 1792701718079316,
+         "app_seq": 10,
+         "clrt_us": 5102,
+         "error_us": 4152.0
+        },
+        {
+         "t_req": 1792701718128255,
+         "app_seq": 13,
+         "clrt_us": 5409,
+         "error_us": 4459.0
+        },
+        {
+         "t_req": 1792701718175036,
+         "app_seq": 0,
+         "clrt_us": 5407,
+         "error_us": 4457.0
+        },
+        {
+         "t_req": 1792701718217490,
+         "app_seq": 3,
+         "clrt_us": 4412,
+         "error_us": 3462.0
+        },
+        {
+         "t_req": 1792701718266315,
+         "app_seq": 6,
+         "clrt_us": 9058,
+         "error_us": 8108.0
+        },
+        {
+         "t_req": 1792701718315026,
+         "app_seq": 9,
+         "clrt_us": 4523,
+         "error_us": 3573.0
+        },
+        {
+         "t_req": 1792701718359463,
+         "app_seq": 12,
+         "clrt_us": 6759,
+         "error_us": 5809.0
+        },
+        {
+         "t_req": 1792701718404132,
+         "app_seq": 15,
+         "clrt_us": 5808,
+         "error_us": 4858.0
+        },
+        {
+         "t_req": 1792701718448739,
+         "app_seq": 2,
+         "clrt_us": 6321,
+         "error_us": 5371.0
+        },
+        {
+         "t_req": 1792701718493306,
+         "app_seq": 5,
+         "clrt_us": 6855,
+         "error_us": 5905.0
+        },
+        {
+         "t_req": 1792701718542245,
+         "app_seq": 8,
+         "clrt_us": 8819,
+         "error_us": 7869.0
+        },
+        {
+         "t_req": 1792701718593243,
+         "app_seq": 11,
+         "clrt_us": 5311,
+         "error_us": 4361.0
+        },
+        {
+         "t_req": 1792701718639773,
+         "app_seq": 14,
+         "clrt_us": 6523,
+         "error_us": 5573.0
+        },
+        {
+         "t_req": 1792701718686319,
+         "app_seq": 1,
+         "clrt_us": 6728,
+         "error_us": 5778.0
+        },
+        {
+         "t_req": 1792701718733058,
+         "app_seq": 4,
+         "clrt_us": 5118,
+         "error_us": 4168.0
+        },
+        {
+         "t_req": 1792701718782011,
+         "app_seq": 7,
+         "clrt_us": 5357,
+         "error_us": 4407.0
+        },
+        {
+         "t_req": 1792701718824416,
+         "app_seq": 10,
+         "clrt_us": 5326,
+         "error_us": 4376.0
+        },
+        {
+         "t_req": 1792701718873412,
+         "app_seq": 13,
+         "clrt_us": 4468,
+         "error_us": 3518.0
+        },
+        {
+         "t_req": 1792701718920194,
+         "app_seq": 0,
+         "clrt_us": 4458,
+         "error_us": 3508.0
+        },
+        {
+         "t_req": 1792701718968894,
+         "app_seq": 3,
+         "clrt_us": 5368,
+         "error_us": 4418.0
+        },
+        {
+         "t_req": 1792701719013511,
+         "app_seq": 6,
+         "clrt_us": 4922,
+         "error_us": 3972.0
+        },
+        {
+         "t_req": 1792701719060220,
+         "app_seq": 9,
+         "clrt_us": 6095,
+         "error_us": 5145.0
+        },
+        {
+         "t_req": 1792701719107081,
+         "app_seq": 12,
+         "clrt_us": 5314,
+         "error_us": 4364.0
+        },
+        {
+         "t_req": 1792701719153846,
+         "app_seq": 15,
+         "clrt_us": 5368,
+         "error_us": 4418.0
+        },
+        {
+         "t_req": 1792701719198371,
+         "app_seq": 2,
+         "clrt_us": 5734,
+         "error_us": 4784.0
+        },
+        {
+         "t_req": 1792701719242870,
+         "app_seq": 5,
+         "clrt_us": 6285,
+         "error_us": 5335.0
+        },
+        {
+         "t_req": 1792701719287289,
+         "app_seq": 8,
+         "clrt_us": 7094,
+         "error_us": 6144.0
+        },
+        {
+         "t_req": 1792701719338254,
+         "app_seq": 11,
+         "clrt_us": 5351,
+         "error_us": 4401.0
+        },
+        {
+         "t_req": 1792701719387294,
+         "app_seq": 14,
+         "clrt_us": 5301,
+         "error_us": 4351.0
+        },
+        {
+         "t_req": 1792701719429706,
+         "app_seq": 1,
+         "clrt_us": 6806,
+         "error_us": 5856.0
+        },
+        {
+         "t_req": 1792701719482987,
+         "app_seq": 4,
+         "clrt_us": 5448,
+         "error_us": 4498.0
+        },
+        {
+         "t_req": 1792701719525500,
+         "app_seq": 7,
+         "clrt_us": 6972,
+         "error_us": 6022.0
+        },
+        {
+         "t_req": 1792701719572060,
+         "app_seq": 10,
+         "clrt_us": 6908,
+         "error_us": 5958.0
+        },
+        {
+         "t_req": 1792701719616458,
+         "app_seq": 13,
+         "clrt_us": 6653,
+         "error_us": 5703.0
+        },
+        {
+         "t_req": 1792701719667547,
+         "app_seq": 0,
+         "clrt_us": 6758,
+         "error_us": 5808.0
+        },
+        {
+         "t_req": 1792701719714283,
+         "app_seq": 3,
+         "clrt_us": 4823,
+         "error_us": 3873.0
+        },
+        {
+         "t_req": 1792701719761137,
+         "app_seq": 6,
+         "clrt_us": 10652,
+         "error_us": 9702.0
+        },
+        {
+         "t_req": 1792701719807922,
+         "app_seq": 9,
+         "clrt_us": 4289,
+         "error_us": 3339.0
+        },
+        {
+         "t_req": 1792701719854687,
+         "app_seq": 12,
+         "clrt_us": 7059,
+         "error_us": 6109.0
+        },
+        {
+         "t_req": 1792701719911901,
+         "app_seq": 15,
+         "clrt_us": 6525,
+         "error_us": 5575.0
+        },
+        {
+         "t_req": 1792701719958509,
+         "app_seq": 2,
+         "clrt_us": 6930,
+         "error_us": 5980.0
+        },
+        {
+         "t_req": 1792701720003171,
+         "app_seq": 5,
+         "clrt_us": 4803,
+         "error_us": 3853.0
+        },
+        {
+         "t_req": 1792701720045576,
+         "app_seq": 8,
+         "clrt_us": 5968,
+         "error_us": 5018.0
+        },
+        {
+         "t_req": 1792701720096556,
+         "app_seq": 11,
+         "clrt_us": 6767,
+         "error_us": 5817.0
+        },
+        {
+         "t_req": 1792701720141224,
+         "app_seq": 14,
+         "clrt_us": 5343,
+         "error_us": 4393.0
+        },
+        {
+         "t_req": 1792701720185732,
+         "app_seq": 1,
+         "clrt_us": 7195,
+         "error_us": 6245.0
+        },
+        {
+         "t_req": 1792701720232306,
+         "app_seq": 4,
+         "clrt_us": 5292,
+         "error_us": 4342.0
+        },
+        {
+         "t_req": 1792701720276881,
+         "app_seq": 7,
+         "clrt_us": 5296,
+         "error_us": 4346.0
+        },
+        {
+         "t_req": 1792701720321511,
+         "app_seq": 10,
+         "clrt_us": 7387,
+         "error_us": 6437.0
+        },
+        {
+         "t_req": 1792701720370551,
+         "app_seq": 13,
+         "clrt_us": 9533,
+         "error_us": 8583.0
+        },
+        {
+         "t_req": 1792701720421653,
+         "app_seq": 0,
+         "clrt_us": 6696,
+         "error_us": 5746.0
+        },
+        {
+         "t_req": 1792701720464052,
+         "app_seq": 3,
+         "clrt_us": 7657,
+         "error_us": 6707.0
+        },
+        {
+         "t_req": 1792701720514891,
+         "app_seq": 6,
+         "clrt_us": 7104,
+         "error_us": 6154.0
+        },
+        {
+         "t_req": 1792701720563577,
+         "app_seq": 9,
+         "clrt_us": 5669,
+         "error_us": 4719.0
+        },
+        {
+         "t_req": 1792701720608304,
+         "app_seq": 12,
+         "clrt_us": 3720,
+         "error_us": 2770.0
+        },
+        {
+         "t_req": 1792701720650723,
+         "app_seq": 15,
+         "clrt_us": 5346,
+         "error_us": 4396.0
+        },
+        {
+         "t_req": 1792701720697507,
+         "app_seq": 2,
+         "clrt_us": 6682,
+         "error_us": 5732.0
+        },
+        {
+         "t_req": 1792701720744313,
+         "app_seq": 5,
+         "clrt_us": 5310,
+         "error_us": 4360.0
+        },
+        {
+         "t_req": 1792701720788835,
+         "app_seq": 8,
+         "clrt_us": 5285,
+         "error_us": 4335.0
+        },
+        {
+         "t_req": 1792701720833229,
+         "app_seq": 11,
+         "clrt_us": 3200,
+         "error_us": 2250.0
+        },
+        {
+         "t_req": 1792701720881956,
+         "app_seq": 14,
+         "clrt_us": 7184,
+         "error_us": 6234.0
+        }
+       ],
+       "sufficient": true,
+       "pass": false,
+       "gated": false
+      },
+      "operate_precision": {
+       "kind": "OPERATE",
+       "gap_us": 950.0,
+       "rows": 64,
+       "eligible": 64,
+       "excluded": {
+        "incomplete": 0,
+        "piggyback": 0,
+        "multiple_attempts": 0,
+        "missing_clrt": 0
+       },
+       "minimum_eligible": 20,
+       "maximum_p99_absolute_error_us": 100,
+       "p99": 6934.0,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest absolute error",
+       "absolute_error_us": {
+        "n": 64,
+        "min": 2350.0,
+        "median": 5517,
+        "iqr": 1780.0,
+        "p95": 6448.0,
+        "p99": 6491.0,
+        "max": 6934.0,
+        "sd_population": 1071.9,
+        "sd_sample": 1080.4
+       },
+       "signed_error_us": {
+        "n": 64,
+        "min": 2350.0,
+        "median": 5517,
+        "iqr": 1780.0,
+        "p95": 6448.0,
+        "p99": 6491.0,
+        "max": 6934.0,
+        "sd_population": 1071.9,
+        "sd_sample": 1080.4
+       },
+       "stats_convention": "absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), reported only; the gate is p99",
+       "max_absolute_error_us": 6934.0,
+       "tails": [
+        {
+         "t_req": 1792701719866204,
+         "app_seq": 13,
+         "clrt_us": 7884,
+         "error_us": 6934.0
+        },
+        {
+         "t_req": 1792701719814756,
+         "app_seq": 10,
+         "clrt_us": 7441,
+         "error_us": 6491.0
+        },
+        {
+         "t_req": 1792701718693401,
+         "app_seq": 2,
+         "clrt_us": 7416,
+         "error_us": 6466.0
+        },
+        {
+         "t_req": 1792701719772452,
+         "app_seq": 7,
+         "clrt_us": 7398,
+         "error_us": 6448.0
+        },
+        {
+         "t_req": 1792701720570419,
+         "app_seq": 10,
+         "clrt_us": 7373,
+         "error_us": 6423.0
+        }
+       ],
+       "over_bound": [
+        {
+         "t_req": 1792701717953476,
+         "app_seq": 2,
+         "clrt_us": 6797,
+         "error_us": 5847.0
+        },
+        {
+         "t_req": 1792701717993823,
+         "app_seq": 5,
+         "clrt_us": 5305,
+         "error_us": 4355.0
+        },
+        {
+         "t_req": 1792701718041651,
+         "app_seq": 8,
+         "clrt_us": 5519,
+         "error_us": 4569.0
+        },
+        {
+         "t_req": 1792701718086829,
+         "app_seq": 11,
+         "clrt_us": 7052,
+         "error_us": 6102.0
+        },
+        {
+         "t_req": 1792701718135098,
+         "app_seq": 14,
+         "clrt_us": 5511,
+         "error_us": 4561.0
+        },
+        {
+         "t_req": 1792701718180835,
+         "app_seq": 1,
+         "clrt_us": 7016,
+         "error_us": 6066.0
+        },
+        {
+         "t_req": 1792701718226794,
+         "app_seq": 4,
+         "clrt_us": 4924,
+         "error_us": 3974.0
+        },
+        {
+         "t_req": 1792701718276268,
+         "app_seq": 7,
+         "clrt_us": 6873,
+         "error_us": 5923.0
+        },
+        {
+         "t_req": 1792701718322356,
+         "app_seq": 10,
+         "clrt_us": 3300,
+         "error_us": 2350.0
+        },
+        {
+         "t_req": 1792701718367736,
+         "app_seq": 13,
+         "clrt_us": 5290,
+         "error_us": 4340.0
+        },
+        {
+         "t_req": 1792701718410726,
+         "app_seq": 0,
+         "clrt_us": 7325,
+         "error_us": 6375.0
+        },
+        {
+         "t_req": 1792701718455868,
+         "app_seq": 3,
+         "clrt_us": 6631,
+         "error_us": 5681.0
+        },
+        {
+         "t_req": 1792701718501766,
+         "app_seq": 6,
+         "clrt_us": 6385,
+         "error_us": 5435.0
+        },
+        {
+         "t_req": 1792701718552228,
+         "app_seq": 9,
+         "clrt_us": 5312,
+         "error_us": 4362.0
+        },
+        {
+         "t_req": 1792701718599541,
+         "app_seq": 12,
+         "clrt_us": 7265,
+         "error_us": 6315.0
+        },
+        {
+         "t_req": 1792701718647184,
+         "app_seq": 15,
+         "clrt_us": 7113,
+         "error_us": 6163.0
+        },
+        {
+         "t_req": 1792701718693401,
+         "app_seq": 2,
+         "clrt_us": 7416,
+         "error_us": 6466.0
+        },
+        {
+         "t_req": 1792701718743135,
+         "app_seq": 5,
+         "clrt_us": 6810,
+         "error_us": 5860.0
+        },
+        {
+         "t_req": 1792701718788269,
+         "app_seq": 8,
+         "clrt_us": 5366,
+         "error_us": 4416.0
+        },
+        {
+         "t_req": 1792701718831570,
+         "app_seq": 11,
+         "clrt_us": 6841,
+         "error_us": 5891.0
+        },
+        {
+         "t_req": 1792701718880830,
+         "app_seq": 14,
+         "clrt_us": 7369,
+         "error_us": 6419.0
+        },
+        {
+         "t_req": 1792701718928638,
+         "app_seq": 1,
+         "clrt_us": 6462,
+         "error_us": 5512.0
+        },
+        {
+         "t_req": 1792701718975335,
+         "app_seq": 4,
+         "clrt_us": 6158,
+         "error_us": 5208.0
+        },
+        {
+         "t_req": 1792701719022583,
+         "app_seq": 7,
+         "clrt_us": 7002,
+         "error_us": 6052.0
+        },
+        {
+         "t_req": 1792701719066688,
+         "app_seq": 10,
+         "clrt_us": 4973,
+         "error_us": 4023.0
+        },
+        {
+         "t_req": 1792701719115460,
+         "app_seq": 13,
+         "clrt_us": 6909,
+         "error_us": 5959.0
+        },
+        {
+         "t_req": 1792701719160322,
+         "app_seq": 0,
+         "clrt_us": 5821,
+         "error_us": 4871.0
+        },
+        {
+         "t_req": 1792701719204599,
+         "app_seq": 3,
+         "clrt_us": 7088,
+         "error_us": 6138.0
+        },
+        {
+         "t_req": 1792701719251062,
+         "app_seq": 6,
+         "clrt_us": 4694,
+         "error_us": 3744.0
+        },
+        {
+         "t_req": 1792701719294928,
+         "app_seq": 9,
+         "clrt_us": 7174,
+         "error_us": 6224.0
+        },
+        {
+         "t_req": 1792701719347544,
+         "app_seq": 12,
+         "clrt_us": 5341,
+         "error_us": 4391.0
+        },
+        {
+         "t_req": 1792701719394213,
+         "app_seq": 15,
+         "clrt_us": 5338,
+         "error_us": 4388.0
+        },
+        {
+         "t_req": 1792701719439673,
+         "app_seq": 2,
+         "clrt_us": 6782,
+         "error_us": 5832.0
+        },
+        {
+         "t_req": 1792701719488834,
+         "app_seq": 5,
+         "clrt_us": 5331,
+         "error_us": 4381.0
+        },
+        {
+         "t_req": 1792701719532862,
+         "app_seq": 8,
+         "clrt_us": 6666,
+         "error_us": 5716.0
+        },
+        {
+         "t_req": 1792701719579917,
+         "app_seq": 11,
+         "clrt_us": 4339,
+         "error_us": 3389.0
+        },
+        {
+         "t_req": 1792701719625337,
+         "app_seq": 14,
+         "clrt_us": 6473,
+         "error_us": 5523.0
+        },
+        {
+         "t_req": 1792701719676121,
+         "app_seq": 1,
+         "clrt_us": 5272,
+         "error_us": 4322.0
+        },
+        {
+         "t_req": 1792701719721751,
+         "app_seq": 4,
+         "clrt_us": 5123,
+         "error_us": 4173.0
+        },
+        {
+         "t_req": 1792701719772452,
+         "app_seq": 7,
+         "clrt_us": 7398,
+         "error_us": 6448.0
+        },
+        {
+         "t_req": 1792701719814756,
+         "app_seq": 10,
+         "clrt_us": 7441,
+         "error_us": 6491.0
+        },
+        {
+         "t_req": 1792701719866204,
+         "app_seq": 13,
+         "clrt_us": 7884,
+         "error_us": 6934.0
+        },
+        {
+         "t_req": 1792701719919887,
+         "app_seq": 0,
+         "clrt_us": 6740,
+         "error_us": 5790.0
+        },
+        {
+         "t_req": 1792701719966327,
+         "app_seq": 3,
+         "clrt_us": 5308,
+         "error_us": 4358.0
+        },
+        {
+         "t_req": 1792701720010634,
+         "app_seq": 6,
+         "clrt_us": 4564,
+         "error_us": 3614.0
+        },
+        {
+         "t_req": 1792701720053770,
+         "app_seq": 9,
+         "clrt_us": 7289,
+         "error_us": 6339.0
+        },
+        {
+         "t_req": 1792701720104843,
+         "app_seq": 12,
+         "clrt_us": 4347,
+         "error_us": 3397.0
+        },
+        {
+         "t_req": 1792701720147350,
+         "app_seq": 15,
+         "clrt_us": 7121,
+         "error_us": 6171.0
+        },
+        {
+         "t_req": 1792701720194241,
+         "app_seq": 2,
+         "clrt_us": 7233,
+         "error_us": 6283.0
+        },
+        {
+         "t_req": 1792701720238498,
+         "app_seq": 5,
+         "clrt_us": 7051,
+         "error_us": 6101.0
+        },
+        {
+         "t_req": 1792701720282831,
+         "app_seq": 8,
+         "clrt_us": 7241,
+         "error_us": 6291.0
+        },
+        {
+         "t_req": 1792701720330674,
+         "app_seq": 11,
+         "clrt_us": 4438,
+         "error_us": 3488.0
+        },
+        {
+         "t_req": 1792701720384313,
+         "app_seq": 14,
+         "clrt_us": 4716,
+         "error_us": 3766.0
+        },
+        {
+         "t_req": 1792701720428730,
+         "app_seq": 1,
+         "clrt_us": 5360,
+         "error_us": 4410.0
+        },
+        {
+         "t_req": 1792701720473096,
+         "app_seq": 4,
+         "clrt_us": 6791,
+         "error_us": 5841.0
+        },
+        {
+         "t_req": 1792701720522365,
+         "app_seq": 7,
+         "clrt_us": 5405,
+         "error_us": 4455.0
+        },
+        {
+         "t_req": 1792701720570419,
+         "app_seq": 10,
+         "clrt_us": 7373,
+         "error_us": 6423.0
+        },
+        {
+         "t_req": 1792701720614699,
+         "app_seq": 13,
+         "clrt_us": 7320,
+         "error_us": 6370.0
+        },
+        {
+         "t_req": 1792701720656437,
+         "app_seq": 0,
+         "clrt_us": 7101,
+         "error_us": 6151.0
+        },
+        {
+         "t_req": 1792701720704840,
+         "app_seq": 3,
+         "clrt_us": 4799,
+         "error_us": 3849.0
+        },
+        {
+         "t_req": 1792701720751201,
+         "app_seq": 6,
+         "clrt_us": 5493,
+         "error_us": 4543.0
+        },
+        {
+         "t_req": 1792701720795234,
+         "app_seq": 9,
+         "clrt_us": 5239,
+         "error_us": 4289.0
+        },
+        {
+         "t_req": 1792701720839588,
+         "app_seq": 12,
+         "clrt_us": 4354,
+         "error_us": 3404.0
+        },
+        {
+         "t_req": 1792701720893030,
+         "app_seq": 15,
+         "clrt_us": 6415,
+         "error_us": 5465.0
+        }
+       ],
+       "sufficient": true,
+       "pass": false,
+       "gated": false
+      },
+      "piggyback_latency": {
+       "pb_us": 4000.0,
+       "margin_us": 250,
+       "target_us": 4250.0,
+       "n": 17,
+       "missing_rt": 0,
+       "minimum_samples": 20,
+       "p50": 2834,
+       "p99": 5512,
+       "p99_convention": "nearest rank: ceil(0.99 n)-th smallest rt_us",
+       "max": 5512,
+       "rt_us_stats_round_index": {
+        "n": 17,
+        "min": 2166,
+        "median": 2834,
+        "iqr": 1297,
+        "p95": 4501,
+        "p99": 5512,
+        "max": 5512,
+        "sd_population": 908.0,
+        "sd_sample": 935.9
+       },
+       "above_target": [
+        {
+         "kind": "READ",
+         "app_seq": 10,
+         "t_req": 1792701718561629,
+         "rt_us": 4501
+        },
+        {
+         "kind": "READ",
+         "app_seq": 11,
+         "t_req": 1792701719823084,
+         "rt_us": 5512
+        }
+       ],
+       "sufficient": false,
+       "reasons": [
+        "insufficient piggyback samples: 17 < 20"
+       ],
+       "note": "provisional objective: nearest-rank p99 of request-to-response (rt_us, master request on out.pcap to response on in.pcap, the same Vision NIC clock) over piggybacked exchanges <= pb + margin; up to 1% of samples may exceed it, so it is not a maximum guarantee. Response availability at the outstation is not observed by this verdict.",
+       "pass": false,
+       "gated": false
+      },
+      "operate_hold": {
+       "op_j_us": 2400.0,
+       "observation": {
+        "tx": "out.pcap master-side tap",
+        "rx": "in.pcap outstation-side tap",
+        "includes": "path and capture delay; not an ASIC residency timestamp"
+       },
+       "sent": 64,
+       "observed": 64,
+       "complete_operates": 64,
+       "expected_operates": 64,
+       "min_transit_us": 45.1,
+       "below_op_j": [
+        {
+         "seq": 4147211711,
+         "app_seq": 2,
+         "transit_us": 120.2
+        },
+        {
+         "seq": 4147211808,
+         "app_seq": 5,
+         "transit_us": 2037.0
+        },
+        {
+         "seq": 4147211903,
+         "app_seq": 8,
+         "transit_us": 1879.9
+        },
+        {
+         "seq": 4147212192,
+         "app_seq": 1,
+         "transit_us": 99.9
+        },
+        {
+         "seq": 4147212287,
+         "app_seq": 4,
+         "transit_us": 2145.1
+        },
+        {
+         "seq": 4147212384,
+         "app_seq": 7,
+         "transit_us": 73.9
+        },
+        {
+         "seq": 4147212479,
+         "app_seq": 10,
+         "transit_us": 57.9
+        },
+        {
+         "seq": 4147212576,
+         "app_seq": 13,
+         "transit_us": 2044.9
+        },
+        {
+         "seq": 4147212671,
+         "app_seq": 0,
+         "transit_us": 58.9
+        },
+        {
+         "seq": 4147212768,
+         "app_seq": 3,
+         "transit_us": 72.0
+        },
+        {
+         "seq": 4147212863,
+         "app_seq": 6,
+         "transit_us": 59.1
+        },
+        {
+         "seq": 4147212960,
+         "app_seq": 9,
+         "transit_us": 2183.0
+        },
+        {
+         "seq": 4147213055,
+         "app_seq": 12,
+         "transit_us": 61.0
+        },
+        {
+         "seq": 4147213152,
+         "app_seq": 15,
+         "transit_us": 1987.2
+        },
+        {
+         "seq": 4147213247,
+         "app_seq": 2,
+         "transit_us": 1874.0
+        },
+        {
+         "seq": 4147213344,
+         "app_seq": 5,
+         "transit_us": 1889.0
+        },
+        {
+         "seq": 4147213439,
+         "app_seq": 8,
+         "transit_us": 2145.1
+        },
+        {
+         "seq": 4147213536,
+         "app_seq": 11,
+         "transit_us": 2115.0
+        },
+        {
+         "seq": 4147213631,
+         "app_seq": 14,
+         "transit_us": 50.1
+        },
+        {
+         "seq": 4147213728,
+         "app_seq": 1,
+         "transit_us": 50.1
+        },
+        {
+         "seq": 4147213823,
+         "app_seq": 4,
+         "transit_us": 47.2
+        },
+        {
+         "seq": 4147213920,
+         "app_seq": 7,
+         "transit_us": 1951.0
+        },
+        {
+         "seq": 4147214015,
+         "app_seq": 10,
+         "transit_us": 2153.9
+        },
+        {
+         "seq": 4147214112,
+         "app_seq": 13,
+         "transit_us": 60.1
+        },
+        {
+         "seq": 4147214207,
+         "app_seq": 0,
+         "transit_us": 46.0
+        },
+        {
+         "seq": 4147214304,
+         "app_seq": 3,
+         "transit_us": 50.1
+        },
+        {
+         "seq": 4147214399,
+         "app_seq": 6,
+         "transit_us": 73.2
+        },
+        {
+         "seq": 4147214496,
+         "app_seq": 9,
+         "transit_us": 2049.9
+        },
+        {
+         "seq": 4147214688,
+         "app_seq": 15,
+         "transit_us": 82.0
+        },
+        {
+         "seq": 4147214783,
+         "app_seq": 2,
+         "transit_us": 2190.1
+        },
+        {
+         "seq": 4147214880,
+         "app_seq": 5,
+         "transit_us": 75.1
+        },
+        {
+         "seq": 4147214975,
+         "app_seq": 8,
+         "transit_us": 2092.1
+        },
+        {
+         "seq": 4147215072,
+         "app_seq": 11,
+         "transit_us": 45.1
+        },
+        {
+         "seq": 4147215167,
+         "app_seq": 14,
+         "transit_us": 1932.1
+        },
+        {
+         "seq": 4147215264,
+         "app_seq": 1,
+         "transit_us": 2157.9
+        },
+        {
+         "seq": 4147215359,
+         "app_seq": 4,
+         "transit_us": 2058.0
+        },
+        {
+         "seq": 4147215456,
+         "app_seq": 7,
+         "transit_us": 62.0
+        },
+        {
+         "seq": 4147215551,
+         "app_seq": 10,
+         "transit_us": 52.0
+        },
+        {
+         "seq": 4147215743,
+         "app_seq": 0,
+         "transit_us": 1911.9
+        },
+        {
+         "seq": 4147215840,
+         "app_seq": 3,
+         "transit_us": 2133.1
+        },
+        {
+         "seq": 4147215935,
+         "app_seq": 6,
+         "transit_us": 60.1
+        },
+        {
+         "seq": 4147216032,
+         "app_seq": 9,
+         "transit_us": 1977.0
+        },
+        {
+         "seq": 4147216127,
+         "app_seq": 12,
+         "transit_us": 164.0
+        },
+        {
+         "seq": 4147216224,
+         "app_seq": 15,
+         "transit_us": 54.8
+        },
+        {
+         "seq": 4147216319,
+         "app_seq": 2,
+         "transit_us": 2227.1
+        },
+        {
+         "seq": 4147216416,
+         "app_seq": 5,
+         "transit_us": 54.1
+        },
+        {
+         "seq": 4147216511,
+         "app_seq": 8,
+         "transit_us": 71.0
+        },
+        {
+         "seq": 4147216608,
+         "app_seq": 11,
+         "transit_us": 1984.1
+        },
+        {
+         "seq": 4147216703,
+         "app_seq": 14,
+         "transit_us": 2044.9
+        },
+        {
+         "seq": 4147216800,
+         "app_seq": 1,
+         "transit_us": 66.0
+        },
+        {
+         "seq": 4147216895,
+         "app_seq": 4,
+         "transit_us": 1917.1
+        },
+        {
+         "seq": 4147217087,
+         "app_seq": 10,
+         "transit_us": 52.0
+        },
+        {
+         "seq": 4147217184,
+         "app_seq": 13,
+         "transit_us": 51.0
+        },
+        {
+         "seq": 4147217279,
+         "app_seq": 0,
+         "transit_us": 2148.2
+        },
+        {
+         "seq": 4147217376,
+         "app_seq": 3,
+         "transit_us": 1964.1
+        },
+        {
+         "seq": 4147217471,
+         "app_seq": 6,
+         "transit_us": 1887.1
+        },
+        {
+         "seq": 4147217568,
+         "app_seq": 9,
+         "transit_us": 2155.1
+        },
+        {
+         "seq": 4147217663,
+         "app_seq": 12,
+         "transit_us": 2012.0
+        },
+        {
+         "seq": 4147217760,
+         "app_seq": 15,
+         "transit_us": 82.0
+        }
+       ],
+       "sufficient": true,
+       "reasons": [
+        "minimum OPERATE transit 45.1 us below op_j 2400.0 us (59 below)"
+       ],
+       "pass": false,
+       "gated": false
+      },
+      "outcomes": {
+       "OUT_UNMATCHED": 0,
+       "OUT_HELD_REWAIT": 0,
+       "OUT_ACK_COMMIT": 0,
+       "OUT_RESP_RELEASE": 0,
+       "OUT_RESP_DUP_DROP": 0,
+       "OUT_OP_RELEASE": 0,
+       "OUT_TOKEN_STALE": 0,
+       "OUT_HELD_STALE_FLUSH": 0,
+       "OUT_ACK_FALLBACK": 0,
+       "OUT_RESP_FALLBACK": 0,
+       "OUT_TOKEN_TMO": 0,
+       "OUT_HELD_OFF_FLUSH": 0,
+       "OUT_TOKEN_OFF": 0,
+       "OUT_REQ_BYPASS": 0,
+       "index_14": 0,
+       "index_15": 0,
+       "STALE_BLOCKER": 0,
+       "RAW_OPERATE_TIMER_STALE": 0,
+       "RAW_READ_TIMER_STALE": 0,
+       "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 0,
+      "generation_exhausted": 0,
+      "pktgen": {
+       "READ": {
+        "triggers": 0,
+        "pkts": 0
+       },
+       "OPERATE": {
+        "triggers": 0,
+        "pkts": 0
+       }
+      },
+      "loop_octet_gap": {
+       "n_ack_return": 0,
+       "t_in": 0,
+       "hb_return": 0,
+       "held_return": 0
+      }
+     },
+     "qualification": {
+      "trial": "rejected"
+     },
+     "continuation": {
+      "purpose": "timing_precision_characterization",
+      "allowed": false,
+      "reason": "hard gate failure"
+     }
+    }
+   ],
+   "achieved_shaping": {
+    "ACK_BLOCK": {
+     "dev_port": 182,
+     "qid": 7,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "ACK_HOLD": {
+     "dev_port": 182,
+     "qid": 6,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "RESP_BLOCK": {
+     "dev_port": 182,
+     "qid": 5,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "RESP_HOLD": {
+     "dev_port": 182,
+     "qid": 4,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    },
+    "OP_BLOCK": {
+     "dev_port": 181,
+     "qid": 3,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 64
+    },
+    "OP_HOLD": {
+     "dev_port": 181,
+     "qid": 2,
+     "max_rate_enable": true,
+     "unit": "PPS",
+     "requested_pps": 59570,
+     "achieved_pps": 59570,
+     "max_burst_size": 1
+    }
+   }
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "rc01_hw_c25_20261022_01_reference_separate_ack_off_t0",
+   "fixture": "separate_ack",
+   "arm": "off",
+   "trial": 0,
+   "master_port": 60000,
+   "padding": 0,
+   "T": 0,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rc01_hw_c25_20261022_01_reference_separate_ack_off_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "rc01_hw_c25_20261022_01_reference_separate_ack_off_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c25_20261022_01_reference_separate_ack_off_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c25_20261022_01_reference_separate_ack_off_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c25_20261022_01_reference_separate_ack_off_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c25_20261022_01_reference_separate_ack_off_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c25_20261022_01_reference_separate_ack_off_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "74ce4da95f438dae5500fa055fcf939868cba9afd5d4ccb7e53f9363d233d75c",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "2ae2738a4b97f4e360e12d43a52624b7d0a3762bd5150a827675e26746dd0c78",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "55c37381a89cec90627d4a32b7118abc3f56586628d58d685488aabe96d13791",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "746073ad7433352d4f88072ab21baee6658b3b64a209cd9dac2898e478ec0c96",
+  "integration/core/response_only_rearm/hw/generation_headroom.py": "e2ef66698dce9a1c6ae2a9eace37bca1ac5fa5056e61afee23f7c62ae1fb8c2c"
+ },
+ "endpoint_observed": {
+  "binary_sha256": "fdddba4f0b8580917d4c3106d1a26c0a5a6097cf09c58b30a77d84f768c458de",
+  "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+  "binary_path": "/home/decps/pad58b_repeat_sbo_20261014c/case4_socket_gate_read_schedule",
+  "lib_path": "/home/decps/pad58b_repeat_sbo_20261014c/lib",
+  "vision_helper_sha256": {
+   "vision_run.py": "c7d1f050d34d837560591b574c4df8f6e38998fa14b5f9aa1f375e15c96f2506",
+   "loss.py": "e6d2c19a75d6abc3010ca63bc7e4db3e845cfeff57fa1e6ddd84328d9924ff49",
+   "capture_observation.py": "c5a148ae148ba3fad95c6eb3653423002809734421fbdc2a39e22c08eb01eabf",
+   "wire_check.py": "d9bb1be873e1dbd1c8257341130ce662f5e262b005d1d3578a5484ffa87b55c8"
+  },
+  "vision_run_sha256": "c7d1f050d34d837560591b574c4df8f6e38998fa14b5f9aa1f375e15c96f2506",
+  "loss_sha256": "e6d2c19a75d6abc3010ca63bc7e4db3e845cfeff57fa1e6ddd84328d9924ff49"
+ },
+ "candidate_profile_identity": {
+  "m12p_c25": {
+   "profile/response_only.p4": "61f9af0fa141a1b4d0a93938893119909e792c1e98e1665156e0011969aadc07",
+   "profile/response_only.inputs.json": "3611a268a07eff5435d5c9d222bd439bd8c903348318ce3a6a7dcb78a3faf6b5",
+   "profile/supported_profile.json": "0512da0d3f3ccbae7c86945bc22bbf5f3038e0b1022ba942297e70b3e1c0a144",
+   "profile/compile_switch_9132/manifest.json": "fe316c39fae8ba48d5c81a4b942f3e3832f4c02be5bbe282a7b8c8df7a9a4245"
+  }
+ },
+ "pre_run_program": "case4_response_path",
+ "generation_headroom": [
+  {
+   "label": "rc01_hw_c25_20261022_01_reference_separate_ack_off_t0",
+   "ok": true,
+   "reserve": {
+    "operate": 18,
+    "read": 18
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65516,
+    "read": 65516
+   },
+   "dry_run": false,
+   "error": null
+  }
+ ],
+ "effective": {
+  "timing_params_ns": {
+   "cap": 40000000,
+   "da": 2000000,
+   "gap": 950000,
+   "op_j": 2400000,
+   "pb": 4000000,
+   "readiness": 30000000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "op": 59570,
+    "resp": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "op": 59570,
+    "resp": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "delay_ms": 5,
+   "jitter_ms": 0,
+   "modes": [
+    "separate_ack"
+   ],
+   "note": "Two workloads, run and reported separately. separate_ack = vision_run.py casea on --delay-ms delay_ms (emulated relay: a separate ACK, then a delayed response, as the SEL-751 does). piggyback = casea off (the endpoint's natural ~0.3 ms response with the ACK on the response). readiness must exceed delay_ms + readiness_margin_ms or the delayed child response misses the readiness deadline (audit defect D); that is a warning. jitter is not implemented by vision_run.py, so any non-zero jitter_ms is rejected.",
+   "readiness_margin_ms": 5
+  },
+  "trials": {
+   "reads_per_trial": 65,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "close_grace_ms": 0,
+   "db": "base",
+   "expected_reads_per_class": {
+    "integrity": 32,
+    "mixed": 33
+   },
+   "gap_ms": 0,
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "master_port_range": {
+    "first": 60000,
+    "last": 60003
+   },
+   "range": 8,
+   "read_pause_ms": 25,
+   "read_schedule": "mixed_full",
+   "read_schedule_note": "mixed_full on the base database: mixed 91 -> 141, full 247 -> 271 on a padded arm (native on an off arm). Expected per connection of 65 READs: 33 mixed, 32 integrity, 64 SELECT/OPERATE cycles, every READ after the first following a cycle.",
+   "run_sbo": true,
+   "sbo_cycles": 64,
+   "start_delay_ms": 50,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately."
+  },
+  "ports_map": {
+   "hb_return": 181,
+   "held_return": 182,
+   "master_dev": 9,
+   "n_ack_return": 48,
+   "recirc": 68,
+   "relay_dev": 9,
+   "stat_ports": "9,64",
+   "t_in": 180
+  },
+  "endpoints": {
+   "link_note": "read_dst 0x0a00 (outstation 10), read_src 0x0100 (master 1), wire byte order",
+   "master_ip": "192.168.10.61",
+   "outstation_ip": "192.168.10.62",
+   "outstation_port": 20000,
+   "read_dst": 2560,
+   "read_src": 256
+  },
+  "evaluation": {
+   "purpose": "timing_precision_characterization",
+   "read_precision": true,
+   "arm_order": [
+    "off",
+    "timing_only",
+    "size_only",
+    "combined"
+   ],
+   "block": 1,
+   "campaign_block": {
+    "arguments": [],
+    "arms": [
+     "off",
+     "timing_only",
+     "size_only",
+     "combined"
+    ],
+    "collection_index": 5,
+    "expected_exchanges": 772,
+    "id": "rc01_m12p_c25_reference",
+    "phase": "reference",
+    "template": "eval_m11_09_20261018_01_reference.json",
+    "tool": "candidate_campaign"
+   },
+   "candidate61_label": "m11_09_part2_ref_r30",
+   "collection_order_sha256": "b91d208078dda7b5053747cce4e3d913259846a1fdbd4370ef7736e86fea36f7"
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "m12p_c25": 0
+  },
+  "endpoint_identity": {
+   "_lib_note": "lib_sha256 is the sha256 of the sorted `sha256sum` listing of every file under lib/",
+   "_pin_with": "sha256sum case4_socket_gate_read_schedule; sorted sha256sum listing hash under lib/",
+   "_pinned": "repeat_sbo_endpoint READ-schedule fork, two-READ build (mixed class; mixed_full/mixed/full; strict CASE4_PAD_EXPECT; unset controls = the pad58b wire bytes); software handler only.",
+   "binary": "case4_socket_gate_read_schedule",
+   "binary_sha256": "fdddba4f0b8580917d4c3106d1a26c0a5a6097cf09c58b30a77d84f768c458de",
+   "build_recipe": "integration/evidence/rearm_01/repeat_sbo_endpoint/build_endpoint.py",
+   "lib_sha256": "a5f744c0ce17fa8674e46b9c9bd374c224e57900dfa5c3adafc08dd1c9123cba",
+   "opendnp3_commit": "4648fcb898456d1cb70b5baecc38cc256c859c2e",
+   "source_files": {
+    "DecoyGateCommandHandler.h": "e1070d8de2e60fac3eb6e4e640eeed9bf857531f819732ac680f54407923d2d2",
+    "SocketGateReadSchedule.cpp": "43c628c4802b462a347cbf8ceb0b164ee2f5d4181142b7924ce4c3ef1ecc1c97"
+   },
+   "source_sha256": "43c628c4802b462a347cbf8ceb0b164ee2f5d4181142b7924ce4c3ef1ecc1c97"
+  },
+  "vision_run_dir": "/home/decps/pad58b_repeat_sbo_20261014c"
+ },
+ "config_sha256": "9d313479cfdd04f6015c19c4dab2080e8478c97667b4b5706e83e65392560001",
+ "config_file_sha256": "114c9009359e32ac1348b27b5c724fcbd1ef3a58a5930d0b4b87a216d3a942c9",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "de998f467babd85b7fb97fbed24135fc3bb3a9a74de295fe7214553da505ab3e",
+   "checks.py": "333708e14644c295492c5e98b849955bb54320bb110a45b0a4ebed97dad0984d",
+   "vision_run.py": "c7d1f050d34d837560591b574c4df8f6e38998fa14b5f9aa1f375e15c96f2506",
+   "clrt_check.py": "fa367b3d13e6d046169c35a162bb079bbad878f136c514dfdcce51c8067df5d7",
+   "wire_check.py": "d9bb1be873e1dbd1c8257341130ce662f5e262b005d1d3578a5484ffa87b55c8",
+   "hold_check.py": "5f27d05ae9bfe7a25a0fe9e65cc04906e46247856d4e759613c0db8e05267303",
+   "read_classes.py": "b62c4798fe35bd3115d8727e2b734f8233d23e0069138c5e39998e2e039cef31"
+  },
+  "build_sources": {
+   "m12p_c25": {
+    "source_sha256": "61f9af0fa141a1b4d0a93938893119909e792c1e98e1665156e0011969aadc07",
+    "source_files": {
+     "response_only.p4": "61f9af0fa141a1b4d0a93938893119909e792c1e98e1665156e0011969aadc07"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "m12p_c25": {
+   "bfrt.json": "f2d97261fc148b4da319cd88f0f47d662d6a91b7feb1582530bf11bca40b00e3",
+   "p0/tofino.bin": "738f276bf8dce8789a182884c5e3cd3a1a3036699c271056da163c63a1c2ec8a",
+   "p1/tofino.bin": "d8459c0ef08ab2aedb9f90a16fec09d84211bb3321b64768ff0bc65e42599ffd",
+   "p1/response_only.bfa": "14775e85144982ce2b45cb188233309068c8523d20cbf1deb4164f5376a4e7f7"
+  }
+ },
+ "paired_block": null,
+ "time": 1792701793.9931872,
+ "gate_ok": false
+}

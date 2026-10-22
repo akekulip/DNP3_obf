@@ -346,3 +346,13 @@ policy, reproduction and the completion record only.
     comparing every READ class to one length and are corrected, not just the two-READ ones.
   * reproduce.sh pins: c20 recomputes at c432d195e (passes); c12 at 83498d4c1, the last commit before c20 changed
     model_profile.py (378306a89 lacked c12's abort run; c432d195e fails on model_profile.py).
+- 2026-10-22 (M4 campaign 01). rc01_hw_c25_20261022_01 started detached (m11_09 control deliberately NOT run first:
+  the directive asks for it only if timing fails -- Philip questioned it; it runs only on a c25 timing failure).
+  Block 1 (reference) FAILED at its first trial, the OFF arm (padding and timing both off): piggyback fraction 0.262
+  outside [0, 0.05] for fixture separate_ack -- 17/65 READs (10 integrity, 7 mixed) piggybacked, 0/128 SBO.
+  restore_verify ok; campaign stopped itself; blocks 2-7 unexecuted. ROOT CAUSE (fixture, from the code + this
+  evidence): the separate-ACK fixture (vision_run.casea) delays outstation responses by a netem filter on IP total
+  length 89 (range READ) and 77 (SBO) only; the mixed (131) and full (287) READ responses left undelayed. Fix:
+  CASEA_DELAYED_IP_LEN covers every declared single-frame native READ (49/91/141/247) + 37, with a test. No switch
+  image is implicated (the failing arm had the switch's padding and timing off). Re-frozen (first freeze kept as
+  freeze_v3_campaign01_SUPERSEDED.json); campaign 02 under a new id.
