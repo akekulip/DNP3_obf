@@ -27,6 +27,8 @@ class FakeNic:
             if self.refuse:
                 return SimpleNamespace(returncode=1, stdout='', stderr='Operation not supported')
             args = dict(zip(cmd[3::2], cmd[4::2]))
+            if args.get('adaptive-rx') == 'on' and 'rx-usecs' in args:   # the i40e rejection seen on Vision
+                return SimpleNamespace(returncode=1, stdout='', stderr='netlink error: Invalid argument')
             self.adaptive = args.get('adaptive-rx', self.adaptive)
             self.usecs = int(args.get('rx-usecs', self.usecs))
             return SimpleNamespace(returncode=0, stdout='', stderr='')

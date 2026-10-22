@@ -153,10 +153,13 @@ def restore_rx_coalesce(path, interface=PARENT, run=sh):
         return []
     baseline = json.loads(path.read_text())
     errors = []
-    result = run(['ethtool', '-C', interface, 'adaptive-rx', baseline['adaptive_rx'], 'rx-usecs',
-                  str(baseline['rx_usecs'])])
-    if getattr(result, 'returncode', 0):
-        errors.append('ethtool -C restore rc %s: %s' % (result.returncode, getattr(result, 'stderr', '').strip()))
+    # two writes: i40e rejects rx-usecs in the same ethtool -C call that turns adaptive RX on ("netlink error:
+    # Invalid argument", rc01_hw_c25_20261022_04), so the static interval is set first with adaptive off, then the mode
+    for args in (['rx-usecs', str(baseline['rx_usecs'])], ['adaptive-rx', baseline['adaptive_rx']]):
+        result = run(['ethtool', '-C', interface] + args)
+        if getattr(result, 'returncode', 0):
+            errors.append('ethtool -C %s rc %s: %s' % (' '.join(args), result.returncode,
+                                                       getattr(result, 'stderr', '').strip()))
     try:
         after = snapshot_rx_coalesce(interface, run=run)
     except Exception as error:

@@ -368,3 +368,24 @@ policy, reproduction and the completion record only.
   needs command.log to end in a traceback or a REFUSED line; a freeze-check failure is not recognised. Flag LEFT SET,
   not edited. HARDWARE STOPPED pending Philip's decision (extend the no-contact classifier for guarded_block's
   freeze-check refusal, with tests, or another route).
+- 2026-10-22 (diagnostic campaigns 04/05). Reconcile extension for guarded_block's freeze refusal committed
+  (2c8a52a7b, reviewed); campaign 03's flag cleared on a fresh restore_verify. RX-coalescing diagnostic (f9952a881).
+  Campaign 04 = m11_09 control with Vision RX coalescing OFF (adaptive RX off, rx-usecs 0):
+  * Idle dependence UNCHANGED with coalescing off: off-arm request transit 53 us after <0.5 ms idle vs 1503 us after
+    >=2 ms idle (c25 campaign 02, baseline coalescing: 59 vs 1666); response transit corr 0.75. RX interrupt
+    moderation is RULED OUT as the shared delay's cause; CPU idle states etc. remain untested (not authorized).
+  * m11_09 timing_only CLRT p50 2234 / p99 2874 us = c25 timing_only 2238 / 2835-2963: the shared degradation
+    reproduces on the control at the same magnitude; no c25-specific timing error is visible in this comparison
+    (timing_only arm; control measured with coalescing off, c25 without).
+  * m11_09 size_only FAILED: the switch never forwarded the master's handshake ACK or any READ request (out.pcap has
+    them, in.pcap only the SYN and the outstation's SYN-ACK retransmissions); passed on 2026-10-21. Unexplained,
+    m11_09-control fault, not c25.
+  * MY DEFECT: vision_run.py restore could not revert the NIC -- one `ethtool -C adaptive-rx on rx-usecs 50` call is
+    rejected by i40e ("netlink error: Invalid argument"). The restore failed loudly and kept its baseline;
+    restore_verify check 6 caught the NIC (adaptive off, 0) and the supervisor set unsafe_restoration; campaign 05
+    (c25 combined + diagnostic) correctly did not start. Fixed: two-step restore (rx-usecs, then adaptive-rx) with a
+    test reproducing the rejection; Vision restored with the fixed function against the recorded baseline: adaptive
+    RX on, rx-usecs 50, TX unchanged, baseline removed after read-back.
+  * Reconcile of campaign 04 REFUSED: every fresh check passes (program, snapshot, Vision state, ping, RX
+    coalescing) but check 1 reads the block's historical runner record, whose Vision restore step truthfully failed.
+    Flag LEFT SET (not edited). Hardware stopped pending Philip.

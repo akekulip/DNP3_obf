@@ -1,0 +1,354 @@
+{
+ "schema_version": "vision-exchanges-v2",
+ "sd_convention": "sd_population divides by n (statistics.pstdev); sd_sample divides by n-1 (statistics.stdev). Both are in the units of the statistic (microseconds); a single value reports 0.0 for both.",
+ "capture_sha256": {
+  "out": "5f063c59eccd34c5e333c2cc23d3f10a25566c775aaa9cd56b09a0a7a222573d",
+  "in": "0b15947514e335552fe010f07131c90ca363d737bf09a0c046894852f32965ae"
+ },
+ "capture_availability": {
+  "out": {
+   "status": "observed",
+   "reason": null
+  },
+  "in": {
+   "status": "observed",
+   "reason": null
+  }
+ },
+ "extractor_sha256": "fa367b3d13e6d046169c35a162bb079bbad878f136c514dfdcce51c8067df5d7",
+ "extractor_sources_sha256": {
+  "clrt_check.py": "fa367b3d13e6d046169c35a162bb079bbad878f136c514dfdcce51c8067df5d7",
+  "wire_check.py": "d9bb1be873e1dbd1c8257341130ce662f5e262b005d1d3578a5484ffa87b55c8"
+ },
+ "note": "intervals are host-capture-point (same parent-NIC clock), not ASIC forwarding time; timestamps are integer microseconds at the capture resolution",
+ "summary": {
+  "READ": {
+   "logical_requests": 1,
+   "attempts": 5,
+   "retransmitted": 1,
+   "complete": 0,
+   "incomplete": 1,
+   "piggyback": 0,
+   "req_crc_bad": 0,
+   "resp_crc_bad": 0,
+   "resp_len": [],
+   "eligible_for_latency": 0,
+   "clrt_us": null,
+   "rt_us": null,
+   "ack_lat_us": null
+  },
+  "SELECT": {
+   "logical_requests": 1,
+   "attempts": 1,
+   "retransmitted": 0,
+   "complete": 0,
+   "incomplete": 1,
+   "piggyback": 0,
+   "req_crc_bad": 0,
+   "resp_crc_bad": 0,
+   "resp_len": [],
+   "eligible_for_latency": 0,
+   "clrt_us": null,
+   "rt_us": null,
+   "ack_lat_us": null
+  }
+ },
+ "exchanges": [
+  {
+   "kind": "READ",
+   "app_seq": 0,
+   "t_req": 1792704077622528,
+   "request_key": {
+    "flow": [
+     [
+      "192.168.10.61",
+      60002
+     ],
+     [
+      "192.168.10.62",
+      20000
+     ]
+    ],
+    "inc": 0,
+    "seq": 3709633274,
+    "func": 1
+   },
+   "exchange_id": "95902375180c8e36e63751d0596e1777749d277256eb3bf7dd19b73ae424756c",
+   "request_packet_index": 3,
+   "response_packet_index": null,
+   "attempts": 5,
+   "retransmitted": true,
+   "req_crc_ok": true,
+   "complete": false,
+   "piggyback": false,
+   "resp_crc_ok": null,
+   "resp_len": null,
+   "observation": {
+    "schema_version": "vision-exchanges-v2",
+    "clock": {
+     "clock_id": "vision-parent-nic",
+     "domain": "pcap_epoch",
+     "units": "ns",
+     "source": "paired tcpdump captures on the same Vision parent NIC",
+     "resolution_is_accuracy": false,
+     "accuracy_ns": null,
+     "timebase_verification": "declared_capture_contract_not_calibrated"
+    },
+    "request": {
+     "capture": "out",
+     "packet_index": 3,
+     "timestamp_ns": 1792704077622528000,
+     "timestamp_seconds": 1792704077,
+     "timestamp_fraction": 622528,
+     "capture_resolution": "us",
+     "direction": "M->O",
+     "tcp_payload_len": 20,
+     "tcp_payload_declared_len": 20,
+     "ip_len": 60,
+     "captured_len": 74,
+     "original_len": 74,
+     "frame_sha256": "12553dcd18f8e8440552828c75095e359250baa2d38608dd515ce03f4678d1a2"
+    },
+    "ack": null,
+    "response": null,
+    "request_delivered": null,
+    "response_available": null,
+    "response_content_correspondence": null,
+    "attempts": [
+     {
+      "capture": "out",
+      "packet_index": 3,
+      "timestamp_ns": 1792704077622528000,
+      "timestamp_seconds": 1792704077,
+      "timestamp_fraction": 622528,
+      "capture_resolution": "us",
+      "direction": "M->O",
+      "tcp_payload_len": 20,
+      "tcp_payload_declared_len": 20,
+      "ip_len": 60,
+      "captured_len": 74,
+      "original_len": 74,
+      "frame_sha256": "12553dcd18f8e8440552828c75095e359250baa2d38608dd515ce03f4678d1a2"
+     },
+     {
+      "capture": "out",
+      "packet_index": 4,
+      "timestamp_ns": 1792704077830216000,
+      "timestamp_seconds": 1792704077,
+      "timestamp_fraction": 830216,
+      "capture_resolution": "us",
+      "direction": "M->O",
+      "tcp_payload_len": 20,
+      "tcp_payload_declared_len": 20,
+      "ip_len": 60,
+      "captured_len": 74,
+      "original_len": 74,
+      "frame_sha256": "3831afb1b5f180eb53701a03fbd012a389b9a854c77b21b8989d772cd5c85208"
+     },
+     {
+      "capture": "out",
+      "packet_index": 5,
+      "timestamp_ns": 1792704078246206000,
+      "timestamp_seconds": 1792704078,
+      "timestamp_fraction": 246206,
+      "capture_resolution": "us",
+      "direction": "M->O",
+      "tcp_payload_len": 20,
+      "tcp_payload_declared_len": 20,
+      "ip_len": 60,
+      "captured_len": 74,
+      "original_len": 74,
+      "frame_sha256": "7333702b79274ab5e6981189f5e060e1e566f9e560950ee245744a5bc4240f4e"
+     },
+     {
+      "capture": "out",
+      "packet_index": 8,
+      "timestamp_ns": 1792704079126183000,
+      "timestamp_seconds": 1792704079,
+      "timestamp_fraction": 126183,
+      "capture_resolution": "us",
+      "direction": "M->O",
+      "tcp_payload_len": 20,
+      "tcp_payload_declared_len": 20,
+      "ip_len": 60,
+      "captured_len": 74,
+      "original_len": 74,
+      "frame_sha256": "b08ba5881505594ea0838b5fc796d290fe93ef5f0334dfea40923d054a0ba343"
+     },
+     {
+      "capture": "out",
+      "packet_index": 11,
+      "timestamp_ns": 1792704080790192000,
+      "timestamp_seconds": 1792704080,
+      "timestamp_fraction": 790192,
+      "capture_resolution": "us",
+      "direction": "M->O",
+      "tcp_payload_len": 20,
+      "tcp_payload_declared_len": 20,
+      "ip_len": 60,
+      "captured_len": 74,
+      "original_len": 74,
+      "frame_sha256": "02f9a64b159126f963046f65c0d27aa4dc94e368a03c871e58d1cb67c4261aa2"
+     }
+    ],
+    "metadata_window_end": "capture_end_incomplete"
+   },
+   "publication": {
+    "request_timestamp_ns": 1792704077622528000,
+    "publication_complete": false,
+    "publication_response_packet_index": null,
+    "ack_timestamp_ns": null,
+    "response_timestamp_ns": null,
+    "response_available_timestamp_ns": null,
+    "request_delivered_timestamp_ns": null,
+    "sequence": 3,
+    "observed_at_ms": 0.0,
+    "request_len": 20,
+    "response_len": null,
+    "ack_latency_ns": null,
+    "response_latency_ns": null,
+    "clrt_ns": null,
+    "response_availability_ns": null,
+    "request_delivery_ns": null,
+    "operate_hold_ns": null,
+    "out_request_packet_count": 8,
+    "out_response_packet_count": 2,
+    "out_payload_packet_count": 6,
+    "in_request_packet_count": 0,
+    "in_response_packet_count": 2,
+    "in_payload_packet_count": 0,
+    "null_reasons": {
+     "ack_latency_ns": "missing_covering_ack",
+     "response_latency_ns": "missing_response",
+     "clrt_ns": "missing_ack_or_response",
+     "response_availability_ns": "unpaired_or_missing_out_response",
+     "request_delivery_ns": "ambiguous_or_missing_request_reflection",
+     "operate_hold_ns": "not_operate",
+     "ack_timestamp_ns": "packet_not_observed_or_not_certainly_paired",
+     "response_timestamp_ns": "packet_not_observed_or_not_certainly_paired",
+     "response_available_timestamp_ns": "packet_not_observed_or_not_certainly_paired",
+     "request_delivered_timestamp_ns": "packet_not_observed_or_not_certainly_paired",
+     "response_len": "packet_not_observed_or_not_certainly_paired"
+    }
+   }
+  },
+  {
+   "kind": "SELECT",
+   "app_seq": 1,
+   "t_req": 1792704081150541,
+   "request_key": {
+    "flow": [
+     [
+      "192.168.10.61",
+      60002
+     ],
+     [
+      "192.168.10.62",
+      20000
+     ]
+    ],
+    "inc": 0,
+    "seq": 3709633294,
+    "func": 3
+   },
+   "exchange_id": "35b6cfcb1e33c4972b955b3dea48149f03aa11c3c9e684981899cad966ececae",
+   "request_packet_index": 12,
+   "response_packet_index": null,
+   "attempts": 1,
+   "retransmitted": false,
+   "req_crc_ok": true,
+   "complete": false,
+   "piggyback": false,
+   "resp_crc_ok": null,
+   "resp_len": null,
+   "observation": {
+    "schema_version": "vision-exchanges-v2",
+    "clock": {
+     "clock_id": "vision-parent-nic",
+     "domain": "pcap_epoch",
+     "units": "ns",
+     "source": "paired tcpdump captures on the same Vision parent NIC",
+     "resolution_is_accuracy": false,
+     "accuracy_ns": null,
+     "timebase_verification": "declared_capture_contract_not_calibrated"
+    },
+    "request": {
+     "capture": "out",
+     "packet_index": 12,
+     "timestamp_ns": 1792704081150541000,
+     "timestamp_seconds": 1792704081,
+     "timestamp_fraction": 150541,
+     "capture_resolution": "us",
+     "direction": "M->O",
+     "tcp_payload_len": 35,
+     "tcp_payload_declared_len": 35,
+     "ip_len": 75,
+     "captured_len": 89,
+     "original_len": 89,
+     "frame_sha256": "3e995c164d7e9f3ea8535efe524cf42bbfc96824722fde591217dd61f0bdabc8"
+    },
+    "ack": null,
+    "response": null,
+    "request_delivered": null,
+    "response_available": null,
+    "response_content_correspondence": null,
+    "attempts": [
+     {
+      "capture": "out",
+      "packet_index": 12,
+      "timestamp_ns": 1792704081150541000,
+      "timestamp_seconds": 1792704081,
+      "timestamp_fraction": 150541,
+      "capture_resolution": "us",
+      "direction": "M->O",
+      "tcp_payload_len": 35,
+      "tcp_payload_declared_len": 35,
+      "ip_len": 75,
+      "captured_len": 89,
+      "original_len": 89,
+      "frame_sha256": "3e995c164d7e9f3ea8535efe524cf42bbfc96824722fde591217dd61f0bdabc8"
+     }
+    ],
+    "metadata_window_end": "capture_end_incomplete"
+   },
+   "publication": {
+    "request_timestamp_ns": 1792704081150541000,
+    "publication_complete": false,
+    "publication_response_packet_index": null,
+    "ack_timestamp_ns": null,
+    "response_timestamp_ns": null,
+    "response_available_timestamp_ns": null,
+    "request_delivered_timestamp_ns": null,
+    "sequence": 12,
+    "observed_at_ms": 3528.013,
+    "request_len": 35,
+    "response_len": null,
+    "ack_latency_ns": null,
+    "response_latency_ns": null,
+    "clrt_ns": null,
+    "response_availability_ns": null,
+    "request_delivery_ns": null,
+    "operate_hold_ns": null,
+    "out_request_packet_count": 1,
+    "out_response_packet_count": 0,
+    "out_payload_packet_count": 1,
+    "in_request_packet_count": 0,
+    "in_response_packet_count": 0,
+    "in_payload_packet_count": 0,
+    "null_reasons": {
+     "ack_latency_ns": "missing_covering_ack",
+     "response_latency_ns": "missing_response",
+     "clrt_ns": "missing_ack_or_response",
+     "response_availability_ns": "unpaired_or_missing_out_response",
+     "request_delivery_ns": "ambiguous_or_missing_request_reflection",
+     "operate_hold_ns": "not_operate",
+     "ack_timestamp_ns": "packet_not_observed_or_not_certainly_paired",
+     "response_timestamp_ns": "packet_not_observed_or_not_certainly_paired",
+     "response_available_timestamp_ns": "packet_not_observed_or_not_certainly_paired",
+     "request_delivered_timestamp_ns": "packet_not_observed_or_not_certainly_paired",
+     "response_len": "packet_not_observed_or_not_certainly_paired"
+    }
+   }
+  }
+ ]
+}

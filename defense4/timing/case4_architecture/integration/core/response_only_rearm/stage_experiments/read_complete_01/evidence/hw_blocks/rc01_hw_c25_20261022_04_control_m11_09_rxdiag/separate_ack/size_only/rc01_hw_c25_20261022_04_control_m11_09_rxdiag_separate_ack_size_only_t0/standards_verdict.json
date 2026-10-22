@@ -1,0 +1,107 @@
+{
+ "ok": false,
+ "failures": [
+  "observed.checker_result.conformant is False, expected True",
+  "observed.failures is non-empty: ['endpoint returned nonzero (vision_rc=1)', 'endpoint run not ok (master_rc=3)', 'master did not succeed', 'master reports READ values that do not match the seed', 'master completed 0 of 65 READs, expected 65', 'READs did not return all 23 seed values', 'master did not report 64 SBO cycle records (sbo_cycles=64, records=1)', \"SBO cycle 0: {'ok': False, 'status': 127, 'read_matches_seed': False} (expected {'ok': True, 'status': 0, 'read_matches_seed': True})\", 'outstation wired_point_operates=0, expected 64', 'outstation callbacks are not one SELECT then one OPERATE per cycle (0 events)', 'outstation select_real=0, expected exactly 64 real SELECT', 'outstation operate_real=0, expected exactly 64 real OPERATE', 'timing: READ complete=0 incomplete=1 logical=1, expected 65 complete exchanges', 'READ response length [] on the master side, expected [61] (padding 1)', 'timing: SELECT complete=0 incomplete=1 logical=1, expected 64 complete exchanges', 'SELECT response length [] on the master side, expected [61] (padding 1)', 'timing: no OPERATE exchange extracted']",
+  "observed.select_authorizes_operate is False, expected True",
+  "observed.operate_success is False, expected True",
+  "observed.aggregate_verdict is False, expected True",
+  "observed.exchanges.READ count/complete mismatch: expected 65, got count=1 complete=0",
+  "observed.exchanges.READ resp_len mismatch: expected [61], got []",
+  "observed.exchanges.SELECT count/complete mismatch: expected 64, got count=1 complete=0",
+  "observed.exchanges.SELECT resp_len mismatch: expected [61], got []",
+  "observed.exchanges missing OPERATE",
+  "packet_boundary: checker transformed response count 0, expected 193",
+  "packet_boundary: physical incoming capture has no protected response payload evidence"
+ ],
+ "expected": {
+  "counts": {
+   "READ": 65,
+   "SELECT": 64,
+   "OPERATE": 64
+  },
+  "lengths": {
+   "READ": [
+    61
+   ],
+   "SELECT": [
+    61
+   ],
+   "OPERATE": [
+    61
+   ]
+  }
+ },
+ "capture_hashes": {
+  "calibration_expected": {
+   "sha256": "d64995407318417e6d95c47c688a7b13b892e7f86ae3382a6200f2ba9c88ac57"
+  },
+  "calibration_in": {
+   "sha256": "6008b86d109e8b821dab13a9adb859efd9572a623a276ab4b42bffc672c484a9"
+  },
+  "calibration_out": {
+   "sha256": "fa826a6d41e4aeaff7ee52f0c8b9e452cf2edccdeb144e423f5380a65343158f"
+  },
+  "calibration_result": {
+   "sha256": "677b6d1ceb7f984634414fde32673acdaa840cf7532e969d6be67ad13621cc88"
+  },
+  "capture_offloads": {
+   "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+  },
+  "hold": {
+   "sha256": "c007e96ac73703127bb0086f613490add92006c46c664ba4bd022b1e766b46ec"
+  },
+  "in": {
+   "sha256": "0b15947514e335552fe010f07131c90ca363d737bf09a0c046894852f32965ae"
+  },
+  "out": {
+   "sha256": "5f063c59eccd34c5e333c2cc23d3f10a25566c775aaa9cd56b09a0a7a222573d"
+  },
+  "run_result": {
+   "sha256": "55fbfe56849241bcee7ad4d46ea835e0e6efe39387479952af95dbae386fc48a"
+  }
+ },
+ "precision": {
+  "required": false,
+  "status": "not_applicable",
+  "reasons": [
+   "arm size_only has no timing target (T=0)"
+  ],
+  "evidence": {
+   "gap_us": 950.0,
+   "read_rows": 1,
+   "eligible": 0,
+   "excluded": {
+    "incomplete": 1,
+    "piggyback": 0,
+    "multiple_attempts": 0,
+    "missing_clrt": 0
+   },
+   "minimum_eligible": 20,
+   "maximum_p99_absolute_error_us": 100,
+   "absolute_error_us": null,
+   "signed_error_us": null,
+   "tails": [],
+   "pass": false,
+   "p99_nearest_rank_abs_error_us": null,
+   "gated": false
+  }
+ },
+ "objectives": {
+  "select_precision": "not_applicable",
+  "operate_precision": "not_applicable",
+  "piggyback_latency": "not_applicable",
+  "operate_hold": "not_applicable"
+ },
+ "qualification": "rejected",
+ "profile": {
+  "ok": false,
+  "failures": [
+   "profile not conformant: ['capture unreadable: expected one native response and one request stream, found 0/1']",
+   "result.expected_lengths mismatch: expected {'READ': [61], 'SELECT': [61], 'OPERATE': [61]}, got None",
+   "result.counts mismatch: expected {'READ': 65, 'SELECT': 64, 'OPERATE': 64}, got None",
+   "result.master_port mismatch: expected 60002, got None",
+   "profile attempts/responses malformed: 0/0"
+  ]
+ }
+}

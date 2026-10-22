@@ -1,0 +1,61 @@
+{
+ "schema_version": "dnp3-profile-v1",
+ "run": {
+  "run_id": "rc01_hw_c25_20261022_04_control_m11_09_rxdiag",
+  "trial": "rc01_hw_c25_20261022_04_control_m11_09_rxdiag_separate_ack_size_only_t0",
+  "connection": "primary",
+  "arm": "size_only"
+ },
+ "identity": {
+  "candidate_source_sha256": "f1de2b30e9f00fb93b20df51c3ddfafd3fcfd18e9b6dfcaadd62146dddbe5af8",
+  "build": "ctl_timing_m11_09",
+  "build_hashes": {
+   "bfrt.json": "9cdfa698b0477f2c33b739ff6cd43d18b9e78c94aafee2b72cd182e0a7fc5da2",
+   "p0/tofino.bin": "54aadce15a773655ea3fe7ad0a069122ef1e2b7f211e26cc344e32b13142b34e",
+   "p1/tofino.bin": "855dd8079880c4ad4ff27a889602da9405288e3da8670876eb507b74d467ae53",
+   "p1/response_only.bfa": "6969d8cddcd71834bda3a5269a470bca847f557347de57af0df1a92600174ae9"
+  },
+  "profile": "candidate61",
+  "profile_hash": "1feba2519601d97c08fa5b34e1cccb25777b28554283e2784201fff6e2d2fc2c",
+  "effective_config_sha256": "3640979f04e2db8ecb66c59cfc483ec7230a8b5aaa91f49db909d787a1d47c92"
+ },
+ "expected": {
+  "counts": {
+   "READ": 65,
+   "SELECT": 64,
+   "OPERATE": 64
+  },
+  "lengths": {
+   "READ": [
+    61
+   ],
+   "SELECT": [
+    61
+   ],
+   "OPERATE": [
+    61
+   ]
+  }
+ },
+ "checker": {
+  "profile_check_sha256": "a3473321dd0333836e82fe74823e06402ed976afea2d62fdc33c06b97cd17bda"
+ },
+ "captures": {
+  "in": {
+   "sha256": "0b15947514e335552fe010f07131c90ca363d737bf09a0c046894852f32965ae"
+  },
+  "out": {
+   "sha256": "5f063c59eccd34c5e333c2cc23d3f10a25566c775aaa9cd56b09a0a7a222573d"
+  }
+ },
+ "result": {
+  "profile": "candidate61",
+  "conformant": false,
+  "failures": [
+   "capture unreadable: expected one native response and one request stream, found 0/1"
+  ],
+  "verdicts": [],
+  "responses": 0,
+  "attempts": 0
+ }
+}

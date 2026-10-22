@@ -1,0 +1,304 @@
+{
+ "schema_version": "dnp3-standards-v3",
+ "run": {
+  "run_id": "rc01_hw_c25_20261022_04_control_m11_09_rxdiag",
+  "trial": "rc01_hw_c25_20261022_04_control_m11_09_rxdiag_separate_ack_size_only_t0",
+  "connection": "primary",
+  "arm": "size_only"
+ },
+ "identity": {
+  "candidate_source_sha256": "f1de2b30e9f00fb93b20df51c3ddfafd3fcfd18e9b6dfcaadd62146dddbe5af8",
+  "build": "ctl_timing_m11_09",
+  "build_hashes": {
+   "bfrt.json": "9cdfa698b0477f2c33b739ff6cd43d18b9e78c94aafee2b72cd182e0a7fc5da2",
+   "p0/tofino.bin": "54aadce15a773655ea3fe7ad0a069122ef1e2b7f211e26cc344e32b13142b34e",
+   "p1/tofino.bin": "855dd8079880c4ad4ff27a889602da9405288e3da8670876eb507b74d467ae53",
+   "p1/response_only.bfa": "6969d8cddcd71834bda3a5269a470bca847f557347de57af0df1a92600174ae9"
+  },
+  "profile": "candidate61",
+  "profile_hash": "1feba2519601d97c08fa5b34e1cccb25777b28554283e2784201fff6e2d2fc2c",
+  "effective_config_sha256": "3640979f04e2db8ecb66c59cfc483ec7230a8b5aaa91f49db909d787a1d47c92"
+ },
+ "checker": {
+  "version": "640e0d1c0bd11376b72b0bad19866be1d86b9b62cf352eef72fd0552fec82edf",
+  "dependency_closure_sha256": "640e0d1c0bd11376b72b0bad19866be1d86b9b62cf352eef72fd0552fec82edf"
+ },
+ "expected": {
+  "counts": {
+   "READ": 65,
+   "SELECT": 64,
+   "OPERATE": 64
+  },
+  "lengths": {
+   "READ": [
+    61
+   ],
+   "SELECT": [
+    61
+   ],
+   "OPERATE": [
+    61
+   ]
+  }
+ },
+ "captures": {
+  "calibration_expected": {
+   "sha256": "d64995407318417e6d95c47c688a7b13b892e7f86ae3382a6200f2ba9c88ac57"
+  },
+  "calibration_in": {
+   "sha256": "6008b86d109e8b821dab13a9adb859efd9572a623a276ab4b42bffc672c484a9"
+  },
+  "calibration_out": {
+   "sha256": "fa826a6d41e4aeaff7ee52f0c8b9e452cf2edccdeb144e423f5380a65343158f"
+  },
+  "calibration_result": {
+   "sha256": "677b6d1ceb7f984634414fde32673acdaa840cf7532e969d6be67ad13621cc88"
+  },
+  "capture_offloads": {
+   "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+  },
+  "hold": {
+   "sha256": "c007e96ac73703127bb0086f613490add92006c46c664ba4bd022b1e766b46ec"
+  },
+  "in": {
+   "sha256": "0b15947514e335552fe010f07131c90ca363d737bf09a0c046894852f32965ae"
+  },
+  "out": {
+   "sha256": "5f063c59eccd34c5e333c2cc23d3f10a25566c775aaa9cd56b09a0a7a222573d"
+  },
+  "run_result": {
+   "sha256": "55fbfe56849241bcee7ad4d46ea835e0e6efe39387479952af95dbae386fc48a"
+  }
+ },
+ "observed": {
+  "checker_result": {
+   "run_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c25_20261022_04_control_m11_09_rxdiag/separate_ack/size_only/rc01_hw_c25_20261022_04_control_m11_09_rxdiag_separate_ack_size_only_t0",
+   "master_port": 60002,
+   "responses": 0,
+   "verdicts": [],
+   "failures": [
+    "missing wire request for stream ((b'\\xc0\\xa8\\n>', 20000), (b'\\xc0\\xa8\\n=', 60002), 0)"
+   ],
+   "conformant": false,
+   "require_handshake": true,
+   "outstation_port": 20000,
+   "expected_lengths": {
+    "READ": [
+     61
+    ],
+    "SELECT": [
+     61
+    ],
+    "OPERATE": [
+     61
+    ]
+   },
+   "expected_counts": {
+    "READ": 65,
+    "SELECT": 64,
+    "OPERATE": 64
+   },
+   "raw_result": {
+    "run_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c25_20261022_04_control_m11_09_rxdiag/separate_ack/size_only/rc01_hw_c25_20261022_04_control_m11_09_rxdiag_separate_ack_size_only_t0",
+    "master_port": 60002,
+    "responses": 0,
+    "verdicts": [],
+    "failures": [
+     "missing wire request for stream ((b'\\xc0\\xa8\\n>', 20000), (b'\\xc0\\xa8\\n=', 60002), 0)"
+    ],
+    "conformant": false
+   },
+   "result_sha256": "af3d98f71dafc50340b3e453fa09c762ef661b6fb8232f652d4bdef81d05cd4d"
+  },
+  "exchanges": [
+   {
+    "kind": "READ",
+    "count": 1,
+    "resp_len": [],
+    "complete": 0,
+    "failures": []
+   },
+   {
+    "kind": "SELECT",
+    "count": 1,
+    "resp_len": [],
+    "complete": 0,
+    "failures": []
+   }
+  ],
+  "failures": [
+   "endpoint returned nonzero (vision_rc=1)",
+   "endpoint run not ok (master_rc=3)",
+   "master did not succeed",
+   "master reports READ values that do not match the seed",
+   "master completed 0 of 65 READs, expected 65",
+   "READs did not return all 23 seed values",
+   "master did not report 64 SBO cycle records (sbo_cycles=64, records=1)",
+   "SBO cycle 0: {'ok': False, 'status': 127, 'read_matches_seed': False} (expected {'ok': True, 'status': 0, 'read_matches_seed': True})",
+   "outstation wired_point_operates=0, expected 64",
+   "outstation callbacks are not one SELECT then one OPERATE per cycle (0 events)",
+   "outstation select_real=0, expected exactly 64 real SELECT",
+   "outstation operate_real=0, expected exactly 64 real OPERATE",
+   "timing: READ complete=0 incomplete=1 logical=1, expected 65 complete exchanges",
+   "READ response length [] on the master side, expected [61] (padding 1)",
+   "timing: SELECT complete=0 incomplete=1 logical=1, expected 64 complete exchanges",
+   "SELECT response length [] on the master side, expected [61] (padding 1)",
+   "timing: no OPERATE exchange extracted"
+  ],
+  "transport_ok": true,
+  "select_authorizes_operate": false,
+  "operate_success": false,
+  "aggregate_verdict": false,
+  "precision": {
+   "required": false,
+   "status": "not_applicable",
+   "reasons": [
+    "arm size_only has no timing target (T=0)"
+   ],
+   "evidence": {
+    "gap_us": 950.0,
+    "read_rows": 1,
+    "eligible": 0,
+    "excluded": {
+     "incomplete": 1,
+     "piggyback": 0,
+     "multiple_attempts": 0,
+     "missing_clrt": 0
+    },
+    "minimum_eligible": 20,
+    "maximum_p99_absolute_error_us": 100,
+    "absolute_error_us": null,
+    "signed_error_us": null,
+    "tails": [],
+    "pass": false,
+    "p99_nearest_rank_abs_error_us": null,
+    "gated": false
+   }
+  },
+  "objectives": {
+   "select_precision": {
+    "required": false,
+    "status": "not_applicable",
+    "exempted": false,
+    "reasons": [
+     "arm size_only has no timing target (T=0)"
+    ],
+    "evidence": {
+     "kind": "SELECT",
+     "gap_us": 950.0,
+     "rows": 1,
+     "eligible": 0,
+     "excluded": {
+      "incomplete": 1,
+      "piggyback": 0,
+      "multiple_attempts": 0,
+      "missing_clrt": 0
+     },
+     "minimum_eligible": 20,
+     "maximum_p99_absolute_error_us": 100,
+     "p99": null,
+     "p99_convention": "nearest rank: ceil(0.99 n)-th smallest absolute error",
+     "absolute_error_us": null,
+     "signed_error_us": null,
+     "stats_convention": "absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), reported only; the gate is p99",
+     "max_absolute_error_us": null,
+     "tails": [],
+     "over_bound": [],
+     "sufficient": false,
+     "pass": false,
+     "gated": false
+    }
+   },
+   "operate_precision": {
+    "required": false,
+    "status": "not_applicable",
+    "exempted": false,
+    "reasons": [
+     "arm size_only has no timing target (T=0)"
+    ],
+    "evidence": {
+     "kind": "OPERATE",
+     "gap_us": 950.0,
+     "rows": 0,
+     "eligible": 0,
+     "excluded": {
+      "incomplete": 0,
+      "piggyback": 0,
+      "multiple_attempts": 0,
+      "missing_clrt": 0
+     },
+     "minimum_eligible": 20,
+     "maximum_p99_absolute_error_us": 100,
+     "p99": null,
+     "p99_convention": "nearest rank: ceil(0.99 n)-th smallest absolute error",
+     "absolute_error_us": null,
+     "signed_error_us": null,
+     "stats_convention": "absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), reported only; the gate is p99",
+     "max_absolute_error_us": null,
+     "tails": [],
+     "over_bound": [],
+     "sufficient": false,
+     "pass": false,
+     "gated": false
+    }
+   },
+   "piggyback_latency": {
+    "required": false,
+    "status": "not_applicable",
+    "exempted": false,
+    "reasons": [
+     "arm size_only has no timing target (T=0)"
+    ],
+    "evidence": {
+     "pb_us": 4000.0,
+     "margin_us": 250,
+     "target_us": 4250.0,
+     "n": 0,
+     "missing_rt": 0,
+     "minimum_samples": 20,
+     "p50": null,
+     "p99": null,
+     "p99_convention": "nearest rank: ceil(0.99 n)-th smallest rt_us",
+     "max": null,
+     "rt_us_stats_round_index": null,
+     "above_target": [],
+     "sufficient": false,
+     "reasons": [
+      "insufficient piggyback samples: 0 < 20"
+     ],
+     "note": "provisional objective: nearest-rank p99 of request-to-response (rt_us, master request on out.pcap to response on in.pcap, the same Vision NIC clock) over piggybacked exchanges <= pb + margin; up to 1% of samples may exceed it, so it is not a maximum guarantee. Response availability at the outstation is not observed by this verdict.",
+     "pass": false,
+     "gated": false
+    }
+   },
+   "operate_hold": {
+    "required": false,
+    "status": "not_applicable",
+    "exempted": false,
+    "reasons": [
+     "arm size_only has no timing target (T=0)"
+    ],
+    "evidence": {
+     "op_j_us": 2400.0,
+     "observation": {
+      "tx": "out.pcap master-side tap",
+      "rx": "in.pcap outstation-side tap",
+      "includes": "path and capture delay; not an ASIC residency timestamp"
+     },
+     "sent": 0,
+     "observed": 0,
+     "complete_operates": null,
+     "expected_operates": 64,
+     "min_transit_us": null,
+     "below_op_j": [],
+     "sufficient": false,
+     "reasons": [
+      "0 OPERATEs sent on the master-side capture, expected 64"
+     ],
+     "pass": false,
+     "gated": false
+    }
+   }
+  }
+ }
+}
