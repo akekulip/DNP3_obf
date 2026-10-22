@@ -163,9 +163,13 @@ def validate_read_classes(cfg):
         presets = cfg.get('loss', {}).get('presets')
         if name is not None and presets:
             # A READ-class schedule with a loss preset is allowed only for a single-frame READ-response selector
-            # whose length exists as one link frame on this database. The 247-byte selector (read_resp_247) covers
-            # base class0/integrity without distinguishing them; on the large database those classes are segmented
-            # (292 + 85), so no 247-byte single-frame response exists and read_resp_247 is refused (NOT_EXERCISED).
+            # whose length exists as one link frame on this database. Both selectors are LENGTH-LEVEL: read_resp_247
+            # covers base class0/integrity (both 247 B) without distinguishing them, and read_resp_analog targets a
+            # 141-byte response without claiming analog -- in this mixed (rotate4) schedule a 141-byte drop may be a
+            # padded range response, not analog, so the drop is length_only (loss.LENGTH_ONLY). Class-SPECIFIC analog
+            # recovery is not available from a length selector here; it needs a single-class workload (candidate_series
+            # series_read_class). On the large database class0/integrity are segmented (292 + 85), so no 247-byte
+            # single-frame response exists and read_resp_247 is refused (NOT_EXERCISED).
             single_frame = {sum(segs) for segs in read_classes.NATIVE_SEGMENTS.get(db, {}).values() if len(segs) == 1}
             for pname, entries in presets.items():
                 for e in entries:

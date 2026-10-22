@@ -73,6 +73,17 @@ class ClassTable(unittest.TestCase):
             self.assertIsNone(sel, name)
             self.assertIn('NOT_EXERCISED', reason)
 
+    def test_length_selectors_make_no_per_class_claim(self):
+        # read_resp_analog is length-level, consistent with read_resp_247: its description names the LENGTH and
+        # records both possible origins (base analog OR a range READ padded to 141), never "analog" as THE class --
+        # a 141-byte drop in a mixed schedule may be a padded range response.
+        c = loss.CLASSES
+        for name in ('read_resp_analog', 'read_resp_247'):
+            self.assertIn('single-frame READ response', c[name]['what'], name)
+            self.assertIn('not distinguished', c[name]['what'], name)        # no single-class claim
+        self.assertNotEqual(c['read_resp_analog']['what'], 'a 141 B single-frame READ response (analog)')
+        self.assertEqual(loss.LENGTH_ONLY, frozenset({'read_resp_analog', 'read_resp_247'}))
+
 
 class Parse(unittest.TestCase):
     def test_default_n_is_one(self):
@@ -103,6 +114,14 @@ class Parse(unittest.TestCase):
         for name in ('read_resp_class0', 'read_resp_integrity'):   # per-class selectors do not exist
             with self.assertRaises(ValueError, msg=name):
                 loss.parse_drop(name, reads=20)
+
+    def test_length_selector_drop_is_marked_length_only(self):
+        # a length selector's spec marks the drop length_only, so no reader takes it as a per-class claim
+        for name in ('read_resp_analog', 'read_resp_247'):
+            self.assertTrue(loss.parse_drop(name + ':2', reads=20)['length_only'], name)
+        # a class-identified selector (native READ response, request, padded response) is NOT length_only
+        for name in ('read_resp_native', 'request', 'read_resp_padded'):
+            self.assertFalse(loss.parse_drop(name, reads=20)['length_only'], name)
 
 
 class Rules(unittest.TestCase):
@@ -246,6 +265,13 @@ class LossRuleLifecycle(unittest.TestCase):
         self.assertEqual(len(rec['remove_errors']), 1)
         self.assertFalse(rec['state_restored'] and rec['removed'])
         self.assertEqual(nsx.rules, [])                                # the others were still deleted
+
+    def test_record_carries_length_only_for_a_length_selector(self):
+        # the evidence record stamps a length-selector drop length_only (no per-class claim); a class-identified
+        # selector records length_only False
+        rec = self.rule(FakeNsx(), 'read_resp_analog:1').install().record()
+        self.assertTrue(rec['length_only'])
+        self.assertFalse(self.rule(FakeNsx(), 'read_resp_padded').install().record()['length_only'])
 
     def test_counters_are_parsed_from_iptables_list_output(self):
         nsx = FakeNsx()

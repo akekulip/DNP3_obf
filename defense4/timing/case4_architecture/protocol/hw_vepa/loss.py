@@ -40,20 +40,28 @@ CLASSES = {
     'read_resp_native': {'dir': 'O>M', 'ip_len': 89, 'flags': 'ACK,PSH', 'what': 'native READ response, 49 B'},
     'control_resp_native': {'dir': 'O>M', 'ip_len': 77, 'flags': 'ACK,PSH', 'what': 'native SELECT/OPERATE response, 37 B'},
     'resp_padded': {'dir': 'O>M', 'ip_len': 98, 'flags': 'ACK,PSH', 'what': 'padded response as returned by the switch, 58 B'},
-    # Single-frame READ-response drop selectors. The selector picks a packet by IP length, flags and occurrence
-    # only; it CANNOT tell apart two READ classes of the same length. On the base fixture class0 and integrity
-    # responses are BOTH 247 B (IP 287) and rotate4 interleaves them, so there is ONE 247-byte selector
-    # (read_resp_247) targeting "a 247-byte READ response" without claiming which class; a per-class
-    # read_resp_class0 / read_resp_integrity drop would mis-stamp the class and is not offered. analog is the
-    # 141-byte (IP 181) selector. The natively segmented large-DB class0/integrity (two frames) have no
-    # single-length selector at all (read_resp_class -> NOT_EXERCISED).
-    'read_resp_analog': {'dir': 'O>M', 'ip_len': 40 + 141, 'flags': 'ACK,PSH', 'what': 'a 141 B single-frame READ response (analog)'},
+    # Single-frame READ-response drop selectors. Each picks a packet by IP length, flags and occurrence only, so it
+    # is LENGTH-LEVEL and makes NO per-class claim: it cannot tell apart READ classes delivered at the same on-wire
+    # length. read_resp_247 targets "a 247-byte READ response" -- on the base fixture class0 and integrity are BOTH
+    # 247 B (IP 287) and rotate4 interleaves them, so one selector covers both without naming the class.
+    # read_resp_analog likewise targets "a 141-byte READ response" (IP 181): 141 is base analog's native length AND
+    # the image a range READ is padded to, so in a MIXED (rotate4) schedule a 141-byte drop may be a padded range
+    # response, not analog -- the selector claims only the length, never "analog" (the record marks it length_only).
+    # A per-class read_resp_class0 / read_resp_integrity drop would mis-stamp the class and is not offered. Class-
+    # SPECIFIC recovery for a single-frame class needs a single-class workload (candidate_series series_read_class),
+    # where that class is the only READ on the wire so its response length is unambiguous. The natively segmented
+    # large-DB class0/integrity (two frames) have no single-length selector at all (read_resp_class -> NOT_EXERCISED).
+    'read_resp_analog': {'dir': 'O>M', 'ip_len': 40 + 141, 'flags': 'ACK,PSH', 'what': 'a 141 B single-frame READ response (base analog or a range READ padded to 141; not distinguished)'},
     'read_resp_247': {'dir': 'O>M', 'ip_len': 40 + 247, 'flags': 'ACK,PSH', 'what': 'a 247 B single-frame READ response (base class0 or integrity; not distinguished)'},
 }
 # Single-frame READ-response drop selector -> the response link-octet length it targets. One selector per length:
 # the selector is length-unique and makes no per-class claim. A campaign that combines a READ-class schedule with
 # a loss preset is restricted to these, and only when that length exists as a single link frame on the database.
 READ_RESP_LEN = {'read_resp_analog': 141, 'read_resp_247': 247}
+# The length selectors are length-level: a drop they pick is stamped `length_only` in the spec/record so no reader
+# or downstream check reads it as a per-class claim. A class-specific recovery claim comes from a single-class
+# workload (candidate_series series_read_class), not from one of these selectors in a mixed schedule.
+LENGTH_ONLY = frozenset(READ_RESP_LEN)
 # alias -> (base class, occurrence offset given the READ count): the position of the packet inside the base class
 ALIASES = {
     'read_resp_padded': ('resp_padded', lambda reads: 0),
@@ -133,7 +141,8 @@ def parse_drop(text, reads):
     if read_len is not None and read_len != padded_len and name in ('select_resp_padded', 'operate_resp_padded'):
         off -= reads
     spec = dict(CLASSES[base], **{'class': name, 'n': n, 'base': base, 'occurrence': n + off,
-                                  'data_ack': name in DATA_ACK, 'padded_len': padded_len})
+                                  'data_ack': name in DATA_ACK, 'padded_len': padded_len,
+                                  'length_only': name in LENGTH_ONLY})
     if base == 'resp_padded':
         spec['ip_len'] = 40 + padded_len
     if spec['occurrence'] > MAX_OCCURRENCE:
@@ -238,7 +247,8 @@ class LossRule:
                      len(accepts) == s['occurrence'] - 1 and earlier == s['occurrence'] - 1 and
                      all(c['pkts'] == 1 for c in accepts))
         return {'class': s['class'], 'n': s['n'], 'occurrence': s['occurrence'], 'base': s['base'],
-                'dir': s['dir'], 'ip_len': s['ip_len'], 'flags': s['flags'], 'ns': self.ns, 'chain': 'INPUT',
+                'dir': s['dir'], 'ip_len': s['ip_len'], 'flags': s['flags'], 'length_only': s.get('length_only', False),
+                'ns': self.ns, 'chain': 'INPUT',
                 'mode': self.MODE, 'rules': [' '.join(r) for r in self.rules], 'counters': self.counter_list,
                 'counter_error': self.counter_error,
                 'dropped_packets': drop['pkts'] if drop else None, 'dropped_bytes': drop['bytes'] if drop else None,
@@ -386,7 +396,7 @@ def evaluate_loss(arm, reads, max_recovery_s, spec, rule, ident, master, ost, wi
     control response delivered (0 with padding off). Retransmissions are allowed and counted."""
     fails = []
     res = {'class': spec['class'], 'n': spec['n'], 'occurrence': spec['occurrence'], 'dir': spec['dir'],
-           'ip_len': spec['ip_len'], 'max_recovery_s': max_recovery_s}
+           'ip_len': spec['ip_len'], 'length_only': spec.get('length_only', False), 'max_recovery_s': max_recovery_s}
     if rule is None:
         fails.append('no loss record from Vision (the rule was not installed or the run died before recording it)')
     else:

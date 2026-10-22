@@ -443,3 +443,23 @@ class Rotate4SingleFrameSelectors(unittest.TestCase):
                 loss.parse_drop(name + ':1', reads=4)
             self.assertNotIn(name, loss.names(), name)
         self.assertIn('read_resp_247', loss.names())
+
+    def test_141_selector_is_length_only_in_a_mixed_schedule_but_unambiguous_single_analog(self):
+        # Mixed rotate4 with the range READ padded to 141: slot 0 (range, padded) and slot 1 (analog) are BOTH 141 B
+        # (IP 181), so read_resp_analog -- which picks by length + occurrence -- cannot say whether a 141-byte drop
+        # was range or analog. Its first hit is in fact the padded RANGE response, proving the selector makes no
+        # analog class claim; the spec records the drop length_only. (Response seqs run 5000, 5141, ... in slot order.)
+        a1 = self.ident('read_resp_analog:1')
+        self.assertTrue(a1['identified'])
+        self.assertEqual(a1['candidates'], 2)                      # two 141-byte responses: range(padded) and analog
+        self.assertEqual(a1['packet']['seq'], 5000)                # slot 0 = the padded RANGE response, not analog
+        self.assertEqual(self.ident('read_resp_analog:2')['packet']['seq'], 5141)   # slot 1 = the analog response
+        self.assertTrue(loss.parse_drop('read_resp_analog:1', reads=4)['length_only'])
+        # A single-analog workload (every READ is analog) leaves only analog responses at 141 B on the wire, so the
+        # same length selector's hit is unambiguously analog -- class-specific analog recovery is sound here.
+        out, inn = rotate4_capture(lengths=(141, 141, 141, 141))
+        o, i = write(self.tmp, out, inn)
+        r = loss.identify(o, i, loss.parse_drop('read_resp_analog:1', reads=4), MP, OP)
+        self.assertTrue(r['identified'])
+        self.assertEqual(r['candidates'], 4)                       # all four responses are 141 B and all analog
+        self.assertEqual(r['packet']['ip_len'], 181)

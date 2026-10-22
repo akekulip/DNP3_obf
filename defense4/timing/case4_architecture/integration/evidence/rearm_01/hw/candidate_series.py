@@ -213,7 +213,12 @@ def series_read_shape(cfg, build, default=None):
     absent): the range READ -- image from range_image_len(build, default), native 49, exactly as before. With
     traffic.series_read_class set to a single-frame class (analog, base class0/integrity) the series issues that
     class instead: image = its declared read_images value, else its native (already at target), native = the sum
-    of its native link frames on traffic.db."""
+    of its native link frames on traffic.db.
+
+    This single-class workload is the sanctioned route to class-SPECIFIC READ recovery: because the chosen class is
+    the only READ on the wire, a dropped response of its length is unambiguously that class. A length selector
+    (loss.read_resp_analog / read_resp_247) in a mixed rotate4 schedule is length-level only and cannot make that
+    class claim -- a 141-byte drop there may be a range READ padded to 141, not analog."""
     traffic = cfg.get('traffic') or {}
     cls = traffic.get('series_read_class')
     if cls is None:
