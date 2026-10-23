@@ -509,3 +509,25 @@ cause not located. Next measurements (NIC hardware timestamps; kernel A/B/A) nee
   test_committed_restore_function_is_the_reviewed_one: HEAD's capture_observation.py changed in 3585631d7 (CPU-latency
   diagnostic, 10-22 19:59) after nic_repair pinned the reviewed deployed blobs (06ea4007f, 17:49). The repair path is
   fail-closed and now refuses; re-pinning needs a fresh review of that path (not done).
+
+## 2026-10-23 — c26 hardware: four-arm reference PASSES sizing, FAILS timing; recovery stopped (unverified restore flag)
+
+- rc01_hw_c26_20261023_03 (reference rerun, N-state instrumented): block rc 1, restoration verified. Independent
+  readout OK (4 planned trials, 0 failures). Every arm: 65 READs (33 mixed + 32 full), 64 SELECT, 64 OPERATE, all
+  exact. off / timing_only: native 91 / 247 / 37; size_only / combined: 141 / 271 / 61 (mixed / full / SBO). The block
+  fails ONLY on timing precision (unchanged 100 us criterion): timing_only p99 |CLRT error| READ 2009 us, SELECT
+  9650 us, OPERATE 3216 us; combined READ 2047 us, SELECT 2082 us, OPERATE 1972 us. Campaign _01's loss of forwarding
+  did not recur in _03 (no N-state record of a failure exists yet).
+- rc01_hw_c26_20261023_04 (recovery, six blocks): first block persistence_graceful_950 failed in the runner's
+  preflight -- "verify the endpoint binary identity": sha256sum of
+  /home/decps/pad58b_rearm_controls_20261012/case4_socket_gate_read_schedule, No such file. The series tool
+  (candidate_series: persistence, reconnect, held OPERATE) uses that Vision run dir, where the two-READ endpoint binary
+  was never deployed; the dry-run's plan mode does not inspect Vision files, so it passed. The switch was not
+  contacted (the block stopped at its third preflight step, after only deploying helper scripts to Vision), but the
+  runner recorded no restore and the supervisor set unsafe_restoration=true. The five other recovery blocks did not run.
+- Reconcile attempted through the reviewed path, fail-closed: with a baseline -> REFUSED (block has hardware-run
+  evidence: campaign_run.json exists); standard path -> REFUSED (no block restore record / pre-run snapshot). The flag
+  stays set; no flag was edited. ALL HARDWARE ACTIVITY IS STOPPED pending Philip: either authorize a reviewed reconcile
+  class for a runner preflight failure before switch contact (as for the freeze refusal on 10-22), or clear it another
+  way he chooses. Then: deploy the read-schedule endpoint to the series run dir (verify hash) and rerun the recovery
+  blocks under new IDs.

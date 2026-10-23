@@ -20,9 +20,9 @@ traffic, relaxed thresholds or manual ownership edits.
 |---|---|---|---|
 | 1 | headroom | both SDKs: N and E highest occupied index <= 10, T <= 11, p1 egress <= 4; per-stage evidence | open |
 | 2 | model | new model run: full v3 gate on the selected source; c26 control_timing_01 failure traced | open |
-| 3 | hardware four-arm | new hardware run: off/timing/size/combined on the selected image, readout, restore verified | open |
-| 4 | hardware recovery | new hardware run: loss (mixed, full), persistence graceful/rst, reconnect, held OPERATE | open |
-| 5 | timing | unchanged 100 us precision criterion measured; failures stay failures | open |
+| 3 | hardware four-arm | new hardware run: off/timing/size/combined on the selected image, readout, restore verified | c26 _03: sizing byte-exact all arms, readout OK, restore verified; _01 lost forwarding (base-pipeline intermittent, open) |
+| 4 | hardware recovery | new hardware run: loss (mixed, full), persistence graceful/rst, reconnect, held OPERATE | BLOCKED: _04 preflight failure (endpoint not deployed to series run dir) set unsafe_restoration; reconcile refused; needs Philip |
+| 5 | timing | unchanged 100 us precision criterion measured; failures stay failures | MEASURED, FAILED on c26 (p99 ~2.0-9.7 ms) |
 | 6 | close | records, fresh-checkout reproduction, restoration verified | open |
 
 ## Work in progress
@@ -30,4 +30,5 @@ P4 placement experiments (Philip's three: calculations into the padding branch; 
 fields; unreachable READ declarations, checking compiler elimination first) in .scratch_p4; c26 control_timing_01 trace.
 
 ## Next action
-Integrate the placement result into the generator; meanwhile prepare hardware configs.
+Hardware stopped (unsafe_restoration flag, reconcile refused): Philip to decide how to clear it. Offline: P4 headroom
+experiments, then the selected candidate's gates.
