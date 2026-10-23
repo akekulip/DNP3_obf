@@ -74,18 +74,26 @@ echo "source $got"
 if [ "$CANDIDATE" = c25 ]; then
   # the declared profile too (scope, shapes, images, generator hash): c24 differs only in its uncorrected scope text.
   # Recording the artifacts fills supported_profile.candidate.{build, artifact_sha256}; only those two are normalized.
+  # The generator was split into m12gen/ after 0c475ebc2 (byte-identical outputs, m12_fullsize/check_generator_identity.py),
+  # so the recorded generator_sha256 is checked against make_m12.py AT 0c475ebc2 and the generator-identity fields are
+  # normalized in the comparison with the current generator.
+  rec_gen="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["generator_sha256"])' "$BUILD/response_only.inputs.json")"
+  pin_gen="$(git -C "$REPO" show "0c475ebc2:${STAGE#$REPO/}/m12_fullsize/make_m12.py" | sha256sum | cut -d' ' -f1)"
+  [ "$rec_gen" = "$pin_gen" ] || { echo "recorded generator_sha256 $rec_gen != make_m12.py at 0c475ebc2 ($pin_gen)"; exit 1; }
+  echo "recorded generator_sha256 = make_m12.py at 0c475ebc2"
   python3 - "$SCRATCH/m12p/response_only.inputs.json" "$BUILD/response_only.inputs.json" <<'EOF'
 import json, sys
 def norm(path):
     d = json.load(open(path))
     cand = d['supported_profile']['candidate']
     cand.pop('build'); cand.pop('artifact_sha256')
+    d.pop('generator_sha256'); d.pop('generator_files', None)
     return d
 a, b = norm(sys.argv[1]), norm(sys.argv[2])
 if a != b:
     sys.exit('regenerated profile differs from the recorded one: %s' % sorted(k for k in set(a) | set(b) if a.get(k) != b.get(k)))
 EOF
-  echo "profile response_only.inputs.json identical (artifact pins and build path normalized)"
+  echo "profile response_only.inputs.json identical (artifact pins, build path and generator identity normalized)"
 fi
 
 step "5. model gate: retained logs restored (hash-verified), v3 summary recomputed (no --write)"
