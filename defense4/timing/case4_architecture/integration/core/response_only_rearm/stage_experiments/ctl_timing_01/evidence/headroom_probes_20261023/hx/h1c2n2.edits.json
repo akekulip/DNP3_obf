@@ -1,0 +1,22 @@
+[
+ [
+  "if (hdr.cb0.isValid()) { ctl_profile.apply(); in_cb0_t.apply(); in_ct_t.apply(); ctl_sequences_t.apply(); crc_ctl_tail2_t.apply(); crc_ctl_tail3_t.apply(); }",
+  "if (hdr.cb0.isValid()) { ctl_profile.apply(); in_cb0_t.apply(); in_ct_t.apply(); }"
+ ],
+ [
+  "                mode_t.apply();\n",
+  "                mode_t.apply();\n                if ((bit<8>)m.mode == 1 && m.ctl_shape == 1) { ctl_sequences_t.apply(); crc_ctl_tail2_t.apply(); crc_ctl_tail3_t.apply(); }\n"
+ ],
+ [
+  "control r_Egress(inout r_headers_t hdr,",
+  "/* attached to the instantiated egress control: pragmas on r_IgParser (never instantiated) are silently dropped */\n@pa_solitary(\"egress\",\"m.ctcrc2\") @pa_solitary(\"egress\",\"m.ctcrc3\")\n@pa_solitary(\"egress\",\"m.badh\") @pa_solitary(\"egress\",\"m.cbad0\") @pa_solitary(\"egress\",\"m.cbadt\")\n@pa_solitary(\"egress\",\"m.read_shape\") @pa_solitary(\"egress\",\"m.ctl_shape\")\ncontrol r_Egress(inout r_headers_t hdr,"
+ ],
+ [
+  "@pa_solitary(\"ingress\", \"m.expected_work_phase\")\n",
+  "@pa_solitary(\"ingress\", \"m.expected_work_phase\")\n@pa_solitary(\"ingress\", \"m.owner_op\") @pa_solitary(\"ingress\", \"m.matched\") @pa_solitary(\"ingress\", \"m.sequence_valid\")\n"
+ ],
+ [
+  "@pa_solitary(\"ingress\", \"m.sequence_valid\")\n",
+  "@pa_solitary(\"ingress\", \"m.sequence_valid\")\n@pa_solitary(\"ingress\", \"m.badh\") @pa_solitary(\"ingress\", \"m.network_valid\") @pa_solitary(\"ingress\", \"m.compare_read_app\")\n"
+ ]
+]

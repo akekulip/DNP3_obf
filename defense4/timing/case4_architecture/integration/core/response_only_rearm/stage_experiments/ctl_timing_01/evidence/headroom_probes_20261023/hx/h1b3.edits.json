@@ -1,0 +1,74 @@
+[
+ [
+  "if (hdr.cb0.isValid()) { ctl_profile.apply(); in_cb0_t.apply(); in_ct_t.apply(); ctl_sequences_t.apply(); crc_ctl_tail2_t.apply(); crc_ctl_tail3_t.apply(); }",
+  "if (hdr.cb0.isValid()) { ctl_profile.apply(); in_cb0_t.apply(); in_ct_t.apply(); }"
+ ],
+ [
+  "if ((bit<8>)m.mode == 1) { classify_fwd.apply(); }",
+  "if ((bit<8>)m.mode == 1) { if (m.ctl_shape == 1) { ctl_sequences_t.apply(); crc_ctl_tail2_t.apply(); crc_ctl_tail3_t.apply(); } classify_fwd.apply(); }"
+ ],
+ [
+  "r_read_hdr40_h rbh; r_read_d16_h p45; r_read_crc_h c0; r_read_d32_h p69; r_read_d24_h p1012; r_read_crc_h cb;\n                   r_read_hdr_h rc; r_read_d72_h p1321; r_read_crc_h c1; r_read_d8_h p22; r_read_crc_h c2; r_ctl_b0_h cb0;",
+  "r_read_hdr40_h rbh; r_read_crc_h cb;\n                   r_read_hdr_h rc; r_ctl_b0_h cb0;"
+ ],
+ [
+  "r_read_obj_h robj; r_read_hdr40_h ra; r_read_d32_h p03; r_read_crc_h ca;",
+  "r_read_obj_h robj; r_read_hdr40_h ra; r_read_crc_h ca;"
+ ],
+ [
+  "bit<16> in_dl; bit<16> in_rb0; bit<16> in_rb1; bit<16> in_rt; bit<16> in_cb0; bit<16> in_ct;",
+  "bit<16> in_dl; bit<16> in_cb0; bit<16> in_ct;"
+ ],
+ [
+  "bit<1> badh; bit<1> rbad0; bit<1> rbad1; bit<1> rbadt; bit<1> cbad0; bit<1> cbadt;",
+  "bit<1> badh; bit<1> cbad0; bit<1> cbadt;"
+ ],
+ [
+  "@pa_solitary(\"egress\",\"m.badh\") @pa_solitary(\"egress\",\"m.rbad0\") @pa_solitary(\"egress\",\"m.rbad1\")\n@pa_solitary(\"egress\",\"m.rbadt\") @pa_solitary(\"egress\",\"m.cbad0\") @pa_solitary(\"egress\",\"m.cbadt\")",
+  "@pa_solitary(\"egress\",\"m.badh\") @pa_solitary(\"egress\",\"m.cbad0\") @pa_solitary(\"egress\",\"m.cbadt\")"
+ ],
+ [
+  "@pa_no_overlay(\"egress\", \"hdr.p03.d\")\n@pa_no_overlay(\"egress\", \"hdr.p45.d\")\n@pa_no_overlay(\"egress\", \"hdr.c0.crc\")\n@pa_no_overlay(\"egress\", \"hdr.p69.d\")\n@pa_no_overlay(\"egress\", \"hdr.p1012.d\")\n@pa_no_overlay(\"egress\", \"hdr.p1321.d\")\n@pa_no_overlay(\"egress\", \"hdr.c1.crc\")\n@pa_no_overlay(\"egress\", \"hdr.p22.d\")\n@pa_no_overlay(\"egress\", \"hdr.c2.crc\")\n",
+  ""
+ ],
+ [
+  "m.badh = 0; m.rbad0 = 0; m.rbad1 = 0; m.rbadt = 0; m.cbad0 = 0; m.cbadt = 0;",
+  "m.badh = 0; m.cbad0 = 0; m.cbadt = 0;"
+ ],
+ [
+  "    state read_b0 { pkt.extract(hdr.rh); pkt.extract(hdr.robj); pkt.extract(hdr.p03); pkt.extract(hdr.p45); pkt.extract(hdr.c0);\n        pkt.extract(hdr.p69); pkt.extract(hdr.p1012); pkt.extract(hdr.p1321); pkt.extract(hdr.c1); pkt.extract(hdr.p22); pkt.extract(hdr.c2); transition accept; }\n",
+  ""
+ ],
+ [
+  "    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_rb0;\n    action in_rb0(){m.in_rb0=hash_in_rb0.get({hdr.rh.tpctrl,hdr.rh.appctrl,hdr.rh.func,hdr.rh.iin,hdr.robj.g_group,hdr.robj.g_var,hdr.robj.g_qual,hdr.robj.g_start,hdr.robj.g_stop,hdr.p03.d,hdr.p45.d});}\n    table in_rb0_t{actions={in_rb0;}size=1;const default_action=in_rb0();}\n    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_rb1;\n    action in_rb1(){m.in_rb1=hash_in_rb1.get({hdr.p69.d,hdr.p1012.d,hdr.p1321.d});}\n    table in_rb1_t{actions={in_rb1;}size=1;const default_action=in_rb1();}\n    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_rt;\n    action in_rt(){m.in_rt=hash_in_rt.get({hdr.p22.d});}\n    table in_rt_t{actions={in_rt;}size=1;const default_action=in_rt();}\n",
+  ""
+ ],
+ [
+  "    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_read_tail;\n    action crc_read_tail(){m.rtcrc=hash_read_tail.get({hdr.p1012.d,hdr.p1321.d,hdr.p22.d});}\n    table crc_read_tail_t{actions={crc_read_tail;}size=1;const default_action=crc_read_tail();}\n    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_read_b;\n    action crc_read_b(){m.rtcrc_b=hash_read_b.get({40w0x0a02000609,hdr.p69.d,56w0x0a02010a001600});}\n    table crc_read_b_t{actions={crc_read_b;}size=1;const default_action=crc_read_b();}\n",
+  ""
+ ],
+ [
+  "pkt.emit(hdr.rh); pkt.emit(hdr.robj); pkt.emit(hdr.p03); pkt.emit(hdr.p45); pkt.emit(hdr.c0);\n        pkt.emit(hdr.p69);\n        pkt.emit(hdr.p1012); pkt.emit(hdr.p1321); pkt.emit(hdr.c1); pkt.emit(hdr.p22); pkt.emit(hdr.c2);\n",
+  "pkt.emit(hdr.rh); pkt.emit(hdr.robj);\n"
+ ],
+ [
+  "hdr.robj.g_start, hdr.robj.g_stop, hdr.p03.d, hdr.p45.d, hdr.c0.crc,\n                hdr.p69.d, hdr.p1012.d, hdr.p1321.d, hdr.c1.crc,\n                hdr.p22.d, hdr.c2.crc, 8w0,\n [x2]",
+  "hdr.robj.g_start, hdr.robj.g_stop,\n"
+ ],
+ [
+  "m.leff : ternary; m.read_shape : ternary; m.ctl_shape : ternary; m.badh : ternary;\n                m.rbad0 : ternary; m.rbad1 : ternary; m.rbadt : ternary; m.cbad0 : ternary; m.cbadt : ternary; }",
+  "m.leff : ternary; m.read_shape : ternary; m.ctl_shape : ternary; m.badh : ternary;\n                m.cbad0 : ternary; m.cbadt : ternary; }"
+ ],
+ [
+  "(8w0xe7, 1, (bit<3>)r_SH_SYNACK_OK, _, _, _, _, _, _, _, _, _, _, _, _): do_acct_arm();(_, 1, 3w4 &&& 3w7, 0, 1, 8w0 &&& 8w0x07, 91, 1, _, 0, 0, 0, 0, _, _): do_acct_try();(_, 1, 3w4 &&& 3w7, 0, 1, 8w0 &&& 8w0x07, 247, 1, _, 0, 0, 0, 0, _, _): do_acct_try();(_, 1, 3w4 &&& 3w7, 0, 1, 8w0 &&& 8w0x07, 37, _, 1, 0, _, _, _, 0, 0): do_acct_try();(_, 1, 3w4 &&& 3w7, 0, _, _, _, _, _, _, _, _, _, _, _): do_acct_grow();(8w0xe4, 2, (bit<3>)r_SH_ACK, _, _, _, _, _, _, _, _, _, _, _, _): do_acct_rev();(8w0xe5, 2, (bit<3>)r_SH_ACK, _, _, _, _, _, _, _, _, _, _, _, _): do_acct_rev();(8w13, 2, (bit<3>)r_SH_ACK, _, _, _, _, _, _, _, _, _, _, _, _): do_acct_rev();",
+  "(8w0xe7, 1, (bit<3>)r_SH_SYNACK_OK, _, _, _, _, _, _, _, _, _): do_acct_arm();(_, 1, 3w4 &&& 3w7, 0, 1, 8w0 &&& 8w0x07, 91, 1, _, 0, _, _): do_acct_try();(_, 1, 3w4 &&& 3w7, 0, 1, 8w0 &&& 8w0x07, 247, 1, _, 0, _, _): do_acct_try();(_, 1, 3w4 &&& 3w7, 0, 1, 8w0 &&& 8w0x07, 37, _, 1, 0, 0, 0): do_acct_try();(_, 1, 3w4 &&& 3w7, 0, _, _, _, _, _, _, _, _): do_acct_grow();(8w0xe4, 2, (bit<3>)r_SH_ACK, _, _, _, _, _, _, _, _, _): do_acct_rev();(8w0xe5, 2, (bit<3>)r_SH_ACK, _, _, _, _, _, _, _, _, _): do_acct_rev();(8w13, 2, (bit<3>)r_SH_ACK, _, _, _, _, _, _, _, _, _): do_acct_rev();"
+ ],
+ [
+  "m.read_shape : ternary; m.ctl_shape : ternary; m.badh : ternary;\n                m.rbad0 : ternary; m.rbad1 : ternary; m.rbadt : ternary; m.cbad0 : ternary; m.cbadt : ternary;\n                hdr.tcp.flags : ternary; }",
+  "m.read_shape : ternary; m.ctl_shape : ternary; m.badh : ternary;\n                m.cbad0 : ternary; m.cbadt : ternary;\n                hdr.tcp.flags : ternary; }"
+ ],
+ [
+  "(0, 0, _, _, _, _, _, _, _, _, _, _, _, _, _, _): out_translate();(0, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _): out_commit();(32w49, _, _, _, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front_rd(32w0xffffffcf);(32w91, _, _, _, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front_rd(32w0xffffffa5);(32w247, _, _, _, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front_rd(32w0xffffff09);(32w37, _, _, _, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front_37();(32w0 &&& 32w0x80000000, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _): out_drop(r_OUT_DROP_AHEAD);(_, _, 32w0 &&& 32w0x80000000, _, _, _, _, _, _, _, _, _, _, _, _, _): out_translate();(_, _, 32w0xffffffdb, 0, 32w0, _, _, _, _, _, _, _, _, _, _, _): out_zero_img_61();(_, _, 32w0xffffffc3, 0, 32w0, _, _, _, _, _, _, _, _, _, _, _): out_zero_img_61();(_, _, 32w0xffffffa5, 0, 32w0, _, _, _, _, _, _, _, _, _, _, _): out_zero_img_141();(_, _, 32w0xffffff09, 0, 32w0, _, _, _, _, _, _, _, _, _, _, _): out_zero_img_271();(_, _, _, 0, _, _, _, _, _, _, _, _, _, _, _, _): out_zero();(_, _, _, _, 0, 0, _, 1, _, 0, 0, 0, 0, _, _, 8w0 &&& 8w0x01): out_replay();(_, _, _, _, 0, 1, _, 1, _, 0, 0, 0, 0, _, _, 8w1 &&& 8w0x01): out_replay();(_, _, _, _, 0, 0, _, _, 1, 0, _, _, _, 0, 0, 8w0 &&& 8w0x01): out_replay();(_, _, _, _, 0, 1, _, _, 1, 0, _, _, _, 0, 0, 8w1 &&& 8w0x01): out_replay();(_, _, _, _, 0, 32w0 &&& 32w0x80000000, _, 1, _, 0, 0, 0, 0, _, _, _): out_drop(r_OUT_DROP_MERGED);(_, _, _, _, 0, 32w0 &&& 32w0x80000000, _, _, 1, 0, _, _, _, 0, 0, _): out_drop(r_OUT_DROP_MERGED);(_, _, _, _, _, _, 0, _, _, _, _, _, _, _, _, _): out_stale();(_, _, _, _, _, _, 32w0x80000000 &&& 32w0x80000000, _, _, _, _, _, _, _, _, _): out_stale();",
+  "(0, 0, _, _, _, _, _, _, _, _, _, _, _): out_translate();(0, _, _, _, _, _, _, _, _, _, _, _, _): out_commit();(32w49, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front_rd(32w0xffffffcf);(32w91, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front_rd(32w0xffffffa5);(32w247, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front_rd(32w0xffffff09);(32w37, _, _, _, _, _, _, _, _, _, _, _, 8w0x04 &&& 8w0x04): out_reset_front_37();(32w0 &&& 32w0x80000000, _, _, _, _, _, _, _, _, _, _, _, _): out_drop(r_OUT_DROP_AHEAD);(_, _, 32w0 &&& 32w0x80000000, _, _, _, _, _, _, _, _, _, _): out_translate();(_, _, 32w0xffffffdb, 0, 32w0, _, _, _, _, _, _, _, _): out_zero_img_61();(_, _, 32w0xffffffc3, 0, 32w0, _, _, _, _, _, _, _, _): out_zero_img_61();(_, _, 32w0xffffffa5, 0, 32w0, _, _, _, _, _, _, _, _): out_zero_img_141();(_, _, 32w0xffffff09, 0, 32w0, _, _, _, _, _, _, _, _): out_zero_img_271();(_, _, _, 0, _, _, _, _, _, _, _, _, _): out_zero();(_, _, _, _, 0, 0, _, 1, _, 0, _, _, 8w0 &&& 8w0x01): out_replay();(_, _, _, _, 0, 1, _, 1, _, 0, _, _, 8w1 &&& 8w0x01): out_replay();(_, _, _, _, 0, 0, _, _, 1, 0, 0, 0, 8w0 &&& 8w0x01): out_replay();(_, _, _, _, 0, 1, _, _, 1, 0, 0, 0, 8w1 &&& 8w0x01): out_replay();(_, _, _, _, 0, 32w0 &&& 32w0x80000000, _, 1, _, 0, _, _, _): out_drop(r_OUT_DROP_MERGED);(_, _, _, _, 0, 32w0 &&& 32w0x80000000, _, _, 1, 0, 0, 0, _): out_drop(r_OUT_DROP_MERGED);(_, _, _, _, _, _, 0, _, _, _, _, _, _): out_stale();(_, _, _, _, _, _, 32w0x80000000 &&& 32w0x80000000, _, _, _, _, _, _): out_stale();"
+ ]
+]

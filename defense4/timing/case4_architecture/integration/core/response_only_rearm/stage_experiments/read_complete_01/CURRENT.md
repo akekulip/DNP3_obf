@@ -18,7 +18,7 @@ traffic, relaxed thresholds or manual ownership edits.
 ## Completion criteria
 | # | deliverable | criterion | state |
 |---|---|---|---|
-| 1 | headroom | both SDKs: N and E highest occupied index <= 10, T <= 11, p1 egress <= 4; per-stage evidence | open |
+| 1 | headroom | both SDKs: N and E highest occupied index <= 10, T <= 11, p1 egress <= 4; per-stage evidence | NOT MET: best E 11/11 (h1c2), N 12/11; held by N SALU saturation stages 7-8; see headroom_probes_20261023 |
 | 2 | model | new model run: full v3 gate on the selected source; c26 control_timing_01 failure traced | open |
 | 3 | hardware four-arm | new hardware run: off/timing/size/combined on the selected image, readout, restore verified | c26 _03: sizing byte-exact all arms, readout OK, restore verified; _01 lost forwarding (base-pipeline intermittent, open) |
 | 4 | hardware recovery | new hardware run: loss (mixed, full), persistence graceful/rst, reconnect, held OPERATE | BLOCKED: _04 preflight failure (endpoint not deployed to series run dir) set unsafe_restoration; reconcile refused; needs Philip |

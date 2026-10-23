@@ -37,6 +37,27 @@ path from N saves PHV/crossbar/hash/TCAM but no stage and changes behavior (a mo
 control); it was not adopted. Why N sits at 12: its deepest table can go no earlier than stage 8, and the extra stage is
 a placement effect of sharing pipe 0 with E; pipe 0 falls only if both N and E reach 11.
 
+## 0b. c26 headroom and hardware (2026-10-23)
+
+**Headroom objective (N and E highest index <= 10): NOT met.** Philip's three experiments plus combinations and one
+N follow-up (`ctl_timing_01/evidence/headroom_probes_20261023/README.md`): best E is 11 occupied with highest index
+still 11 (h1c2); N stays 12/11 in every build. Pipe 0 is held by N's stateful-ALU saturation in stages 7-8 (4/4) and
+logical-table saturation in stage 10, not by dependency depth; pins that remove PHV-forced edges take effect but free no
+stage. No probe was adopted: c26 stays the selected candidate. c26's egress PHV pins have never applied (attached to an
+uninstantiated parser).
+
+**c26 on the physical Tofino (new hardware runs, exact image 21b98f51...):**
+- rc01_hw_c26_20261023_01 reference: FAILED, loss of forwarding in its first trial (off arm): every master packet after
+  the handshake dropped in N (uncounted path); same signature as the m11_09 control's 10-22 failure; cause open.
+- rc01_hw_c26_20261023_03 reference (rerun, N-state snapshot instrumentation): restoration verified; independent readout
+  OK; every arm 65 READs (33 mixed + 32 full) + 64 SELECT + 64 OPERATE exact; padded arms 141 / 271 / 61, unpadded
+  91 / 247 / 37. Timing precision FAILED (p99 |CLRT error| timing_only READ 2009, SELECT 9650, OPERATE 3216 us;
+  combined 2047 / 2082 / 1972 us; limit 100 us).
+- rc01_hw_c26_20261023_04 recovery: STOPPED at its first block (persistence_graceful) in the runner preflight -- the
+  read-schedule endpoint was never deployed to the series tool's Vision run dir; switch not contacted; unsafe_restoration
+  set; reviewed reconcile refused on both paths; flag left set. Recovery blocks NOT RUN on c26. Hardware stopped pending
+  Philip.
+
 ## 0. Two-READ-target candidate m12p_c25 (Claude_Two_READ_Targets_Hardware_Directive.md)
 
 m12p_c25 (P4 `61f9af0fa141…`, = m12p_c24's P4 with the corrected declared disposition) pads the mixed READ
