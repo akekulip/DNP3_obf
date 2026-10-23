@@ -136,3 +136,23 @@ class MultiFrame(unittest.TestCase):
 
     def test_link_len_below_header_floor_fails(self):
         self.assertEqual(wc.dnp3_ok(bytes.fromhex('0564044401000a006bd4')), (False, 'LEN 4 < 5'))
+
+
+class SameSequenceSwap(unittest.TestCase):
+    """c28 reconnect_950 c2 (2026-10-23): the outstation's pure ACK and its FIN-ACK share one sequence number and came
+    back swapped. They must pair by kind (and the swap be reported as a reorder), not fall out as unmatched."""
+
+    def test_swapped_ack_and_fin_pair_and_are_reported_reordered(self):
+        fin = getattr(tk, 'FIN', 0x01)
+        with tempfile.TemporaryDirectory() as tmp:
+            out = [(0, tk.frame(O, M, 20000, 40000, 7000, 3000, ACK, ip_id=1)),
+                   (10, tk.frame(O, M, 20000, 40000, 7000, 3000, fin | ACK, ip_id=2))]
+            ret = [(50, tk.frame(O, M, 20000, 40000, 7000, 3000, fin | ACK, ip_id=2)),
+                   (60, tk.frame(O, M, 20000, 40000, 7000, 3000, ACK, ip_id=1))]
+            op, ip = os.path.join(tmp, 'out.pcap'), os.path.join(tmp, 'in.pcap')
+            tk.write_pcap(op, out)
+            tk.write_pcap(ip, ret)
+            rep = wc.analyze(op, ip)
+        self.assertEqual(rep['matched'], 2)
+        self.assertEqual((rep['unmatched_sent'], rep['unmatched_returned']), ([], []))
+        self.assertTrue(rep['reordered_returned_indices'])

@@ -170,6 +170,17 @@ def lifecycle_gate(snapshot, close_mode='graceful'):
     return failures, observed
 
 
+def read_handshake_build(build):
+    """True when the build's recorded transforms include N's 'READ completes the handshake' row (m12p_c28+), whose
+    declared consequence is that a late final handshake ACK overtaken by the READ is dropped (vision_candidate
+    overtaken_handshake_acks). Read from the build's own response_only.inputs.json beside its compile directory."""
+    inputs = ARCH / Path(build['manifest']).parents[1] / 'response_only.inputs.json'
+    try:
+        return 'n_read_completes_handshake' in json.loads(inputs.read_text()).get('transforms_applied', [])
+    except (OSError, ValueError):
+        return False
+
+
 def freshness_gate(sent, returned, port, previous=None):
     flow = tuple(sorted((('192.168.10.61', port), ('192.168.10.62', 20000))))
     sent = [packet for packet in sent if packet['flow'] == flow]
@@ -417,6 +428,7 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
                 '--image-len', int(self.cfg['builds'][self._series_build].get('image_len', 58)),
                 ] + (['--read-image-len', int(read_image)] if read_image is not None else []) + [
                 '--expect-held-operate-dup', int(bool(self.cfg['traffic'].get('expect_held_operate_dup', False))),
+                '--expect-overtaken-ack', int(read_handshake_build(self.cfg['builds'][self._series_build])),
                 '--close-mode', self.close_mode,
                 '--rst-grace-ms', self.rst_grace_ms, '--reads', reads, '--apply']
         if self.cfg['builds'][self._series_build].get('profile') == 'candidate61':

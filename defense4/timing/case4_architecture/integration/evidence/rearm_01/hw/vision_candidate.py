@@ -287,10 +287,39 @@ def held_operate_duplicates(out_pcap, unmatched):
     return excused, remaining
 
 
+def overtaken_handshake_acks(out_pcap, in_pcap, unmatched):
+    """Split unmatched sent frames into (excused, remaining) for a build whose N admits a READ that overtakes the final
+    handshake ACK (m12p_c28+, transform_n_read_completes_handshake): N then drops the late pure ACK by design. Excused
+    only when ALL hold: the frame is the master's first pure ACK after the SYN-ACK (flags exactly ACK, no payload); the
+    next master segment carries a payload with the same seq and ack (the overtaking READ, which carries the same
+    cumulative ACK); and that READ was returned by the switch. Anything else stays a wire-mapping failure."""
+    sent = wc.parse(out_pcap)[0]
+    returned = wc.parse(in_pcap)[0]
+    by_index = {s['index']: s for s in sent}
+    master = sorted((s for s in sent if s['src'] == MASTER), key=lambda s: (s['t_us'], s['index']))
+    excused, remaining = [], []
+    for u in unmatched:
+        s = by_index.get(u.get('sent_index'))
+        ok = s is not None and s['src'] == MASTER and s['flags'] == wc.ACK and s['len'] == 0
+        if ok:
+            pos = master.index(s)
+            first_pure_ack = all(e['flags'] & wc.SYN for e in master[:pos])
+            following = master[pos + 1] if pos + 1 < len(master) else None
+            ok = (first_pure_ack and following is not None and following['len'] > 0 and
+                  following['seq'] == s['seq'] and following['ack'] == s['ack'] and
+                  any(r['src'] == MASTER and r['len'] == following['len'] and r['payload'] == following['payload']
+                      for r in returned))
+        if ok:
+            excused.append(dict(u, seq=s['seq'], ack=s['ack'], t_us=s['t_us']))
+        else:
+            remaining.append(u)
+    return excused, remaining
+
+
 def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0, control_padding=1,
              image_len=58,
              expect_held_operate_dup=0, read_image_len=None, read_schedule=None, db=None, pad_expect=None,
-             read_classes=None):
+             read_classes=None, expect_overtaken_ack=0):
     failures, ev = [], {}
     required = ('out.pcap', 'in.pcap', 'master.json', 'outstation.json', 'result.json', 'state.txt')
     for name in required:
@@ -330,6 +359,9 @@ def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre
         if expect_held_operate_dup and unmatched_sent:
             excused, unmatched_sent = held_operate_duplicates(Path(dest) / 'out.pcap', unmatched_sent)
             write_json(Path(dest) / 'held_operate_duplicates.json', {'excused': excused, 'remaining': unmatched_sent})
+        if expect_overtaken_ack and unmatched_sent:
+            excused, unmatched_sent = overtaken_handshake_acks(Path(dest) / 'out.pcap', Path(dest) / 'in.pcap', unmatched_sent)
+            write_json(Path(dest) / 'overtaken_handshake_acks.json', {'excused': excused, 'remaining': unmatched_sent})
         for key, value in (('unmatched_sent', unmatched_sent), ('unmatched_returned', ev['wire'].get('unmatched_returned')),
                            ('duplicate_returned', ev['wire'].get('duplicate_returned'))):
             if value != []:
@@ -347,7 +379,8 @@ def evaluate(dest, port, mode, padding, result, rst_grace_ms=5000, reads=20, pre
 
 def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=20, pre_read_grace_ms=0,
              control_padding=1, expect_held_operate_dup=0, image_len=58, qualify_capture=False, read_image_len=None,
-             read_schedule=None, db=None, endpoint_binary=None, pad_expect=None, read_classes=None):
+             read_schedule=None, db=None, endpoint_binary=None, pad_expect=None, read_classes=None,
+             expect_overtaken_ack=0):
     guard(port, apply)
     if not re.fullmatch('[A-Za-z0-9_]+', label) or mode not in ('graceful', 'rst') or padding not in (0, 1):
         raise ValueError('invalid label, close mode or padding')
@@ -421,6 +454,7 @@ def scenario(label, port, mode, padding, apply=False, rst_grace_ms=5000, reads=2
                                                reads=reads, pre_read_grace_ms=pre_read_grace_ms,
                                                control_padding=control_padding, image_len=image_len,
                                                expect_held_operate_dup=expect_held_operate_dup,
+                                               expect_overtaken_ack=expect_overtaken_ack,
                                                **({'read_image_len': read_image_len} if read_image_len else {}),
                                                **gate_kwargs)
             connection['pre_read_hook'] = pre_read_evidence(dest, pre_read_grace_ms)[1]
@@ -453,6 +487,8 @@ def main(argv=None):
                         help='padded response length of the build (58 default; 61 for the transport-segmented profile)')
     parser.add_argument('--expect-held-operate-dup', type=int, choices=(0, 1), default=0,
                         help='1 when the fixture makes the master retransmit a held OPERATE (dup_hold_01 drops it)')
+    parser.add_argument('--expect-overtaken-ack', type=int, choices=(0, 1), default=0,
+                        help='1 for builds whose N admits a READ overtaking the final handshake ACK (m12p_c28+)')
     parser.add_argument('--control-padding', type=int, choices=(0, 1), default=1,
                         help='0 for strict-response builds: SELECT/OPERATE responses stay native (37 B)')
     parser.add_argument('--rst-grace-ms', type=int, default=5000)
@@ -475,7 +511,8 @@ def main(argv=None):
                       control_padding=args.control_padding, expect_held_operate_dup=args.expect_held_operate_dup,
                       image_len=args.image_len, qualify_capture=args.qualify_capture,
                       read_image_len=args.read_image_len, read_schedule=args.read_schedule, db=args.db,
-                      endpoint_binary=args.endpoint_binary, pad_expect=args.pad_expect, read_classes=args.read_classes)
+                      endpoint_binary=args.endpoint_binary, pad_expect=args.pad_expect, read_classes=args.read_classes,
+                      expect_overtaken_ack=args.expect_overtaken_ack)
     print(json.dumps(result, indent=2))
     return 0 if result['ok'] else 1
 

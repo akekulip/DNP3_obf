@@ -215,7 +215,7 @@ class VisionCandidate(unittest.TestCase):
         self.assertTrue(all(row[1][0] == 1 and row[2]['close_grace_ms'] == 1000 for row in calls))
         self.assertTrue(all(row[2]['capture_immediate'] is True for row in calls))
         self.assertTrue(all(row == dict(rst_grace_ms=1000, reads=1, pre_read_grace_ms=0, control_padding=1,
-                                        expect_held_operate_dup=0, image_len=58)
+                                        expect_held_operate_dup=0, expect_overtaken_ack=0, image_len=58)
                             for row in gates))
 
     def test_qualify_capture_is_opt_in_and_reaches_each_connection(self):
