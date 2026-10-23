@@ -12,6 +12,7 @@ TRANSFORM = {
     'two_read_pad_pipe1': two_read.transform_two_read_pad_pipe1,
     'two_read_e': two_read.transform_two_read_e,
     'two_read_admit_n': two_read.transform_two_read_admit_n,
+    'two_read_reduce': two_read.transform_two_read_reduce,
     'segmented_pad_pipe1': lambda src: segmented.transform_segmented_pad_pipe1(src, segmented.segmented_shape()),
     'segmented_classifier': segmented.transform_segmented_classifier,
     'segmented_t': segmented.transform_segmented_t,
@@ -24,7 +25,8 @@ def generator_files():
     return {str(p.relative_to(HERE)): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
 
 
-def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False):
+def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False,
+          reduce=False):
     src = M11_09.read_text()
     if hashlib.sha256(src.encode()).hexdigest() != M11_09_SHA:
         raise SystemExit('m11_09 source changed')
@@ -35,6 +37,8 @@ def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_
         # this build replaces the analog/class0 admission by the mixed one (transform_two_read_admit_n).
         cm, cf = two_read.two_read_shapes()
         transforms = ['mapper_var', 'two_read_pad_pipe1', 'two_read_e', 'two_read_admit_n']
+        if reduce:   # m12p_c26: behavior-preserving resource reduction (transform_two_read_reduce)
+            transforms.append('two_read_reduce')
         shape_image = {'read': cm['target'], 'ctl': 61}
         per_image = {cm['native_total']: cm['target'], cf['native_total']: cf['target'], 37: 61, 61: 61}
     else:
@@ -77,6 +81,8 @@ def write_outputs(out, a, src, applied):
         cm, cf = two_read.two_read_shapes()
         c = cm
         required = {'mapper_var', 'two_read_pad_pipe1', 'two_read_e', 'two_read_admit_n'}
+        if a.reduce:
+            required.add('two_read_reduce')
         read_native, read_out = cm['native_total'], cm['target']
         scope = ('two-READ-target profile (Claude_Two_READ_Targets_Hardware_Directive.md): mixed READ (one request, '
                  'g1v2 q00 0-15 + g30v1 q00 0-7) %d->%d as [%s] with %d G1V2 points %d..%d, and the base-database full '
@@ -93,6 +99,9 @@ def write_outputs(out, a, src, applied):
                     cm['padding_indices'][0], cm['padding_indices'][1], cf['native_total'], cf['target'],
                     ', '.join(map(str, cf['frames_out'])), cf['padding_points'], cf['padding_indices'][0],
                     cf['padding_indices'][1]))
+        if a.reduce:
+            scope += ('; resource-reduced (m12p_c26): pipe-1 block-0 CRC by residue, outcome/IP-length/checksum conditions '
+                      'set where decided, unreachable E read_b0 CRC compares removed -- behavior unchanged')
     else:
         c = read_policy.policy_shape()
         required = {'mapper_var', 'read_prefix_p1', 'read_prepadded_e'}

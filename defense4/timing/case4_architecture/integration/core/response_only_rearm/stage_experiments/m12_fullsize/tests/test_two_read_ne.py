@@ -66,10 +66,10 @@ frame, corrupt_block0, corrupt_crc0, corrupt_block1 = (N_TESTS.frame, N_TESTS.co
                                                        N_TESTS.corrupt_block1)
 
 
-def generate():
+def generate(extra=()):
     out = Path(tempfile.mkdtemp(prefix='tworead_ne_'))
     subprocess.run([sys.executable, str(STAGE / 'm12_fullsize/make_m12.py'), str(out),
-                    '--policy', '--c3', 'cimg', '--shapes', 'passthrough', '--two-read'], check=True, capture_output=True)
+                    '--policy', '--c3', 'cimg', '--shapes', 'passthrough', '--two-read'] + list(extra), check=True, capture_output=True)
     return (out / 'response_only.p4').read_text()
 
 
@@ -109,9 +109,11 @@ def admit(n, text, req, rsp, payload_of, which, tcp_bad=False):
 
 
 class TwoReadN(unittest.TestCase):
+    EXTRA = ()   # generator flags beyond --two-read; the Reduced subclass adds --reduce (m12p_c26)
+
     @classmethod
     def setUpClass(cls):
-        cls.text = generate()
+        cls.text = generate(cls.EXTRA)
         cls.n = N_TESTS.n_source(cls.text)
         cls.ex = exchanges()
 
@@ -215,9 +217,11 @@ def e_frame(native, padded, seq=0x40000000):
 
 
 class TwoReadE(unittest.TestCase):
+    EXTRA = ()   # generator flags beyond --two-read; the Reduced subclass adds --reduce (m12p_c26)
+
     @classmethod
     def setUpClass(cls):
-        cls.text = generate()
+        cls.text = generate(cls.EXTRA)
         cls.e = interp.ESource(N_TESTS.role(cls.text, 'E'))
 
     def run_e(self, padded):
@@ -265,6 +269,16 @@ class TwoReadE(unittest.TestCase):
         rev = rev[:rev.index('    }\n')]
         for n in (91, 247, 37, 61):
             self.assertIn('8w%d) : rev_withhold_open();' % (n & 0xFF), rev)
+
+
+class TwoReadNReduced(TwoReadN):
+    """Every N test again on the resource-reduced build (make_m12.py --reduce, candidate m12p_c26)."""
+    EXTRA = ('--reduce',)
+
+
+class TwoReadEReduced(TwoReadE):
+    """Every E test again on the resource-reduced build (make_m12.py --reduce, candidate m12p_c26)."""
+    EXTRA = ('--reduce',)
 
 
 if __name__ == '__main__':

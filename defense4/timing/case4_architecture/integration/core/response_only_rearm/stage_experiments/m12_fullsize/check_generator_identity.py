@@ -22,6 +22,7 @@ REFERENCE = HERE / 'generator_identity.json'
 POLICY = ['--policy', '--c3', 'cimg', '--shapes', 'passthrough']
 MODES = {
     'two_read_c25': POLICY + ['--two-read'],
+    'two_read_reduce_c26': POLICY + ['--two-read', '--reduce'],
     'passthrough_c12': POLICY,
     'segmented_full_c20': POLICY + ['--segmented-full'],
     'segmented_pad': POLICY + ['--segmented-pad'],

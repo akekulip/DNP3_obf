@@ -1,5 +1,42 @@
 # read_complete_01 — completion record (updated 2026-10-22, two-READ-target directive)
 
+## 0a. Resource-reduced successor m12p_c26 (overnight 2026-10-22/23; resource reduction only)
+
+m12p_c26 (P4 `21b98f5182ed…`) = m12p_c25 plus `transform_two_read_reduce` (`make_m12.py ... --two-read --reduce`),
+a behavior-preserving rewrite: in the pipe-1 egress padder the block-0 CRC is checked by its residue (hash of the
+block with its received CRC field == 0x993a, equivalent to c25's byte-swapped compare for every field value), the
+outcome index and the IP length (181/311) are set where they are decided, and the deparser checksum conditions use
+one-bit flags set by pad_mx/pad_full; in E three CRC compares on headers that no parser state extracts were removed.
+Evidence: interpreter tests (the c25 padder/N/E tests rerun on c26, 74 pass incl. the CRC-guard mutation);
+compiled model gate on the exact source `model_gate_passed` with every driver's count equal to c25's
+(control_timing 415, policy 281, policy_boundary 206, smoke 30, packets 622, smoke_sizeoff 30, rearm 799, dup 102,
+repeat 523, select_lifecycle 120, abandon 12, abort 79, contention 413, two_read_robust 163); independent code review:
+no behavioral divergence on any hunk. `CANDIDATE=c26 bash reproduce.sh` passes. Not frozen; no hardware run.
+
+Model attempts that failed and are kept: the first gate pass ran before the artifact hashes were pinned (rearm/dup
+_01 refused by sealed_profile; the other eleven _01 runs bind the unpinned profile and were superseded by _02 after
+pinning). control_timing _01 failed once (OPERATE_request_held_J_then_relayed at lane generation 30, then cascading
+failures; 261 s vs 141 s for later runs); _02 and _03 passed 415/415 and an untouched copy of c25 passed 415/415 under
+the same conditions. The _01 failure is not explained; it did not reproduce in three further runs.
+
+Resources from the compiler reports (both SDKs identical; occupied stages are a resource count, not latency):
+
+| control | m11_09 | c25 | c26 |
+|---|---|---|---|
+| N (p0 ingress): stages / PHV containers / TCAM / crossbar B | 11 / 123 / 60 / 438 | 12 / 116 / 63 / 510 | 12 / 116 / 62 / 515 |
+| E (p0 egress): stages / PHV containers (bits) / TCAM / crossbar B | 12 / 140 (2472) / 30 / 304 | 12 / 129 (2384) / 33 / 257 | 12 / 121 (2272) / 31 / 264 |
+| T (p1 ingress): stages | 11 | 11 | 11 |
+| pipe-1 egress padder: stages / PHV containers | 0 / 21 | 7 / 79 | 4 / 78 |
+| summed occupied stages | 34 | 42 | 39 |
+
+The reduction is NOT strict on every resource: attributed crossbar bytes rose (N +5, E +7) and the padder's SRAM and
+action data rose slightly (specialist scratch metrics: SRAM 12 -> 13, action data 41 -> 49 bytes). Stage counts of N, E
+and T did not fall. Tested and not kept: merging the two prefix CRC tables (net neutral), a PHV pragma on E (ignored by
+the compiler), folding image lengths into the profile tables (critical path back to 11). Removing the 49-byte range-READ
+path from N saves PHV/crossbar/hash/TCAM but no stage and changes behavior (a model test uses it as a retransmission
+control); it was not adopted. Why N sits at 12: its deepest table can go no earlier than stage 8, and the extra stage is
+a placement effect of sharing pipe 0 with E; pipe 0 falls only if both N and E reach 11.
+
 ## 0. Two-READ-target candidate m12p_c25 (Claude_Two_READ_Targets_Hardware_Directive.md)
 
 m12p_c25 (P4 `61f9af0fa141…`, = m12p_c24's P4 with the corrected declared disposition) pads the mixed READ

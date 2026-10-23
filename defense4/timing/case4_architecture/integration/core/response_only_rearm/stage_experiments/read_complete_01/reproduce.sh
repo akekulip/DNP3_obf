@@ -2,6 +2,7 @@
 # read_complete_01: one entry point that re-derives every offline result and re-checks the recorded evidence.
 #
 #   bash reproduce.sh                                # offline, the two-READ-target candidate (CANDIDATE=c25 default)
+#   CANDIDATE=c26 bash reproduce.sh                  # c25 + behavior-preserving resource reduction (--reduce)
 #   CANDIDATE=c24 bash reproduce.sh                  # c25's P4 with the uncorrected disposition text (historical)
 #   CANDIDATE=c12 bash reproduce.sh                  # the preserved rotate4 checkpoint
 #   CANDIDATE=c20 bash reproduce.sh                  # the faithful segmented READ 377->401 delivery candidate
@@ -25,6 +26,8 @@ CANDIDATE="${CANDIDATE:-c25}"
 GATE_PIN=""
 TWO_READ=0
 case "$CANDIDATE" in
+  c26) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce"; TWO_READ=1
+       SOURCE_SHA=21b98f5182edb08725b92c5d8875f75abc9da22f673f2710579b9b5ab5124fd1 ;;
   c25|c24) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read"; TWO_READ=1
        SOURCE_SHA=61f9af0fa141a1b4d0a93938893119909e792c1e98e1665156e0011969aadc07 ;;
   c12) GEN_ARGS="--policy --c3 cimg --shapes passthrough"; GATE_PIN=83498d4c1
@@ -33,7 +36,7 @@ case "$CANDIDATE" in
        SOURCE_SHA=1e94c31d80e6708ab31ca117f066d15f5ec23244fc6f7bf7b9ca68dc81a2a27b ;;
   b08) GEN_ARGS="--policy"
        SOURCE_SHA=7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f ;;
-  *) echo "unknown CANDIDATE $CANDIDATE (c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
+  *) echo "unknown CANDIDATE $CANDIDATE (c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
 esac
 BUILD="$STAGE/ctl_timing_01/evidence/m12p_$CANDIDATE"
 FREEZE="$BUILD/freeze_v3.json"
@@ -71,6 +74,21 @@ python3 "$STAGE/m12_fullsize/make_m12.py" "$SCRATCH/m12p" $GEN_ARGS >/dev/null
 got="$(sha256sum "$SCRATCH/m12p/response_only.p4" | cut -d' ' -f1)"
 [ "$got" = "$SOURCE_SHA" ] || { echo "regenerated source $got != $SOURCE_SHA"; exit 1; }
 echo "source $got"
+if [ "$CANDIDATE" = c26 ]; then
+  python3 "$STAGE/m12_fullsize/check_generator_identity.py" | tail -1
+  python3 - "$SCRATCH/m12p/response_only.inputs.json" "$BUILD/response_only.inputs.json" <<'EOF'
+import json, sys
+def norm(path):
+    d = json.load(open(path))
+    cand = d['supported_profile']['candidate']
+    cand.pop('build'); cand.pop('artifact_sha256')
+    return d
+a, b = norm(sys.argv[1]), norm(sys.argv[2])
+if a != b:
+    sys.exit('regenerated profile differs from the recorded one: %s' % sorted(k for k in set(a) | set(b) if a.get(k) != b.get(k)))
+EOF
+  echo "profile response_only.inputs.json identical, generator identity included (artifact pins and build path normalized)"
+fi
 if [ "$CANDIDATE" = c25 ]; then
   # the declared profile too (scope, shapes, images, generator hash): c24 differs only in its uncorrected scope text.
   # Recording the artifacts fills supported_profile.candidate.{build, artifact_sha256}; only those two are normalized.

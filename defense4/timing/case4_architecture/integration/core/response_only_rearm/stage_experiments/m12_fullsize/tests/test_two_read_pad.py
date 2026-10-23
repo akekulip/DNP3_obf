@@ -56,10 +56,10 @@ ETH = bytes.fromhex('001122334455aabbccddeeff0800')
 OFF = 16 + 14 + 20 + 20                      # tev(16) + eth(14) + ip(20) + tcp(20)
 
 
-def generate():
+def generate(extra=()):
     out = Path(tempfile.mkdtemp(prefix='tworead_'))
     subprocess.run([sys.executable, str(STAGE / 'm12_fullsize/make_m12.py'), str(out),
-                    '--policy', '--c3', 'cimg', '--shapes', 'passthrough', '--two-read'], check=True, capture_output=True)
+                    '--policy', '--c3', 'cimg', '--shapes', 'passthrough', '--two-read'] + list(extra), check=True, capture_output=True)
     return (out / 'response_only.p4').read_text()
 
 
@@ -101,9 +101,12 @@ SAMPLERS = {'mixed': (d2.MIXED_OBJECTS, d2.MIXED_REQ_OBJS, 91), 'full': (d2.FULL
 
 
 class TwoReadPadder(unittest.TestCase):
+    EXTRA = ()   # generator flags beyond --two-read; the Reduced subclass adds --reduce (m12p_c26)
+    CRC_COND = 'm.conn_ok == 1w1 && hdr.c0.crc == (m.in_rb0[7:0] ++ m.in_rb0[15:8])'   # the block-0 CRC guard
+
     @classmethod
     def setUpClass(cls):
-        cls.text = generate()
+        cls.text = generate(cls.EXTRA)
         cls.e = interp.ESource(padder_source(cls.text))
         cls.conn = [int.from_bytes(SRCIP, 'big'), int.from_bytes(DSTIP, 'big'), SPORT, DPORT]
 
@@ -189,7 +192,7 @@ class TwoReadPadder(unittest.TestCase):
     def test_crc_condition_is_load_bearing(self):
         """Mutation: without the block-0 CRC condition the padder rewrites a corrupted frame (re-making its CRC), so
         the check above is what refuses it."""
-        cond = 'm.conn_ok == 1w1 && hdr.c0.crc == (m.in_rb0[7:0] ++ m.in_rb0[15:8])'
+        cond = self.CRC_COND
         self.assertIn(cond, self.text)
         mutant = interp.ESource(padder_source(self.text.replace(cond, 'm.conn_ok == 1w1')))
         mutant.install('p1_conn', self.conn, 'p1_pad_ok', [])
@@ -226,6 +229,12 @@ class TwoReadPadder(unittest.TestCase):
         req, native = d2.sampler(random.Random(13), *SAMPLERS['full'])()
         out = self.pad(native)
         self.assertEqual(len(interp.checksum_oracle(out[16:])), len(out) - 16)
+
+
+class TwoReadPadderReduced(TwoReadPadder):
+    """Every padder test again on the resource-reduced build (make_m12.py --reduce, candidate m12p_c26)."""
+    EXTRA = ('--reduce',)
+    CRC_COND = 'm.conn_ok == 1w1 && m.in_rb0 == 16w0x993a'   # residue form of the same guard
 
 
 if __name__ == '__main__':

@@ -406,3 +406,53 @@ def transform_two_read_admit_n(src, _image=None):
     for table in ('sequence_guard', 'first_event', 'retry_dup_t'):
         src = _neg_entry_rows(src, table, mirrors)
     return src
+
+
+def transform_two_read_reduce(src, _image=None):
+    """Resource reduction of the two-READ build (candidate m12p_c26), behavior-preserving; each edit was checked against
+    the source it replaces (overnight 2026-10-22, scratch compiles bf-p4c 9.13.1).
+
+    pipe-1 egress padder (x1):
+      - block-0 CRC by residue: hash the block WITH its received CRC field and compare to the DNP3 residue 0x993a,
+        instead of comparing the field to a byte-swapped hash (two temporary-table stages). Equivalent to the old
+        compare for every field value (checked exhaustively over 20 random blocks x 65,536 field values).
+      - the outcome index is written where the outcome is decided (parser default 2, p1_pad_ok 3, pad_mx/pad_full 1)
+        instead of an if/else chain after the tables; padding requires conn_ok, so the three cases are unchanged.
+      - IP length set to the constants 181/311: read_profile matches ip.len 131/287 exactly.
+      - deparser checksum conditions on one-bit flags set by pad_mx/pad_full instead of hdr.plz/plu2 validity
+        (those headers become valid only in prefix_mx/prefix_full, which run exactly for those actions).
+    E (e1): drop the rbad0/rbad1/rbadt compares. Their headers c0/c1/c2 are extracted only by parser state read_b0,
+    which no transition reaches after the two-READ E transform, and E never sets them valid, so the compares never
+    fired (rbad* stay at their zero initialisation, as before)."""
+    src = once(src,
+               '        if (hdr.c0.isValid() && hdr.c0.crc != (m.in_rb0[7:0] ++ m.in_rb0[15:8])) { m.rbad0 = 1; }\n'
+               '        if (hdr.c1.isValid() && hdr.c1.crc != (m.in_rb1[7:0] ++ m.in_rb1[15:8])) { m.rbad1 = 1; }\n'
+               '        if (hdr.c2.isValid() && hdr.c2.crc != (m.in_rt[7:0] ++ m.in_rt[15:8])) { m.rbadt = 1; }\n', '')
+    src = once(src, '        if (hdr.ctn.crc1 != (m.in_ct[7:0] ++ m.in_ct[15:8])) { m.cbadt = 1; }\n',
+               '        if (hdr.ctn.crc1 != (m.in_ct[7:0] ++ m.in_ct[15:8])) { m.cbadt = 1; }\n'
+               '        /* rbad0/rbad1/rbadt checks removed: c0/c1/c2 are only extracted by read_b0, which no state reaches */\n')
+    src = once(src, 'bit<16> co_c0; bit<16> in_rb0; bit<1> pad; bit<1> full; bit<1> conn_ok; bit<2> p1_res; }',
+               'bit<16> co_c0; bit<16> in_rb0; bit<1> pad; bit<1> full; bit<1> conn_ok; bit<2> p1_res; bit<1> mx; bit<1> fl; }')
+    src = once(src, '    state start { pkt.extract(eg); m.pad = 0; m.full = 0; m.len_delta = 0; m.conn_ok = 0;\n',
+               '    state start { pkt.extract(eg); m.pad = 0; m.full = 0; m.len_delta = 0; m.conn_ok = 0; m.mx = 0; m.fl = 0; m.p1_res = 2w2;\n')
+    src = once(src, 'hdr.robj.g_var, hdr.robj.g_qual, hdr.robj.g_start, hdr.robj.g_stop, hdr.p03.d, hdr.p45.d}); }\n'
+               '    table in_rb0_t',
+               'hdr.robj.g_var, hdr.robj.g_qual, hdr.robj.g_start, hdr.robj.g_stop, hdr.p03.d, hdr.p45.d, hdr.c0.crc}); }\n'
+               '    table in_rb0_t')
+    src = once(src, '    action pad_mx() { m.pad = 1; m.full = 0; }\n    action pad_full() { m.pad = 1; m.full = 1; }',
+               '    action pad_mx() { m.pad = 1; m.full = 0; m.mx = 1; m.p1_res = 2w1; }\n'
+               '    action pad_full() { m.pad = 1; m.full = 1; m.fl = 1; m.p1_res = 2w1; }')
+    src = once(src, '    action p1_pad_ok() { m.conn_ok = 1; }', '    action p1_pad_ok() { m.conn_ok = 1; m.p1_res = 2w3; }')
+    src = once(src, 'hdr.ip.len = hdr.ip.len + 16w50; m.len_delta = 16w50;', 'hdr.ip.len = 16w181; m.len_delta = 16w50;')
+    src = once(src, 'hdr.ip.len = hdr.ip.len + 16w24; m.len_delta = 16w24;', 'hdr.ip.len = 16w311; m.len_delta = 16w24;')
+    src = once(src, 'if (m.conn_ok == 1w1 && hdr.c0.crc == (m.in_rb0[7:0] ++ m.in_rb0[15:8])) { read_profile.apply(); }',
+               'if (m.conn_ok == 1w1 && m.in_rb0 == 16w0x993a) { read_profile.apply(); }   // CRC residue: block CRC correct')
+    src = once(src, '                m.p1_res = 2w1;\n            }\n'
+               '            else if (m.conn_ok == 1w0) { m.p1_res = 2w2; }\n'
+               '            else { m.p1_res = 2w3; }\n'
+               '            p1_outcome.count(m.p1_res);',
+               '            }\n'
+               '            p1_outcome.count(m.p1_res);   // 1 padded (read_profile), 3 conn ok not padded (p1_conn), 2 no conn (parser)')
+    src = once(src, '        if (hdr.plz.isValid()) {   // mixed', '        if (m.mx == 1w1) {   // mixed')
+    src = once(src, '        if (hdr.plu2.isValid()) {  // full', '        if (m.fl == 1w1) {  // full')
+    return src

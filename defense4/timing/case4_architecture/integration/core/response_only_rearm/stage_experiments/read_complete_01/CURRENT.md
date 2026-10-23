@@ -16,19 +16,19 @@ recovery evidence on the selected image.
 - c25 hardware: padding byte-exact (campaign 02); timing precision FAILED (p99 2.0-3.6 ms vs 100 us);
   recovery blocks NOT run; bare-RST model case non-asserting.
 
+## Scope (Philip, 2026-10-22 night)
+Continue ONLY resource reduction and repository cleanup. The IEEE 1815 compliance audit is stopped and left to Philip
+(not resumed in any form). No endpoint/request changes, no hardware runs tonight.
+
 ## Completion criteria
 | # | deliverable | criterion | state |
 |---|---|---|---|
-| 1 | selected candidate | both SDK compiles, v3 model gate on exact source, reproduce.sh | open |
-| 2 | COMPLIANCE_MATRIX.md | Q1-Q6 answered with clause/table/page + witness; violations fixed or stated | open |
-| 3 | resource table | per-control before/after from compiler reports; reductions validated | open |
-| 4 | hardware | four-arm + recovery blocks on selected image, restore verified per block | open |
-| 5 | repository | root docs consistent, code map, search exclusions, history map, fresh-checkout repro | open |
-| 6 | final status | COMPLETION_RECORD section 0 + closing report | open |
-
-## Work in progress
-- W1 IEEE 1815 audit (specialist), W2 timing-analysis correction (specialist), W4 P4 resource probes
-  (specialist, scratch only), W7 root docs + search exclusions (specialist), W3 generator refactor (coordinator).
+| 1 | generator refactor | byte-identical live modes, tests, reproduce.sh | DONE 5671284aa |
+| 2 | timing analysis correction | corrected metric, records updated | DONE 4a0b0fc56 (timing still FAILED) |
+| 3 | resource reduction | per-control before/after from compiler reports; model gate on the reduced source | DONE m12p_c26 (gate passed; reduction not strict on every resource; see COMPLETION_RECORD 0a) |
+| 4 | repository | consistent root docs, code map, search exclusions, verified history moves, fresh-checkout repro | docs + 3 verified moves DONE; fresh-checkout repro pending |
+| - | compliance matrix | -- | NOT IN SCOPE (Philip) |
+| - | hardware + recovery | -- | NOT RUN tonight |
 
 ## Next action
-Integrate specialist findings as they return; finish W3 refactor with byte-identity gate.
+Commit c26 and the navigation changes; run the offline reproduction from a fresh worktree export.

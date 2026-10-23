@@ -471,3 +471,13 @@ all in the >= 2 ms bucket). Packet-level pairing is invalid in size_only/combine
 exchange-level pairing used. Config audit: fixture filter lengths 89/131/181/287/77 correct, zero piggybacked responses;
 T parameter units match t_config; provenance gap: casea_state() does not record the u32 filters. Timing remains FAILED,
 cause not located. Next measurements (NIC hardware timestamps; kernel A/B/A) need Philip's authorization.
+
+## 2026-10-23 (overnight) — generator refactor, resource reduction m12p_c26, repository navigation
+
+- Scope narrowed by Philip: resource reduction and repository cleanup only; the IEEE 1815 compliance audit is left to
+  him (the attempt was stopped and is not resumed); no hardware, no endpoint or request changes.
+- 5671284aa: make_m12.py split into m12gen/ (byte-identical live modes; check_generator_identity.py).
+- m12p_c26 (21b98f51...): see COMPLETION_RECORD section 0a for the change, gate, failed attempts kept, and the c25 vs
+  c26 resource table (pipe-1 egress 7 -> 4 stages; E PHV 129 -> 121 containers; not strict: crossbar +5/+7 B).
+- Root README/REPOSITORY_MAP/CLAUDE.md rewritten for one current authority; ACTIVE_CODE_MAP.md, HISTORY_MAP.md and
+  .ignore added. Reference checks found most "unreferenced" candidates referenced; only three items moved to history/.
