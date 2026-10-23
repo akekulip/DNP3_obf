@@ -1,0 +1,8 @@
+cpu latency release evidence: {"applied": true, "cpuidle_entries_during_hold": {"C1": 0, "C1E": 0, "C6": 0, "POLL": 368574647}, "diagnostic_valid": true, "effective_after_release": 2000000000, "effective_before_release": 0, "held_at_release": true, "helper_alive_at_release": true}
+cpu latency after restore: 2000000000 us
+rx coalescing after restore: adaptive_rx=on rx_usecs=50
+disable-source-pruning : off
+ns_vepa_a net.ipv4.tcp_timestamps = 1 | net.ipv4.tcp_sack = 1 | net.ipv4.tcp_window_scaling = 1 | net.ipv4.ip_local_port_range = 32768	60999
+ns_vepa_b net.ipv4.tcp_timestamps = 1 | net.ipv4.tcp_sack = 1 | net.ipv4.tcp_window_scaling = 1 | net.ipv4.ip_local_port_range = 32768	60999
+route: 192.168.10.0/24 dev mvB scope link src 192.168.10.62
+qdisc: qdisc noqueue 0: root refcnt 2

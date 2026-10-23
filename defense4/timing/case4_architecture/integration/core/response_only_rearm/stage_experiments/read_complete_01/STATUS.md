@@ -404,3 +404,19 @@ policy, reproduction and the completion record only.
   verified"; its `action` field is the accurate one -- nothing was written in this run (the repair was the earlier ad
   hoc one, recorded above). Reconcile (regular path + repair acceptance) cleared the flag: all fresh switch, Vision and
   NIC checks passed; the runner restore result stays FAILED (reconcile_..._20261022T215002Z/reconciliation.json).
+- 2026-10-22 (CPU-latency diagnostic, campaigns 06/07; diagnostic committed 3585631d7 after two independent reviews).
+  Both blocks: zero request VERIFIED in force at release (helper alive, effective 0); cpuidle entries during the hold
+  C1 0, C1E 0, C6 0 (all idle in POLL); after release effective 2000000000, no holder; NIC at baseline; restore_verify
+  ok (checks 6 and 7); testbed clear.
+  * Shared delay UNCHANGED with CPU idle states eliminated: control off-arm request transit 34 us after <0.5 ms idle vs
+    1378 us after >=2 ms idle; response corr 0.87. CPU idle states and (campaign 04) RX interrupt moderation are both
+    ruled out as its cause. The hold did act on the host: outstation turnaround tightened 5.27 -> 5.04 ms.
+  * Timing still FAILS: control timing_only CLRT p50 2200 / p99 2977-3000 us (READ/SELECT), combined p99 1843-3445;
+    c25 combined p50 2195-2250 / p99 2768-4163 us. c25 is within the control's range again: a shared symptom; this does
+    not show c25 has no additional effect.
+  * Control size_only passed this time (the campaign-04 loss of forwarding did not recur; still unexplained).
+  * Read-only on Vision: EEE not supported on the link; NIC PCIe ASPM disabled; 25G full duplex, autoneg off.
+    KERNEL CHANGED at the 2026-10-19 reboot: 6.8.0-146 (booted 2026-10-05, running during the good 2026-10-18 m11_09
+    measurement, p99 63 us) -> 6.8.0-147 (since 2026-10-19); 6.8.0-146 is still installed. unattended-upgrade also ran
+    2026-10-21. A lead, not a cause: testing it needs a Vision reboot (not authorized).
+  * Recovery blocks remain UNEXECUTED; timing remains FAILED and unresolved.
