@@ -1015,6 +1015,9 @@ class Campaign:
             sys.stderr.write('CAMPAIGN FAILED: %s\n' % e)
         finally:
             restore_ok = self.restore()
+            # positive runner evidence for the supervisor's preflight-failure proof (evaluation_campaign
+            # classify_preflight_failure): which testbed state this run changed; restore() undoes exactly these
+            self.record['state_touched'] = {'switch': bool(self.switch_touched), 'vision': bool(self.vision_touched)}
             self.finish(dry)
         self.record['ok'] = (not failed) and restore_ok and not self.soft_failures
         if self.soft_failures:

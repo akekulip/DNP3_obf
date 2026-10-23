@@ -510,11 +510,67 @@ def run_step(directory, step_id):
                     atomic_json(ownership, dict(active=False, unsafe_restoration=not safe,
                         campaign_dir=str(directory), step_id=step_id, unit=unit,
                         terminal_sha256=digest((records / 'terminal.json').read_bytes())))
-                return 1 if reason else 0
+                outcome = 1 if reason else 0
         except Refused as error:
             record.update(status='unexecuted', reason='testbed_refused', refusal=str(error), finished=time.time())
             atomic_json(records / 'terminal.json', record, exclusive=True)
             return 1
+        # lock released: a proven pre-contact runner failure is reconciled at once through the reviewed path
+        if ownership and reason == 'unsafe_restoration' and step['kind'] == 'block':
+            preflight_auto_reconcile(directory, step, unit)
+        return outcome
+
+
+def latest_verified_baseline(directory, run_id):
+    """(run root, terminal path) of the block started immediately before run_id on the testbed (run_block.log), found
+    as <campaigns>/*/steps/<id>/terminal.json beside this campaign. baseline_inputs and baseline_is_latest then bind
+    and check it; this only locates it."""
+    starts = [rid for event, rid, _ in run_block_entries(RUN_BLOCK_LOG) if event == 'START']
+    if run_id not in starts or starts.index(run_id) == 0:
+        raise ValueError('no block started before %s in run_block.log' % run_id)
+    base_id = starts[starts.index(run_id) - 1]
+    terminals = sorted(Path(directory).parent.glob('*/steps/%s/terminal.json' % base_id))
+    if len(terminals) != 1:
+        raise ValueError('baseline %s: %d campaign terminal records found, need exactly 1' % (base_id, len(terminals)))
+    campaign = terminals[0].parents[2]
+    step = next((s for s in json.loads((campaign / 'manifest.json').read_text())['steps'] if s['id'] == base_id), None)
+    if step is None:
+        raise ValueError('baseline %s not in its campaign manifest' % base_id)
+    return Path(step['run_root']), terminals[0]
+
+
+def preflight_auto_reconcile(directory, step, unit, root=None, verifier=None, running=None):
+    """After a block left an unverified restoration: when its run root proves a pre-contact runner failure
+    (classify_preflight_failure), run reconcile() -- the reviewed no-contact path, fresh restore_verify against the
+    latest verified baseline, all its guards -- immediately, so a proven preflight failure does not stand as an
+    unverified-restoration incident. Only this campaign's own controller/step units are excluded from the busy check
+    (they are this very run). Any other case, refusal or error leaves the flag set (a manual reconcile remains); the
+    outcome is recorded under steps/<id>/. Never raises."""
+    records = Path(directory) / 'steps' / step['id']
+    running = running or running_eval_units
+
+    def note(**fields):
+        try:
+            atomic_json(records / ('preflight_auto_reconcile_%s.json' % time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())),
+                        dict(step_id=step['id'], at=time.time(), result='flag left set', **fields), exclusive=True)
+        except OSError:
+            pass
+    try:
+        _config, run_id = frozen_argv(step)
+        proof = classify_preflight_failure(step['run_root'], run_id, RUN_BLOCK_LOG)
+        if proof['classification'] != 'preflight_no_contact':
+            note(classification=proof['classification'], reasons=proof['reasons'])
+            return None
+        base_root, base_terminal = latest_verified_baseline(directory, run_id)
+        own = unit.split('-step-')[0] + '-' if unit and '-step-' in unit else None
+
+        def units():
+            return [u for u in running() if not (own and own in u)]
+        return reconcile(directory, step['id'], root=root, units=units, verifier=verifier,
+                         baseline_run_root=base_root, baseline_terminal=base_terminal)
+    except Exception as error:        # never raises into run_step: terminal record and flag are already written
+        note(error='%s: %s' % (type(error).__name__, error))
+        return None
 
 
 def stop_after_current(directory):
@@ -681,6 +737,115 @@ def classify_step_evidence(run_root, command_log, terminal, run_id, run_block_lo
     return summary
 
 
+# A runner (hw_vepa campaign.Campaign) that failed inside deploy() -- vision_identity + deploy_switch -- changed no switch
+# or Vision state: those steps copy helper files into the run directories and verify hashes (Campaign.deploy_only:
+# "changes no switch or Vision state"); switch_toolkit (read-only observation and $PORT snapshot) and vision_setup (the
+# first state change) never ran. These are the exact labels of those steps (tests/test_reconcile.py keeps them equal
+# to campaign.py's). A block whose run root proves it stopped there is a PREFLIGHT failure, not an unverified restore.
+# Scope of "no state": the testbed state restore_verify.py checks (running program, $PORT tables, Vision namespaces,
+# qdisc and NIC flags, relay slot, ping path). The first step DOES overwrite helper files in the Vision run directory
+# (vision_run.py, loss.py, capture_observation.py, wire_check.py, hash-verified next) and the switch run directory's
+# aux/src trees; those are tool files, re-deployed and hash-checked by every block, not testbed state.
+PRE_CONTACT_LABELS = ('deploy Vision run/capture helpers to Vision', 'verify deployed Vision helper sha256 values',
+                      'verify the endpoint binary identity', 'verify the endpoint lib/ identity',
+                      'no run directory for any of these labels may exist yet (vision_run refuses to reuse one)',
+                      'make remote directories',
+                      'copy the switch tools (ports, snapshot, observe, relay slot, swap/launch) into aux',
+                      'copy the installer source tree to the switch (repo-relative paths)',
+                      'verify every deployed tool and installer source file by sha256')
+PRE_CONTACT_LABEL_PATTERNS = (re.compile(r'copy build \S+ out/ to the switch\Z'),)
+# A step line of run_block_run.out (Campaign.step, live runs only): [where] label -> rc N
+STEP_LINE = re.compile(r'\[(local|vision|switch)\] (.+) -> rc (-?\d+)\Z')
+# The StepFailed texts deploy() raises after a step that itself exited 0 (hash comparisons), by the step they follow
+HASH_FAILURES = {'verify deployed Vision helper sha256 values': re.compile(r'\S+ on Vision has sha256 \S+, expected \S+\Z'),
+                 'verify the endpoint binary identity': re.compile(r'endpoint binary \S+: sha256 \S+ does not match the pinned \S+\Z'),
+                 'verify the endpoint lib/ identity': re.compile(r'endpoint lib \S+: sha256 \S+ does not match the pinned \S+\Z'),
+                 'verify every deployed tool and installer source file by sha256':
+                     re.compile(r'deployed \S+ on the switch has sha256 \S+, expected \S+\Z')}
+# Every file guarded_block / the supervisor / restore_verify leave in such a run root; anything else is ambiguous
+PREFLIGHT_RUN_FILES = frozenset(('campaign_run.json', 'run_block_plan.out', 'run_block_run.out', 'freeze_check.json',
+                                 'artifact_manifest.json', 'restore_verify.json', 'restore_verify.out'))
+
+
+def pre_contact_label(label):
+    return label in PRE_CONTACT_LABELS or any(p.match(label) for p in PRE_CONTACT_LABEL_PATTERNS)
+
+
+def classify_preflight_failure(run_root, run_id, run_block_log):
+    """Pure, read-only: preflight_no_contact | ambiguous, with evidence. Positive proof that a block's runner failed in
+    deploy() before any switch or Vision state change: the run root holds only PREFLIGHT_RUN_FILES (no trial directory,
+    no pre-run snapshot); campaign_run.json names this run, is not ok, carries the failure, and has no arms, bring-ups,
+    collections, restore steps or observed pre-run program, and -- when present (runners after 2026-10-23) --
+    state_touched {switch: false, vision: false}; run_block_run.out holds only the CAMPAIGN FAILED line for exactly that
+    failure and step lines whose labels are all pre-contact steps, every one rc 0 except possibly the last, which is
+    the step the failure names (or a hash mismatch following it); no restore line; run_block.log has this run's START.
+    Anything else is ambiguous (the existing restoration path decides)."""
+    run_root = Path(run_root)
+    summary = dict(classification='ambiguous', run_root=str(run_root), run_id=run_id, reasons=[], steps=[],
+                   corroborating=dict(command_log_sha256=None))
+    reasons = summary['reasons']
+    if run_root.is_symlink() or not run_root.is_dir():
+        reasons.append('run root is not a directory')
+        return summary
+    entries = sorted(run_root.iterdir())
+    extra = [p.name for p in entries if p.name not in PREFLIGHT_RUN_FILES or p.is_symlink() or not p.is_file()]
+    if extra:
+        reasons.append('run root holds more than a preflight failure leaves: %s' % extra)
+    summary['files'] = {p.name: digest(p.read_bytes()) for p in entries if p.is_file() and not p.is_symlink()}
+    try:
+        record = read_json(run_root / 'campaign_run.json')
+        out_lines = [l for l in (run_root / 'run_block_run.out').read_text(errors='replace').splitlines() if l.strip()]
+    except (OSError, ValueError) as error:
+        reasons.append('runner record unreadable: %s' % error)
+        return summary
+    failure = record.get('failure')
+    if record.get('run_id') != run_id:
+        reasons.append('campaign_run.json names run %r' % record.get('run_id'))
+    if record.get('ok') is not False or not isinstance(failure, str) or not failure:
+        reasons.append('campaign_run.json is not a failed run with a failure text')
+        return summary
+    for key in ('arms', 'bringups', 'collections', 'restore'):
+        if record.get(key) != []:
+            reasons.append('campaign_run.json %s is %r, not empty' % (key, record.get(key)))
+    if 'pre_run_program' in record:
+        reasons.append('the runner reached switch_toolkit (pre_run_program recorded)')
+    if 'state_touched' in record and record['state_touched'] != {'switch': False, 'vision': False}:
+        reasons.append('runner reports state touched: %r' % (record['state_touched'],))
+    if not out_lines or out_lines[0] != 'CAMPAIGN FAILED: ' + failure:
+        reasons.append('run_block_run.out does not open with this CAMPAIGN FAILED line')
+    steps = []
+    for line in out_lines[1:]:
+        match = STEP_LINE.match(line)
+        if not match:
+            reasons.append('run_block_run.out line is not a runner step: %r' % line[:120])
+            continue
+        steps.append(dict(where=match.group(1), label=match.group(2), rc=int(match.group(3))))
+    summary['steps'] = steps
+    if not steps:
+        reasons.append('no runner step recorded')
+    for i, step in enumerate(steps):
+        if not pre_contact_label(step['label']):
+            reasons.append('step %r is not a pre-contact step' % step['label'])
+        if step['rc'] != 0 and i != len(steps) - 1:
+            reasons.append('step %r failed before the last step' % step['label'])
+    if steps and not reasons:
+        last = steps[-1]
+        if last['rc'] != 0:
+            if not failure.startswith('%s failed (rc %d) on %s: ' % (last['label'], last['rc'], last['where'])):
+                reasons.append('failure text does not name the last step')
+        elif not (last['label'] in HASH_FAILURES and HASH_FAILURES[last['label']].match(failure)):
+            reasons.append('last step exited 0 and the failure is not its hash comparison')
+    try:
+        starts = [rid for event, rid, _ in run_block_entries(run_block_log) if event == 'START']
+        if run_id not in starts:
+            reasons.append('run_block.log has no START for this run')
+    except OSError as error:
+        reasons.append('run_block.log unreadable: %s' % error)
+    if not reasons:
+        summary['classification'] = 'preflight_no_contact'
+    return summary
+
+
 def frozen_argv(step):
     """(config, run_id) from a run_block_frozen.sh argv: bash WRAPPER FREEZE TOOL CONFIG RUN_ID [ARGS...]."""
     argv = step['argv']
@@ -745,19 +910,30 @@ def baseline_inputs(baseline_run_root, baseline_terminal, problems):
     return base, shas, config, [base / 'campaign_run.json', prerun[0]], run_id
 
 
-def baseline_is_latest(run_block_log, run_id, problems):
-    """The baseline's START/END must be the last block on the testbed, with restore_verify_rc=0."""
+def baseline_is_latest(run_block_log, run_id, problems, preflight_run_id=None):
+    """The baseline's START/END must be the last block on the testbed, with restore_verify_rc=0. For a proven preflight
+    failure (preflight_run_id), that block's own START may follow -- and nothing else."""
     entries = run_block_entries(run_block_log)
     starts = [i for i, entry in enumerate(entries) if entry[0] == 'START']
+    if preflight_run_id is not None and starts and entries[starts[-1]][1] == preflight_run_id:
+        starts = starts[:-1]
+        if preflight_run_id in [entries[i][1] for i in starts]:
+            problems.append('the preflight block started more than once (run_block.log)')
+            return
     if not starts or entries[starts[-1]][1] != run_id:
         problems.append('baseline is not the last block started on the testbed (run_block.log)')
         return
     ends = [entry for entry in entries[starts[-1] + 1:] if entry[0] == 'END' and entry[1] == run_id]
+    if preflight_run_id is not None:            # the baseline's END must precede the preflight block's START
+        own = [i for i, entry in enumerate(entries) if entry[0] == 'START' and entry[1] == preflight_run_id]
+        ends = [entry for entry in entries[starts[-1] + 1:(own[0] if own else len(entries))]
+                if entry[0] == 'END' and entry[1] == run_id]
     if len(ends) != 1 or 'restore_verify_rc=0' not in ends[0][2]:
         problems.append('baseline has no single END with restore_verify_rc=0 after its START (run_block.log)')
 
 
-def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline_run_root, baseline_terminal):
+def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline_run_root, baseline_terminal,
+                         preflight=False):
     """Clear an unverified-restoration flag for a block with NO hardware-run evidence.
 
     Records are written to the campaign's steps/<step>/reconcile_<ts>/ (created exclusively, never reused):
@@ -769,7 +945,9 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
     testbed is checked afresh against a named baseline: the last block that ran (run_block.log), bound to its
     campaign terminal record, whose config has the same hosts and production as this step's. Its restore record and
     pre-run snapshot are copied in and restore_verify.py runs unchanged with its config. Only exit 0, ok and no
-    failures, with units and ownership unchanged afterwards, clear the flag; anything else leaves a refusal."""
+    failures, with units and ownership unchanged afterwards, clear the flag; anything else leaves a refusal.
+    preflight=True: the run root exists, and the proof is classify_preflight_failure instead (a runner that failed in
+    its pre-contact deploy steps); the baseline may then be followed in run_block.log only by this block's own START."""
     step_id = step['id']
     records = directory / 'steps' / step_id
     out = records / ('reconcile_%s' % stamp)
@@ -804,9 +982,16 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
         except (KeyError, TypeError, ValueError, OSError) as error:
             problems.append('step config/run root not derivable: %s' % error)
         bound['run_block_log'] = digest(RUN_BLOCK_LOG.read_bytes()) if RUN_BLOCK_LOG.is_file() else None
-        evidence = classify_step_evidence(step['run_root'], records / 'command.log', terminal, run_id, RUN_BLOCK_LOG)
+        if preflight:
+            evidence = classify_preflight_failure(step['run_root'], run_id, RUN_BLOCK_LOG)
+            log = records / 'command.log'
+            evidence['corroborating']['command_log_sha256'] = digest(log.read_bytes()) if log.is_file() else None
+            wanted = 'preflight_no_contact'
+        else:
+            evidence = classify_step_evidence(step['run_root'], records / 'command.log', terminal, run_id, RUN_BLOCK_LOG)
+            wanted = 'no_hardware_contact'
         bound['command_log'] = evidence['corroborating']['command_log_sha256']
-        if evidence['classification'] != 'no_hardware_contact':
+        if evidence['classification'] != wanted:
             problems.append('no positive proof of no hardware contact (%s): %s'
                             % (evidence['classification'], '; '.join(evidence['reasons'])))
         base, bound['baseline'], base_config, inputs, base_run_id = baseline_inputs(
@@ -819,7 +1004,7 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
             except (OSError, ValueError) as error:
                 problems.append('baseline config unreadable: %s' % error)
             try:
-                baseline_is_latest(RUN_BLOCK_LOG, base_run_id, problems)
+                baseline_is_latest(RUN_BLOCK_LOG, base_run_id, problems, preflight_run_id=run_id if preflight else None)
             except OSError as error:
                 problems.append('baseline run_block.log unreadable: %s' % error)
         busy = units()
@@ -830,7 +1015,7 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.strip()
         tool_dirty = subprocess.run(['git', 'status', '--porcelain', '--', RESTORE_VERIFY.name], cwd=str(HERE),
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.strip()
-        record = dict(campaign_dir=str(directory), step_id=step_id, at=time.time(), mode='no_hardware_contact',
+        record = dict(campaign_dir=str(directory), step_id=step_id, at=time.time(), mode=wanted,
                       bound_sha256=bound, no_contact_evidence=evidence, baseline_run_root=str(base) if base else None,
                       baseline_terminal=str(baseline_terminal) if baseline_terminal else None,
                       baseline_run_id=base_run_id, config=base_config, step_config=config,
@@ -970,6 +1155,16 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
     # existing path below, unchanged, and a baseline offered for it is refused rather than ignored.
     if not hardware_run_evidence(step['run_root']):
         return reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline_run_root, baseline_terminal)
+    # A run root that proves a pre-contact runner failure takes the no-contact path too (fresh check against a named
+    # baseline); any other run root with hardware-run files keeps the existing path, unchanged.
+    try:
+        _config, step_run_id = frozen_argv(step)
+    except ValueError:
+        step_run_id = None
+    if (step_run_id is not None and
+            classify_preflight_failure(step['run_root'], step_run_id, RUN_BLOCK_LOG)['classification'] == 'preflight_no_contact'):
+        return reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline_run_root, baseline_terminal,
+                                    preflight=True)
     if baseline_run_root is not None or baseline_terminal is not None:
         raise Refused('block has hardware-run evidence; reconcile it without --baseline-run-root/--baseline-terminal')
     out = directory.parent / ('reconcile_%s_%s' % (step_id, stamp))

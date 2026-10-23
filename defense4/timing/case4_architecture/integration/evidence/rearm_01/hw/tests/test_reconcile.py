@@ -2,6 +2,7 @@
 import hashlib
 import importlib.util
 import json
+import re
 from pathlib import Path
 import sys
 import tempfile
@@ -805,3 +806,292 @@ class WrapperLocationTest(unittest.TestCase):
         step['argv'][1] = WRAPPER
         self.assertEqual(load_module().frozen_argv(step), ('C', 'R'))
 
+
+
+PREFLIGHT_FAILURE = ('verify the endpoint binary identity failed (rc 1) on vision: sha256sum /v/case4_bin | '
+                     'sha256sum: /v/case4_bin: No such file or directory')
+PREFLIGHT_STEPS = ['[local] deploy Vision run/capture helpers to Vision -> rc 0',
+                   '[vision] verify deployed Vision helper sha256 values -> rc 0',
+                   '[vision] verify the endpoint binary identity -> rc 1']
+
+
+class PreflightReconcileTests(unittest.TestCase):
+    """A block whose runner failed in its pre-contact deploy steps (2026-10-23, c26 campaign 04): the run root exists
+    with only the files such a failure leaves, and the reviewed no-contact path applies with a fresh check. Reuses the
+    no-contact fixture (baseline campaign, testbed, ownership), not its tests: those assume an absent run root."""
+    write_terminal = NoContactReconcileTests.write_terminal
+    make_baseline = NoContactReconcileTests.make_baseline
+    write_baseline_manifest = NoContactReconcileTests.write_baseline_manifest
+    tearDown = NoContactReconcileTests.tearDown
+    run_reconcile = NoContactReconcileTests.run_reconcile
+    assert_flag_set = NoContactReconcileTests.assert_flag_set
+    refusals = NoContactReconcileTests.refusals
+    assert_refused_with_record = NoContactReconcileTests.assert_refused_with_record
+
+    def setUp(self):
+        NoContactReconcileTests.setUp(self)
+        self.run_root.mkdir()
+        self.record = {'run_id': 'block0', 'ok': False, 'failure': PREFLIGHT_FAILURE, 'arms': [], 'bringups': [],
+                       'collections': [], 'restore': []}
+        self.write_root()
+        self.c.RUN_BLOCK_LOG.write_text(block_log('START candidate_campaign older', 'END older block_rc=0 restore_verify_rc=0',
+                                                  'START candidate_campaign base',
+                                                  'END base block_rc=1 restore_verify_rc=0',
+                                                  'START candidate_series block0',
+                                                  'END block0 block_rc=2 restore_verify_rc=1'))
+
+    def write_root(self, steps=None, extra=None):
+        (self.run_root / 'campaign_run.json').write_text(json.dumps(self.record))
+        lines = ['CAMPAIGN FAILED: ' + self.record['failure']] + (PREFLIGHT_STEPS if steps is None else steps)
+        (self.run_root / 'run_block_run.out').write_text('\n'.join(lines) + '\n')
+        (self.run_root / 'run_block_plan.out').write_text('[local      ] plan\n')
+        (self.run_root / 'freeze_check.json').write_text('{}')
+        (self.run_root / 'restore_verify.json').write_text(json.dumps({'ok': False, 'failures': ['runner restore missing']}))
+        for name, text in (extra or {}).items():
+            (self.run_root / name).write_text(text)
+        files = {p.name: {'sha256': sha(p)} for p in self.run_root.iterdir()
+                 if p.is_file() and p.name != 'artifact_manifest.json'}
+        (self.run_root / 'artifact_manifest.json').write_text(json.dumps({'files': files}))
+        self.terminal.update(rc=2, artifact_manifest={'path': str(self.run_root / 'artifact_manifest.json'),
+                                                      'sha256': sha(self.run_root / 'artifact_manifest.json')},
+                             restoration={'path': str(self.run_root / 'restore_verify.json'), 'ok': False,
+                                          'sha256': sha(self.run_root / 'restore_verify.json')})
+        self.write_terminal()
+
+    def classify(self):
+        return self.c.classify_preflight_failure(self.run_root, 'block0', self.c.RUN_BLOCK_LOG)
+
+    # ---- positive ----
+    def test_pass_clears_flag_with_bound_immutable_record(self):
+        record = Path(self.run_reconcile())
+        data = json.loads(record.read_text())
+        self.assertEqual(data['mode'], 'preflight_no_contact')
+        self.assertEqual(data['no_contact_evidence']['classification'], 'preflight_no_contact')
+        self.assertEqual([s['label'] for s in data['no_contact_evidence']['steps']][-1], 'verify the endpoint binary identity')
+        own = json.loads(self.ownership.read_text())
+        self.assertIs(own['unsafe_restoration'], False)
+        self.assertEqual(own['reconciliation_sha256'], sha(record))
+        self.assertEqual(data['bound_sha256']['fresh_restore_verify'], sha(record.parent / 'restore_verify.json'))
+
+    def test_runner_reporting_no_state_touched_passes(self):
+        self.record['state_touched'] = {'switch': False, 'vision': False}
+        self.write_root()
+        self.assertEqual(self.classify()['classification'], 'preflight_no_contact')
+
+    def test_hash_mismatch_after_a_zero_exit_step_passes(self):
+        self.record['failure'] = 'endpoint binary /v/case4_bin: sha256 aa does not match the pinned bb'
+        self.write_root(steps=PREFLIGHT_STEPS[:2] + ['[vision] verify the endpoint binary identity -> rc 0'])
+        self.assertEqual(self.classify()['classification'], 'preflight_no_contact')
+
+    def test_switch_deploy_steps_are_pre_contact(self):
+        self.record['failure'] = ('verify every deployed tool and installer source file by sha256 failed (rc 1) on '
+                                  'switch: sha256sum x | missing')
+        self.write_root(steps=PREFLIGHT_STEPS[:2] + ['[vision] verify the endpoint binary identity -> rc 0',
+                        '[switch] make remote directories -> rc 0', '[local] copy build m12p_c26 out/ to the switch -> rc 0',
+                        '[switch] verify every deployed tool and installer source file by sha256 -> rc 1'])
+        self.assertEqual(self.classify()['classification'], 'preflight_no_contact')
+
+    def test_supervisor_reconciles_a_proven_preflight_failure_at_once(self):
+        step = json.loads((self.campaign / 'manifest.json').read_text())['steps'][0]
+        unit = 'dnp3-eval-nocontact-test-abc-step-block0.service'
+        record = self.c.preflight_auto_reconcile(self.campaign, step, unit, root=self.testbed, verifier=writer(True),
+                                                running=lambda: [unit, 'dnp3-eval-nocontact-test-abc-controller-1.service'])
+        self.assertIsNotNone(record)
+        self.assertIs(json.loads(self.ownership.read_text())['unsafe_restoration'], False)
+
+    # ---- negative: refusal is preserved for anything ambiguous ----
+    def assert_ambiguous_and_flag_kept(self):
+        self.assertEqual(self.classify()['classification'], 'ambiguous')
+        with self.assertRaises(self.c.Refused):
+            self.run_reconcile()
+        self.assert_flag_set()
+        step = json.loads((self.campaign / 'manifest.json').read_text())['steps'][0]
+        self.assertIsNone(self.c.preflight_auto_reconcile(self.campaign, step, 'u-step-block0.service',
+                                                          root=self.testbed, verifier=writer(True), running=lambda: []))
+        self.assert_flag_set()
+        notes = [json.loads(p.read_text()) for p in self.steps.glob('preflight_auto_reconcile_*.json')]
+        self.assertTrue(notes and notes[-1]['classification'] == 'ambiguous' and notes[-1]['reasons'])
+
+    def test_prerun_snapshot_present_is_ambiguous(self):
+        self.write_root(extra={'block0_prerun.json': '{}'})
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_trial_directory_present_is_ambiguous(self):
+        (self.run_root / 'separate_ack').mkdir()
+        self.write_root()
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_state_changing_step_is_ambiguous(self):
+        self.write_root(steps=PREFLIGHT_STEPS[:2] + [
+            '[vision] namespace TCP profile and NIC source-pruning (snapshots prior state) -> rc 1'])
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_read_only_switch_toolkit_step_is_still_not_pre_contact(self):
+        self.write_root(steps=PREFLIGHT_STEPS[:2] + ['[switch] observe the running program (read-only, from ps) -> rc 1'])
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_runner_reporting_state_touched_is_ambiguous(self):
+        self.record['state_touched'] = {'switch': False, 'vision': True}
+        self.write_root()
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_restore_steps_recorded_are_ambiguous(self):
+        self.record['restore'] = [{'step': 'ping through the restored switch path', 'rc': 0, 'ok': True}]
+        self.write_root()
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_bringup_recorded_is_ambiguous(self):
+        self.record['bringups'] = [{'label': 'x'}]
+        self.write_root()
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_pre_run_program_recorded_is_ambiguous(self):
+        self.record['pre_run_program'] = 'production'
+        self.write_root()
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_failure_not_naming_the_last_step_is_ambiguous(self):
+        self.record['failure'] = 'something else failed (rc 1) on switch: x'
+        self.write_root()
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_earlier_failed_step_is_ambiguous(self):
+        self.write_root(steps=['[local] deploy Vision run/capture helpers to Vision -> rc 1'] + PREFLIGHT_STEPS[1:])
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_unrecognised_output_line_is_ambiguous(self):
+        self.write_root(steps=PREFLIGHT_STEPS + ['[restore:vision] ping through the restored switch path -> rc 0'])
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_hash_text_without_a_hash_step_is_ambiguous(self):
+        self.record['failure'] = 'endpoint binary /v/x: sha256 aa does not match the pinned bb'
+        self.write_root(steps=PREFLIGHT_STEPS[:2] + ['[vision] no run directory for any of these labels may exist yet '
+                                                    '(vision_run refuses to reuse one) -> rc 0'])
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_another_block_after_the_baseline_refused(self):
+        self.c.RUN_BLOCK_LOG.write_text(block_log('START candidate_campaign base', 'END base block_rc=1 restore_verify_rc=0',
+                                                  'START candidate_campaign other', 'END other block_rc=0 restore_verify_rc=0',
+                                                  'START candidate_series block0', 'END block0 block_rc=2 restore_verify_rc=1'))
+        self.assert_refused_with_record('baseline is not the last block')
+
+    def test_fresh_verifier_failure_leaves_flag_set(self):
+        self.assert_refused_with_record('fresh restoration check did not pass', verifier=writer(False, rc=1))
+
+    def test_supervisor_leaves_flag_on_fresh_failure(self):
+        step = json.loads((self.campaign / 'manifest.json').read_text())['steps'][0]
+        self.assertIsNone(self.c.preflight_auto_reconcile(self.campaign, step, 'u-step-block0.service',
+                                                          root=self.testbed, verifier=writer(False, rc=1),
+                                                          running=lambda: []))
+        self.assert_flag_set()
+        self.assertTrue(list(self.steps.glob('preflight_auto_reconcile_*.json')))
+
+    def test_baseline_end_without_verified_restore_refused(self):
+        self.c.RUN_BLOCK_LOG.write_text(block_log('START candidate_campaign base', 'END base block_rc=1 restore_verify_rc=1',
+                                                  'START candidate_series block0', 'END block0 block_rc=2 restore_verify_rc=1'))
+        self.assert_refused_with_record('restore_verify_rc=0')
+
+    def test_baseline_end_after_own_start_refused(self):
+        self.c.RUN_BLOCK_LOG.write_text(block_log('START candidate_campaign base', 'START candidate_series block0',
+                                                  'END base block_rc=1 restore_verify_rc=0',
+                                                  'END block0 block_rc=2 restore_verify_rc=1'))
+        self.assert_refused_with_record('restore_verify_rc=0')
+
+    def test_baseline_end_missing_refused(self):
+        self.c.RUN_BLOCK_LOG.write_text(block_log('START candidate_campaign base', 'START candidate_series block0',
+                                                  'END block0 block_rc=2 restore_verify_rc=1'))
+        self.assert_refused_with_record('restore_verify_rc=0')
+
+    def test_multiline_failure_is_ambiguous(self):
+        self.record['failure'] = PREFLIGHT_FAILURE + '\n[vision] verify the endpoint binary identity -> rc 1'
+        self.write_root()
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_campaign_failed_line_not_first_is_ambiguous(self):
+        (self.run_root / 'run_block_run.out').write_text(
+            '\n'.join(PREFLIGHT_STEPS + ['CAMPAIGN FAILED: ' + PREFLIGHT_FAILURE]) + '\n')
+        self.assertEqual(self.classify()['classification'], 'ambiguous')
+
+    def test_run_id_mismatch_is_ambiguous(self):
+        self.record['run_id'] = 'other'
+        self.write_root()
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_state_touched_null_is_ambiguous(self):
+        self.record['state_touched'] = None
+        self.write_root()
+        self.assert_ambiguous_and_flag_kept()
+
+    def test_supervisor_refuses_while_another_campaign_runs(self):
+        step = json.loads((self.campaign / 'manifest.json').read_text())['steps'][0]
+        unit = 'dnp3-eval-nocontact-test-abc-step-block0.service'
+        self.assertIsNone(self.c.preflight_auto_reconcile(
+            self.campaign, step, unit, root=self.testbed, verifier=writer(True),
+            running=lambda: [unit, 'dnp3-eval-other-xyz-step-b.service']))
+        self.assert_flag_set()
+
+    def test_supervisor_never_raises_and_records_the_error(self):
+        step = json.loads((self.campaign / 'manifest.json').read_text())['steps'][0]
+
+        def boom(*_a, **_k):
+            raise RuntimeError('unexpected')
+        self.c.classify_preflight_failure = boom
+        self.assertIsNone(self.c.preflight_auto_reconcile(self.campaign, step, 'u-step-block0.service',
+                                                          root=self.testbed, running=lambda: []))
+        self.assert_flag_set()
+        notes = [json.loads(p.read_text()) for p in self.steps.glob('preflight_auto_reconcile_*.json')]
+        self.assertIn('RuntimeError', notes[-1]['error'])
+
+    def test_preflight_block_started_twice_refused(self):
+        self.c.RUN_BLOCK_LOG.write_text(block_log('START candidate_series block0', 'START candidate_campaign base',
+                                                  'END base block_rc=1 restore_verify_rc=0',
+                                                  'START candidate_series block0', 'END block0 block_rc=2 restore_verify_rc=1'))
+        self.assert_refused_with_record('started more than once')
+
+
+class PreContactLabelsMatchRunnerTests(unittest.TestCase):
+    """PRE_CONTACT_LABELS are exactly the step labels of Campaign.vision_identity and deploy_switch, and no label of a
+    state-observing or state-changing phase is among them."""
+
+    def test_labels_are_the_deploy_phase_labels(self):
+        import ast
+        c = load_module()
+        source = (MODULE.parents[4] / 'protocol/hw_vepa/campaign.py').read_text()
+        tree = ast.parse(source)
+        funcs = {n.name: n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
+
+        def labels(name):
+            out = []
+            for call in ast.walk(funcs[name]):
+                if (isinstance(call, ast.Call) and getattr(call.func, 'attr', None) == 'step' and len(call.args) >= 2):
+                    arg = call.args[1]
+                    out.append(arg.value if isinstance(arg, ast.Constant) else ast.unparse(arg)
+                               if hasattr(ast, 'unparse') else None)
+            return out
+        deploy = labels('vision_identity') + labels('deploy_switch')
+        literal = [label for label in deploy if label and not label.startswith("'") and '%' not in label]
+        self.assertEqual(sorted(set(literal)), sorted(c.PRE_CONTACT_LABELS))
+        self.assertTrue(c.pre_contact_label('copy build m12p_c26 out/ to the switch'))
+        deploy_calls = {id(call) for name in ('vision_identity', 'deploy_switch') for call in ast.walk(funcs[name])}
+        checked = 0
+        for call in ast.walk(tree):
+            if (isinstance(call, ast.Call) and getattr(call.func, 'attr', None) == 'step' and len(call.args) >= 2
+                    and id(call) not in deploy_calls):
+                arg = call.args[1]
+                if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.Add):   # 'prefix' + (...): judge the prefix
+                    while isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.Add):
+                        arg = arg.left
+                    self.assertIsInstance(arg, ast.Constant, 'unreadable step label at line %d' % call.lineno)
+                    self.assertFalse(any(label.startswith(arg.value) for label in c.PRE_CONTACT_LABELS), arg.value)
+                    self.assertFalse(arg.value.startswith('copy build'), arg.value)
+                    checked += 1
+                    continue
+                if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.Mod):   # 'label %s' % x: fill every slot
+                    arg = arg.left
+                    text = re.sub(r'%[sd]', 'X', arg.value) if isinstance(arg, ast.Constant) else None
+                else:
+                    text = arg.value if isinstance(arg, ast.Constant) else None
+                self.assertIsNotNone(text, 'unreadable step label at line %d' % call.lineno)
+                self.assertFalse(c.pre_contact_label(text), text)
+                checked += 1
+        self.assertGreater(checked, 15)
