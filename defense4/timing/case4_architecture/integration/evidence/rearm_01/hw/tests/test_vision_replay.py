@@ -188,7 +188,8 @@ class VisionReplay(unittest.TestCase):
         self.assertEqual(result['connections'][1]['replay_filter']['removed'], 12)
         self.assertEqual(set(result['source_sha256']), {str(Path(module.__file__)) for module in
             (vp, vp.vi, vp.vc, vp.rp, vp.vc.vr, vp.vc.wc, vp.vc.clrt, vp.vc.checks, vp.vc.vr.capture_observation)} |
-            {str(HW / 'token_window.py'), str(HW / 'snapshot_lifecycle.py')})
+            {str(HW / 'token_window.py'), str(HW / 'snapshot_lifecycle.py'),
+             str(Path(vp.vc.clrt.__file__).with_name('read_classes.py'))})
         verdict = json.loads((self.root / 'series/c2/verdict.json').read_text())
         self.assertEqual(verdict['replay_filter'], result['connections'][1]['replay_filter'])
         self.assertTrue(result['hashes'])

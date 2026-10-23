@@ -35,7 +35,8 @@ def source_paths():
     """Every Vision-side file this replay runs; candidate_external.verdict pins exactly these names."""
     return (Path(__file__), Path(vi.__file__), Path(vc.__file__), Path(rp.__file__), Path(vc.vr.__file__),
             Path(vc.wc.__file__), Path(vc.clrt.__file__), Path(vc.checks.__file__),
-            Path(vc.vr.capture_observation.__file__), HERE / 'token_window.py', HERE / 'snapshot_lifecycle.py')
+            Path(vc.vr.capture_observation.__file__), HERE / 'token_window.py', HERE / 'snapshot_lifecycle.py',
+            Path(vc.clrt.__file__).with_name('read_classes.py'))      # deployed beside clrt_check (per-class READ policy)
 
 
 def sha(path):

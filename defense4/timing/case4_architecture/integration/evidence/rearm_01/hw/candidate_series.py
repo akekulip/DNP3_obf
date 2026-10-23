@@ -39,6 +39,9 @@ VISION_EXTRA = {
     'wire_check.py': ARCH / 'protocol' / 'hw_vepa' / 'wire_check.py',
     'clrt_check.py': ARCH / 'protocol' / 'hw_vepa' / 'clrt_check.py',
     'checks.py': ARCH / 'protocol' / 'hw_vepa' / 'checks.py',
+    # clrt_check imports read_classes for a per-class READ policy (two-READ builds); without it the Vision-side
+    # evidence extraction of every series connection fails (c26 campaigns 05/06, 2026-10-23)
+    'read_classes.py': ARCH / 'protocol' / 'hw_vepa' / 'read_classes.py',
 }
 SWITCH_EXTRA = (HERE / 'snapshot_lifecycle.py',)
 LIMITATIONS = (

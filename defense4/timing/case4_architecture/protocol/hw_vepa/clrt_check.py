@@ -437,7 +437,7 @@ def exchanges(out_path, in_path, allow_missing=False, read_policy=None):
             row['clrt_us'] = t_resp - t_ack if t_ack is not None else None
             row['rt_us'] = t_resp - lr['t_req']
         if read_policy is not None and lr['kind'] == 'READ':
-            import read_classes                        # policy runs only; the Vision-deployed path never needs it
+            import read_classes                        # policy runs only (deployed beside this file for series runs)
             row['read_class'] = read_classes.classify_request_frames(lr['attempts'][0]['payload'])
         rows.append(row)
     _add_publication(rows, out_segs, in_segs, available, read_policy)

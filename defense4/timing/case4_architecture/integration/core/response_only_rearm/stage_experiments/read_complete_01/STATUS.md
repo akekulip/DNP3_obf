@@ -535,3 +535,19 @@ cause not located. Next measurements (NIC hardware timestamps; kernel A/B/A) nee
   off-arm request transit by prior receive silence <0.5 / 0.5-2 / >=2 ms: n 74/36/83, median 76/1291/1211 us, p90
   2114/2099/2220 us; size_only 69/49/75, median 86/1177/834, p90 2117/1774/2098. Same ~1-2 ms path delay as c25 and the
   m11_09 controls; no additional c26 effect detected in this comparison. Timing cause still not located.
+
+## 2026-10-23 (later) — supervisor repaired; recovery running; second series-path harness gap; F1 / c27
+
+- Supervisor: proven preflight (pre-contact) failures are reconciled through the reviewed no-contact path (1205f6f05,
+  b0a1654d4; two independent reviews). Incident _04 reconciled (fresh restore_verify passed). Endpoint deployed to the
+  series run dir (hashes = pins). c26 re-frozen; recovery as one block per campaign (_05.._10).
+- _05 persistence_graceful and _06 persistence_rst: rc 1, restoration verified, but NOT a timing failure -- the series
+  tool's Vision-side evidence extraction failed on c1 ("No module named 'read_classes'") and c2/c3 never ran. Cause:
+  clrt_check.py imports read_classes lazily for per-class READ policy ("the Vision-deployed path never needs it" -- wrong
+  for two-READ builds) and candidate_series.VISION_EXTRA does not deploy read_classes.py. Fix (after the running
+  campaigns, since these files are freeze-pinned): add read_classes.py (imports only struct) to VISION_EXTRA, correct
+  the comment, re-freeze, rerun the series blocks (persistence graceful/rst, reconnect, held OPERATE) under new IDs.
+- Forwarding loss: reproduced on the model (final ACK meets a held work cell -> busy_pass -> E drop_lifetime); F1
+  (busy ACK retry) reviewed (conditional pass) and qualified on the model as m12p_c27 (c0a91d53...): ack_b2b fixed,
+  forced reorder costs one master retransmission not the connection, exhaustion as specified; caveat: a busy outstation
+  ACK overtaken by its response is still lost (never worse than c26). D3 (why the overlap occurs on hardware) open.
