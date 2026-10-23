@@ -551,3 +551,18 @@ cause not located. Next measurements (NIC hardware timestamps; kernel A/B/A) nee
   (busy ACK retry) reviewed (conditional pass) and qualified on the model as m12p_c27 (c0a91d53...): ack_b2b fixed,
   forced reorder costs one master retransmission not the connection, exhaustion as specified; caveat: a busy outstation
   ACK overtaken by its response is still lost (never worse than c26). D3 (why the overlap occurs on hardware) open.
+- Recovery on c26 (new hardware runs; restoration verified after every block; ownership clean):
+  * _07 loss_mixed_950: PASS (rc 0). Each trial dropped exactly one intended packet (incl. the 181-byte padded mixed
+    READ response, a 101-byte response, a 40-byte ACK); recovered by retransmission in ~0.21 s (bound 5 s).
+  * _08 loss_full_950: PASS (rc 0).
+  * _13 reconnect_950: rc 1 on timing precision only (READ p99 2052 / 1991 us); recovery checks passed.
+  * _11 persistence_graceful / _12 persistence_rst: rc 1. Timing precision failed AND every connection failed the
+    series freshness check -- a CHECKER bug: freshness_gate recognised READ responses only by g10v2 (the range READ).
+    Fixed (any RESPONSE whose first object is not a CROB); re-run offline on the retained captures, all six
+    connections pass (fresh ISNs beyond the old frontier, first READ response at the new image start). The official
+    verdicts need a rerun under the fixed, re-frozen harness.
+  * _14 held_operate_350: rc 1; c2 failed wire mapping (c3 never ran). The unmatched 35-byte OPERATE is by design (the
+    m11_09 held_operate passes with exactly that); the extra unmatched packet is the reconnected connection's FIRST mixed
+    READ request (25 B), refused once by N (count_first[0] 0->1, count_busy 0) and recovered by retransmission. The same
+    refusal hit persistence_graceful c3. m11_09 series blocks never show it: new with the two-READ N admission. Under
+    investigation as a correctness defect.

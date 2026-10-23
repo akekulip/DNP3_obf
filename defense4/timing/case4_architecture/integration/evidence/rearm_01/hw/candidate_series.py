@@ -195,9 +195,14 @@ def freshness_gate(sent, returned, port, previous=None):
         if previous and not 2 <= (((isn + 1) - previous['frontiers'][name]) & mask) <= 0x7fffffff:
             raise ValueError('new %s ISN overlaps or precedes old connection frontier' % name)
     for packets, label in ((sent, 'native'), (returned, 'returned')):
+        # a READ response: DNP3 RESPONSE (function 0x81) whose first object is not a CROB (g12, the SELECT/OPERATE
+        # echo). Any READ class qualifies: the range READ (g10v2), the mixed READ (g1v2 first) and the full/integrity
+        # READ (class-0 objects) -- the g10v2-only test failed every two-READ series connection (c26 campaigns 11/12).
         responses = [p for p in packets if p['dir'] == 'O->M' and len(p['payload']) >= 17 and
-                     p['payload'][12] == 0x81 and p['payload'][15:17] == b'\x0a\x02']
-        if not responses or responses[0]['seq'] != (server + 1) & mask:
+                     p['payload'][12] == 0x81 and p['payload'][15] != 0x0c]
+        if not responses:
+            raise ValueError('no %s READ response found on the current connection' % label)
+        if responses[0]['seq'] != (server + 1) & mask:
             raise ValueError('first %s READ response inherited an old mapping offset' % label)
     return observed
 

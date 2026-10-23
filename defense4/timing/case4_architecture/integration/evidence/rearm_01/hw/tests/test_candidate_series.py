@@ -161,6 +161,31 @@ def test_fresh_mapping_rejects_old_offsets_and_overlapping_isns():
         module.freshness_gate(sent, returned, 59420)
 
 
+def test_fresh_mapping_recognises_two_read_classes_and_skips_crob_responses():
+    module, _ = configured()
+    for group in (b'\x01\x02', b'\x1e\x01', b'\x14\x01'):          # mixed (g1v2), analog g30v1, counter g20v1 first
+        sent, returned = sequence_fixture(module)
+        for packets in (sent, returned):
+            packets[-1]['payload'] = packets[-1]['payload'][:15] + group + packets[-1]['payload'][17:]
+        assert module.freshness_gate(sent, returned, 59420)['server_isn'] == 20000
+    sent, returned = sequence_fixture(module)
+    crob = bytearray(37); crob[12] = 0x81; crob[15:17] = b'\x0c\x01'
+    for packets in (sent, returned):                     # a CROB echo at the image start is not taken as the READ
+        packets[-1]['seq'] += 37
+        packets.insert(3, dict(packets[-1], seq=20001, payload=bytes(crob), len=37))
+    with pytest.raises(ValueError, match='old mapping offset'):
+        module.freshness_gate(sent, returned, 59420)        # the first READ response no longer starts the image
+
+
+def test_fresh_mapping_without_any_read_response_says_so():
+    module, _ = configured()
+    sent, returned = sequence_fixture(module)
+    for packets in (sent, returned):
+        packets[-1]['payload'] = packets[-1]['payload'][:15] + b'\x0c\x01' + packets[-1]['payload'][17:]
+    with pytest.raises(ValueError, match='no native READ response found'):
+        module.freshness_gate(sent, returned, 59420)
+
+
 def test_series_switch_gate_uses_three_t_counts_but_last_leg_mapper_growth_only():
     module, cfg = configured()
     before = {'outcomes': {'OUT_ACK_COMMIT': 0, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_RELEASE': 0,
