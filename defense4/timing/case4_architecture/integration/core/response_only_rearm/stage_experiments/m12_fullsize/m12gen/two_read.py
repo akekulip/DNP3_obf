@@ -502,3 +502,52 @@ def transform_n_read_completes_handshake(src, _image=None):
     src = once(src, row, row + '(8w9,3w1,1w0,32w0x40000&&&32w0xffff0000,_,_,_,_,_,_,_):first_read_request();')
     src = once(src, 'size=175;const default_action=NoAction(', 'size=176;const default_action=NoAction(')
     return src
+
+
+# Pipe-0 headroom (candidate m12p_c29), compiled 9.13.1 as .scratch_p4 c28h_F1abF2d: N and E highest occupied index 10.
+# Each pair is (old, new), applied once in order; behavior arguments in transform_pipe0_headroom's docstring.
+PIPE0_HEADROOM_EDITS = [
+    [
+        "if (hdr.cb0.isValid()) { ctl_profile.apply(); in_cb0_t.apply(); in_ct_t.apply(); ctl_sequences_t.apply(); crc_ctl_tail2_t.apply(); crc_ctl_tail3_t.apply(); }",
+        "if (hdr.cb0.isValid()) { ctl_profile.apply(); in_cb0_t.apply(); in_ct_t.apply(); }"
+    ],
+    [
+        "                mode_t.apply();\n",
+        "                mode_t.apply();\n                if ((bit<8>)m.mode == 1 && m.ctl_shape == 1) { ctl_sequences_t.apply(); crc_ctl_tail2_t.apply(); crc_ctl_tail3_t.apply(); }\n"
+    ],
+    [
+        "control r_Egress(inout r_headers_t hdr,",
+        "/* attached to the instantiated egress control: pragmas on r_IgParser (never instantiated) are silently dropped */\n@pa_solitary(\"egress\",\"m.ctcrc2\") @pa_solitary(\"egress\",\"m.ctcrc3\")\n@pa_solitary(\"egress\",\"m.badh\") @pa_solitary(\"egress\",\"m.cbad0\") @pa_solitary(\"egress\",\"m.cbadt\")\n@pa_solitary(\"egress\",\"m.read_shape\") @pa_solitary(\"egress\",\"m.ctl_shape\")\ncontrol r_Egress(inout r_headers_t hdr,"
+    ],
+    [
+        "    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) original_wire_ack;\n    action capture_normalization_ack() { hdr.prov.wgen = original_wire_ack.get({hdr.tcp.ack}); }",
+        "    action capture_normalization_ack() { hdr.prov.wgen = hdr.tcp.ack; }"
+    ],
+    [
+        "    Hash<bit<32>>(HashAlgorithm_t.IDENTITY) open_epoch_bound;\n    action prepare_open() { m.open_bound = open_epoch_bound.get({1w1, hdr.prov.epoch[30:0]}); }",
+        "    action prepare_open() { m.open_bound = hdr.prov.epoch | 32w0x80000000; }"
+    ],
+    [
+        "@stage(2) table response_crct_t{",
+        "@stage(1) table response_crct_t{"
+    ],
+    [
+        "table rd_request_two_crc_t{",
+        "@stage(2) table rd_request_two_crc_t{"
+    ]
+]
+
+
+def transform_pipe0_headroom(src, _image=None):
+    """Free the last stage of pipe 0 (N and E highest occupied index 11 -> 10) without changing behavior.
+
+    E1c: ctl_sequences_t / crc_ctl_tail2_t / crc_ctl_tail3_t run under mode==1 && ctl_shape==1 (a superset of the
+    control-pad path, the only consumer of their results) instead of cb0.isValid(). E2: @pa_solitary pins for the CRC
+    verdict / shape fields placed on the INSTANTIATED egress control (the old block before r_IgParser never applied).
+    F1a / F1b: two 32-bit identity hashes become a plain copy and an OR (same value), freeing stage-0 hash-distribution
+    units. F2d: placement pins only -- response_crct_t at stage 1 (it alone writes m.tcrc there), rd_request_two_crc_t
+    at stage 2 -- so guard and every later N table move one stage earlier. Keys, actions and entries are unchanged.
+    Evidence: STAGE/ctl_timing_01/evidence/headroom_probes_20261023/ (round 3)."""
+    for old, new in PIPE0_HEADROOM_EDITS:
+        src = once(src, old, new)
+    return src

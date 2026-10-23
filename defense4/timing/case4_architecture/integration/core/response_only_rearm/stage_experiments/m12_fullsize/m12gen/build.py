@@ -18,6 +18,7 @@ TRANSFORM = {
     'segmented_classifier': segmented.transform_segmented_classifier,
     'segmented_t': segmented.transform_segmented_t,
     'n_read_completes_handshake': two_read.transform_n_read_completes_handshake,
+    'pipe0_headroom': two_read.transform_pipe0_headroom,
 }
 
 
@@ -28,7 +29,7 @@ def generator_files():
 
 
 def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False,
-          reduce=False, ack_retry=False, read_handshake=False):
+          reduce=False, ack_retry=False, read_handshake=False, headroom=False):
     src = M11_09.read_text()
     if hashlib.sha256(src.encode()).hexdigest() != M11_09_SHA:
         raise SystemExit('m11_09 source changed')
@@ -45,6 +46,8 @@ def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_
             transforms.append('n_busy_ack_retry')
         if read_handshake:   # m12p_c28: a READ that overtakes the final ACK completes the handshake
             transforms.append('n_read_completes_handshake')
+        if headroom:   # m12p_c29: pipe-0 headroom (N and E highest occupied index 10)
+            transforms.append('pipe0_headroom')
         shape_image = {'read': cm['target'], 'ctl': 61}
         per_image = {cm['native_total']: cm['target'], cf['native_total']: cf['target'], 37: 61, 61: 61}
     else:
@@ -93,6 +96,8 @@ def write_outputs(out, a, src, applied):
             required.add('n_busy_ack_retry')
         if getattr(a, 'read_handshake', False):
             required.add('n_read_completes_handshake')
+        if getattr(a, 'headroom', False):
+            required.add('pipe0_headroom')
         read_native, read_out = cm['native_total'], cm['target']
         scope = ('two-READ-target profile (Claude_Two_READ_Targets_Hardware_Directive.md): mixed READ (one request, '
                  'g1v2 q00 0-15 + g30v1 q00 0-7) %d->%d as [%s] with %d G1V2 points %d..%d, and the base-database full '
@@ -118,6 +123,9 @@ def write_outputs(out, a, src, applied):
         if getattr(a, 'read_handshake', False):
             scope += ('; m12p_c28: a READ request that overtakes the final handshake ACK (owner phase 4, sequence check '
                       'passing) is admitted as completing the handshake instead of refused; the late pure ACK is dropped')
+        if getattr(a, 'headroom', False):
+            scope += ('; m12p_c29: pipe-0 headroom -- N and E highest occupied stage index 10 (placement pins, two identity '
+                      'hashes as copies, control CRC tails under the control-pad gate) -- behavior unchanged')
     else:
         c = read_policy.policy_shape()
         required = {'mapper_var', 'read_prefix_p1', 'read_prepadded_e'}

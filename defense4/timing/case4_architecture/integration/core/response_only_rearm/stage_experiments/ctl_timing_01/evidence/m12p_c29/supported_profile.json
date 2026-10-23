@@ -1,0 +1,81 @@
+{
+  "candidate": {
+    "build": "ctl_timing_01/evidence/m12p_c29",
+    "milestone": "m12",
+    "source_sha256": "f1b61b5ccaa4132feb2206273120b74c6e21e5243cf8aea1531d86edfe359048",
+    "segment_sha256": {
+      "N": "129dd2b33402db6713d95c24a05c17f24bada38f8ddfbe27a4ba1d17c78d19c6",
+      "E": "26eba9cd042a9f47d46a688aaf6857260d3c5c05537c0c69d1168bbc95baeb61",
+      "T": "553a995f5c65a50ad9641efb9b9e648784c6e38fc46514f75309de74802dd088"
+    },
+    "artifact_sha256": {}
+  },
+  "reset_restart_required": true,
+  "t_child_count": 1,
+  "profile_version": "supported-profile-v1-20261017",
+  "clock": {
+    "t_unit_ns": 256,
+    "t_grid_ns": 512,
+    "t_source": "global_tstamp[39:8] & ~1",
+    "rounding": "durations in ns are converted to T units by t_config.t_units (one shared writer)"
+  },
+  "timing_ns": {
+    "D_release_budget": 950000,
+    "J_operate_hold": 2400000,
+    "pb_piggyback_bound": 4000000,
+    "readiness": 30000000,
+    "da": 2000000,
+    "cap": 40000000,
+    "held_operate_overrides": {
+      "D_release_budget": 800000,
+      "J_operate_hold": 350000000,
+      "pb_piggyback_bound": 360000000,
+      "readiness": 380000000,
+      "cap": 400000000
+    },
+    "note": "qualification values of the ctl_m10_* configs; the held-OPERATE block uses held_operate_overrides"
+  },
+  "n": {
+    "retry_budget_laps": 32,
+    "restart_counter": "count_busy[5]"
+  },
+  "ports": {
+    "master_dev": 9,
+    "relay_dev": 9,
+    "n_ack_return": 48,
+    "t_in": 180,
+    "hb_return": 181,
+    "held_return": 182,
+    "recirc": 68,
+    "stat_ports": "9,64",
+    "note": "the ctl_m10_* configs' ports_map: both software endpoints on device port 9 (VEPA hairpin); no physical relay in this profile"
+  },
+  "encoding": {
+    "native_input_octets": {
+      "READ": [
+        91,
+        247
+      ],
+      "SELECT": 37,
+      "OPERATE": 37
+    },
+    "output_octets": 61,
+    "output_octets_note": "SELECT/OPERATE image (the control-timing contract field); the READ image is read_output_octets",
+    "read_output_octets": [
+      141,
+      271
+    ],
+    "read_construction": "prefix (read_complete_01/vectors/constants_two_read.json shapes mixed_g1v2_g30v1_91, integrity_247)",
+    "control_application_partition": [
+      15,
+      6,
+      1
+    ],
+    "control_partition_note": "the 22 native SELECT/OPERATE application octets split 15/6/1 into transport frames 28/19/14",
+    "read_images": {
+      "91": 141,
+      "247": 271
+    }
+  },
+  "_note": "two-READ-target build: N/T values unchanged from m11_09 (T segment and timing parameters inherited); encoding: SELECT/OPERATE output 61 (output_octets); READ images per native length (read_images): mixed 91->141 and full 247->271 by the pipe-1 egress prefix (G1V2 points 1024..). Other READ lengths are not padded; arbitrary input sizes are not supported."
+}

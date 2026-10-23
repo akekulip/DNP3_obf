@@ -25,6 +25,7 @@ MODES = {
     'two_read_reduce_c26': POLICY + ['--two-read', '--reduce'],
     'two_read_ack_retry_c27': POLICY + ['--two-read', '--reduce', '--ack-retry'],
     'two_read_read_handshake_c28': POLICY + ['--two-read', '--reduce', '--ack-retry', '--read-handshake'],
+    'two_read_headroom_c29': POLICY + ['--two-read', '--reduce', '--ack-retry', '--read-handshake', '--headroom'],
     'passthrough_c12': POLICY,
     'segmented_full_c20': POLICY + ['--segmented-full'],
     'segmented_pad': POLICY + ['--segmented-pad'],

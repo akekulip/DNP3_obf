@@ -49,3 +49,12 @@ Every N register carries state across packets (no metadata replacement). N reach
 which needs ~10 N SALUs + E's img_wend in stages 7-8 (8 slots) and ~24 logical tables in stage 10 (16): i.e. the
 front of the chain compressed (guard at 3), a stage-2 resource question shared with E, not register layout.
 Not adopted (pins are placement-only and fragile; target not met). Generator for this round: nx/mkn.py.
+
+## Round 3 (front of pipe 0) -- TARGET REACHED at compile level: c28h_F1abF2d, N 11/10 and E 11/10
+
+Stages 0-2 were at 6/6 hash-distribution units (shared N+E); guard (N, stage 4) waited for rd_request_two_crc_t,
+which could not get units at stage 2. F1a/F1b replace two 32-bit IDENTITY hashes in E stage 0 by a copy / an OR;
+F2d pins response_crct_t to stage 1 and rd_request_two_crc_t to stage 2; with round 1's h1c2 (E1c + E2 pins on the
+instantiated egress control) guard moves to stage 3 and N/E end at index 10. Builds c28*, generator nx/mkf.py,
+front report nx/front.py. Ported as m12p_c29 (make_m12.py --headroom, transform_pipe0_headroom; sha f1b61b5c...;
+independent review: behavior-equivalent). Failed variants kept (F1ab alone: PHV; F1c: PHV; stale pins).
