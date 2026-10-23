@@ -420,3 +420,19 @@ policy, reproduction and the completion record only.
     measurement, p99 63 us) -> 6.8.0-147 (since 2026-10-19); 6.8.0-146 is still installed. unattended-upgrade also ran
     2026-10-21. A lead, not a cause: testing it needs a Vision reboot (not authorized).
   * Recovery blocks remain UNEXECUTED; timing remains FAILED and unresolved.
+- 2026-10-22 idle-gap probe and localization (evidence/idle_gap_probe_20261022/). Wording corrected: the tested
+  RX-coalescing and CPU-latency interventions DID NOT REMOVE the delay (they are not thereby ruled out as mechanisms);
+  NO ADDITIONAL c25 EFFECT WAS DETECTED in those comparisons (not shown absent).
+  * ICMP pairs, Vision 192.168.10.1 -> relay 192.168.10.7 through the restored production switch program (no
+    candidate), host at baseline, one capture on enp59s0f0np0 (software timestamps; request at the transmit tap, reply
+    at the receive tap): 60/60 pairs; A (after 200 ms idle) RTT median 2668 us, p90 5563, min 331; B (~100 us behind A)
+    median 3408, p90 6159, min 346; reply spacing at the receive tap median 115 us. A multi-millisecond variable delay
+    exists with no candidate image loaded; the relay's own response time is inside this RTT.
+  * Localization from the existing block captures (Vision -> switch -> Vision, no relay): for every transit, idle on
+    the transmit tap vs idle on the receive tap. Three blocks (c25 campaign 02 off; m11_09 campaign 06 off and
+    size_only, CPU hold): transmit idle >=2 ms with receive idle <0.5 ms -> transit median 27-66 us; transmit idle
+    <0.5 ms with receive idle >=2 ms -> ~2000 us; both >=2 ms -> ~1300 us. The delay follows RECEIVE-side idleness:
+    a wake-up latency on the path into Vision (switch egress toward Vision, the 25G link, or Vision's NIC receive
+    hardware/driver), triggered by a few ms with nothing delivered to Vision. Not yet distinguished among those.
+    The ICMP pairs fit: B reached the receive path while A was still held, so both were released with their spacing.
+  * Timing remains FAILED and UNRESOLVED; recovery blocks remain unexecuted.
