@@ -10,16 +10,29 @@ requests are WITHHELD on an admitted connection (measured; a master issuing one 
 
 | workload | software (live endpoints) | compiler (9.13.1 + 9.13.2) | model (v3 gate, exact source) | physical switch |
 |---|---|---|---|---|
-| mixed READ 91→141 | live master via pad_read proxy, strict padding check (M1) | exit 0, N12/E12/T11 + pipe-1 egress 7 | gate passed (14 drivers; timed rounds, boundaries, retransmission, 3 corruption cases) | **size: 33/33 exact at 141** (size_only, combined; campaign 02); **timing precision FAILED** (p99 2.0-3.6 ms vs 100 us) |
-| full READ 247→271 | same | same | same | **size: 32/32 exact at 271**; timing precision FAILED |
-| SELECT/OPERATE 37→61 | unchanged | same | same | 64/64 exact at 61 per arm; timing precision FAILED |
-| recovery (loss per class, persistence graceful/rst, reconnect, held OPERATE) | harness + configs ready, dry-runs rc 0 | — | robust driver green | **NOT EXECUTED** (campaign stopped on the timing failure; then hardware stopped, below) |
+| mixed READ 91->141 | live master via pad_read proxy, strict padding check (M1) | exit 0, N12/E12/T11 + pipe-1 egress 7 | gate passed (14 drivers incl. two_read_robust 163/163) | **size: 33/33 byte-exact at 141** (size_only + combined, campaign 02; endpoint strict check passed); **timing: FAILED, unresolved** |
+| full READ 247->271 | same | same | same | **size: 32/32 byte-exact at 271**; **timing: FAILED, unresolved** |
+| SELECT/OPERATE 37->61 | unchanged | same | same | 64/64 byte-exact at 61 per arm; **timing: FAILED, unresolved** |
+| recovery (loss per class, persistence graceful/rst, reconnect, held OPERATE) | harness + configs, dry-runs rc 0 | -- | robust driver green | **NOT EXECUTED** (run only after timing passes) |
 
-Hardware state: `unsafe_restoration=true` set by the supervisor on matched-control block rc01_hw_c25_20261022_03,
-which failed its freeze check BEFORE any hardware contact (my unrewritten control freeze). The reviewed no-contact
-reconcile refused (classifier does not recognise a freeze-check refusal). Flag not edited; hardware stopped pending
-Philip. The timing failure is therefore NOT yet attributed: the matched m11_09 control has not run today (on
-2026-10-21 it failed with p99 3,551 us on this host, see §4).
+Timing (all evidence in STATUS.md, 2026-10-22 entries): READ/SELECT/OPERATE CLRT nearest-rank p99 2.0-3.6 ms vs the
+100 us threshold in timing_only and combined. The matched m11_09 control fails the same way at the same magnitude on
+today's host (shared symptom; no additional c25 effect was detected in these comparisons, which does not show none
+exists). Localization from the block captures: a **receive-idle-dependent delay** of ~1.3-2 ms on the path into Vision
+(transit 27-66 us when something was delivered to Vision in the previous 0.5 ms, ~2 ms after >= 2 ms of receive
+idleness; transmit idleness does not matter), present with no candidate image loaded (ICMP probe through the production
+program). The tested RX-coalescing and CPU-latency interventions did not remove it. Tofino port configuration and
+counters for the Vision and relay ports are unchanged from the good 2026-10-18 run. The only identified change on that
+path since the good run is Vision's kernel (6.8.0-146 -> 6.8.0-147 at the 2026-10-19 reboot; no i40e entry in its
+changelog); relevance not shown. **One justified next action, awaiting Philip:** boot Vision once into the installed
+6.8.0-146, re-run the m11_09 control and the c25 combined arm with the same localization, return to 6.8.0-147 and
+re-run the control there (to separate a kernel effect from a reboot-induced reset). Thresholds, mechanism and
+evaluation conditions are unchanged; no background traffic was used.
+
+Hardware incidents, all recorded with evidence: campaign 01 fixture gap (separate-ACK delay missed the new READ
+lengths; fixed 4233d533a); control freeze not rewritten after that fix (refused pre-hardware; reconcile extended,
+reviewed); RX-coalescing restore rejected by i40e (host repaired; reviewed repair path; runner result stays failed); one
+m11_09 control size_only trial lost forwarding (campaign 04; not reproduced in campaign 06; unexplained).
 
 Limitations specific to this candidate: the READ-response TCP checksum on the shallow path is a WAIVER (0xffeb written,
 not computed); responses are validated first block only; bare-RST behaviour is open (two model runs disagree); no

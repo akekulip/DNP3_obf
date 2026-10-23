@@ -436,3 +436,24 @@ policy, reproduction and the completion record only.
     hardware/driver), triggered by a few ms with nothing delivered to Vision. Not yet distinguished among those.
     The ICMP pairs fit: B reached the receive path while A was still held, so both were released with their spacing.
   * Timing remains FAILED and UNRESOLVED; recovery blocks remain unexecuted.
+- 2026-10-22 final read-only port/driver check (Philip: no Vision boot, no OS/firmware update; no further host-tuning).
+  * Tofino port facing Vision (dev 9, "15/1") and relay port (64): $PORT configuration IDENTICAL to the good 2026-10-18
+    run (25G, FEC none, autoneg forced off, RX/TX pause off, PFC maps 0, cut-through off, MTU 10240). Only difference in
+    the production $PORT table: dev port 11 up on 10-18, down now (no path through it in these tests). Timing-arm
+    switch snapshot (m11_09, 10-18 vs today): shaping identical; only counters differ.
+  * Counters across a repeat idle-gap probe (read-only live_snapshot before/after): port 9 RX 122 / TX 125, port 64
+    RX 125 / TX 122 -- every frame forwarded; no errors, drops, pause or FCS. Repeat probe: A median 2352 us, B 2902 us,
+    reply spacing 117 us (reproduces the first probe).
+  * Vision NIC: in-tree i40e (no DKMS); srcversion BBDC5584... (6.8.0-146) vs BBA2010F... (6.8.0-147, loaded); the
+    6.8.0-147 changelog section lists NO i40e change (generic net/GRO and other drivers only). The source difference may
+    come from shared headers; no driver change relevant to this interface is established.
+  * WHAT IS ESTABLISHED: a receive-idle-dependent delay (~1.3-2 ms) on the path into Vision, present with no candidate
+    loaded, not removed by the tested RX-coalescing or CPU-latency interventions, with switch port configuration and
+    counters unchanged from the good run. The only identified change between the good run (10-18) and now on that path
+    is Vision's kernel (6.8.0-146 -> 147 at the 10-19 reboot, plus unattended upgrades on 10-21); its relevance is not
+    shown. TIMING IS UNRESOLVED.
+  * ONE JUSTIFIED NEXT CORRECTIVE ACTION (needs Philip's decision; not taken): boot Vision once into the installed
+    6.8.0-146 and re-run the m11_09 control + the c25 combined arm with the same receive-idle localization; then return
+    to 6.8.0-147 and re-run the control there too, so a reboot-induced reset is not mistaken for a kernel effect.
+  * Hardware padding result stands (campaign 02, unchanged by any of this). Recovery blocks NOT run: per Philip they run
+    only after timing passes.
