@@ -481,3 +481,31 @@ cause not located. Next measurements (NIC hardware timestamps; kernel A/B/A) nee
   c26 resource table (pipe-1 egress 7 -> 4 stages; E PHV 129 -> 121 containers; not strict: crossbar +5/+7 B).
 - Root README/REPOSITORY_MAP/CLAUDE.md rewritten for one current authority; ACTIVE_CODE_MAP.md, HISTORY_MAP.md and
   .ignore added. Reference checks found most "unreferenced" candidates referenced; only three items moved to history/.
+
+## 2026-10-23 — c26 hardware campaign rc01_hw_c26_20261023_01 (four-arm reference): FAILED, loss of forwarding
+
+- Pre-launch: c26 frozen (freeze_v3.json, 165 files), 7 configs, two campaigns (_01 reference, _02 recovery) so a
+  timing verdict cannot stop recovery; all 7 steps dry-run clean (commit b9ee1d858).
+- _01: block rc 1 (block failed, restoration VERIFIED; ownership clean). First trial (off arm: no padding, no
+  timing) delivered nothing: SYN crossed and SYN-ACK came back (2.16 ms), then the master's final ACK and the 25-byte
+  READ request (with retries) never crossed; the outstation retransmitted SYN-ACK. The other three arms did not run.
+  Independent readout: 4 planned trials, 10 failures (3 trials absent, off trial 0 of 65 READs).
+- Switch snapshot deltas: port 9 tx 8 frames; t_in 1 frame (good trials ~582: every packet via T); n_ack_return 12;
+  N count_busy[1] (busy_pass) = 1. The unmodified m11_09 control's failed trial on 2026-10-22 (campaign 04, size_only)
+  has the identical packet and counter signature, so this is an intermittent base-pipeline (N) forwarding failure,
+  not introduced by c25/c26. CORRECTION (same day): busy counts are not unique to failures (c25 campaign 01's passing
+  off trial had count_busy[1]=15, [2]=7), and a stuck work cell is REFUTED: the cell is held only for a packet's own
+  three passes, and a stuck cell would have counted the dropped requests in count_busy[0] (0). The drop path is
+  uncounted; the snapshots never read N's work/owner registers, so the hardware cause is undetermined. Next: add N
+  register readback to the snapshots and replay the failing trial's packets on the model.
+- Recovery campaign _02 NOT started: delivery failures block dependent runs until understood.
+- c26 model control_timing_01 failure: first divergence was host-clock timing (host stalls ~3.2 s past the driver's
+  3 s wall-clock window); its aftermath (all later SYNs dropped) is open and may be the same stuck state.
+- Instrumentation (no behavior change): snapshot_counters.py now also reads N's state registers per pipe (work cell
+  generation/phase, owner, counter, epoch, retry_epoch, client, server, read_app, count_first) into n_state, so a
+  recurrence shows the connection state the counters cannot. Tests added (8 pass). c26 re-frozen (previous freeze kept
+  as freeze_v3_campaign01_SUPERSEDED.json); campaigns _03 (reference rerun) and _04 (recovery) dry-run clean.
+- Pre-existing failing test, not tonight's: rearm_01/hw tests 688 pass, 1 fail -- test_nic_repair
+  test_committed_restore_function_is_the_reviewed_one: HEAD's capture_observation.py changed in 3585631d7 (CPU-latency
+  diagnostic, 10-22 19:59) after nic_repair pinned the reviewed deployed blobs (06ea4007f, 17:49). The repair path is
+  fail-closed and now refuses; re-pinning needs a fresh review of that path (not done).

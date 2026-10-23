@@ -79,3 +79,36 @@ def test_after_snapshot_adds_the_register_only_where_it_belongs(tmp_path, monkey
     data = json.loads(out.read_text())
     assert data['n_counters']['count_busy'] == [0] * 8
     assert {k for k in ('egress_diag', 'egress_diag_error') if k in data} == ({key} if key else set())
+
+
+class StateSwitch:
+    """register()/must_get() as switch.Switch provides them; 'missing' names raise like an absent BF Runtime table."""
+    def __init__(self, cells, missing=()):
+        self.cells, self.missing = cells, set(missing)
+
+    def register(self, name, pipes, index=0):
+        if name in self.missing:
+            raise KeyError(name)
+        return self.cells[(name, index)]
+
+    def must_get(self, name, pipes, key):
+        if name in self.missing:
+            raise KeyError(name)
+        return {'n_Ingress.work.work.generation': [7, 0], 'n_Ingress.work.work.phase': [4, 4]}
+
+
+def test_n_state_reads_work_cell_owner_and_counts_per_pipe():
+    cells = {('p0.n_Ingress.%s' % n, 0): [i, 0] for i, n in enumerate(sc.N_STATE)}
+    cells.update({('p0.n_Ingress.count_first', i): [10 + i, 0] for i in range(4)})
+    state = sc.read_n_state(StateSwitch(cells), [0, 1])
+    assert state['work'] == {'generation': [7, 0], 'phase': [4, 4]}
+    assert state['owner'] == [0, 0] and state['client'] == [sc.N_STATE.index('client'), 0]   # per pipe, not summed
+    assert state['count_first'] == [[10, 0], [11, 0], [12, 0], [13, 0]]
+
+
+def test_n_state_records_an_unreadable_register_instead_of_failing():
+    cells = {('p0.n_Ingress.%s' % n, 0): [0, 0] for n in sc.N_STATE}
+    cells.update({('p0.n_Ingress.count_first', i): [0, 0] for i in range(4)})
+    state = sc.read_n_state(StateSwitch(cells, missing={'p0.n_Ingress.owner', 'p0.n_Ingress.work.work'}), [0, 1])
+    assert state['owner'] == 'unreadable: KeyError' and state['work'] == 'unreadable: KeyError'
+    assert state['epoch'] == [0, 0]

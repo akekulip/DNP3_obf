@@ -44,6 +44,34 @@ def read_n_counters(sw, all_pipes):
     return out
 
 
+# N's connection state (2026-10-23, forwarding-loss diagnosis: the 10-22 m11_09 and 10-23 c26 failed trials lost every
+# master packet after the handshake and the counters above could not say why). Read-only, per pipe (not summed): the
+# work cell (generation, phase; 4 = free), the owner/lifecycle cell, and the per-connection sequence and epoch cells.
+N_STATE = ('owner', 'counter', 'epoch', 'retry_epoch', 'client', 'server', 'read_app')
+
+
+def read_n_state(sw, all_pipes):
+    out = {}
+    for name in N_STATE:
+        try:
+            out[name] = sw.register('p0.n_Ingress.' + name, all_pipes, 0)
+        except Exception as error:
+            out[name] = 'unreadable: %s' % type(error).__name__
+    try:
+        got = sw.must_get('p0.n_Ingress.work.work', all_pipes, [('$REGISTER_INDEX', 0, None)])
+        out['work'] = {k.rsplit('.', 1)[-1]: v for k, v in got.items() if k.endswith(('.generation', '.phase'))}
+    except Exception as error:
+        out['work'] = 'unreadable: %s' % type(error).__name__
+    first = []
+    for i in range(4):
+        try:
+            first.append(sw.register('p0.n_Ingress.count_first', all_pipes, i))
+        except Exception:
+            first.append(None)
+    out['count_first'] = first
+    return out
+
+
 # m9d diagnostic build only (ctl_timing_01 generate.transform_e_diag): E's egress-parser timestamps of master-bound
 # ACKs (lo) and responses (hi), indexed by the master-visible ack[13:0]. Any other build has no such register, and
 # the snapshot is then unchanged (key absent).
@@ -86,6 +114,7 @@ def add_n_counters(args):
     diag, diag_error = None, None
     try:
         counters = read_n_counters(sw, snapshot.tc.ALL_PIPES)
+        state = read_n_state(sw, snapshot.tc.ALL_PIPES)
         # the diagnostic register only after a trial (never in a _before snapshot, so a m9d unit does not wait on a
         # 16,384-entry read between selecting T and starting traffic), and in its own try: whatever happens there,
         # n_counters are written and the snapshot does not fail
@@ -99,6 +128,7 @@ def add_n_counters(args):
     path = Path(a.output)
     data = json.loads(path.read_text())
     data['n_counters'] = counters
+    data['n_state'] = state
     if diag is not None:
         data['egress_diag'] = dict(register=DIAG_EGRESS, units='ns, egress parser global_tstamp[31:0], pipe 0',
                                    index='master-visible tcp.ack[13:0]', lo='pure ACK', hi='response', entries=diag)
