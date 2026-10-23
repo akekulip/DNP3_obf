@@ -18,15 +18,25 @@ requests are WITHHELD on an admitted connection (measured; a master issuing one 
 Timing (all evidence in STATUS.md, 2026-10-22 entries): READ/SELECT/OPERATE CLRT nearest-rank p99 2.0-3.6 ms vs the
 100 us threshold in timing_only and combined. The matched m11_09 control fails the same way at the same magnitude on
 today's host (shared symptom; no additional c25 effect was detected in these comparisons, which does not show none
-exists). Localization from the block captures: a **receive-idle-dependent delay** of ~1.3-2 ms on the path into Vision
-(transit 27-66 us when something was delivered to Vision in the previous 0.5 ms, ~2 ms after >= 2 ms of receive
-idleness; transmit idleness does not matter), present with no candidate image loaded (ICMP probe through the production
-program). The tested RX-coalescing and CPU-latency interventions did not remove it. Tofino port configuration and
+exists). Localization (corrected 2026-10-22, `evidence/timing_reanalysis_20261022/`): the earlier
+"receive-idle-dependent delay" label is **withdrawn**. Its metric measured receive idleness up to each packet's arrival,
+which includes the transit being explained (circular): every c25 off-arm OPERATE request was sent within 221 us of the
+previous receive, yet the old metric split them into 36 "busy" (median 58 us) and 27 "idle" (median 1,995 us). With
+silence measured before transmit, off-arm request transit through the switch (Vision NIC out -> Vision NIC in, one host
+software clock, microsecond pcap resolution, DNP3-flow capture filter) has medians of 1.0-1.9 ms at every prior silence
+from 0.25 ms to > 25 ms, and p90 ~2.1 ms even in the < 0.5 ms bucket; the three m11_09 controls show the same pattern.
+What remains is an intermittent ~1-2 ms transit delay on the Vision -> switch -> Vision path, independent of prior
+receive silence, cause not located. The ICMP idle-gap probe does not isolate it either (echo after >= 200 ms idle: median
+RTT 2.67 ms; echo ~100 us behind it: 3.41 ms; both include the relay's own reply time). The tested RX-coalescing and
+CPU-latency interventions did not remove the delay. Tofino port configuration and
 counters for the Vision and relay ports are unchanged from the good 2026-10-18 run. The only identified change on that
 path since the good run is Vision's kernel (6.8.0-146 -> 6.8.0-147 at the 2026-10-19 reboot; no i40e entry in its
-changelog); relevance not shown. **One justified next action, awaiting Philip:** boot Vision once into the installed
-6.8.0-146, re-run the m11_09 control and the c25 combined arm with the same localization, return to 6.8.0-147 and
-re-run the control there (to separate a kernel effect from a reboot-induced reset). Thresholds, mechanism and
+changelog); relevance not shown. **Distinguishing next measurements, each awaiting Philip's authorization:** (a) NIC
+hardware timestamps on Vision (a reversible NIC setting change) for ~200 UDP probes through the switch, half isolated and
+half sent ~30 us after a receive, to place the delay in host TX, NIC-to-NIC, or host RX (stop at 200 probes, or at once
+if `ethtool -T` shows no hardware stamping); (b) boot Vision once into the installed 6.8.0-146, re-run the m11_09
+control and the c25 combined arm, return to 6.8.0-147 and re-run the control there (to separate a kernel effect from a
+reboot-induced reset). Thresholds, mechanism and
 evaluation conditions are unchanged; no background traffic was used.
 
 Hardware incidents, all recorded with evidence: campaign 01 fixture gap (separate-ACK delay missed the new READ

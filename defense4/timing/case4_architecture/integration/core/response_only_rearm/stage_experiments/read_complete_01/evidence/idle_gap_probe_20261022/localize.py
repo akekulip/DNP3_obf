@@ -1,6 +1,12 @@
 """Which side does the idle-dependent transit delay follow? For every Vision->switch->Vision transit in a block's
 two captures (out = transmit tap, in = receive tap, both software timestamps on enp59s0f0np0): idle on the transmit
-tap before this packet left, idle on the receive tap before it arrived, and the transit."""
+tap before this packet left, idle on the receive tap before it arrived, and the transit.
+
+CORRECTION 2026-10-22 (timing_reanalysis_20261022): 'rx-idle' as first written (receive idle up to ARRIVAL) is
+circular: when nothing else arrives during the transit it equals prior silence + the transit itself, so a slow
+transit is forced into the >=2 ms bucket. The default is now 'rx-silence': time from the last receive-tap record to
+the packet's TRANSMIT timestamp (measured before the packet entered the path). --old reproduces the original table,
+labelled rx-idle-to-arrival. Full reanalysis: ../timing_reanalysis_20261022/transit_silence.py."""
 import glob
 import json
 import struct
@@ -23,7 +29,8 @@ def idle_before(ts_list, t):
     return (t - prev[-1]) / 1e3 if prev else None
 
 
-for arm_dir in sys.argv[1:]:
+OLD = '--old' in sys.argv
+for arm_dir in [a for a in sys.argv[1:] if a != '--old']:
     d = glob.glob(arm_dir + '/*/')[0]
     tx, rx = stamps(d + 'out.pcap'), stamps(d + 'in.pcap')
     rows = []
@@ -34,14 +41,15 @@ for arm_dir in sys.argv[1:]:
                 ta, tb = o[a]['timestamp_ns'], o[b]['timestamp_ns']
             except (KeyError, TypeError):
                 continue
-            rows.append((idle_before(tx, ta), idle_before(rx, tb), (tb - ta) / 1e3))
+            rows.append((idle_before(tx, ta), idle_before(rx, tb if OLD else ta), (tb - ta) / 1e3))
     rows = [r for r in rows if None not in r]
     med = lambda v: sorted(v)[len(v) // 2] if v else None
+    rlab = 'rx-idle-to-arrival' if OLD else 'rx-silence-before-tx'
     cells = {}
     for itx, irx, tr in rows:
         key = ('tx-idle<0.5' if itx < 500 else 'tx-idle>=2' if itx >= 2000 else 'tx-mid',
-               'rx-idle<0.5' if irx < 500 else 'rx-idle>=2' if irx >= 2000 else 'rx-mid')
+               rlab + ('<0.5' if irx < 500 else '>=2' if irx >= 2000 else '-mid'))
         cells.setdefault(key, []).append(tr)
     print('==', arm_dir, 'transits', len(rows))
     for key in sorted(cells):
-        print('  %-12s %-12s n %3d  transit median %6.0f us' % (key[0], key[1], len(cells[key]), med(cells[key])))
+        print('  %-12s %-26s n %3d  transit median %6.0f us' % (key[0], key[1], len(cells[key]), med(cells[key])))

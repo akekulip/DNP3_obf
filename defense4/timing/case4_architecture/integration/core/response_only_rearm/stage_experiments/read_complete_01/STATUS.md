@@ -457,3 +457,17 @@ policy, reproduction and the completion record only.
     to 6.8.0-147 and re-run the control there too, so a reboot-induced reset is not mistaken for a kernel effect.
   * Hardware padding result stands (campaign 02, unchanged by any of this). Recovery blocks NOT run: per Philip they run
     only after timing passes.
+
+## 2026-10-22 (overnight) — timing localization corrected: "receive-idle-dependent" withdrawn
+
+`evidence/idle_gap_probe_20261022/localize.py` measured receive idleness up to ARRIVAL, which contains the transit being
+explained. Corrected (silence = last capture-visible receive before the packet's TRANSMIT timestamp; old metric kept as
+`--old`), recomputed on c25 campaign 02 (four arms) and the three m11_09 controls in
+`evidence/timing_reanalysis_20261022/` (results.json sha256 9afe05da..., rerun identical). Off-arm request transit medians
+1.0-1.9 ms at every prior silence (0.25 ms to > 25 ms), p90 ~2.1 ms even below 0.5 ms; same in the m11_09 controls.
+Coordinator spot check: all 63 c25 off-arm OPERATE requests had corrected silence <= 221 us; the old metric split them
+36 "busy" (median 58 us) / 27 "idle" (median 1,995 us). Responses cannot test the hypothesis (the 5 ms fixture puts them
+all in the >= 2 ms bucket). Packet-level pairing is invalid in size_only/combined (switch renumbers seq/ack; 5/587 match);
+exchange-level pairing used. Config audit: fixture filter lengths 89/131/181/287/77 correct, zero piggybacked responses;
+T parameter units match t_config; provenance gap: casea_state() does not record the u32 filters. Timing remains FAILED,
+cause not located. Next measurements (NIC hardware timestamps; kernel A/B/A) need Philip's authorization.
