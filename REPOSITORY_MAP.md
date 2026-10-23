@@ -1,48 +1,38 @@
 # Repository map
 
-Use this map to distinguish paper evidence, later experiments, and implementation candidates.
-A dated evidence bundle and its manifest are authoritative for what ran; current live switch state
-must be checked on the hardware.
+Each top-level area is one of four kinds: **active** (current code and its gates), **paper** (the
+manuscript and what it cites), **evidence** (records of what ran; never edited) or **historical** (no current
+claim or run depends on it; kept for provenance). File counts are tracked files at `4a0b0fc56`
+(54,432 in total); "of which evidence" counts paths containing `/evidence/`.
 
-## Publication authority and frozen manuscript
+`ARCH` = `defense4/timing/case4_architecture`; `STAGE` = `ARCH/integration/core/response_only_rearm/stage_experiments`.
 
-| Path | Authority |
-|---|---|
-| `defense4/timing/evidence/campaign_v2/` | Approved publication dataset and reproducibility inputs. |
-| `defense4/timing/CLAIMS_AND_LIMITATIONS.md` | Claim boundaries and evidence qualifications. |
-| `defense4/timing/NOTATION_MAPPING.md` | Timing notation. |
-| `paper/rewrite/main.tex` and `sections/` | The single active manuscript. |
-| `paper/rewrite/figures/` | Current figures and their data, methods, limitations, and provenance. |
+| path | kind | tracked files (of which evidence) | what it is |
+|---|---|---|---|
+| `ARCH/` | active + evidence | 28,854 (27,468) | the Case 4 implementation: P4 generators, model drivers, hardware supervisor, endpoints, ownership; map in `ARCH/ACTIVE_CODE_MAP.md` |
+| `STAGE/` (inside `ARCH`) | active + evidence | 17,451 (16,762) | candidate builds and their records; `m12_fullsize` (generator), `ctl_timing_01` (builds, model gate), `read_complete_01` (current run), `seg61_02` (manuscript evaluation) |
+| `STAGE/seg61_02/evaluation/`, `analysis/paper_evidence.py`, `evidence/evaluation_campaigns/eval_m11_09_20261018_02_paper` | paper evidence | | the manuscript's claim matrix, figure and table generator, and evaluation data |
+| `paper/` | paper | 253 | `paper/rewrite/`: the manuscript, rebuilt on Dr. Lin's draft; build `pipeline/build.sh` |
+| `defense4/timing/framework/size/` | active | 365 (7) | software endpoints and size reference used by `ARCH` |
+| `defense4/timing/framework/` (rest) | historical | 680 (121) | 2026-10-06 framework track (BMv2, contract, results) |
+| `defense4/timing/evidence/` | evidence (historical) | 1,237 (1,237) | `campaign_v2` (timing-only paper record), `campaign_v1`, `final_read_sbo`, `tail_sweep_20260918` |
+| `defense4/timing/latency_search/` | historical + evidence | 21,192 (18,782) | 2026-09-26/27 matched delay grid and attacker analyses |
+| `defense4/timing/audit_current/` | historical | 1,031 | claim, retransmission, epsilon and RTO audits; the 2026-09-29 verification ledger; CLRT and model figure tools |
+| `defense4/timing/anchor_fix/` | historical | 133 | request-anchoring fix and before/after findings |
+| `defense4/timing/stage_reduction/` | historical + evidence | 80 (26) | seven-stage timing-only candidate, 2026-09-25 smoke test |
+| `defense4/timing/response_ready/` | historical + evidence | 449 (424) | READ response-ready candidate, never deployed |
+| `defense4/timing/implementation/` | evidence | 12 | exact source that ran for campaign_v1/v2; never modify |
+| `defense4/timing/{analysis,figures,active_*,tests,tools}/` | historical | 15 / 90 / 15 / 1 / 1 | campaign-era analysis, figure families, harness, admission control, RTO probe |
+| `defense4/timing/` top-level files | reference | 12 | `README.md`, `CLAIMS_AND_LIMITATIONS.md`, `NOTATION_MAPPING.md` (sole definition of `D_R`), `TIMING_MODEL.md`, `PROVENANCE.md`, `reproduce.sh` (campaign_v2) and others |
+| `relay_rto_20260915/` | evidence | 14 | relay RTO captures; cited by paper figure provenance |
+| `history/` | historical | 6 | items moved out of the active tree on 2026-10-23 (original paths mirrored; see HISTORY_MAP.md): `tools/history_rewrite/`, `STAGE/next_stage_analysis_01/`, `STAGE/e_stage_review.md` |
+| root | docs | 9 | `README.md`, `CLAUDE.md`, this map, `WORKING_NOTES.md` (live session log), `FINAL_TIMING_ALLOWLIST.txt`, `BRANCH_PRUNE_20260915.txt`, `DNP3_Implementation_Directive_492013014.md` (deleted in the working tree, not yet committed), `.gitignore`, `.gitattributes`; new and untracked: `HISTORY_MAP.md`, `.ignore` |
 
-`campaign_v1/` is retained as the earlier acknowledgment-anchored record. `final_read_sbo/` and
-other dated audits are historical. Do not combine their measurements with `campaign_v2`.
+Rules that follow from the kinds: evidence is never edited or removed; historical items move only through
+`HISTORY_MAP.md` after a reference check; the manuscript changes only under the paper rules in `CLAUDE.md`.
 
-The manuscript and paper figures are frozen pending Dr. Lin's acceptance. Existing later-study
-text is an open authority conflict, not evidence approval. See the
-[September 29 verification ledger](defense4/timing/audit_current/verification_20260929/README.md).
+Root files `main.tex`, `paper structure.pdf` and the directive markdown files are untracked inputs from Philip
+and Dr. Lin, not part of the tree.
 
-## Separate engineering work
-
-| Path | Purpose and boundary |
-|---|---|
-| `defense4/timing/stage_reduction/` | Seven-ingress-stage timing candidate, offline checks, and the bounded 2026-09-25 hardware smoke evidence. It is not the source of the paper's campaign results. |
-| `defense4/timing/latency_search/` | Later matched-delay experiments and attacker analyses. Treat each run directory's protocol, manifests, and completion status as its authority; these results are not paper evidence by default. |
-| `defense4/timing/anchor_fix/` | Corrected request-anchoring source and findings. |
-| `defense4/timing/audit_current/` | Current claim, timing, retransmission, and measurement audits. |
-| `defense4/timing/response_ready/` | READ response-ready P4 candidate, its offline tests, compiler-report evidence and build gate. Engineering candidate; no hardware results yet. |
-| `defense4/timing/framework/` | Framework track (2026-10-06): policy contract, independent reference model, experiment-declaration validator, offline tests (`run_tests.sh`). Nothing here is paper evidence. `build/` is untracked output. |
-
-## Frozen records and derived outputs
-
-- `defense4/timing/implementation/` and raw capture directories preserve the exact historical sources and inputs. Do not edit them to match later candidates.
-- `defense4/timing/figures/` contains analysis and historical figure families; `paper/rewrite/figures/` holds the paper-facing generated artifacts. Follow each figure family's documented generator.
-- `paper/rewrite/corpus/` holds local reference material and style notes. Reference PDFs are excluded from Git.
-- `paper/rewrite/archive/` holds superseded drafts and figures that remain useful for provenance.
-
-## Reproduction
-
-- Paper data: `defense4/timing/reproduce.sh` dispatches to the active `campaign_v2` reproduction path.
-- Paper build: `paper/rewrite/pipeline/build.sh`, followed by the manuscript publisher when a new PDF is intended.
-- Seven-stage candidate: follow `defense4/timing/stage_reduction/README.md`; offline compilation and tests do not establish live hardware behavior.
-
-For Tofino work, read the current Tooling connectivity map, inspect the live daemon/configuration, and follow the active run's guarded setup and rollback procedure. A loaded pipeline is not identified by a repository manifest alone.
+A repository manifest does not say what is loaded on the switch. Inspect the live state before any hardware
+operation.

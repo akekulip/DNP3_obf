@@ -1,0 +1,17 @@
+# Default exclusions for ripgrep (rg), fd and other tools that read .ignore.
+# Git does not read this file; it changes nothing about what is tracked.
+# Search these deliberately with: rg --no-ignore PATTERN   (or rg -uu)   /   fd --no-ignore PATTERN
+# Note: candidate builds (STAGE/ctl_timing_01/evidence/m12p_*) sit under evidence/ and are excluded too.
+
+**/evidence/**
+paper/
+*.pcap
+*.pcap.*
+*.pcapng
+*.gz
+*.xz
+compile_*/
+**/__pycache__/
+defense4/timing/latency_search/results/
+history/
+.scratch_*/

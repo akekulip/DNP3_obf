@@ -1,0 +1,130 @@
+# Active code map: the two-READ size and timing candidate
+
+One page for finding the code that is in use now. Status as of 2026-10-23. The single
+status file for the current run is `STAGE/read_complete_01/CURRENT.md`; the dated history is `STATUS.md` in
+the same directory and the full record is `COMPLETION_RECORD.md`.
+
+Abbreviations used below (all paths from the repository root):
+
+```sh
+ARCH=defense4/timing/case4_architecture
+STAGE=$ARCH/integration/core/response_only_rearm/stage_experiments
+HW=$ARCH/integration/evidence/rearm_01/hw
+PY312=${RESEARCH_PYTHON:-$HOME/.venvs/research/bin/python}   # Python 3.12; system python3 is 3.8
+```
+
+## Candidates
+
+| build | what it is | state |
+|---|---|---|
+| `m12p_c25` | two-READ build: mixed READ 91 -> 141, full integrity READ 247 -> 271, SELECT/OPERATE 37 -> 61 | model gate passed; on hardware the padding was byte-exact (campaign 02) and timing precision FAILED; recovery blocks not run |
+| `m12p_c26` | c25 plus a behavior-preserving resource reduction (`--reduce`; pipe-1 egress 7 -> 4 stages; N/E/T 12/12/11; both SDKs) | model gate passed (counts equal to c25's); not frozen; no hardware. See COMPLETION_RECORD section 0a |
+| `m11_09` | the four-arm build behind the manuscript evaluation `eval_m11_09_20261018_02` | frozen; the paper's evidence |
+
+The timing failure's cause is not located. The earlier "receive-idle-dependent delay into Vision" localization
+was withdrawn in 4a0b0fc56 because its metric was circular (it counted the transit it was meant to explain);
+see `STAGE/read_complete_01/evidence/timing_reanalysis_20261022/README.md`. IEEE 1815 conformance was not
+audited in this run.
+
+## The path, stage by stage
+
+| stage | code | notes |
+|---|---|---|
+| 1. generator | `STAGE/m12_fullsize/make_m12.py` (entry) -> `m12_fullsize/m12gen/{build,common,mapper,read_policy,segmented,two_read}.py` | split in 5671284aa; `check_generator_identity.py` proves every live mode byte-identical to the recorded reference `generator_identity.json` |
+| 2. P4 source and profile | `STAGE/ctl_timing_01/evidence/m12p_<id>/{response_only.p4, response_only.inputs.json, supported_profile.json}` | constants from `STAGE/read_complete_01/vectors/` (`derive.py`, `derive_two_read.py`, `make_two_read_templates.py`) |
+| 3. compile | `$ARCH/build.py` (local SDK 9.13.1) and `STAGE/ctl_timing_01/compile_switch_orchestrator.py` (switch SDK 9.13.2 over SSH) | outputs `compile_local/` and `compile_switch_9132/` beside the source |
+| 4. model gate | `STAGE/ctl_timing_01/run_model.py` (drivers in `ctl_timing_01/model_*.py` and `STAGE/seg61_02/model_*.py`), verdict `ctl_timing_01/model_summary.py --v3` | dependency closure recorded by `ctl_timing_01/record_closure.py` |
+| 5. block configs and freeze | `STAGE/read_complete_01/hw/make_two_read_configs.py` -> `hw/config/rc01_m12p_*.json`; `$HW/freeze_gate.py` -> `freeze_v3.json`; `read_complete_01/hw/make_hw_manifest.py` -> campaign manifest | a block runs only through `$HW/run_block_frozen.sh`, which checks the freeze first |
+| 6. hardware supervisor | `$HW/evaluation_campaign.py` (init/start/status/resume/stop-after-current/reconcile); per block `run_block_frozen.sh` -> `run_block.sh`; restore check `restore_verify.py` | endpoints: `$ARCH/integration/evidence/rearm_01/repeat_sbo_endpoint`; library: `$ARCH/protocol/hw_vepa` (`campaign.py`, `wire_check.py`, `clrt_check.py`, `standards.py`); live testbed ownership state in `~/.local/state/dnp3-evaluation/tofino1-testbed/ownership.json` (never hand-edited) |
+| 7. readout | `STAGE/read_complete_01/analysis/hw_read_readout.py` | independent, fail-closed, built from the frozen config rather than the run's own records |
+| 8. reproduce | `STAGE/read_complete_01/reproduce.sh` | offline only; never loads the switch |
+
+Software endpoint and policy code: `STAGE/read_complete_01/{software,policy}`. Evidence per run lives under
+`STAGE/read_complete_01/evidence/` (`hw_campaigns/`, `hw_blocks/`, `timing_reanalysis_20261022/`).
+
+## Commands
+
+Every command below is taken from the script's own argparse or usage text. None of them touch the switch
+except the hardware supervisor, which needs Philip's recorded authorization for each campaign. No hardware
+runs are authorized for the 2026-10-22/23 overnight run.
+
+Generate a candidate into a scratch directory (created if missing):
+
+```sh
+python3 $STAGE/m12_fullsize/make_m12.py /tmp/m12p --policy --c3 cimg --shapes passthrough --two-read            # c25
+python3 $STAGE/m12_fullsize/make_m12.py /tmp/m12p --policy --c3 cimg --shapes passthrough --two-read --reduce   # c26
+python3 $STAGE/m12_fullsize/check_generator_identity.py      # exit 1 if any live mode changed
+```
+
+Compile locally (never loads a device). c25's recorded manifest used a 1200 s timeout:
+
+```sh
+python3 $ARCH/build.py BUILD/response_only.p4 BUILD/compile_local --timeout 1200
+python3 $STAGE/ctl_timing_01/compile_switch_orchestrator.py BUILD SOURCE_SHA256   # compile on the switch host's SDK 9.13.2
+```
+
+Model gate (private local model, no hardware). Drivers: `abandon abort contention control_timing dup
+egress_diag fullread fullread_boundary fullread_corrupt isolation_cleanup mixed mixedfull packets policy
+policy_boundary prefix rearm repeat segmented select_lifecycle smoke smoke_sizeoff two_read_robust`; the v3
+summary names the ones it requires:
+
+```sh
+cd $STAGE/ctl_timing_01
+python3 run_model.py evidence/m12p_c26 smoke 1
+python3 model_summary.py evidence/m12p_c26 --v3 --enforce   # exit 1 unless the gate passed
+```
+
+Freeze and check a block config:
+
+```sh
+python3 $HW/freeze_gate.py write BUILD -o BUILD/freeze_v3.json --configs CONFIG [CONFIG ...]
+python3 $HW/freeze_gate.py check BUILD/freeze_v3.json --config CONFIG
+```
+
+Hardware supervisor (authorized campaigns only). `init` takes the manifest and creates
+`MANIFEST.parent/<campaign_id>/`; the other commands take that campaign directory:
+
+```sh
+python3 $HW/evaluation_campaign.py init   $STAGE/read_complete_01/evidence/hw_campaigns/<ID>.manifest.json
+python3 $HW/evaluation_campaign.py start  CAMPAIGN_DIR      # detaches immediately
+python3 $HW/evaluation_campaign.py status CAMPAIGN_DIR      # read-only
+python3 $HW/evaluation_campaign.py reconcile CAMPAIGN_DIR STEP_ID [--baseline-run-root DIR --baseline-terminal FILE]
+```
+
+Readout of one recorded block:
+
+```sh
+$PY312 $STAGE/read_complete_01/analysis/hw_read_readout.py BLOCK_DIR --config CONFIG [--arms a,b] --out readout.json
+```
+
+Offline reproduction (software tests, policy, constants, P4 regeneration, model-gate recomputation, freeze
+binding). `CANDIDATE` is one of `c25` (default), `c24`, `c12`, `c20`, `b08`; c26 is not yet in the script:
+
+```sh
+bash $STAGE/read_complete_01/reproduce.sh
+CANDIDATE=c12 bash $STAGE/read_complete_01/reproduce.sh
+bash $STAGE/read_complete_01/reproduce.sh --readout BLOCK_DIR CONFIG [ARMS]
+```
+
+## Directories the active path depends on
+
+Do not move or rename these. Generated configs and evidence records hold their absolute paths, and the
+generators resolve siblings through `HERE.parent`.
+
+- `STAGE/{m12_fullsize, ctl_timing_01, seg61_02, read_complete_01, seg61_01, read_reencode_01, full_read_01, combined_nt_01}`
+- the P4 lineage these were derived from: `STAGE/{dup_hold_01, n_crc_residue, t_sealed_lifetime, combined_nt_diag_01, retx_passthrough_01}`
+  (for example `seg61_02/generate.py` reads `dup_hold_01/evidence/full_02_strict/response_only.p4`, and every
+  `rc01_m12p_c25_*.json` config pins that path)
+- `$ARCH/integration/core/{response_only, model_driver.py, launch_model.sh, harness}`, `response_only_rearm/{cp.py, hw}`
+- `$ARCH/integration/{read, connection/binding}/tests`, `$ARCH/protocol/{response_path_cp.py, hw_vepa}`
+- `$ARCH/integration/evidence/rearm_01/{hw, repeat_sbo_endpoint}`
+- `defense4/timing/framework/size`, `defense4/timing/evidence/campaign_v2/repro/leakage_campaign.py`
+
+The manuscript cites `ctl_timing_01/evidence/{m11_09/DESIGN_FACTS.md, m10_03/PART2_DESIGN_20261018.md}`,
+`seg61_02/{evaluation/CLAIM_EVIDENCE_MATRIX.md, analysis/paper_evidence.py,
+evidence/evaluation_campaigns/eval_m11_09_20261018_02_paper}` and `protocol/hw_vepa/clrt_check.py`.
+
+## Searching
+
+`rg` and `fd` read the repository's `.ignore` and skip evidence, captures, compiler output and the paper.
+Pass `--no-ignore` (or `rg -uu`) to search those deliberately. `git grep` ignores `.ignore`.
