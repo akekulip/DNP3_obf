@@ -932,6 +932,17 @@ def baseline_is_latest(run_block_log, run_id, problems, preflight_run_id=None):
         problems.append('baseline has no single END with restore_verify_rc=0 after its START (run_block.log)')
 
 
+# hosts keys that name a TOOL directory on a host, not the testbed: restore_verify.py only locates the hash-deployed
+# vision_run.py there and checks global Vision state (namespaces, NIC, CPU latency, ping) through it. The series tool
+# (candidate_series) and the campaign tool use different Vision run directories on the same Vision host; every other
+# hosts key, and production, must still be equal for a baseline to stand for this step's testbed.
+TOOL_DIRECTORY_HOST_KEYS = ('vision_run_dir',)
+
+
+def comparable_hosts(hosts):
+    return {k: v for k, v in hosts.items() if k not in TOOL_DIRECTORY_HOST_KEYS} if isinstance(hosts, dict) else hosts
+
+
 def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline_run_root, baseline_terminal,
                          preflight=False):
     """Clear an unverified-restoration flag for a block with NO hardware-run evidence.
@@ -996,10 +1007,13 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
                             % (evidence['classification'], '; '.join(evidence['reasons'])))
         base, bound['baseline'], base_config, inputs, base_run_id = baseline_inputs(
             baseline_run_root, baseline_terminal, problems)
+        base_cfg = {}
         if inputs:
             try:
                 base_cfg = json.loads(Path(base_config).read_text())
-                if any(key not in step_cfg or step_cfg[key] != base_cfg.get(key) for key in ('hosts', 'production')):
+                if (comparable_hosts(step_cfg.get('hosts')) != comparable_hosts(base_cfg.get('hosts')) or
+                        'hosts' not in step_cfg or 'production' not in step_cfg or
+                        step_cfg['production'] != base_cfg.get('production')):
                     problems.append('step config hosts/production differ from the baseline config')
             except (OSError, ValueError) as error:
                 problems.append('baseline config unreadable: %s' % error)
@@ -1020,6 +1034,9 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
                       baseline_terminal=str(baseline_terminal) if baseline_terminal else None,
                       baseline_run_id=base_run_id, config=base_config, step_config=config,
                       fresh_checks_note=FRESH_CHECKS_NOTE,
+                      tool_directories={k: dict(step=(step_cfg.get('hosts') or {}).get(k),
+                                                baseline=(base_cfg.get('hosts') or {}).get(k))
+                                        for k in TOOL_DIRECTORY_HOST_KEYS},
                       restore_verify_tool=dict(path=str(RESTORE_VERIFY), sha256=digest(RESTORE_VERIFY.read_bytes()),
                                                last_commit=tool_commit, uncommitted_changes=bool(tool_dirty),
                                                volatile_tables=sorted(rv_rules('VOLATILE')),

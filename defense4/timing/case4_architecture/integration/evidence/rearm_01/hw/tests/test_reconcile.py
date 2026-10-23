@@ -552,6 +552,40 @@ class NoContactReconcileTests(unittest.TestCase):
                                                   'END base block_rc=0 restore_verify_rc=1'))
         self.assert_refused_with_record('baseline')
 
+    def test_only_the_vision_tool_directory_may_differ(self):
+        self.step_config.write_text(json.dumps({'evidence_dir': str(self.blocks), 'production': PRODUCTION,
+                                                'hosts': dict(HOSTS, vision_run_dir='/other/series/dir')}))
+        self.assertIs(json.loads(Path(self.run_reconcile()).read_text())['rc'], 0)
+
+    def test_any_other_differing_hosts_key_refused(self):
+        self.step_config.write_text(json.dumps({'evidence_dir': str(self.blocks), 'production': PRODUCTION,
+                                                'hosts': dict(HOSTS, unknown_extra='x')}))
+        self.assert_refused_with_record('hosts/production')
+
+    def test_tool_directories_recorded(self):
+        self.step_config.write_text(json.dumps({'evidence_dir': str(self.blocks), 'production': PRODUCTION,
+                                                'hosts': dict(HOSTS, vision_run_dir='/series')}))
+        data = json.loads(Path(self.run_reconcile()).read_text())
+        self.assertEqual(data['tool_directories'], {'vision_run_dir': {'step': '/series', 'baseline': '/v'}})
+
+    def test_other_vision_host_refused(self):
+        self.step_config.write_text(json.dumps({'evidence_dir': str(self.blocks), 'production': PRODUCTION,
+                                                'hosts': dict(HOSTS, vision='elsewhere', vision_run_dir='/x')}))
+        self.assert_refused_with_record('hosts/production')
+
+    def test_other_switch_or_switch_directory_refused(self):
+        for change in ({'switch': 'other'}, {'switch_remote_dir': '/elsewhere'}):
+            with self.subTest(change=change):
+                self.setUp()
+                self.step_config.write_text(json.dumps({'evidence_dir': str(self.blocks), 'production': PRODUCTION,
+                                                        'hosts': dict(HOSTS, **change)}))
+                self.assert_refused_with_record('hosts/production')
+                self.tearDown()
+
+    def test_missing_hosts_refused(self):
+        self.step_config.write_text(json.dumps({'evidence_dir': str(self.blocks), 'production': PRODUCTION}))
+        self.assert_refused_with_record('hosts/production')
+
     def test_config_hosts_or_production_mismatch_refused(self):
         self.step_config.write_text(json.dumps({'evidence_dir': str(self.blocks), 'hosts': HOSTS,
                                                 'production': dict(PRODUCTION, program='other')}))
