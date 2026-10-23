@@ -456,3 +456,34 @@ def transform_two_read_reduce(src, _image=None):
     src = once(src, '        if (hdr.plz.isValid()) {   // mixed', '        if (m.mx == 1w1) {   // mixed')
     src = once(src, '        if (hdr.plu2.isValid()) {  // full', '        if (m.fl == 1w1) {  // full')
     return src
+
+
+def transform_n_busy_ack_retry(src, _image=None):
+    """F1 (candidate m12p_c27 = c26 + this): a pure ACK that finds N's work cell busy is retried instead of passed.
+
+    Defect (read_complete_01/evidence/forwarding_loss_20261023): busy_t had no row for kind 3 (master final ACK) or
+    kind 10 (outstation ACK), so the default busy_pass forwarded the frame still carrying N's prefix; E rejected it
+    (kind 0xe1/0xe2 -> reject_lifetime -> drop_lifetime). A lost final ACK is unrecoverable once the master has sent
+    data, so one busy collision killed the connection (hardware c26 reference off t0, c25_04 size_only t0; reproduced
+    on the model by injecting the SYN-ACK and the final ACK back to back).
+    Fix: busy_retry_ack recirculates on the RST retry path (event 0x0800 -> retry_rst_input, origin carried so the
+    lap's wire ACK and normalized epoch survive), keeping the ACK's own allocated generation and the 32-lap budget;
+    count_busy[6] counts first retries; guard admits the retried ACK (go_retry(3), go_retry(10))."""
+    src = once(src, 'action busy_exhausted(){',
+               'action busy_retry_ack(){hdr.envelope.epoch=m.epoch;hdr.work_generation.generation=m.generation;'
+               'hdr.event.event=16w0x0800;hdr.event.reserved=16w0;hdr.origin.setValid();hdr.origin.wire_ack=m.wire_ack;'
+               'hdr.origin.normalized_epoch=m.normalized_epoch;hdr.expected_cell.expected_cell=n_RETRY_BUDGET;'
+               'tm.ucast_egress_port=n_RETURN_PORT;tm.bypass_egress=1w1;count_busy_bump.execute(4w6);}\n'
+               'action busy_exhausted(){')
+    src = once(src, 'actions={busy_drop;busy_pass;busy_retry;busy_retry_next;busy_retry_rst;busy_retry_rst_next;'
+                    'busy_exhausted;retry_stale;}size=16;const entries={(_,2w2,_):retry_stale();',
+               'actions={busy_drop;busy_pass;busy_retry;busy_retry_next;busy_retry_rst;busy_retry_rst_next;'
+               'busy_retry_ack;busy_exhausted;retry_stale;}size=22;const entries={(_,2w2,_):retry_stale();'
+               '(8w3,2w0,_):busy_retry_ack();(8w3,2w1,6w1):busy_exhausted();(8w3,2w1,_):busy_retry_rst_next();'
+               '(8w10,2w0,_):busy_retry_ack();(8w10,2w1,6w1):busy_exhausted();(8w10,2w1,_):busy_retry_rst_next();')
+    src = once(src, '(_,_,_,_,_,_,_,_,_,_,_,_,_,2w1):go_stale()',
+               '(2w0,8w3,8w0,2w1,1w1,_,_,_,_,_,_,_,_,2w1):go_retry(8w3);'
+               '(2w0,8w3,8w0,2w2,1w1,_,_,_,_,_,_,_,_,2w1):go_retry(8w10);(_,_,_,_,_,_,_,_,_,_,_,_,_,2w1):go_stale()')
+    src = once(src, 'size=50;const default_action=NoAction();const entries={(2w0,8w6,8w0,2w2',
+               'size=52;const default_action=NoAction();const entries={(2w0,8w6,8w0,2w2')
+    return src

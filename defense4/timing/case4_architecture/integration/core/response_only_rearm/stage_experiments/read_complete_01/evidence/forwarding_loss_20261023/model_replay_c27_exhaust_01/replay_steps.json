@@ -1,0 +1,1092 @@
+[
+ {
+  "step": "initial",
+  "registers": {
+   "n_Ingress.work.work[0]": {
+    "generation": 0,
+    "phase": 4,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.owner[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.epoch[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.client[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.server[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.retry_epoch[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.counter[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.read_app[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[4]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[5]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[6]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[7]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.epoch[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.master_isn[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.mode[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   }
+  }
+ },
+ {
+  "step": "SYN1",
+  "injected": [
+   [
+    "SYN1",
+    {
+     "len": 60,
+     "src": "192.168.10.61",
+     "sport": 60000,
+     "dport": 20000,
+     "seq": 3300796832,
+     "ack": 0,
+     "flags": "0x02",
+     "payload": 0
+    }
+   ]
+  ],
+  "out": {
+   "9": [
+    {
+     "len": 60,
+     "src": "192.168.10.61",
+     "sport": 60000,
+     "dport": 20000,
+     "seq": 3300796832,
+     "ack": 0,
+     "flags": "0x02",
+     "payload": 0
+    }
+   ],
+   "180": [
+    {
+     "len": 76,
+     "head": "0000000100000000000000000e000000"
+    }
+   ]
+  },
+  "registers": {
+   "n_Ingress.work.work[0]": {
+    "generation": 1,
+    "phase": 4,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.owner[0]": {
+    "f1": 131073,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.client[0]": {
+    "f1": 3300796833,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.server[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.retry_epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.counter[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.read_app[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[4]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[5]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[6]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[7]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.master_isn[0]": {
+    "f1": 3300796832,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.mode[0]": {
+    "f1": 2,
+    "action_name": null,
+    "is_default_entry": false
+   }
+  }
+ },
+ {
+  "step": "SYNACK1",
+  "injected": [
+   [
+    "SYNACK1",
+    {
+     "len": 60,
+     "src": "192.168.10.62",
+     "sport": 20000,
+     "dport": 60000,
+     "seq": 245972701,
+     "ack": 3300796833,
+     "flags": "0x12",
+     "payload": 0
+    }
+   ]
+  ],
+  "out": {
+   "9": [
+    {
+     "len": 60,
+     "src": "192.168.10.62",
+     "sport": 20000,
+     "dport": 60000,
+     "seq": 245972701,
+     "ack": 3300796833,
+     "flags": "0x12",
+     "payload": 0
+    }
+   ],
+   "180": []
+  },
+  "registers": {
+   "n_Ingress.work.work[0]": {
+    "generation": 2,
+    "phase": 4,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.owner[0]": {
+    "f1": 262145,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.client[0]": {
+    "f1": 3300796833,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.server[0]": {
+    "f1": 245972702,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.retry_epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.counter[0]": {
+    "f1": 2,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.read_app[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[4]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[5]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[6]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[7]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.epoch[0]": {
+    "f1": 2147483649,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.master_isn[0]": {
+    "f1": 3300796832,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.mode[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   }
+  }
+ },
+ {
+  "step": "HOLD (forced work cell phase 1, gen 0x7ffff000)",
+  "registers": {
+   "n_Ingress.work.work[0]": {
+    "generation": 2147479552,
+    "phase": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.owner[0]": {
+    "f1": 262145,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.client[0]": {
+    "f1": 3300796833,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.server[0]": {
+    "f1": 245972702,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.retry_epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.counter[0]": {
+    "f1": 2,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.read_app[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[4]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[5]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[6]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[7]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.epoch[0]": {
+    "f1": 2147483649,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.master_isn[0]": {
+    "f1": 3300796832,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.mode[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   }
+  }
+ },
+ {
+  "step": "ACK1 under hold",
+  "injected": [
+   [
+    "ACK1",
+    {
+     "len": 60,
+     "src": "192.168.10.61",
+     "sport": 60000,
+     "dport": 20000,
+     "seq": 3300796833,
+     "ack": 245972702,
+     "flags": "0x10",
+     "payload": 0
+    }
+   ]
+  ],
+  "out": {
+   "9": [],
+   "180": []
+  },
+  "registers": {
+   "n_Ingress.work.work[0]": {
+    "generation": 2147479552,
+    "phase": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.owner[0]": {
+    "f1": 262145,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.client[0]": {
+    "f1": 3300796833,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.server[0]": {
+    "f1": 245972702,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.retry_epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.counter[0]": {
+    "f1": 3,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.read_app[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[2]": {
+    "f1": 31,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[3]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[4]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[5]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[6]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[7]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.epoch[0]": {
+    "f1": 2147483649,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.master_isn[0]": {
+    "f1": 3300796832,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.mode[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   }
+  }
+ },
+ {
+  "step": "RELEASE (work cell phase 4)",
+  "registers": {
+   "n_Ingress.work.work[0]": {
+    "generation": 2147479552,
+    "phase": 4,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.owner[0]": {
+    "f1": 262145,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.client[0]": {
+    "f1": 3300796833,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.server[0]": {
+    "f1": 245972702,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.retry_epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.counter[0]": {
+    "f1": 3,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.read_app[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[2]": {
+    "f1": 31,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[3]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[4]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[5]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[6]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[7]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.epoch[0]": {
+    "f1": 2147483649,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.master_isn[0]": {
+    "f1": 3300796832,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.mode[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   }
+  }
+ },
+ {
+  "step": "READ1 after release",
+  "injected": [
+   [
+    "READ1",
+    {
+     "len": 79,
+     "src": "192.168.10.61",
+     "sport": 60000,
+     "dport": 20000,
+     "seq": 3300796833,
+     "ack": 245972702,
+     "flags": "0x18",
+     "payload": 25
+    }
+   ]
+  ],
+  "out": {
+   "9": [],
+   "180": []
+  },
+  "registers": {
+   "n_Ingress.work.work[0]": {
+    "generation": 4,
+    "phase": 4,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.owner[0]": {
+    "f1": 262145,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.client[0]": {
+    "f1": 3300796833,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.server[0]": {
+    "f1": 245972702,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.retry_epoch[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.counter[0]": {
+    "f1": 4,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.read_app[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_first[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[2]": {
+    "f1": 31,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[3]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[4]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[5]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[6]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_busy[7]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[0]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[1]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[2]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "n_Ingress.count_term[3]": {
+    "f1": 0,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.epoch[0]": {
+    "f1": 2147483649,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.master_isn[0]": {
+    "f1": 3300796832,
+    "action_name": null,
+    "is_default_entry": false
+   },
+   "r_Egress.mode[0]": {
+    "f1": 1,
+    "action_name": null,
+    "is_default_entry": false
+   }
+  }
+ }
+]

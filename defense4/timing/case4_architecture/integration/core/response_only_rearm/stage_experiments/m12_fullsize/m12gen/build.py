@@ -13,6 +13,7 @@ TRANSFORM = {
     'two_read_e': two_read.transform_two_read_e,
     'two_read_admit_n': two_read.transform_two_read_admit_n,
     'two_read_reduce': two_read.transform_two_read_reduce,
+    'n_busy_ack_retry': two_read.transform_n_busy_ack_retry,
     'segmented_pad_pipe1': lambda src: segmented.transform_segmented_pad_pipe1(src, segmented.segmented_shape()),
     'segmented_classifier': segmented.transform_segmented_classifier,
     'segmented_t': segmented.transform_segmented_t,
@@ -26,7 +27,7 @@ def generator_files():
 
 
 def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False,
-          reduce=False):
+          reduce=False, ack_retry=False):
     src = M11_09.read_text()
     if hashlib.sha256(src.encode()).hexdigest() != M11_09_SHA:
         raise SystemExit('m11_09 source changed')
@@ -39,6 +40,8 @@ def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_
         transforms = ['mapper_var', 'two_read_pad_pipe1', 'two_read_e', 'two_read_admit_n']
         if reduce:   # m12p_c26: behavior-preserving resource reduction (transform_two_read_reduce)
             transforms.append('two_read_reduce')
+        if ack_retry:   # m12p_c27: F1, busy pure ACKs retried (transform_n_busy_ack_retry)
+            transforms.append('n_busy_ack_retry')
         shape_image = {'read': cm['target'], 'ctl': 61}
         per_image = {cm['native_total']: cm['target'], cf['native_total']: cf['target'], 37: 61, 61: 61}
     else:
@@ -83,6 +86,8 @@ def write_outputs(out, a, src, applied):
         required = {'mapper_var', 'two_read_pad_pipe1', 'two_read_e', 'two_read_admit_n'}
         if a.reduce:
             required.add('two_read_reduce')
+        if getattr(a, 'ack_retry', False):
+            required.add('n_busy_ack_retry')
         read_native, read_out = cm['native_total'], cm['target']
         scope = ('two-READ-target profile (Claude_Two_READ_Targets_Hardware_Directive.md): mixed READ (one request, '
                  'g1v2 q00 0-15 + g30v1 q00 0-7) %d->%d as [%s] with %d G1V2 points %d..%d, and the base-database full '
@@ -102,6 +107,9 @@ def write_outputs(out, a, src, applied):
         if a.reduce:
             scope += ('; resource-reduced (m12p_c26): pipe-1 block-0 CRC by residue, outcome/IP-length/checksum conditions '
                       'set where decided, unreachable E read_b0 CRC compares removed -- behavior unchanged')
+        if getattr(a, 'ack_retry', False):
+            scope += ('; m12p_c27 (F1): a pure ACK (kind 3 master, kind 10 outstation) that finds the N work cell busy '
+                      'is retried on the 32-lap budget instead of busy_pass (which E dropped); count_busy[6] counts retries')
     else:
         c = read_policy.policy_shape()
         required = {'mapper_var', 'read_prefix_p1', 'read_prepadded_e'}

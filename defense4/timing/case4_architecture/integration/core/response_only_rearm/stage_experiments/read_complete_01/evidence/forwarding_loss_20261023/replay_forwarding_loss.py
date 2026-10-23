@@ -43,7 +43,8 @@ CORE = STAGE.parents[1]                                  # .../integration/core
 BUILD = STAGE / 'ctl_timing_01/evidence/m12p_c26'
 TRIAL = (STAGE / 'read_complete_01/evidence/hw_blocks/rc01_hw_c26_20261023_01_reference/separate_ack/off/'
          'rc01_hw_c26_20261023_01_reference_separate_ack_off_t0')
-SCENARIOS = ('exact', 'prelude', 'synack_b2b', 'ack_b2b', 'ack_dup')
+SCENARIOS = ('exact', 'prelude', 'synack_b2b', 'ack_b2b', 'ack_dup', 'ack_then_read', 'kind10_then_response',
+             'exhaust', 'syn_during_retry', 'ack_then_read_hold', 'kind10_hold')
 PORTS = '9 48 68 180 181 182 196'
 
 REGS = [  # (bfrt name, index, pipe)
@@ -137,6 +138,30 @@ def fix_checksums(packet):
     return bytes(f)
 
 
+def make_tcp(template, seq, ack, flags, payload=b''):
+    """A frame on template's Ethernet/IP 4-tuple with a bare 20-octet TCP header, new seq/ack/flags/payload."""
+    import struct
+    f = bytearray(template[:14 + 20])
+    f[16:18] = struct.pack('!H', 40 + len(payload))
+    tcp = bytearray(template[34:38]) + struct.pack('!IIBBHHH', seq & 0xffffffff, ack & 0xffffffff, 0x50, flags,
+                                                   64240, 0, 0)
+    return fix_checksums(pad60(bytes(f) + bytes(tcp) + payload))
+
+
+def mixed_response(app_ctrl):
+    """Native mixed READ response (91 octets, fixture v0) on the hardware link addresses (dst 0x0100, src 0x0a00),
+    transport 0, application control = the request's (N matches the request's application sequence)."""
+    sys.path.insert(0, str(STAGE / 'read_reencode_01'))
+    sys.path.insert(0, str(CORE.parent.parent / 'protocol/hw_vepa/tests'))
+    sys.path.insert(0, str(CORE.parent.parent / 'protocol/hw_vepa'))
+    import dnp3_std as std
+    t = json.loads((STAGE / 'read_complete_01/vectors/two_read_templates.json').read_text())['variants']['v0']
+    hdr, user = std.deframe(bytes.fromhex(t['classes']['mixed']['native']))
+    hdr = bytearray(hdr)
+    hdr[4:6], hdr[6:8] = (0x0100).to_bytes(2, 'big'), (0x0a00).to_bytes(2, 'big')
+    return std.frame(bytes(hdr), bytes([(user[0] & 0xC0), (user[1] & 0xF0) | (app_ctrl & 0x0F)]) + user[2:])
+
+
 # ------------------------------------------------------------------ hardware rows from install.log
 ROW = re.compile(r'^OK\s+(p4|default)\s+pipe=\S+\s+(\S+)\s+\[(.*)\](?:\s+prio=(\d+))?\s+->\s+([\w.]+)\((.*)\)\s*$')
 
@@ -217,6 +242,33 @@ def driver():
                     snap['%s[%d]' % (name, idx)] = 'read error: %s' % str(exc).splitlines()[0][:120]
             return snap
 
+        WORK = 'p0.n_Ingress.work.work'
+
+        def hold():        # forced: a phantom generation owns the cell at phase 1 (no packet will return it)
+            m.register_write(WORK, 0, {'n_Ingress.work.work.generation': 0x7ffff000, 'n_Ingress.work.work.phase': 1},
+                             pipe=0)
+            log.append(dict(step='HOLD (forced work cell phase 1, gen 0x7ffff000)', registers=regs()))
+
+        def release():
+            m.register_write(WORK, 0, {'n_Ingress.work.work.generation': 0x7ffff000, 'n_Ingress.work.work.phase': 4},
+                             pipe=0)
+            log.append(dict(step='RELEASE (work cell phase 4)', registers=regs()))
+
+        def inject_async(batch, label, then=None, delay=0.02):
+            """inject, run `then` after `delay` s while the model is still processing, then capture."""
+            m.drain([9, 48, 180])
+            for name, frame in batch:
+                sent.append((time.time_ns() // 1000, frame))
+                m.send(9, frame)
+            time.sleep(delay)
+            if then:
+                then()
+            got = m.capture([9, 180], timeout=5, quiet=1.0)
+            for frames in got.values():
+                received.extend((time.time_ns() // 1000, f) for f in frames)
+            log.append(dict(step=label, injected=[(n, describe(f)) for n, f in batch],
+                            out={str(p): [describe(f) for f in fs] for p, fs in got.items()}, registers=regs()))
+
         def inject(batch, label):
             """batch: frames injected back-to-back on port 9, then one capture window."""
             m.drain([9, 48, 180])
@@ -242,8 +294,63 @@ def driver():
             steps = [steps[0], steps[1] + steps[2]] + steps[3:]
         elif scenario == 'ack_dup':           # final ACK twice back-to-back
             steps = [steps[0], steps[1], steps[2] + steps[2]] + steps[3:]
+        elif scenario == 'ack_then_read':     # SYN-ACK, final ACK (busy -> retry) and READ1 in one batch
+            steps = [steps[0], steps[1] + steps[2] + steps[3]] + steps[4:]
+        byname = {n: f for n, _, f in frames}
+        syn, synack, ack, read1 = (byname[k] for k in ('SYN1', 'SYNACK1', 'ACK1', 'READ1'))
+        cisn, sisn = describe(syn)['seq'], describe(synack)['seq']
+        if scenario == 'kind10_then_response':
+            # handshake + READ1 committed; then READ1's retransmission (holds the cell in its passes), the outstation's
+            # ACK of READ1 (kind 10: busy -> retry) and the response, back to back
+            app = read1[54 + 10 + 1]
+            ack_out = make_tcp(synack, sisn + 1, cisn + 26, 0x10)
+            rsp = make_tcp(synack, sisn + 1, cisn + 26, 0x18, mixed_response(app))
+            for b in ([('SYN1', syn)], [('SYNACK1', synack)], [('ACK1', ack)], [('READ1', read1)]):
+                inject(b, b[0][0])
+            inject([('READ1_retx', read1), ('ACK_out', ack_out), ('RSP', rsp)], 'READ1_retx+ACK_out+RSP')
+            inject([('ACK_master_of_rsp', make_tcp(ack, cisn + 26, sisn + 1 + 91, 0x10))], 'ACK_master_of_rsp')
+            steps = []
+        elif scenario == 'exhaust':
+            # cell held (forced) longer than the 32-lap budget: the busy final ACK retries and is exhausted, nothing out
+            inject([('SYN1', syn)], 'SYN1')
+            inject([('SYNACK1', synack)], 'SYNACK1')
+            hold()
+            inject_async([('ACK1', ack)], 'ACK1 under hold', then=None, delay=0.0)
+            release()
+            inject([('READ1', read1)], 'READ1 after release')
+            steps = []
+        elif scenario == 'ack_then_read_hold':
+            # forced: cell held, final ACK (retrying) and READ1 back to back, cell released after 50 ms
+            inject([('SYN1', syn)], 'SYN1')
+            inject([('SYNACK1', synack)], 'SYNACK1')
+            hold()
+            inject_async([('ACK1', ack), ('READ1', read1)], 'ACK1+READ1 under hold', then=release, delay=0.05)
+            for n in ('READ2', 'READ3'):
+                inject([(n, byname[n])], n)
+            steps = []
+        elif scenario == 'kind10_hold':
+            # forced: established + READ1 committed; cell held; outstation ACK (kind 10) and its response back to back;
+            # released after 50 ms; then the master's ACK of the response
+            app = read1[54 + 10 + 1]
+            ack_out = make_tcp(synack, sisn + 1, cisn + 26, 0x10)
+            rsp = make_tcp(synack, sisn + 1, cisn + 26, 0x18, mixed_response(app))
+            for b in ([('SYN1', syn)], [('SYNACK1', synack)], [('ACK1', ack)], [('READ1', read1)]):
+                inject(b, b[0][0])
+            hold()
+            inject_async([('ACK_out', ack_out), ('RSP', rsp)], 'ACK_out+RSP under hold', then=release, delay=0.05)
+            inject([('ACK_master_of_rsp', make_tcp(ack, cisn + 26, sisn + 1 + 91, 0x10))], 'ACK_master_of_rsp')
+            steps = []
+        elif scenario == 'syn_during_retry':
+            # the final ACK is retrying (cell held) when a SYN on the same tuple arrives; then the cell is released
+            inject([('SYN1', syn)], 'SYN1')
+            inject([('SYNACK1', synack)], 'SYNACK1')
+            hold()
+            inject_async([('ACK1', ack), ('SYN_retx', syn)], 'ACK1+SYN_retx under hold', then=release, delay=0.05)
+            inject([('READ1', read1)], 'READ1 after')
+            steps = []
         for batch in steps:
             inject(batch, '+'.join(n for n, _ in batch))
+        report.record['meta']['assertions'] = assertions(scenario, log, frames)
         report.record['meta']['reflections'] = {r.port: r.summary() for r in reflectors}
         crossed = [d for s in log for d in s.get('out', {}).get('9', [])]
         report.add('replay_completed', True, True, crossed=crossed)
@@ -260,11 +367,41 @@ def driver():
     return 0 if report.finish(out / 'replay_results.json') else 1
 
 
+def assertions(scenario, log, frames):
+    """Checks the review asked for; each is recorded (not raised) so every scenario's full trace is kept."""
+    def busy(entry):
+        r = entry['registers']
+        return [(r.get('n_Ingress.count_busy[%d]' % i) or {}).get('f1') for i in range(8)]
+
+    def out9(entry):
+        return entry.get('out', {}).get('9', [])
+
+    res = {}
+    last = [e for e in log if 'registers' in e][-1]
+    res['count_busy_final'] = busy(last)
+    res['count_first_final'] = [(last['registers'].get('n_Ingress.count_first[%d]' % i) or {}).get('f1') for i in range(4)]
+    if scenario == 'ack_b2b':
+        hs = next(e for e in log if e['step'] == 'SYNACK1+ACK1')
+        owner = (hs['registers'].get('n_Ingress.owner[0]') or {}).get('f1', 0)
+        b = busy(last)
+        final_acks = [d for e in log for d in out9(e) if d.get('src', '').endswith('.61') and d.get('flags') == '0x10'
+                      and d.get('seq') == describe(frames[0][2])['seq'] + 1 and d.get('payload') == 0]
+        reads = {e['step']: [d for d in out9(e) if d.get('flags') == '0x18'] for e in log if e['step'].startswith('READ')}
+        res.update(owner_after_handshake=hex(owner), owner_established=(owner >> 16) >= 5,
+                   count6_is_1=b[6] == 1, counts_1_3_4_zero=(b[1], b[3], b[4]) == (0, 0, 0),
+                   final_ack_frames_out=len(final_acks), exactly_one_final_ack=len(final_acks) == 1,
+                   read_frames_out={k: len(v) for k, v in reads.items()},
+                   each_read_one_frame=all(len(v) == 1 and v[0]['payload'] == 25 for v in reads.values()) and len(reads) == 5)
+        res['pass'] = all(res[k] for k in ('owner_established', 'count6_is_1', 'counts_1_3_4_zero',
+                                           'exactly_one_final_ack', 'each_read_one_frame'))
+    return res
+
+
 def launch(scenario, attempt, build_out=None, tag=''):
     build_out = Path(build_out) if build_out else BUILD / 'compile_local/out'
     out = HERE / ('model_replay_%s%s_%02d' % (tag, scenario, attempt))
     assert not out.exists(), 'evidence must not be overwritten'
-    env = dict(os.environ, PORT_MAP=str(BUILD / 'response_only.inputs.json'), SHARED_PORT='1', PAD_ENABLE='0',
+    env = dict(os.environ, PORT_MAP=os.environ.get('REPLAY_PORT_MAP', str(BUILD / 'response_only.inputs.json')), SHARED_PORT='1', PAD_ENABLE='0',
                MILESTONE='m12', REPLAY_SCENARIO=scenario)
     cmd = ['bash', str(CORE / 'launch_model.sh'), '-p', str(build_out), '-o', str(out),
            '-P', PORTS, '-d', str(Path(__file__).resolve())]
