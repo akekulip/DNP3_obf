@@ -57,8 +57,11 @@ between measurements and later candidates.
   admission and restoration gates; an earlier smoke or timer authorization is not blanket authority.
 - Not allowed: OPERATE on the physical relay (physical OPERATE is attended-only); any D/J or attacker
   campaign; rebooting Vision; OS or firmware updates.
-- For the 2026-10-22/23 overnight run Philip narrowed this further: resource reduction and repository cleanup
-  only, no hardware runs, no endpoint or request changes. The IEEE 1815 compliance audit is left to Philip.
+- Current run (2026-10-23, `Claude_C26_Headroom_Hardware_Directive.md`): pipe-0 headroom work on m12p_c26 and
+  hardware timing, sizing and recovery validation of the selected image ARE in scope through the gates above; the
+  gated candidate may be loaded and the authorized blocks run without asking again. The IEEE 1815 audit is
+  DEFERRED (no standards research, compliance matrix or certification claims). The 2026-10-22/23 cleanup-only
+  restriction is superseded.
 - Implementation work (separate candidate code, offline tests, protocol-aware padding and response carving,
   isolated BMv2 work, compiler evidence, analysis) is authorized, as it has been since the 2026-10-06 Case 4
   scope. Cases 1–3 remain explanation-only history.

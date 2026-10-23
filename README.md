@@ -34,7 +34,7 @@ The earlier explanation of the timing failure, a delay that depended on receive-
 into Vision, was withdrawn on 2026-10-22 (commit `4a0b0fc56`): its metric counted the transit it was meant to
 explain. The corrected analysis is in
 `.../read_complete_01/evidence/timing_reanalysis_20261022/README.md`. No hardware runs were made in the
-2026-10-22/23 overnight run.
+2026-10-22/23 overnight run; hardware validation of the selected c26-derived image resumed 2026-10-23.
 
 ## Reproduce offline
 

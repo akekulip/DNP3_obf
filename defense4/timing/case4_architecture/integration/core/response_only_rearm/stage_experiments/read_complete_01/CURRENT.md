@@ -1,35 +1,33 @@
-# Current status — two-READ candidate (overnight run started 2026-10-22)
+# Current status — c26 headroom and timing + padding on hardware (run started 2026-10-23)
 
-One status file, updated in place. Detailed results live in machine-readable evidence; dated history in STATUS.md.
-Directive: `Claude_Overnight_Hardware_Compliance_Refactor_Directive.md` (repository root, untracked).
+One status file, updated in place. Dated history: STATUS.md; full record: COMPLETION_RECORD.md (sections 0, 0a).
+Directive: `Claude_C26_Headroom_Hardware_Directive.md` (repository root, untracked).
 
-## Objective
-One integrated N/E/T candidate: mixed READ 91 -> 141, full integrity READ 247 -> 271 (encoded DNP3 bytes incl.
-link headers and CRCs), SELECT/OPERATE 37 -> 61, blocker timing and OPERATE hold J unchanged; protocol behavior
-audited against IEEE Std 1815-2012; resources reduced from c25; repository navigation simplified; hardware and
-recovery evidence on the selected image.
+## Scope
+Pipe-0 headroom (N and E both at highest occupied stage index <= 10 in one integrated build) on m12p_c26, then the
+four-arm comparison and recovery blocks on the selected image on the physical Tofino, through the existing gates.
+IEEE 1815 audit DEFERRED. No relay OPERATE, Vision reboot, kernel/firmware change, D/J/attacker campaign, keep-alive
+traffic, relaxed thresholds or manual ownership edits.
 
-## Starting state (verified 2026-10-22)
-- HEAD = origin/main = 0c475ebc2. Testbed ownership: active False, unsafe_restoration False; no running units.
-- c25 source 61f9af0f...; occupied stages (both SDKs): N 12, E 12, T 11, pipe-1 egress 7 (sum 42, a resource
-  count, not latency). m11_09: N 11, E 12, T 11, pipe-1 egress 0 (sum 34).
-- c25 hardware: padding byte-exact (campaign 02); timing precision FAILED (p99 2.0-3.6 ms vs 100 us);
-  recovery blocks NOT run; bare-RST model case non-asserting.
-
-## Scope (Philip, 2026-10-22 night)
-Continue ONLY resource reduction and repository cleanup. The IEEE 1815 compliance audit is stopped and left to Philip
-(not resumed in any form). No endpoint/request changes, no hardware runs tonight.
+## Starting state (verified 2026-10-23)
+- HEAD = origin/main = 403f60c3e; testbed ownership active False, unsafe_restoration False; no running units.
+- m12p_c26 (21b98f51...): generator reproduced (7 modes byte-identical); retained model evidence recomputed
+  (model_gate_passed); N/E/T/p1-egress 12/12/11/4. No hardware run on c26. c25 hardware: padding byte-exact, timing
+  FAILED, recovery not run (c25 evidence does not qualify c26 or any successor).
 
 ## Completion criteria
 | # | deliverable | criterion | state |
 |---|---|---|---|
-| 1 | generator refactor | byte-identical live modes, tests, reproduce.sh | DONE 5671284aa |
-| 2 | timing analysis correction | corrected metric, records updated | DONE 4a0b0fc56 (timing still FAILED) |
-| 3 | resource reduction | per-control before/after from compiler reports; model gate on the reduced source | DONE m12p_c26 (gate passed; reduction not strict on every resource; see COMPLETION_RECORD 0a) |
-| 4 | repository | consistent root docs, code map, search exclusions, verified history moves, fresh-checkout repro | DONE (f3c202081; fresh-checkout repro: c26 all steps, c25 all but the freeze binding of git-ignored compiler artifacts, reported NOT CHECKED) |
-| - | compliance matrix | -- | NOT IN SCOPE (Philip) |
-| - | hardware + recovery | -- | NOT RUN tonight |
+| 1 | headroom | both SDKs: N and E highest occupied index <= 10, T <= 11, p1 egress <= 4; per-stage evidence | open |
+| 2 | model | new model run: full v3 gate on the selected source; c26 control_timing_01 failure traced | open |
+| 3 | hardware four-arm | new hardware run: off/timing/size/combined on the selected image, readout, restore verified | open |
+| 4 | hardware recovery | new hardware run: loss (mixed, full), persistence graceful/rst, reconnect, held OPERATE | open |
+| 5 | timing | unchanged 100 us precision criterion measured; failures stay failures | open |
+| 6 | close | records, fresh-checkout reproduction, restoration verified | open |
+
+## Work in progress
+P4 placement experiments (Philip's three: calculations into the padding branch; CRC metadata isolated from lifecycle
+fields; unreachable READ declarations, checking compiler elimination first) in .scratch_p4; c26 control_timing_01 trace.
 
 ## Next action
-None in tonight's scope. Open for Philip: IEEE 1815 compliance (not audited); timing failure (cause not located; next
-measurements need authorization); c26 freeze + hardware validation if wanted.
+Integrate the placement result into the generator; meanwhile prepare hardware configs.
