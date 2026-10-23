@@ -27,3 +27,25 @@ one of N's stateful operations out of stages 7-8 (register layout of the base ti
 
 Finding: c26's egress PHV pins (the @pa_* block before r_IgParser) attach to a parser no Pipeline instantiates; bf-p4c
 drops them silently, so they have never applied. Any checksum-safety argument relying on those pins is not in force.
+
+## Round 2 (Philip: targeted register-layout change) — E reaches index 10, N does not
+
+N's 17 SALUs (c26): retry_epoch 0; counter 4; work 5; epoch 6; client, server, application, pair_native_end_server_start
+7; links, tcp_dst, object, off pairs 8; owner, read_app 9; count_busy, count_term 10; count_first 11. Everything from 7
+keys on epoch_diff (epoch at 6, which keys on work_phase from guard at 4); guard's predecessors are held at 3 by
+stage-2 resources shared with E (a @stage(2) pin was demoted), not by dependencies.
+
+| build | edit | rc | N | E | T | p1 egress |
+|---|---|---|---|---|---|---|
+| nA / nA2 / nA3 | merge application into the redundant native_start lane of pair_native_end_server_start (three SALU output forms) | 3 | - | - | - | - |
+| h1c2P1 | application_t @stage(9) | 0 | 12/11 | 11/11 | 11/10 | 4/3 |
+| all_P1R9 / h1c2_P1R9 | + read_app_t @stage(9) on c26 / h1c2 | 0 | 12/11 | 12/11 / 11/11 | 11/10 | 4/3 |
+| **hx4_P1R9** | h1c2 + X4 (identity hash -> copy in prep_t) + P1 + R9 | 0 | 12/11 | **11/10** | 11/10 | 4/3 |
+| hx4_P1R9G2 | + @stage(2) on retry_valid_t, rd_request_two_crc_t | 0 | 12/11 | 11/10 | 11/10 | 4/3 |
+
+Register merges fail on Tofino-1 pair-SALU output limits (a pair SALU returns a stored lane or a predicate, not a
+difference or an OR; an exact OPERATE check plus the off check needs three comparisons, two condition units exist).
+Every N register carries state across packets (no metadata replacement). N reaching index 10 needs first_event at 10,
+which needs ~10 N SALUs + E's img_wend in stages 7-8 (8 slots) and ~24 logical tables in stage 10 (16): i.e. the
+front of the chain compressed (guard at 3), a stage-2 resource question shared with E, not register layout.
+Not adopted (pins are placement-only and fragile; target not met). Generator for this round: nx/mkn.py.
