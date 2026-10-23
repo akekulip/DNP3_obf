@@ -531,3 +531,7 @@ cause not located. Next measurements (NIC hardware timestamps; kernel A/B/A) nee
   class for a runner preflight failure before switch contact (as for the freeze refusal on 10-22), or clear it another
   way he chooses. Then: deploy the read-schedule endpoint to the series run dir (verify hash) and rerun the recovery
   blocks under new IDs.
+- c26 campaign _03 corrected transit analysis (evidence/timing_reanalysis_20261022/transit_silence.py, unchanged):
+  off-arm request transit by prior receive silence <0.5 / 0.5-2 / >=2 ms: n 74/36/83, median 76/1291/1211 us, p90
+  2114/2099/2220 us; size_only 69/49/75, median 86/1177/834, p90 2117/1774/2098. Same ~1-2 ms path delay as c25 and the
+  m11_09 controls; no additional c26 effect detected in this comparison. Timing cause still not located.
