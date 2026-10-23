@@ -566,3 +566,22 @@ cause not located. Next measurements (NIC hardware timestamps; kernel A/B/A) nee
     READ request (25 B), refused once by N (count_first[0] 0->1, count_busy 0) and recovered by retransmission. The same
     refusal hit persistence_graceful c3. m11_09 series blocks never show it: new with the two-READ N admission. Under
     investigation as a correctness defect.
+
+## 2026-10-23 (evening) — c28 on hardware; c29 (pipe-0 headroom) built
+
+- m12p_c28 (10074eb7... = c27 + "READ completes the handshake"): model gate passed (first attempt, all 14 counts equal
+  c25/c26); frozen; seven hardware campaigns rc01_hw_c28_20261023_01..07, restoration verified after every block,
+  ownership clean:
+  * reference (four arms): failed on timing precision ONLY (no sizing/delivery failure).
+  * persistence graceful / rst: timing precision ONLY (fresh-mapping now passes with the corrected checker).
+  * loss_mixed, loss_full: PASS.
+  * reconnect: timing precision + c2 (native connection) wire verification -- a same-sequence ACK/FIN-ACK swap at
+    close misaligned by wire_check's stable sort (checker bug, fixed fd95e0dc8; 77/77 pair, swap reported reordered).
+  * held_operate: timing precision + c3's late final handshake ACK dropped -- c28's declared behavior: the READ
+    overtook it and was admitted on first arrival (count_first 0, no retransmission, 141-byte response returned); the
+    checker now excuses exactly that frame on builds with the row (fd95e0dc8).
+  The official reconnect/held_operate verdicts were produced by the old checkers; re-evaluated offline they fail on
+  timing precision only. The final runs go on c29 under the corrected harness.
+- m12p_c29 (f1b61b5c... = c28 + pipe-0 headroom): both SDKs N 11/10, E 11/10, T 11/10, p1 4/3 (pipe 0's last stage
+  free); review: behavior-equivalent; model gate running.
+- NIC hardware timestamps: capability present but no stampable return path through the DNP3 path (a181e09a1).
