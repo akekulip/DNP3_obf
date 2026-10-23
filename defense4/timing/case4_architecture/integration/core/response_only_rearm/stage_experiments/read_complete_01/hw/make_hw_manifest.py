@@ -1,6 +1,8 @@
-"""evaluation_campaign manifest for the m12p_b08 hardware blocks (existing frozen wrapper, detached supervisor).
+"""evaluation_campaign manifest for one build's hardware blocks (existing frozen wrapper, detached supervisor).
 
-  python3 make_hw_manifest.py FREEZE.json CAMPAIGN_ID [BLOCK ...]   # default: all six, reference first
+  python3 make_hw_manifest.py [--build m12p_b08] FREEZE.json CAMPAIGN_ID [BLOCK ...]   # default: all blocks, reference first
+
+The default block list follows the build's configs: the b08 six, or the two-READ seven (loss per READ class).
 
 Each step runs run_block_frozen.sh FREEZE TOOL CONFIG RUN_ID with the tool and arguments recorded in the config's
 own evaluation.campaign_block (the four-arm reference block runs every arm). Run roots are the configs'
@@ -15,14 +17,20 @@ ARCH = HERE.parents[5]
 WRAPPER = ARCH / 'integration/evidence/rearm_01/hw/run_block_frozen.sh'
 ORDER = ['reference', 'persistence_graceful_950', 'persistence_rst_950', 'reconnect_950', 'held_operate_350',
          'loss_core_950']
+ORDER_TWO_READ = ['reference', 'persistence_graceful_950', 'persistence_rst_950', 'loss_mixed_950', 'loss_full_950',
+                  'reconnect_950', 'held_operate_350']
 
 
 def main(argv):
+    build = 'm12p_b08'
+    if argv[:1] == ['--build']:
+        build, argv = argv[1], argv[2:]
     freeze, campaign = str(Path(argv[0]).resolve(strict=True)), argv[1]
-    blocks = argv[2:] or ORDER
+    two_read = (HERE / 'config' / ('rc01_%s_loss_mixed_950.json' % build)).exists()
+    blocks = argv[2:] or (ORDER_TWO_READ if two_read else ORDER)
     steps = []
     for name in blocks:
-        path = HERE / 'config' / ('rc01_m12p_b08_%s.json' % name)
+        path = HERE / 'config' / ('rc01_%s_%s.json' % (build, name))
         cfg = json.loads(path.read_text())
         cb = cfg['evaluation']['campaign_block']
         tool = cb['tool']
