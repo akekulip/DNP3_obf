@@ -46,6 +46,11 @@ bash defense4/timing/case4_architecture/integration/core/response_only_rearm/sta
 CANDIDATE=c26 bash .../read_complete_01/reproduce.sh     # c25 (default) | c26 | c24 | c12 | c20 | b08
 ```
 
+A fresh checkout reproduces every step except the freeze binding of compiler artifacts (`compile_*/out/` is
+git-ignored by design); `reproduce.sh` then reports that binding as NOT CHECKED. Recompiling with
+`defense4/timing/case4_architecture/build.py` restores it. Verified 2026-10-23 on a clean worktree of HEAD: c26 all
+steps, c25 all steps with the freeze binding NOT CHECKED.
+
 The paper's figures and tables: `python3 .../seg61_02/analysis/paper_evidence.py --check`. The earlier
 timing-only corpus (campaign_v2): `defense4/timing/reproduce.sh`.
 

@@ -26,9 +26,10 @@ Continue ONLY resource reduction and repository cleanup. The IEEE 1815 complianc
 | 1 | generator refactor | byte-identical live modes, tests, reproduce.sh | DONE 5671284aa |
 | 2 | timing analysis correction | corrected metric, records updated | DONE 4a0b0fc56 (timing still FAILED) |
 | 3 | resource reduction | per-control before/after from compiler reports; model gate on the reduced source | DONE m12p_c26 (gate passed; reduction not strict on every resource; see COMPLETION_RECORD 0a) |
-| 4 | repository | consistent root docs, code map, search exclusions, verified history moves, fresh-checkout repro | docs + 3 verified moves DONE; fresh-checkout repro pending |
+| 4 | repository | consistent root docs, code map, search exclusions, verified history moves, fresh-checkout repro | DONE (f3c202081; fresh-checkout repro: c26 all steps, c25 all but the freeze binding of git-ignored compiler artifacts, reported NOT CHECKED) |
 | - | compliance matrix | -- | NOT IN SCOPE (Philip) |
 | - | hardware + recovery | -- | NOT RUN tonight |
 
 ## Next action
-Commit c26 and the navigation changes; run the offline reproduction from a fresh worktree export.
+None in tonight's scope. Open for Philip: IEEE 1815 compliance (not audited); timing failure (cause not located; next
+measurements need authorization); c26 freeze + hardware validation if wanted.

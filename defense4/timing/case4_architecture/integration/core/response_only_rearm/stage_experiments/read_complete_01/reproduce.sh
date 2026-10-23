@@ -129,9 +129,19 @@ fi
 
 step "6. freeze: every block config belongs to the frozen candidate"
 if [ -f "$FREEZE" ] && ls "$HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json >/dev/null 2>&1; then
+  # Compiler artifacts (compile_*/out/) are git-ignored by design (case4_architecture/build.py). In a fresh checkout
+  # they are absent, so the freeze binding of the artifact BYTES cannot be checked without recompiling; that case is
+  # reported as NOT CHECKED (never as ok). Any changed file, or any missing file outside compile_*/out/, fails.
   for c in "$HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json; do
-    python3 "$HW/freeze_gate.py" check "$FREEZE" --config "$c" >/dev/null
-    echo "ok $(basename "$c")"
+    if out="$(python3 "$HW/freeze_gate.py" check "$FREEZE" --config "$c" 2>&1)"; then
+      echo "ok $(basename "$c")"
+    elif echo "$out" | grep -q '^freeze check: FAILED 0 changed' \
+         && ! echo "$out" | grep '^  missing ' | grep -vq '/compile_[a-z0-9_]*/out/'; then
+      echo "NOT CHECKED $(basename "$c"): only git-ignored compiler artifacts are missing (compile with $STAGE/../../../../build.py to check the binding)"
+      FREEZE_UNCHECKED=1
+    else
+      echo "$out"; echo "freeze check FAILED for $(basename "$c")"; exit 1
+    fi
   done
 else
   echo "no freeze yet for m12p_$CANDIDATE (configs present: $(ls "$HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json 2>/dev/null | wc -l)); skipping"
@@ -143,4 +153,9 @@ if [ "${1:-}" = "--readout" ]; then
   "$PY312" "$HERE/analysis/hw_read_readout.py" "$2" --config "$3" ${4:+--arms "$4"} --out "$SCRATCH/readout.json"
   "$PY312" -m pytest -q "$HERE/analysis/tests/test_readout.py"
 fi
-echo; echo "reproduce.sh: all offline steps passed"
+echo
+if [ "${FREEZE_UNCHECKED:-0}" = 1 ]; then
+  echo "reproduce.sh: all offline steps passed EXCEPT the freeze binding of compiler artifacts, which was NOT CHECKED (absent)"
+else
+  echo "reproduce.sh: all offline steps passed"
+fi
