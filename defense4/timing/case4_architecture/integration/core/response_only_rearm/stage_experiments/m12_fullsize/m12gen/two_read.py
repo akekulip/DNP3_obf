@@ -487,3 +487,18 @@ def transform_n_busy_ack_retry(src, _image=None):
     src = once(src, 'size=50;const default_action=NoAction();const entries={(2w0,8w6,8w0,2w2',
                'size=52;const default_action=NoAction();const entries={(2w0,8w6,8w0,2w2')
     return src
+
+
+def transform_n_read_completes_handshake(src, _image=None):
+    """N admits a READ request that arrives before the master's final handshake ACK (candidate m12p_c28).
+
+    first_event admits a READ (kind 9) only at owner phase 5 (final ACK seen) or 0xa; a READ that overtakes a delayed
+    final ACK (observed on hardware: the ACK held ~2 ms by the intermittent Vision delay, c26 campaigns 11/14) found
+    owner phase 4 (SYN-ACK seen) and fell to the catch-all count_refused -> abort chain, recovered only by the master's
+    retransmission. A READ whose sequence check passes already carries the cumulative ACK that completes the
+    handshake, so phase 4 admits it the same way as phase 5. The late pure ACK that follows is then dropped (owner has
+    moved on; TCP does not need it). Model: STAGE/read_complete_01/evidence/reconnect_read_refusal_20261023/."""
+    row = '(8w9,3w1,1w0,32w0x50000&&&32w0xffff0000,_,_,_,_,_,_,_):first_read_request();'
+    src = once(src, row, row + '(8w9,3w1,1w0,32w0x40000&&&32w0xffff0000,_,_,_,_,_,_,_):first_read_request();')
+    src = once(src, 'size=175;const default_action=NoAction(', 'size=176;const default_action=NoAction(')
+    return src

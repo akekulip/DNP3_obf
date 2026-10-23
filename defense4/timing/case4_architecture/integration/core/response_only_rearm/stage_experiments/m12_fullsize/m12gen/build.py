@@ -17,6 +17,7 @@ TRANSFORM = {
     'segmented_pad_pipe1': lambda src: segmented.transform_segmented_pad_pipe1(src, segmented.segmented_shape()),
     'segmented_classifier': segmented.transform_segmented_classifier,
     'segmented_t': segmented.transform_segmented_t,
+    'n_read_completes_handshake': two_read.transform_n_read_completes_handshake,
 }
 
 
@@ -27,7 +28,7 @@ def generator_files():
 
 
 def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False,
-          reduce=False, ack_retry=False):
+          reduce=False, ack_retry=False, read_handshake=False):
     src = M11_09.read_text()
     if hashlib.sha256(src.encode()).hexdigest() != M11_09_SHA:
         raise SystemExit('m11_09 source changed')
@@ -42,6 +43,8 @@ def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_
             transforms.append('two_read_reduce')
         if ack_retry:   # m12p_c27: F1, busy pure ACKs retried (transform_n_busy_ack_retry)
             transforms.append('n_busy_ack_retry')
+        if read_handshake:   # m12p_c28: a READ that overtakes the final ACK completes the handshake
+            transforms.append('n_read_completes_handshake')
         shape_image = {'read': cm['target'], 'ctl': 61}
         per_image = {cm['native_total']: cm['target'], cf['native_total']: cf['target'], 37: 61, 61: 61}
     else:
@@ -88,6 +91,8 @@ def write_outputs(out, a, src, applied):
             required.add('two_read_reduce')
         if getattr(a, 'ack_retry', False):
             required.add('n_busy_ack_retry')
+        if getattr(a, 'read_handshake', False):
+            required.add('n_read_completes_handshake')
         read_native, read_out = cm['native_total'], cm['target']
         scope = ('two-READ-target profile (Claude_Two_READ_Targets_Hardware_Directive.md): mixed READ (one request, '
                  'g1v2 q00 0-15 + g30v1 q00 0-7) %d->%d as [%s] with %d G1V2 points %d..%d, and the base-database full '
@@ -110,6 +115,9 @@ def write_outputs(out, a, src, applied):
         if getattr(a, 'ack_retry', False):
             scope += ('; m12p_c27 (F1): a pure ACK (kind 3 master, kind 10 outstation) that finds the N work cell busy '
                       'is retried on the 32-lap budget instead of busy_pass (which E dropped); count_busy[6] counts retries')
+        if getattr(a, 'read_handshake', False):
+            scope += ('; m12p_c28: a READ request that overtakes the final handshake ACK (owner phase 4, sequence check '
+                      'passing) is admitted as completing the handshake instead of refused; the late pure ACK is dropped')
     else:
         c = read_policy.policy_shape()
         required = {'mapper_var', 'read_prefix_p1', 'read_prepadded_e'}
