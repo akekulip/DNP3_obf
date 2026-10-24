@@ -82,6 +82,7 @@ class Frame:
     destination: int
     source: int
     user_data: bytes
+    wire: bytes = b""
 
 
 def parse_frame(buf: bytes, verify_crc: bool = True):
@@ -113,7 +114,7 @@ def parse_frame(buf: bytes, verify_crc: bool = True):
     return (Frame(total=total, control=header[3],
                   destination=header[4] | (header[5] << 8),
                   source=header[6] | (header[7] << 8),
-                  user_data=bytes(user)),
+                  user_data=bytes(user), wire=buf[:total]),
             buf[total:])
 
 
@@ -190,6 +191,10 @@ class TransportAssembler:
         self._parts = []
         self._expect_seq = None
 
+    @property
+    def in_progress(self) -> bool:
+        return bool(self._parts)
+
     def add(self, user_data: bytes):
         if not user_data:
             raise TransportError("empty link user data has no transport header")
@@ -197,12 +202,16 @@ class TransportAssembler:
         seq = th & TRANSPORT_SEQ
         fir, fin = bool(th & TRANSPORT_FIR), bool(th & TRANSPORT_FIN)
         if fir:
-            self._parts = []
+            if self._parts:
+                self.reset()
+                raise TransportError("new FIR before previous fragment FIN")
             self._expect_seq = seq
         elif not self._parts:
             raise TransportError("transport continuation (FIR clear) with no fragment in progress")
         elif seq != self._expect_seq:
-            raise TransportError("transport sequence %d, expected %d" % (seq, self._expect_seq))
+            expected = self._expect_seq
+            self.reset()
+            raise TransportError("transport sequence %d, expected %d" % (seq, expected))
         self._parts.append(user_data[1:])
         self._expect_seq = (self._expect_seq + 1) & TRANSPORT_SEQ
         if fin:
@@ -222,9 +231,21 @@ def reassemble_application(frames):
     return fragments
 
 
+# Supported physical-relay response contracts. Index ranges are inclusive on the wire.
+READ_SCHEMAS = {
+    "legacy": {(10, 2): range(23)},
+    "mixed": {(1, 2): range(16), (30, 1): range(8)},
+    "integrity": {(1, 2): range(16), (10, 2): range(32), (30, 4): range(21)},
+}
+OBJECT_SIZES = {(1, 2): 1, (10, 2): 1, (30, 1): 5, (30, 4): 2, (12, 1): 11}
+# IIN1 indications (restart, local control, class data, time required, etc.) are not
+# response errors. IIN2 bits 0..5 are function/object/parameter/overflow/execution/config errors.
+IIN_ERROR_MASK = 0x3F00
+
+
 @dataclass
 class Response:
-    """A parsed solicited application response."""
+    """A complete parsed solicited application fragment, without a transport header."""
     app_seq: int
     function: int
     iin: int
@@ -232,82 +253,178 @@ class Response:
     variation: int | None = None
     qualifier: int | None = None
     count: int | None = None
-    points: list = field(default_factory=list)      # (index, status) pairs
+    points: list = field(default_factory=list)      # (CROB index, status) compatibility view
+    objects: list = field(default_factory=list)     # every object, raw point bytes and decoded fields
     problems: list = field(default_factory=list)
 
 
-def parse_response(user_data: bytes) -> Response:
-    """Parse the user data of a response, with the IIN in its correct position."""
-    if len(user_data) < 5:
-        return Response(app_seq=-1, function=-1, iin=-1,
-                        problems=["user data shorter than an application header"])
-    app_seq = user_data[1] & 0x0F
-    func = user_data[2]
-    iin = user_data[3] | (user_data[4] << 8)
-    r = Response(app_seq=app_seq, function=func, iin=iin)
+def parse_application_response(application: bytes) -> Response:
+    """Decode every object in one completed DNP3 application fragment.
+
+    Deliberately supports the relay's fixed measurement/CROB profile, failing closed on
+    unknown sizes/qualifiers rather than guessing where a following object begins.
+    """
+    if len(application) < 4:
+        return Response(-1, -1, -1, problems=["application data shorter than a response header"])
+    ctrl, func = application[:2]
+    r = Response(ctrl & 15, func, int.from_bytes(application[2:4], "little"))
+    if ctrl & 0xF0 != 0xC0:
+        r.problems.append("application header requires complete solicited FIR/FIN, no CON/UNS")
     if func != FUNC_RESPONSE:
         r.problems.append("function 0x%02x is not a solicited response" % func)
         return r
-    obj = user_data[5:]                              # the object header starts after the IIN
-    if len(obj) < 3:
-        return r                                     # a response with no object block
-    r.group, r.variation, r.qualifier = obj[0], obj[1], obj[2]
-    if r.qualifier != QUAL_COUNT_1BYTE_PREFIX:
-        return r
-    if len(obj) < 4:
-        r.problems.append("qualifier 0x17 with no count octet")
-        return r
-    r.count = obj[3]
     p = 4
-    for _ in range(r.count):
-        if p + 1 + CROB_LEN > len(obj):
-            r.problems.append("object block truncated after %d of %d points"
-                              % (len(r.points), r.count))
+    while p < len(application):
+        if len(application) - p < 3:
+            r.problems.append("truncated object header at offset %d" % p)
             break
-        index = obj[p]
-        status = obj[p + 1 + CROB_STATUS_OFFSET]
-        r.points.append((index, status))
-        p += 1 + CROB_LEN
+        group, variation, qualifier = application[p:p+3]
+        p += 3
+        if r.group is None:
+            r.group, r.variation, r.qualifier = group, variation, qualifier
+        size = OBJECT_SIZES.get((group, variation))
+        if size is None:
+            r.problems.append("unsupported object group %d variation %d" % (group, variation))
+            break
+        width = {0x00: 1, 0x01: 2, 0x17: 1, 0x28: 2}.get(qualifier)
+        if width is None:
+            r.problems.append("unsupported object qualifier 0x%02x" % qualifier)
+            break
+        prefixed = qualifier in (0x17, 0x28)
+        header_size = width if prefixed else 2 * width
+        if p + header_size > len(application):
+            r.problems.append("object range/count truncated")
+            break
+        first = int.from_bytes(application[p:p+width], "little")
+        p += width
+        if prefixed:
+            count, indices = first, None
+        else:
+            last = int.from_bytes(application[p:p+width], "little")
+            p += width
+            if last < first:
+                r.problems.append("object range ends before it starts")
+                break
+            count, indices = last - first + 1, range(first, last + 1)
+        if r.count is None:
+            r.count = count
+        obj = dict(group=group, variation=variation, qualifier=qualifier, count=count, points=[])
+        r.objects.append(obj)
+        if count == 0:
+            r.problems.append("empty object block")
+        for n in range(count):
+            needed = size + (width if prefixed else 0)
+            if p + needed > len(application):
+                r.problems.append("object block truncated after %d of %d points" % (n, count))
+                return r
+            index = int.from_bytes(application[p:p+width], "little") if prefixed else indices[n]
+            if prefixed:
+                p += width
+            raw = application[p:p+size]
+            p += size
+            point = dict(index=index, raw_hex=raw.hex())
+            if group == 12:
+                point.update(code=raw[0], count=raw[1], on_ms=int.from_bytes(raw[2:6], "little"),
+                             off_ms=int.from_bytes(raw[6:10], "little"), status=raw[10])
+                r.points.append((index, raw[10]))
+            elif (group, variation) in ((1, 2), (10, 2)):
+                point.update(flags=raw[0] & 0x7f, value=bool(raw[0] & 0x80))
+            elif (group, variation) == (30, 1):
+                point.update(flags=raw[0], value=int.from_bytes(raw[1:], "little", signed=True))
+            else:
+                point.update(value=int.from_bytes(raw, "little", signed=True))
+            obj["points"].append(point)
     return r
 
 
-def validate_response(resp: Response, *, expect_seq: int, expect_function: int,
-                      expect_points=None, require_success: bool = False, expect_read_groups=None) -> list:
-    """Return the list of reasons this response does not answer that request. Empty means valid.
+def parse_response(user_data: bytes) -> Response:
+    """Compatibility wrapper for one complete, transport-prefixed response.
 
-    `expect_function` is the *request* function; a solicited response answers it with 0x81, so
-    only the sequence number and the object content tie the two together.
+    Segmented callers must reassemble first and use parse_application_response(). A FIR
+    prefix alone is never accepted through this wrapper.
     """
+    r = parse_application_response(user_data[1:])
+    if not user_data or user_data[0] & 0xC0 != 0xC0:
+        r.problems.append("transport fragment is incomplete; reassemble before parsing")
+    return r
+
+
+def read_workload_for_request(application: bytes) -> str:
+    """Recognize the three explicit READ request contracts; reject ambiguous requests."""
+    objects = application[2:]
+    if objects == bytes([1,2,0,0,15,30,1,0,0,7]):
+        return "mixed"
+    if objects == bytes([60,2,6,60,3,6,60,4,6,60,1,6]):
+        return "integrity"
+    if objects == bytes([10,2,0,0,22]):
+        return "legacy"
+    raise ValueError("READ request is outside the legacy/mixed/integrity contracts")
+
+
+def validate_response(resp: Response, *, expect_seq: int, expect_function: int,
+                      expect_points=None, require_success: bool = False,
+                      expect_read_groups=None, expect_read_workload=None) -> list:
+    """Validate a complete fragment against the entire requested response contract."""
     problems = list(resp.problems)
     if resp.function != FUNC_RESPONSE:
         problems.append("function 0x%02x, expected 0x81" % resp.function)
-    if resp.app_seq != (expect_seq & 0x0F):
-        problems.append("application sequence %d, expected %d"
-                        % (resp.app_seq, expect_seq & 0x0F))
+    if resp.app_seq != (expect_seq & 15):
+        problems.append("application sequence %d, expected %d" % (resp.app_seq, expect_seq & 15))
+    if resp.iin >= 0 and resp.iin & IIN_ERROR_MASK:
+        problems.append("IIN response error bits 0x%04x" % (resp.iin & IIN_ERROR_MASK))
     if expect_function == FUNC_READ:
-        # A matching application sequence number is not enough: the outstation reuses the
-        # sequence space across function codes, so a control response can carry the sequence
-        # of an outstanding READ. Check the object the READ actually asked for. expect_read_groups
-        # names the (group, variation) pairs the request asked for; when omitted it defaults to the
-        # legacy G10V2 READ so existing callers are unaffected.
-        groups = expect_read_groups if expect_read_groups is not None else {(G10_BINARY_OUTPUT_STATUS, G10_VAR2)}
-        if (resp.group, resp.variation) not in groups:
-            problems.append("first object (group %r, variation %r) is not one of the requested %r"
-                            % (resp.group, resp.variation, sorted(groups)))
-    if expect_function in (FUNC_SELECT, FUNC_OPERATE):
-        if resp.group != G12_BINARY_OUTPUT_COMMAND:
+        workload = expect_read_workload
+        if workload is None:
+            groups = set(expect_read_groups) if expect_read_groups is not None else {(10, 2)}
+            workload = next((name for name, schema in READ_SCHEMAS.items() if set(schema) == groups), None)
+        if workload not in READ_SCHEMAS:
+            problems.append("unknown READ workload/schema")
+            return problems
+        schema = READ_SCHEMAS[workload]
+        actual, padding = {}, []
+        for obj in resp.objects:
+            key = (obj["group"], obj["variation"])
+            for point in obj["points"]:
+                index = point["index"]
+                if key == (1, 2) and index >= 1024:
+                    padding.append(index)
+                    if point["raw_hex"] != "00":
+                        problems.append("padding point %d flags/value are not zero" % index)
+                else:
+                    indices = actual.setdefault(key, [])
+                    if index in indices:
+                        problems.append("duplicate object point %r index %d" % (key, index))
+                    indices.append(index)
+        if set(actual) != set(schema):
+            problems.append("object group/variation set %r, expected %r" % (sorted(actual), sorted(schema)))
+        for key, indices in schema.items():
+            if sorted(actual.get(key, [])) != list(indices):
+                problems.append("object group %d variation %d indices %r, expected %r" %
+                                (key[0], key[1], actual.get(key, []), list(indices)))
+        if padding:
+            count = {"mixed": 26, "integrity": 4}.get(workload, 0)
+            if padding != list(range(1024, 1024+count)):
+                problems.append("padding indices %r do not match selected %s contract" % (padding, workload))
+    elif expect_function in (FUNC_SELECT, FUNC_OPERATE):
+        if resp.group != 12:
             problems.append("object group %r, expected 12" % resp.group)
-        if resp.variation != G12_VAR1:
+        if resp.variation != 1:
             problems.append("variation %r, expected 1" % resp.variation)
-        if resp.qualifier != QUAL_COUNT_1BYTE_PREFIX:
+        if resp.qualifier != 0x17:
             problems.append("qualifier %r, expected 0x17" % resp.qualifier)
-        if expect_points is not None:
-            got = [i for i, _ in resp.points]
-            if got != list(expect_points):
-                problems.append("points %r, expected %r" % (got, list(expect_points)))
-        if require_success:
-            for index, status in resp.points:
-                if status != STATUS_SUCCESS:
-                    problems.append("point %d status %s"
-                                    % (index, STATUS_NAMES.get(status, status)))
+        if len(resp.objects) != 1:
+            problems.append("control response requires exactly one CROB object block")
+        if expect_points is not None and [i for i, _ in resp.points] != list(expect_points):
+            problems.append("points %r, expected %r" % ([i for i, _ in resp.points], list(expect_points)))
+        for obj in resp.objects:
+            if (obj["group"], obj["variation"]) != (12, 1):
+                problems.append("unexpected object in control response")
+                continue
+            for point in obj["points"]:
+                if (point["code"], point["count"], point["on_ms"], point["off_ms"]) != (1,1,200,0):
+                    problems.append("point %d CROB parameters differ from guarded request" % point["index"])
+                if require_success and point["status"] != STATUS_SUCCESS:
+                    problems.append("point %d status %s" % (point["index"], STATUS_NAMES.get(point["status"], point["status"])))
+    else:
+        problems.append("unsupported request function 0x%02x" % expect_function)
     return problems

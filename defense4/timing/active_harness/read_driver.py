@@ -22,13 +22,19 @@ import time
 
 from dnp3_codec import FUNC_READ, parse_frame
 from frozen_builders import read_frame
+from read_requests import mixed_read_frame, integrity_read_frame
 from session import Session, Outcome, OUTCOME_NOT_ATTEMPTED
 
 RELAY_IP, RELAY_PORT, SRC_IP = "192.168.10.7", 20000, "192.168.10.1"
 
 
-def build(seq: int) -> bytes:
-    frame = read_frame(seq & 0x0F)
+READ_BUILDERS = {"legacy": read_frame, "mixed": mixed_read_frame, "integrity": integrity_read_frame}
+
+
+def build(seq: int, workload: str = "legacy") -> bytes:
+    if workload not in READ_BUILDERS:
+        raise ValueError("unknown READ workload %r" % workload)
+    frame = READ_BUILDERS[workload](seq & 0x0F)
     parsed, rest = parse_frame(frame)              # CRC-validate what we are about to send
     if parsed is None or rest:
         raise ValueError("built READ frame does not parse cleanly")
@@ -39,6 +45,7 @@ def build(seq: int) -> bytes:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--workload", choices=tuple(READ_BUILDERS), default="legacy")
     ap.add_argument("--count", type=int, default=10)
     ap.add_argument("--gap-ms", type=float, default=20.0)
     ap.add_argument("--budget-ms", type=float, default=500.0,
@@ -56,7 +63,7 @@ def main(argv=None) -> int:
     if dry:
         print("dry run: building %d READ frames, opening no socket" % a.count)
         for i in range(min(a.count, 3)):
-            f = build(i)
+            f = build(i, a.workload)
             print("  seq=%x len=%d %s" % (i & 0x0F, len(f), f.hex()))
         print("frames build and CRC-validate; nothing was sent")
         return 0
@@ -73,13 +80,14 @@ def main(argv=None) -> int:
             for i in range(a.count):
                 seq = i & 0x0F
                 try:
-                    frame = build(seq)
+                    frame = build(seq, a.workload)
                 except ValueError as exc:
                     out = Outcome(operation="READ", function=FUNC_READ, app_seq=seq,
                                   outcome=OUTCOME_NOT_ATTEMPTED, problems=[str(exc)])
                 else:
                     out = s.transaction(operation="READ", frame=frame, function=FUNC_READ,
-                                        app_seq=seq, budget_ms=a.budget_ms)
+                                        app_seq=seq, budget_ms=a.budget_ms,
+                                        expect_read_workload=a.workload)
                 counts[out.outcome] = counts.get(out.outcome, 0) + 1
                 if fh:
                     fh.write(json.dumps(out.as_dict()) + "\n")

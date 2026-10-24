@@ -517,7 +517,8 @@ class TestReadResponseObjects(unittest.TestCase):
         self.assertIn(out.outcome, (sess.OUTCOME_INVALID, sess.OUTCOME_TIMEOUT))
 
     def test_the_right_object_is_accepted(self):
-        f, _ = parse_frame(build_response(0, [], [], group=0x0A, variation=0x02, count=0))
+        # A matching header alone does not prove the requested 23 point values arrived.
+        f, _ = parse_frame(_link_frame(bytes([0xC0,0xC0,FUNC_RESPONSE,0,0,10,2,0,0,22])+bytes([1])*23))
         problems = validate_response(parse_response(f.user_data), expect_seq=0,
                                      expect_function=FUNC_READ)
         self.assertEqual(problems, [], problems)
@@ -698,7 +699,8 @@ class TestReadRequestBuilders(unittest.TestCase):
 
 class TestGeneralReadValidation(unittest.TestCase):
     def test_requested_group_is_accepted(self):
-        resp = parse_response(bytes([0xC0, 0xC0, FUNC_RESPONSE, 0, 0, 0x01, 0x02, 0x00, 0, 15]))
+        resp = parse_response(bytes([0xC0, 0xC0, FUNC_RESPONSE, 0, 0, 1, 2, 0, 0, 15])
+                              + bytes([1])*16 + bytes([30,1,0,0,7]) + bytes([1,0,0,0,0])*8)
         self.assertEqual(validate_response(resp, expect_seq=0, expect_function=FUNC_READ,
                                            expect_read_groups={(1, 2), (30, 1)}), [])
 
@@ -710,7 +712,7 @@ class TestGeneralReadValidation(unittest.TestCase):
         self.assertTrue(problems)
 
     def test_legacy_g10v2_default_is_unchanged(self):
-        g10 = parse_response(bytes([0xC0, 0xC0, FUNC_RESPONSE, 0, 0, 0x0A, 0x02, 0x00, 0, 22]))
+        g10 = parse_response(bytes([0xC0, 0xC0, FUNC_RESPONSE, 0, 0, 0x0A, 0x02, 0x00, 0, 22])+bytes([1])*23)
         self.assertEqual(validate_response(g10, expect_seq=0, expect_function=FUNC_READ), [])
         g1 = parse_response(bytes([0xC0, 0xC0, FUNC_RESPONSE, 0, 0, 0x01, 0x02, 0x00, 0, 15]))
         self.assertTrue(validate_response(g1, expect_seq=0, expect_function=FUNC_READ))  # not G10V2

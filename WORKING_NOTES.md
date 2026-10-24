@@ -2752,3 +2752,54 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   capture_observation + endpoint master SocketGateReadSchedule.cpp peer addr) + the relay SBO image
   (correction #3). Testbed reachable; switch cold on production case4_response_path_conf.json.
 - Pushed the READ-side c30 commits to origin/main at Philip's explicit instruction.
+
+### 2026-10-24 — c30 CONTROL-LANE REGRESSION found (control_timing 213/415 vs c29 415/415)
+- Control-coupled model drivers on sealed c30: 6/7 PASS (rearm 799/799, dup 102/102, select_lifecycle
+  120/120, abort 79/79, abandon 12/12, repeat 523/523, contention 413/413). control_timing FAILS
+  213/415; c29 passed the same 415-check suite 3x clean -> genuine c30 regression, not stale expectations.
+- Root characterization (factual): the ONLY c29->c30 input difference is the READ *full* shape
+  (relay 134->158 vs software 247->271); transforms_applied, control_growth, read_growth, SELECT_OPERATE=61
+  identical. So the relay integrity-READ image perturbs shared control/generation accounting (symptom:
+  SELECT_lane_generation 23->22 off-by-one, then fallbacks + SELECT/OPERATE drops partway through).
+- STATUS CHANGE: c30 is READ/size-qualified but control-lane REGRESSED. The c30 commits were already
+  pushed (dd7741152) before the control drivers finished; origin carries this regression. Fix likely needs
+  control-lane work. Evidence retained: evidence/model_control_timing_m12p_c30_sdk9132_01 (+_02 confirm run).
+
+### 2026-10-24 — Codex execution of the verified assessment (in progress)
+
+- Approved plan: read_complete_01/OVERNIGHT_PLAN_20261024.md. Work remains on main; unrelated deletions and
+  dirty work preserved. Physical SEL-751 is the only outstation. No software outstation has been launched.
+- CORRECTION to the preceding uncommitted diagnosis: the 213/415 failures do not establish a shared-accounting
+  regression. control_timing hardcodes two_read_templates.json (software integrity 247 B); c30 admits relay
+  integrity 134 B. Its first unsupported integrity response parses IP287 and exits with TCP invalid. Shared
+  strict profile-based template selection is being installed and rerun on the existing sealed c30 bundle.
+- CORRECTION to the earlier packetization assumption: final_read_sbo/sbo_j2's 28+21 is the historical switch PRE
+  carve of a whole49 response, as the archived exact source and capture audit document. campaign_v2 native SBO
+  supplies whole49 successful offline fixtures. Fresh native production captures will decide current ingress
+  support; split reassembly/retention is not being implemented speculatively.
+- Read-only live preflight: production case4_response_path is running on ufispace (PID2575579); Vision route to
+  .7 uses enp59s0f0np0/source.1, relay MAC00:30:a7:02:4c:a2. Recorded ownership inactive/restore-safe; no hardware
+  mutation yet. Launch SHA4ccd66002849e6cb66a3a09d732649528c56dead9b7a1da9fa5806517fb8e727;
+  production conf SHAe36ac1006ef2625abe4e082e55ca01ccdbfe8057c2260daf58e8d43dfa1cf5d8.
+- Local corrected control_timing c30 attempt03 failed before driver execution because sandbox netlink/socket
+  creation was refused; preserved. Attempt04 runs outside that sandbox with the same existing 9.13.2 artifacts.
+- Master/session and native-baseline fixes, explicit relay campaign profile, whole49 SBO integration and exact
+  FIN-race regression are independent work lanes. FIN remains OPEN until its specific regression fails on the
+  old source and passes on the repaired source. Partial or delayed close is not a completed persistence run.
+- Active reproduce.sh now selects the actual c30_sdk9132 directory/flags/hash and labels its legacy software
+  SBO honestly. Three entry-point regressions pass. Full reproduction remains subject to its model/freeze gates;
+  this entry-point repair is not a relay qualification result.
+- Task1 independently reviewed, corrected for all three review findings, then independently approved:
+  104 tests /135 subtests pass. Baseline metadata now binds the matched response rather than stale socket bytes;
+  trailing received frames are validated/accounted; nonfinite budgets fail before sockets. All six original
+  native samples independently validate under the proper schemas; raw evidence unchanged.
+- Corrected c30 control_timing attempt04 PASSES415/415, existing sealed source b006752 and relay template
+  20decbee1451f8c6563ed549b3a6a3966b4c7fc15f02f5ef91515582f91cd751. This resolves the stale-vector diagnosis;
+  it remains a relay-READ/software-SBO model result, not actual relay SBO qualification.
+- FIN exact-race probe on c29_sdk9132 attempt01 reproduced half-close epoch1/retry_epoch0, busy retry anchor,
+  two stale retries, missing relay FIN and missing final ACK. The failing run is retained. The successor repair
+  is not yet qualified. Native baseline review caught and is repairing independent NIC-offload restoration and
+  omitted freeze pins for restore_ports.py/live_snapshot.py; no live baseline has been started.
+- First immutable integrated source c31 d0db701cd82efa1beb5603de173d9517e3b32bc3c42cf36666f1c56d915e18c4
+  compiled once on9.13.2 and failed target lowering of two new action predicates (48.947s, exit3). c32 moves those
+  decisions into table keys and removes inactive third-frame checksum fields; its separate compile is running.
