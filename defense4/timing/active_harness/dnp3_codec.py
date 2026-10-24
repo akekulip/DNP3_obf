@@ -30,6 +30,7 @@ START = b"\x05\x64"
 LINK_HEADER = 10                 # start(2) + len + ctrl + dst(2) + src(2) + crc(2)
 BLOCK = 16
 FUNC_READ, FUNC_SELECT, FUNC_OPERATE, FUNC_RESPONSE = 0x01, 0x03, 0x04, 0x81
+TRANSPORT_FIR, TRANSPORT_FIN, TRANSPORT_SEQ = 0x40, 0x80, 0x3F
 G12_BINARY_OUTPUT_COMMAND, G12_VAR1, QUAL_COUNT_1BYTE_PREFIX = 0x0C, 0x01, 0x17
 # The READ the harness issues is Group 10 Variation 2, binary output status. A response
 # carrying anything else does not answer it, however well its sequence number matches.
@@ -166,6 +167,61 @@ class Reassembler:
         return len(self.buffer)
 
 
+class TransportError(Exception):
+    """A DNP3 transport-layer reassembly error (FIR/FIN/sequence), distinct from link framing (FrameError)."""
+
+
+class TransportAssembler:
+    """Reassembles application fragments from link-frame user data (DNP3 transport layer).
+
+    Each link frame's user data begins with a 1-byte transport header: FIR (0x40) on the first segment,
+    FIN (0x80) on the last, and a 6-bit rolling sequence. The application data is everything after it.
+    This is a DIFFERENT layer from TCP segmentation (which Reassembler handles) and from link framing:
+    one application fragment may span several link frames, and a single link frame may carry a whole
+    fragment (FIR and FIN both set). Call add() with each frame's user_data in arrival order; it returns
+    the completed application fragment when FIN arrives, else None.
+    """
+
+    def __init__(self):
+        self._parts = []
+        self._expect_seq = None
+
+    def reset(self):
+        self._parts = []
+        self._expect_seq = None
+
+    def add(self, user_data: bytes):
+        if not user_data:
+            raise TransportError("empty link user data has no transport header")
+        th = user_data[0]
+        seq = th & TRANSPORT_SEQ
+        fir, fin = bool(th & TRANSPORT_FIR), bool(th & TRANSPORT_FIN)
+        if fir:
+            self._parts = []
+            self._expect_seq = seq
+        elif not self._parts:
+            raise TransportError("transport continuation (FIR clear) with no fragment in progress")
+        elif seq != self._expect_seq:
+            raise TransportError("transport sequence %d, expected %d" % (seq, self._expect_seq))
+        self._parts.append(user_data[1:])
+        self._expect_seq = (self._expect_seq + 1) & TRANSPORT_SEQ
+        if fin:
+            fragment = b"".join(self._parts)
+            self.reset()
+            return fragment
+        return None
+
+
+def reassemble_application(frames):
+    """Convenience: list of link Frames (in arrival order) -> list of completed application fragments."""
+    asm, fragments = TransportAssembler(), []
+    for frame in frames:
+        fragment = asm.add(frame.user_data)
+        if fragment is not None:
+            fragments.append(fragment)
+    return fragments
+
+
 @dataclass
 class Response:
     """A parsed solicited application response."""
@@ -216,7 +272,7 @@ def parse_response(user_data: bytes) -> Response:
 
 
 def validate_response(resp: Response, *, expect_seq: int, expect_function: int,
-                      expect_points=None, require_success: bool = False) -> list:
+                      expect_points=None, require_success: bool = False, expect_read_groups=None) -> list:
     """Return the list of reasons this response does not answer that request. Empty means valid.
 
     `expect_function` is the *request* function; a solicited response answers it with 0x81, so
@@ -231,11 +287,13 @@ def validate_response(resp: Response, *, expect_seq: int, expect_function: int,
     if expect_function == FUNC_READ:
         # A matching application sequence number is not enough: the outstation reuses the
         # sequence space across function codes, so a control response can carry the sequence
-        # of an outstanding READ. Check the object the READ actually asked for.
-        if resp.group != G10_BINARY_OUTPUT_STATUS:
-            problems.append("object group %r, expected 10 for a READ response" % resp.group)
-        elif resp.variation != G10_VAR2:
-            problems.append("variation %r, expected 2 for a READ response" % resp.variation)
+        # of an outstanding READ. Check the object the READ actually asked for. expect_read_groups
+        # names the (group, variation) pairs the request asked for; when omitted it defaults to the
+        # legacy G10V2 READ so existing callers are unaffected.
+        groups = expect_read_groups if expect_read_groups is not None else {(G10_BINARY_OUTPUT_STATUS, G10_VAR2)}
+        if (resp.group, resp.variation) not in groups:
+            problems.append("first object (group %r, variation %r) is not one of the requested %r"
+                            % (resp.group, resp.variation, sorted(groups)))
     if expect_function in (FUNC_SELECT, FUNC_OPERATE):
         if resp.group != G12_BINARY_OUTPUT_COMMAND:
             problems.append("object group %r, expected 12" % resp.group)

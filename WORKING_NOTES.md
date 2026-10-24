@@ -2564,3 +2564,16 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   detection and the same-sequence ACK/FIN swap pairing are preserved.
 - Regression test SentOrderNotCanonicalSort: fails on the old code (false reorder), passes on the fix. wire_check
   13/13; harness suite 735 pass.
+
+## 2026-10-24 — reusable relay master: READ workloads + DNP3 transport reassembly (corrections 1-2)
+- active_harness only validated G10V2 READs and had no transport-layer reassembly. Added:
+  * read_requests.py: mixed_read_frame (G1V2 0..15 + G30V1 0..7) and integrity_read_frame (G60 V2/V3/V4/V1 q0x06),
+    framed exactly like the frozen relay_read_g10_23 (outstation 0, master 1), function READ asserted (non-actuating).
+    These are the same object headers that drew 91 B / 134 B from the relay on 2026-10-23.
+  * dnp3_codec.TransportAssembler + reassemble_application: reassemble application fragments across link frames by the
+    1-byte transport header (FIR/FIN/6-bit seq). This is a distinct layer from TCP segmentation (Reassembler) and link
+    framing (parse_frame) -- correction 2. Test proves 2 link frames split across every TCP boundary still reassemble.
+  * validate_response gained expect_read_groups: a READ response is validated against the (group,variation) pairs the
+    request asked for; legacy G10V2 stays the default so read_driver is unchanged. Threaded through session.transaction.
+- Offline only; 69/69 active_harness tests pass. Targets 141/158 and SBO size still PROVISIONAL (need real relay
+  captures). Next: decode retained relay READ captures; a read-only baseline run is a separate live step.

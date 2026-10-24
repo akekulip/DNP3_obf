@@ -126,7 +126,7 @@ class Session:
 
     def transaction(self, *, operation: str, frame: bytes, function: int, app_seq: int,
                     budget_ms: float, expect_points=None,
-                    require_success: bool = False) -> Outcome:
+                    require_success: bool = False, expect_read_groups=None) -> Outcome:
         """Send one request and read until its response is complete, valid, or out of budget.
 
         The deadline is monotonic and computed before the send. Frames that arrive but do not
@@ -151,7 +151,7 @@ class Session:
 
         while True:
             # anything already buffered may complete the transaction without a read
-            done = self._match(out, expect_points, require_success)
+            done = self._match(out, expect_points, require_success, expect_read_groups)
             if done is not None:
                 # The deadline is an invariant, not a hint. A response that is complete and
                 # valid but arrived after the budget expired is reported as such; it is never
@@ -179,7 +179,7 @@ class Session:
                 return self._finish(out, OUTCOME_PEER_CLOSED, deadline)
             self.rx.feed(chunk)
 
-    def _match(self, out: Outcome, expect_points, require_success):
+    def _match(self, out: Outcome, expect_points, require_success, expect_read_groups=None):
         """Consume buffered frames. Returns an outcome string, or None to keep reading."""
         before = self.rx.crc_failures
         try:
@@ -188,7 +188,8 @@ class Session:
                 problems = validate_response(resp, expect_seq=out.app_seq,
                                              expect_function=out.function,
                                              expect_points=expect_points,
-                                             require_success=require_success)
+                                             require_success=require_success,
+                                             expect_read_groups=expect_read_groups)
                 # A frame for a different sequence number is somebody else's, or stale. It is
                 # discarded and does not complete this transaction.
                 if resp.function == FUNC_RESPONSE and resp.app_seq != out.app_seq:

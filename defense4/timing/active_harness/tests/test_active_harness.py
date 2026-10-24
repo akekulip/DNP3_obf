@@ -24,7 +24,9 @@ for p in (ROOT, HERE):
 import dnp3_codec as codec                                                  # noqa: E402
 from dnp3_codec import (Reassembler, FrameError, parse_frame, parse_response,   # noqa: E402
                         validate_response, crc_le, FUNC_SELECT, FUNC_OPERATE,
-                        FUNC_RESPONSE, FUNC_READ)
+                        FUNC_RESPONSE, FUNC_READ, TransportAssembler, TransportError,
+                        reassemble_application)
+import read_requests as rr                                                  # noqa: E402
 import frozen_builders as fb                                                # noqa: E402
 import session as sess                                                      # noqa: E402
 import sbo_driver                                                           # noqa: E402
@@ -626,6 +628,92 @@ class TestSafetyGuardsPreserved(unittest.TestCase):
             self.assertTrue(os.path.isfile(os.path.join(fb.FROZEN_HARNESS, name)), name)
             self.assertFalse(os.path.exists(os.path.join(ROOT, name)),
                              "%s must not be duplicated into the active tree" % name)
+
+
+
+
+
+def _link_frame(user: bytes, *, dst=0x0001, src=0x0000, ctrl=0x44) -> bytes:
+    """A link frame carrying `user` (transport header already included), per-block CRCs."""
+    ln = 5 + len(user)
+    hdr = bytes([0x05, 0x64, ln, ctrl, dst & 0xFF, dst >> 8, src & 0xFF, src >> 8])
+    out = bytearray(hdr + crc_le(hdr))
+    for i in range(0, len(user), 16):
+        blk = user[i:i + 16]
+        out += blk + crc_le(blk)
+    return bytes(out)
+
+
+class TestTransportReassembly(unittest.TestCase):
+    """DNP3 transport layer (FIR/FIN/sequence) is a different layer from TCP segmentation and link framing."""
+
+    def test_single_fir_fin_fragment_is_passthrough(self):
+        asm = TransportAssembler()
+        self.assertEqual(asm.add(bytes([0xC0]) + b"APP"), b"APP")       # FIR|FIN seq0
+
+    def test_two_segments_concatenate_in_order(self):
+        asm = TransportAssembler()
+        self.assertIsNone(asm.add(bytes([0x40]) + b"AAAA"))             # FIR seq0, no FIN
+        self.assertEqual(asm.add(bytes([0x81]) + b"BBBB"), b"AAAABBBB") # FIN seq1
+
+    def test_continuation_without_fir_is_rejected(self):
+        with self.assertRaises(TransportError):
+            TransportAssembler().add(bytes([0x00]) + b"X")             # neither FIR nor a fragment in progress
+
+    def test_sequence_gap_is_rejected(self):
+        asm = TransportAssembler()
+        asm.add(bytes([0x40]) + b"A")                                   # FIR seq0
+        with self.assertRaises(TransportError):
+            asm.add(bytes([0x82]) + b"B")                              # FIN seq2 (expected 1)
+
+    def test_tcp_splitting_is_independent_of_dnp3_segmentation(self):
+        # two link frames form ONE application fragment; deliver the whole byte stream one byte at a time
+        f1 = _link_frame(bytes([0x40]) + b"hello")                      # FIR
+        f2 = _link_frame(bytes([0x81]) + b"world")                      # FIN
+        rx = Reassembler()
+        for byte in f1 + f2:
+            rx.feed(bytes([byte]))
+        frames = list(rx.frames())
+        self.assertEqual(len(frames), 2)                               # TCP boundaries did not change the frame count
+        self.assertEqual(reassemble_application(frames), [b"helloworld"])
+
+
+class TestReadRequestBuilders(unittest.TestCase):
+    def test_mixed_and_integrity_are_reads_to_the_relay(self):
+        for frame in (rr.mixed_read_frame(0), rr.integrity_read_frame(5)):
+            parsed, rest = parse_frame(frame)
+            self.assertIsNotNone(parsed); self.assertEqual(rest, b"")
+            self.assertEqual((parsed.destination, parsed.source), (0x0000, 0x0001))  # outstation 0, master 1
+            self.assertEqual(parsed.user_data[2], FUNC_READ)
+
+    def test_mixed_carries_g1v2_then_g30v1(self):
+        parsed, _ = parse_frame(rr.mixed_read_frame(0))
+        self.assertEqual(parsed.user_data[3:8], bytes([0x01, 0x02, 0x00, 0, 15]))
+        self.assertEqual(parsed.user_data[8:13], bytes([0x1E, 0x01, 0x00, 0, 7]))
+
+    def test_integrity_carries_four_g60_classes(self):
+        parsed, _ = parse_frame(rr.integrity_read_frame(0))
+        self.assertEqual(parsed.user_data[3:], bytes([60, 2, 6, 60, 3, 6, 60, 4, 6, 60, 1, 6]))
+
+
+class TestGeneralReadValidation(unittest.TestCase):
+    def test_requested_group_is_accepted(self):
+        resp = parse_response(bytes([0xC0, 0xC0, FUNC_RESPONSE, 0, 0, 0x01, 0x02, 0x00, 0, 15]))
+        self.assertEqual(validate_response(resp, expect_seq=0, expect_function=FUNC_READ,
+                                           expect_read_groups={(1, 2), (30, 1)}), [])
+
+    def test_control_response_on_a_read_sequence_is_rejected(self):
+        # a G12 control response carrying the READ's sequence number is not the requested READ object
+        resp = parse_response(bytes([0xC0, 0xC0, FUNC_RESPONSE, 0, 0, 0x0C, 0x01, 0x17, 0]))
+        problems = validate_response(resp, expect_seq=0, expect_function=FUNC_READ,
+                                     expect_read_groups={(1, 2), (30, 1)})
+        self.assertTrue(problems)
+
+    def test_legacy_g10v2_default_is_unchanged(self):
+        g10 = parse_response(bytes([0xC0, 0xC0, FUNC_RESPONSE, 0, 0, 0x0A, 0x02, 0x00, 0, 22]))
+        self.assertEqual(validate_response(g10, expect_seq=0, expect_function=FUNC_READ), [])
+        g1 = parse_response(bytes([0xC0, 0xC0, FUNC_RESPONSE, 0, 0, 0x01, 0x02, 0x00, 0, 15]))
+        self.assertTrue(validate_response(g1, expect_seq=0, expect_function=FUNC_READ))  # not G10V2
 
 
 if __name__ == "__main__":
