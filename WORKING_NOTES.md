@@ -2656,3 +2656,14 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   or logic change. Record shows read_images {91:141,134:158}, constants_file constants_two_read_relay.json.
 - Next: compile c30 once with local 9.13.2 and check placement (expect same as c29's pipe-0-headroom: N/E index 10,
   T<=11, p1<=4, since only constants differ). SBO shape + four-arm execution remain classifier-blocked in-session.
+
+## 2026-10-24 — m12p_c30 compiles on local 9.13.2, placement identical to qualified c29
+- Generated c30 into ctl_timing_01/evidence/m12p_c30_sdk9132/ and compiled with local bf-p4c 9.13.2
+  (one-SDK = the switch SDK). exit_code 0, 72.9 s. Placement:
+    p0 ingress 11 / egress 11 (index 10, the pipe-0 headroom goal), p1 ingress 11 / egress 4, critical_path 11.
+  Byte-for-byte the SAME placement as c29 (p0 11/11, p1 11/4, cp 11) -- the relay integrity shape (134->158)
+  costs zero placement. Artifact bundle hashed in compile_local/manifest.json (p0/p1 tofino.bin, context.json,
+  bfrt.json, conf). SDK out/ artifacts gitignored; owned evidence = source + manifest + inputs + profile.
+- READ-side c30 is therefore DERIVED (shapes) + GENERATED (identity-preserving) + COMPILED (placement fits).
+- Remaining for c30: the model gate's 14-driver run and the hardware four-arm both exercise SELECT/OPERATE
+  control content, which the in-session safety classifier blocks; those stay for an unblocked run/Philip.

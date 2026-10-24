@@ -1,0 +1,209 @@
+{
+  "milestone": "m12",
+  "image_len": 141,
+  "transforms_applied": [
+    "mapper_var",
+    "two_read_pad_pipe1",
+    "two_read_e",
+    "two_read_admit_n",
+    "two_read_reduce",
+    "n_busy_ack_retry",
+    "n_read_completes_handshake",
+    "pipe0_headroom"
+  ],
+  "scope": "two-READ-target profile (Claude_Two_READ_Targets_Hardware_Directive.md): mixed READ (one request, g1v2 q00 0-15 + g30v1 q00 0-7) 91->141 as [50, 91] with 26 G1V2 points 1024..1049, and the base-database full READ (integrity poll) 134->158 as [24, 134] with 4 points 1024..1027, both by the pipe-1 prefix construction; SELECT/OPERATE 37->61 unchanged. By declaration: the range READ keeps m11_09 admission and timing and passes at native 49 (not padded); analog and class0 READ requests are NOT admitted by N (their admission was replaced by the mixed one, m12p_c23): on an admitted connection N withholds them, also when retransmitted, forwarding nothing either way and leaving the connection state unchanged (measured on the model, two_read_robust X), so a master that issues one stalls until its application times out; the native two-segment 377 response is out of scope. READ responses are admitted by N first block only (link and block-0 CRCs checked; TCP checksum WAIVED -- m.tcp_sum written 0xffeb -- not computed); resource-reduced (m12p_c26): pipe-1 block-0 CRC by residue, outcome/IP-length/checksum conditions set where decided, unreachable E read_b0 CRC compares removed -- behavior unchanged; m12p_c27 (F1): a pure ACK (kind 3 master, kind 10 outstation) that finds the N work cell busy is retried on the 32-lap budget instead of busy_pass (which E dropped); count_busy[6] counts retries; m12p_c28: a READ request that overtakes the final handshake ACK (owner phase 4, sequence check passing) is admitted as completing the handshake instead of refused; the late pure ACK is dropped; m12p_c29: pipe-0 headroom -- N and E highest occupied stage index 10 (placement pins, two identity hashes as copies, control CRC tails under the control-pad gate) -- behavior unchanged",
+  "full_target": true,
+  "runnable": true,
+  "intermediate_note": null,
+  "source_sha256": "a37435751391ee4073982551429548d05001afa164e442735520c479629a5aa7",
+  "segment_sha256": {
+    "N": "3c25ed71674a27b79265ccaccc5b85f72749263428d187eedeb62a2464c54065",
+    "E": "fb3be0d2c06f32343e83ba5b60cd73f2207909c0e614337e39c2dc7c26f25184",
+    "T": "df58af06388409e551c22a78b58c3901baf450077f597fd72233a1c0e51c0407"
+  },
+  "supported_profile": {
+    "candidate": {
+      "build": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c30_sdk9132",
+      "milestone": "m12",
+      "source_sha256": "a37435751391ee4073982551429548d05001afa164e442735520c479629a5aa7",
+      "segment_sha256": {
+        "N": "3c25ed71674a27b79265ccaccc5b85f72749263428d187eedeb62a2464c54065",
+        "E": "fb3be0d2c06f32343e83ba5b60cd73f2207909c0e614337e39c2dc7c26f25184",
+        "T": "df58af06388409e551c22a78b58c3901baf450077f597fd72233a1c0e51c0407"
+      },
+      "artifact_sha256": {}
+    },
+    "reset_restart_required": true,
+    "t_child_count": 1,
+    "profile_version": "supported-profile-v1-20261017",
+    "clock": {
+      "t_unit_ns": 256,
+      "t_grid_ns": 512,
+      "t_source": "global_tstamp[39:8] & ~1",
+      "rounding": "durations in ns are converted to T units by t_config.t_units (one shared writer)"
+    },
+    "timing_ns": {
+      "D_release_budget": 950000,
+      "J_operate_hold": 2400000,
+      "pb_piggyback_bound": 4000000,
+      "readiness": 30000000,
+      "da": 2000000,
+      "cap": 40000000,
+      "held_operate_overrides": {
+        "D_release_budget": 800000,
+        "J_operate_hold": 350000000,
+        "pb_piggyback_bound": 360000000,
+        "readiness": 380000000,
+        "cap": 400000000
+      },
+      "note": "qualification values of the ctl_m10_* configs; the held-OPERATE block uses held_operate_overrides"
+    },
+    "n": {
+      "retry_budget_laps": 32,
+      "restart_counter": "count_busy[5]"
+    },
+    "ports": {
+      "master_dev": 9,
+      "relay_dev": 9,
+      "n_ack_return": 48,
+      "t_in": 180,
+      "hb_return": 181,
+      "held_return": 182,
+      "recirc": 68,
+      "stat_ports": "9,64",
+      "note": "the ctl_m10_* configs' ports_map: both software endpoints on device port 9 (VEPA hairpin); no physical relay in this profile"
+    },
+    "encoding": {
+      "native_input_octets": {
+        "READ": [
+          91,
+          134
+        ],
+        "SELECT": 37,
+        "OPERATE": 37
+      },
+      "output_octets": 61,
+      "output_octets_note": "SELECT/OPERATE image (the control-timing contract field); the READ image is read_output_octets",
+      "read_output_octets": [
+        141,
+        158
+      ],
+      "read_construction": "prefix (read_complete_01/vectors/constants_two_read_relay.json shapes mixed_g1v2_g30v1_91, integrity_134)",
+      "control_application_partition": [
+        15,
+        6,
+        1
+      ],
+      "control_partition_note": "the 22 native SELECT/OPERATE application octets split 15/6/1 into transport frames 28/19/14",
+      "read_images": {
+        "91": 141,
+        "134": 158
+      }
+    },
+    "_note": "two-READ-target build: N/T values unchanged from m11_09 (T segment and timing parameters inherited); encoding: SELECT/OPERATE output 61 (output_octets); READ images per native length (read_images): mixed 91->141 and full 134->158 by the pipe-1 egress prefix (G1V2 points 1024..). Other READ lengths are not padded; arbitrary input sizes are not supported."
+  },
+  "t_time": {
+    "unit_ns": 256,
+    "grid_ns": 512,
+    "source": "global_tstamp[39:8] & ~1"
+  },
+  "t_lifetime_encoding": "sealed_low31",
+  "native_lengths": {
+    "READ": 91,
+    "SELECT_OPERATE": 37
+  },
+  "read_boundary": "cimg",
+  "passthrough_reads": {},
+  "not_admitted_reads": [
+    "analog",
+    "class0"
+  ],
+  "read_images": {
+    "91": 141,
+    "134": 158
+  },
+  "read_shapes": {
+    "mixed": {
+      "native_total": 91,
+      "native_link_len": 76,
+      "native_ip_len": 131,
+      "target": 141,
+      "frames_out": [
+        50,
+        91
+      ],
+      "added": 50,
+      "padding_points": 26,
+      "padding_indices": [
+        1024,
+        1049
+      ],
+      "prefix_link_len": 39,
+      "request_len": 25,
+      "request_link_len": 18,
+      "request_ip_len": 65,
+      "request_objects": "010200000f1e01000007"
+    },
+    "full": {
+      "native_total": 134,
+      "native_link_len": 115,
+      "native_ip_len": 174,
+      "target": 158,
+      "frames_out": [
+        24,
+        134
+      ],
+      "added": 24,
+      "padding_points": 4,
+      "padding_indices": [
+        1024,
+        1027
+      ],
+      "prefix_link_len": 17,
+      "request_len": 27,
+      "request_link_len": 20,
+      "request_ip_len": 67,
+      "request_objects": "3c02063c03063c04063c0106"
+    }
+  },
+  "output_lengths": {
+    "READ": {
+      "mixed": 141,
+      "full": 158
+    },
+    "SELECT_OPERATE": 61
+  },
+  "policy": {
+    "constants_file": "read_complete_01/vectors/constants_two_read_relay.json",
+    "constants_sha256": "9e715d8f02d60d909333aa09ba42f6adec92d7f04e5846fc457bf412066dd745",
+    "policy_targets": [
+      141,
+      158
+    ],
+    "p1_read_pad_conn_table": "p1.x_Egress.p1_conn"
+  },
+  "generator_sha256": "a5306d4b789bd7dccc5b6d3c0c2fbc4f3b4690aae8e25ca2532ee07a1f68247f",
+  "generator_files": {
+    "make_m12.py": "2c311089d750f0b1c87f15d7c8a89a2c7152b517c6e56237f8be156e2387b495",
+    "m12gen/__init__.py": "5f7a97c4680622e72cb29cfd595c1ded5828edc05a4f1ae8c33b7d2b444f8374",
+    "m12gen/build.py": "98d09559b12999c1e493463a508b49a134910fb1ef49d3a2274262ddf43c925f",
+    "m12gen/common.py": "82fe2aec265affabcfbe90ac938dcc1747958b2593e7e5721ee304abb8b78795",
+    "m12gen/mapper.py": "8da57a7a683ef5c7627e328b295f56fa5aaa8bb32066b62ff166b37ec3ce0265",
+    "m12gen/read_policy.py": "5e3bf25f11d8ba4643650a11ca47da28ccdb449054272415b2cfea2c58bba91b",
+    "m12gen/segmented.py": "bd9313f837a1d4387a79b2531dd95c0016681a9a883c52ae11587c001deba7b7",
+    "m12gen/two_read.py": "530128c8b6cf59375c9cdb79a365aed486d64bc423f6b5f9adce6d6dc1123335"
+  },
+  "read_growth": 50,
+  "control_growth": 24,
+  "port_map": {
+    "relay_port": 9,
+    "n_ack_return": 48,
+    "t_in": 180,
+    "hb_return": 181,
+    "held_return": 182
+  },
+  "successor_of": {
+    "build": "m11_09",
+    "source_sha256": "f1de2b30e9f00fb93b20df51c3ddfafd3fcfd18e9b6dfcaadd62146dddbe5af8"
+  }
+}
