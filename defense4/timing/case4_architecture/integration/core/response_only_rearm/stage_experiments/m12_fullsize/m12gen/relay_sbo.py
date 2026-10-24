@@ -190,7 +190,22 @@ def transform(src):
     n = once(n, '(16w0x0564,8w38,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w0x81,8w10,8w2,8w0,8w0,8w22):eligible();', '')
     src = once(src, 'const PortId_t t_RELAY_PORT    = 9w9;', 'const PortId_t t_RELAY_PORT    = 9w64;')
     src = once(src, old_n, n)
-    return separate_checksum_conditions(transform_profile_crc(transform_status_lookup(transform_e(src))))
+    return relay_departure_provenance(separate_checksum_conditions(
+        transform_profile_crc(transform_status_lookup(transform_e(src)))))
+
+
+def relay_departure_provenance(src):
+    """Consume the internal16byte header on physical relay departures too.
+
+    c47's SYN model trace showed T OPEN provenance leaking unchanged on64:
+    E's inherited9/48 entry set never parsed that departure. Active N/T
+    departures retain/export this header for E's lifecycle and terminal strip;
+    the old raw close_forward action is unreachable in the selected profile.
+    Keep both existing entries and all internal/token header roles intact.
+    """
+    return once(src,
+        'transition select(eg.egress_port) { 9w9: provenance; 9w48: provenance;  default: accept; }',
+        'transition select(eg.egress_port) { 9w9: provenance; 9w64: provenance; 9w48: provenance;  default: accept; }')
 
 
 def transform_e(src):

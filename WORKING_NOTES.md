@@ -2905,3 +2905,12 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   0000000100000000000000000e000000 before the otherwise exact expected Ethernet frame. Raw captures, driver,
   closure and logs remain retained. Root-cause investigation is active; all downstream qualification remains blocked.
   FIN stays OPEN. No padded candidate hardware load has occurred.
+- c48 repairs the c47 leak by adding dev64 to E's provenance parser whitelist under the selected relay profile.
+  Exact emitted delta is one line; OPEN lifecycle processing remains before header stripping. Four new regressions
+  reproduce old90-byte SYN versus repaired74-byte SYN and validate epoch/ISN initialization, terminal roles and
+  unchanged internal paths. Full133tests, ten legacy identities and independent source review pass.
+  Source902a84bf1714d15788b707b7c23b86c4abe8f66a4ba8395d1d52f0377a2eae66 compiles successfully in96.862s;
+  artifact review confirms byte-identical PHV/placement summaries versus c47, all stage limits and ten pins.
+  Smoke01 passes15checks through handshake, padded mixed READ and mapped ACK, then SELECT_request has no departure.
+  This second runtime defect blocks the model gate; raw logs/captures remain retained. Generated eight physical
+  configs are preparation only: no freeze authorizes this failed candidate and no hardware load has occurred.

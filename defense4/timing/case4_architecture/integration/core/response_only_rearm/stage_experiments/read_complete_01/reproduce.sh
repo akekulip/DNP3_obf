@@ -3,6 +3,7 @@
 #
 #   bash reproduce.sh                                # offline relay READ reference (CANDIDATE=c30 default)
 #   bash reproduce.sh --candidate-info                # selected directory, exact flags/hash and evidence tier only
+#   CANDIDATE=c48 bash reproduce.sh                    # integrated timestamp-bearing SEL-751 profile, all16 model gates
 #   CANDIDATE=c26 bash reproduce.sh                  # c25 + behavior-preserving resource reduction (--reduce)
 #   CANDIDATE=c24 bash reproduce.sh                  # c25's P4 with the uncorrected disposition text (historical)
 #   CANDIDATE=c12 bash reproduce.sh                  # the preserved rotate4 checkpoint
@@ -30,6 +31,10 @@ RELAY_READ=0
 EVIDENCE_TIER="historical software endpoint profile (offline only)"
 BUILD_SUFFIX="$CANDIDATE"
 case "$CANDIDATE" in
+  c48) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts"
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c48_sdk9132
+       SOURCE_SHA=902a84bf1714d15788b707b7c23b86c4abe8f66a4ba8395d1d52f0377a2eae66
+       EVIDENCE_TIER="integrated SEL-751 timestamp profile; qualification requires recorded gates" ;;
   c30) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay"
        TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c30_sdk9132
        SOURCE_SHA=b006752236a7d1cccab461a010b2b68a3ea7b5629b1097c926ebacd348126de2
@@ -44,7 +49,7 @@ case "$CANDIDATE" in
        SOURCE_SHA=1e94c31d80e6708ab31ca117f066d15f5ec23244fc6f7bf7b9ca68dc81a2a27b ;;
   b08) GEN_ARGS="--policy"
        SOURCE_SHA=7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f ;;
-  *) echo "unknown CANDIDATE $CANDIDATE (c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
+  *) echo "unknown CANDIDATE $CANDIDATE (c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
 esac
 BUILD="$STAGE/ctl_timing_01/evidence/m12p_$BUILD_SUFFIX"
 FREEZE="$BUILD/freeze_v3.json"
@@ -109,6 +114,22 @@ python3 "$STAGE/m12_fullsize/make_m12.py" "$SCRATCH/m12p" $GEN_ARGS >/dev/null
 got="$(sha256sum "$SCRATCH/m12p/response_only.p4" | cut -d' ' -f1)"
 [ "$got" = "$SOURCE_SHA" ] || { echo "regenerated source $got != $SOURCE_SHA"; exit 1; }
 echo "source $got"
+if [ "$CANDIDATE" = c48 ]; then
+  step "4b. integrated relay generator, checksum, admission and boundary regressions"
+  (cd "$STAGE/m12_fullsize" && "$PY312" -m pytest -q tests)
+  python3 "$STAGE/m12_fullsize/check_generator_identity.py"
+  python3 - "$SCRATCH/m12p/response_only.inputs.json" "$BUILD/response_only.inputs.json" <<'EOF'
+import json, sys
+def norm(path):
+    d = json.load(open(path))
+    candidate = d['supported_profile']['candidate']
+    candidate.pop('build')
+    candidate.pop('artifact_sha256')
+    return d
+if norm(sys.argv[1]) != norm(sys.argv[2]):
+    sys.exit('regenerated integrated relay profile differs from the recorded profile')
+EOF
+fi
 if [ "$CANDIDATE" = c26 ]; then
   python3 "$STAGE/m12_fullsize/check_generator_identity.py" | tail -1
   python3 - "$SCRATCH/m12p/response_only.inputs.json" "$BUILD/response_only.inputs.json" <<'EOF'

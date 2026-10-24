@@ -34,6 +34,18 @@ class ReproduceEntry(unittest.TestCase):
         self.assertEqual(info['source_sha256'],
                          '61f9af0fa141a1b4d0a93938893119909e792c1e98e1665156e0011969aadc07')
 
+    def test_c48_identifies_integrated_timestamp_relay_source(self):
+        result = self.info('c48')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        info = json.loads(result.stdout)
+        self.assertTrue(info['build'].endswith('/m12p_c48_sdk9132'))
+        self.assertEqual(info['source_sha256'],
+                         '902a84bf1714d15788b707b7c23b86c4abe8f66a4ba8395d1d52f0377a2eae66')
+        self.assertEqual(info['generator_args'], ['--policy', '--c3', 'cimg', '--shapes', 'passthrough',
+                         '--two-read', '--reduce', '--ack-retry', '--read-handshake', '--headroom',
+                         '--relay', '--relay-sbo', '--relay-ts'])
+        self.assertEqual(info['evidence_tier'], 'integrated SEL-751 timestamp profile; qualification requires recorded gates')
+
     def test_unknown_candidate_fails_before_reproduction(self):
         result = self.info('not_a_candidate')
         self.assertEqual(result.returncode, 2)

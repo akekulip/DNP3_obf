@@ -13,8 +13,211 @@ from .relay_sbo import replace_table
 def transform(src):
     src = constants_are_profiles(src)
     src = normalizer_ts(src)
+    src = defer_shallow_checksum(src)
+    src = handshake_checksum_deposits(src)
+    src = handshake_mss_first(src)
+    src = early_shallow_checksum(src)
+    src = stream_read_timestamp_prefix(src)
+    src = stream_handshake_options(src)
     src = mapper_ts(src)
-    return padder_ts(src)
+    src = early_egress_lengths(src)
+    return padder_crc_placement(padder_ts(src))
+
+
+def padder_crc_placement(src):
+    # c46 split input CRC's low8 bits into W27 with conn_ok/p1_res, creating
+    # a false p1_conn->CRC dependency. The delayed profile then encountered
+    # stage3's16-table capacity and pushed prefixes/checksum selectors to4/5.
+    # c30 kept this CRC alone; restore that constraint without packet changes.
+    return once(src, 'control x_Egress(inout x_headers_t hdr,',
+                '@pa_solitary("egress","m.in_rb0")\ncontrol x_Egress(inout x_headers_t hdr,')
+
+
+def defer_shallow_checksum(src):
+    """Avoid constant and checksum-engine writes to the same parser container.
+
+    The inherited shallow READ response supplies the same constant in its
+    existing admission action, before network/guard consumes it. Full checks
+    on requests, controls and handshakes still use the parser checksum result.
+    c42 confirmed that this removes the SDK's clear-on-write warning while
+    leaving a separate handshake deposit-lowering failure to diagnose.
+    """
+    src = once(src, 'state finish_shallow{m.tcp_sum=16w0xffeb;', 'state finish_shallow{')
+    return once(src, 'action read_shallow_admit(){m.crc1=m.bcrc;m.tcrc=m.bcrc;}',
+                'action read_shallow_admit(){m.crc1=m.bcrc;m.tcrc=m.bcrc;m.tcp_sum=16w0xffeb;}')
+
+
+def handshake_checksum_deposits(src):
+    """Keep SYN checksum deposits out of zero-extract option-check suffixes.
+
+    c42 parser.log ends inside RemoveNegativeDeposits' shift of ts_syn_echo,
+    after repairing a negative terminal deposit through earlier option
+    lookbacks. Avoid that repair by computing after the last option
+    extraction/subtraction instead (20/24 bytes into those states). Every
+    exact option/MSS check still precedes parsed/shape acceptance. E, ACKs,
+    controls and the inherited shallow READ policy are unchanged.
+    """
+    for last in ('oa', 'ob'):
+        src = once(src, 'tc.subtract(hdr.%s);m.packet_kind=' % last,
+                   'tc.subtract(hdr.%s);m.tcp_sum=tc.get();m.packet_kind=' % last)
+    src = once(src, '(8w2,8w4,16w1460):finish;default:accept;',
+               '(8w2,8w4,16w1460):finish_handshake;default:accept;')
+    return once(src, ' state finish{',
+        ' state finish_handshake{m.parsed=(bit<1>)(8w1);m.shape_valid=(bit<1>)(8w1);transition accept;}\n state finish{')
+
+
+def handshake_mss_first(src):
+    """Release MSS match-register lifetimes before checking timestamp words.
+
+    c43 passed negative-deposit lowering but exhausted the parser's match
+    registers keeping MSS until after three32bit option checks. The same
+    conjunction is now checked MSS-first, with per-role continuations.
+    """
+    for role, kind in (('syn', 1), ('synack', 2)):
+        src = once(src, 'm.packet_kind=8w%d;transition ts_%s_profile;' % (kind, role),
+                   'm.packet_kind=8w%d;transition ts_%s_mss;' % (kind, role))
+    src = once(src, '32w0x01030307:mss_check;', '32w0x01030307:finish_handshake;')
+    src = once(src, '32w0x0101080a:mss_check;', '32w0x0101080a:finish_handshake;')
+    states = ''.join(' state ts_%s_mss{transition select(hdr.mss.kind,hdr.mss.len,hdr.mss.value){'
+                     '(8w2,8w4,16w1460):ts_%s_profile;default:accept;}}\n' % (role, role)
+                     for role in ('syn', 'synack'))
+    return once(src, ' state mss_check{', states + ' state mss_check{')
+
+
+def early_shallow_checksum(src):
+    """Set only READ-response kind11's inherited constant in existing crc_t.
+
+    c42's later assignment introduced a read_shallow_admit->network match
+    dependency. crc_t already selects kind11 at stage1; its otherwise identical
+    header/first-block CRC action can publish the same constant a stage earlier.
+    No parser write, new table/key/field or full-checksum path is introduced.
+    """
+    match = re.search(r'action crc_head_first\(\)\{([^\n]+)\}', src)
+    assert match
+    clone = 'action crc_head_first_shallow(){' + match[1] + 'm.tcp_sum=16w0xffeb;}'
+    src = once(src, match[0], match[0] + '\n' + clone)
+    src = once(src, 'actions={crc_head;crc_head_first;NoAction;}',
+               'actions={crc_head;crc_head_first;crc_head_first_shallow;NoAction;}')
+    src = once(src, '8w11:crc_head_first();', '8w11:crc_head_first_shallow();')
+    return once(src, 'action read_shallow_admit(){m.crc1=m.bcrc;m.tcrc=m.bcrc;m.tcp_sum=16w0xffeb;}',
+                'action read_shallow_admit(){m.crc1=m.bcrc;m.tcrc=m.bcrc;}')
+
+
+def stream_read_timestamp_prefix(src):
+    """Bound N's two READ timestamp checks to16bit parser matches.
+
+    c44 held IP.len16 through the READ IP/DNP3 length correlation, leaving
+    insufficient match registers for the32bit timestamp prefix. Consume and
+    check its two16bit words separately, then extract the opaque8byte body.
+    All pieces have even length and are subtracted in their extraction state.
+    Struct emission keeps their12 bytes contiguous; other TS paths keep tso.
+    Parsed-header PHV/POV cost still requires fresh target measurement.
+    """
+    old = combined.segment(src, 'N')
+    n = once(old, 'header n_opt4_h{bit<32> v;}',
+             'header n_opt4_h{bit<32> v;}\nheader n_ts_word_h{bit<16> v;}\n'
+             'header n_ts_body_h{bit<32> value;bit<32> echo;}')
+    n = once(n, 'n_opt4_h ob;n_dl_h dl;',
+             'n_opt4_h ob;n_ts_word_h rts0;n_ts_word_h rts1;n_ts_body_h rts;n_dl_h dl;')
+    for root, destination in (('rx_tcp_ts', 'rx_dl'), ('rx_response_tcp_ts', 'rx_response_dl')):
+        before = (' state ' + root + '{pkt.extract(hdr.tso);tc.subtract(hdr.tso);'
+                  'transition select(hdr.tso.a){32w0x0101080a:' + destination + ';default:accept;}}')
+        after = (' state ' + root + '{pkt.extract(hdr.rts0);tc.subtract(hdr.rts0);'
+                 'transition select(hdr.rts0.v){16w0x0101:' + root + '_kind;default:accept;}}\n'
+                 ' state ' + root + '_kind{pkt.extract(hdr.rts1);tc.subtract(hdr.rts1);'
+                 'transition select(hdr.rts1.v){16w0x080a:' + root + '_body;default:accept;}}\n'
+                 ' state ' + root + '_body{pkt.extract(hdr.rts);tc.subtract(hdr.rts);transition ' + destination + ';}')
+        n = once(n, before, after)
+    return once(src, old, n)
+
+
+def stream_handshake_options(src):
+    """Keep handshake residual end positions inside their final consumed words.
+
+    c46's backend shortened ts_syn's shift to12 to retain later option
+    lookbacks, while its checksum residual ended at19. Stream each option
+    word and check fixed words immediately. The final SYN WS word and SYNACK
+    value/echo state consume4/8 bytes, deposit after their last subtraction,
+    and reach only metadata/acceptance states afterwards.
+    """
+    old = combined.segment(src, 'N')
+    n = once(old, 'n_opt12_h tso;n_opt4_h oa;',
+             'n_opt12_h tso;n_opt4_h hs0;n_opt4_h hs1;n_opt4_h hs2;n_opt4_h oa;')
+    def state(name, body):
+        nonlocal n
+        matches = list(re.finditer(r' state ' + name + r'\{[^\n]*\}', n))
+        assert len(matches) == 1, name
+        n = once(n, matches[0][0], ' state ' + name + '{' + body + '}')
+    for role, kind in (('syn', 1), ('synack', 2)):
+        state('ts_' + role, 'pkt.extract(hdr.mss);tc.subtract(hdr.mss);m.packet_kind=8w%d;transition ts_%s_mss;' % (kind, role))
+    def word(name, header, literal, destination, deposit=False):
+        state(name, 'pkt.extract(hdr.%s);tc.subtract(hdr.%s);' % (header, header) +
+              ('m.tcp_sum=tc.get();' if deposit else '') +
+              'transition select(hdr.%s.v){%s:%s;default:accept;}' % (header, literal, destination))
+    word('ts_syn_profile', 'hs0', '32w0x0402080a', 'ts_syn_value')
+    word('ts_syn_echo', 'hs2', '32w0', 'ts_syn_ws')
+    word('ts_syn_ws', 'oa', '32w0x01030307', 'finish_handshake', deposit=True)
+    word('ts_synack_profile', 'hs0', '32w0x01030300', 'ts_synack_sack')
+    word('ts_synack_sack', 'hs1', '32w0x01010402', 'ts_synack_ts')
+    word('ts_synack_ts', 'hs2', '32w0x0101080a', 'ts_synack_values')
+    n = once(n, ' state finish_handshake{',
+        ' state ts_syn_value{pkt.extract(hdr.hs1);tc.subtract(hdr.hs1);transition ts_syn_echo;}\n'
+        ' state ts_synack_values{pkt.extract(hdr.oa);tc.subtract(hdr.oa);pkt.extract(hdr.ob);tc.subtract(hdr.ob);'
+        'm.tcp_sum=tc.get();transition finish_handshake;}\n state finish_handshake{')
+    return once(src, old, n)
+
+
+def early_egress_lengths(src):
+    """Consume E's77/89 IP length predicates before its32bit TS prefix match.
+
+    c45's remaining parser allocator failure reached E's ts12 state. IP.len
+    was still live for both dl_len>=77 and dl's small control-frame guard.
+    Three preselected bands retain both checks and every DL destination:
+    short packets still parse/check all12 option bytes, and77..88 differs
+    from>=89 only for the original guarded control DL value0x26.
+    No header, metadata, MAU or checksum/deparser expression changes.
+    """
+    old = combined.segment(src, 'E')
+    e = once(old, '4w8: ts12;', '4w8: dl_len;')
+    start = e.index('    state dl_len {'); end = e.index('\n', start)
+    length = e[start:end]
+    length = once(length, 'default: accept;', 'default: ts12_short;')
+    assert ': dl;' in length
+    length = length.replace(': dl;', ': ctl_len;')
+    e = e[:start] + length + e[end:]
+
+    pattern = r'    state dl \{\s*pkt.extract\(hdr.dl\);\s*transition select\(hdr.dl.len, hdr.ip.len\) \{(.*?)\n        \}\n    \}'
+    match = re.search(pattern, e, re.S)
+    assert match
+    body = re.sub(r'//[^\n]*', '', match[1])
+    entry_pattern = r'\(([^()]*)\)\s*:\s*(\w+);'
+    guards, rows = [], []
+    for key, destination in re.findall(entry_pattern, body):
+        dl, ip = [part.strip() for part in key.split(',')]
+        if ip == '_':
+            rows.append((dl, destination))
+        else:
+            assert dl == '8w0x26' and destination == 'accept'
+            guards.append(ip)
+    default = re.search(r'default:\s*(\w+);', body)
+    assert len(guards) == 4 and rows and default
+    residue = re.sub(entry_pattern, '', body)
+    residue = re.sub(r'default:\s*\w+;', '', residue)
+    assert not residue.strip()
+    def dl_state(name, mid=False):
+        entries = ''.join('%s:%s;' % (dl, 'accept' if mid and dl == '8w0x26' else destination)
+                          for dl, destination in rows)
+        return ('    state ' + name + ' { pkt.extract(hdr.dl); transition select(hdr.dl.len) { ' +
+                entries + 'default:' + default[1] + '; } }')
+    classification = ('    state ctl_len { transition select(hdr.ip.len) { ' +
+                      ''.join(guard + ':ts12_mid;' for guard in guards) + 'default:ts12; } }\n')
+    e = once(e, match[0], classification + dl_state('dl') + '\n' + dl_state('dl_mid', mid=True))
+    before = '    state ts12 { pkt.extract(hdr.tso); transition select(hdr.tso.a) { 32w0x0101080a: dl_len; default: tcp_odd; } }'
+    states = '\n'.join('    state %s { pkt.extract(hdr.tso); transition select(hdr.tso.a) { 32w0x0101080a: %s; default: tcp_odd; } }' %
+                       (name, destination) for name, destination in
+                       (('ts12', 'dl'), ('ts12_mid', 'dl_mid'), ('ts12_short', 'accept')))
+    e = once(e, before, states)
+    return once(src, old, e)
 
 
 def constants_are_profiles(src):
