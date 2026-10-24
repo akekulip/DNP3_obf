@@ -61,11 +61,17 @@ def test_generator_refuses_unbound_source_and_pins_selected_compile(tmp_path, mo
         (tmp_path / name).write_bytes(raw)
         artifacts[name] = hashlib.sha256(raw).hexdigest()
     observation = native_tcp_fixture()
-    observation.update(exchanges=[dict(operation=operation, response=dict(actual_payload_lengths=[49]))
-                                 for operation in ('SELECT', 'OPERATE')], artifacts=artifacts)
+    # the native READ requests (wire payloads) supply the logical link addresses: destination 0, source 1
+    reads = [dict(operation='READ', request=dict(packets=[dict(payload_hex=payload)]))
+             for payload in ('056412c400000100d0bbc0c001010200000f1e01000007fb5c',
+                             '056414c40000010009d0c0c1013c02063c03063c04063c01069b2f')]
+    observation.update(exchanges=reads + [dict(operation=operation, response=dict(actual_payload_lengths=[49]))
+                                          for operation in ('SELECT', 'OPERATE')], artifacts=artifacts)
     native.write_text(json.dumps(observation))
     assert mod.main(['--build', str(build), '--output', str(output), '--native-observation', str(native)]) == 0
     configs = list(output.glob('*.json'))
+    assert {(json.loads(p.read_text())['endpoints']['read_dst'], json.loads(p.read_text())['endpoints']['read_src'])
+            for p in configs} == {(0, 1)}
     assert len(configs) == 8
     smoke = json.loads((output / 'rc01_selected_relay_sel751_smoke.json').read_text())
     import campaign

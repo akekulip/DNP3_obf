@@ -551,6 +551,17 @@ def default_installer_flags(flag):
     return ("'%s'" % flag) in src or ('"%s"' % flag) in src
 
 
+def installer_read_addresses(cfg):
+    """(read_dst, read_src) for the installer, which N compares with the parsed link header octets (wire order).
+    Software-fixture configs store wire order already (e.g. 0x0a00/0x0100); the sel751 profile stores the
+    logical DNP3 addresses endpoint_profiles.validate requires (relay 0, master 1), which are little-endian on
+    the wire. rc01_hw_c51_20261024_11's MAU snapshot: logical src 1 set m.badh and every READ was refused."""
+    e = cfg['endpoints']
+    if not endpoint_profiles.is_relay(cfg):
+        return e['read_dst'], e['read_src']
+    return tuple(int.from_bytes(int(e[k]).to_bytes(2, 'little'), 'big') for k in ('read_dst', 'read_src'))
+
+
 MAU_SNAPSHOT_SPEC = re.compile(r'start=\d{1,2},end=\d{1,2}(,[a-z][a-z0-9_.$]*=(0x[0-9a-f]+|\d+)/(0x[0-9a-f]+|\d+))+')
 
 
@@ -1903,7 +1914,7 @@ class Campaign:
                 '--relay-ip %s --relay-port %d --relay-dev %d --read-dst 0x%04x --read-src 0x%04x '
                 '--t-da %d --t-readiness %d --t-cap %d --t-gap %d --t-op-j %d --k %d %s%s'
                 % (self.R, HW, out_remote, expects, e['master_ip'], port, pm['master_dev'],
-                   e['outstation_ip'], e['outstation_port'], pm['relay_dev'], e['read_dst'], e['read_src'],
+                   e['outstation_ip'], e['outstation_port'], pm['relay_dev'], *installer_read_addresses(c),
                    t['da'], t['readiness'], t['cap'], t['gap'], t['op_j'], c['service']['k'],
                    shaping_args(c, preset=preset), pad)
                 + (' --t-pb %d' % t['pb'] if t.get('pb') is not None else ''))

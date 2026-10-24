@@ -23,21 +23,21 @@ def case4_relative(path):
     return str(Path(path).resolve().relative_to(ARCH.resolve()))
 
 
-def read_link_addresses(native_dir):
-    """(read_dst, read_src) in the installer's wire order, from the native relay READ requests.
+def read_link_addresses(native):
+    """Logical DNP3 (read_dst, read_src) of the observed native READ requests (little-endian link octets).
 
-    N compares the parsed link header (hdr.dl.dst/src, the octets as sent: DNP3 addresses are little-endian)
-    with read_configure's values. rc01_hw_c51_20261024_11's MAU snapshot showed the logical src 1 against the
-    wire 0x0100 setting m.badh, so every READ was refused before admission."""
-    records = json.loads((Path(native_dir) / 'master.json').read_text())['records']
-    headers = {bytes.fromhex(r['request_wire_hex'])[:8] for r in records if r['operation'] == 'READ'}
-    pairs = {(int.from_bytes(h[4:6], 'big'), int.from_bytes(h[6:8], 'big')) for h in headers}
-    if len(pairs) != 1 or any(h[:2] != b'\x05\x64' for h in headers):
+    The sel751 profile stores logical addresses (endpoint_profiles.validate); campaign.installer_read_addresses
+    turns them into the wire order N compares. rc01_hw_c51_20261024_11's MAU snapshot showed the logical src 1
+    passed unconverted, setting m.badh, so every READ was refused before admission."""
+    headers = {bytes.fromhex(packet['payload_hex'])[:8] for row in native.get('exchanges', [])
+               if row['operation'] == 'READ' for packet in row['request']['packets'][:1]}
+    pairs = {(int.from_bytes(h[4:6], 'little'), int.from_bytes(h[6:8], 'little')) for h in headers}
+    if len(pairs) != 1 or any(h[:2] != b'\x05\x64' for h in headers):  # also refuses no READ at all
         raise ValueError('native READ requests do not share one link address pair: %s' % sorted(pairs))
     return pairs.pop()
 
 
-def relay_config(template, read_dst, read_src):
+def relay_config(template, read_dst=0, read_src=1):
     cfg = copy.deepcopy(template)
     cfg['endpoint_profile'] = 'sel751'
     cfg['endpoint'] = copy.deepcopy(endpoint_profiles.COMMAND)
@@ -121,7 +121,7 @@ def main(argv=None):
     args.output.mkdir(parents=True, exist_ok=True)
     for block in (('smoke',) if args.diagnostic_mau_snapshot else BLOCKS):
         template = HERE / 'config' / ('rc01_%s_%s.json' % (args.template_build, 'reference' if block == 'smoke' else block))
-        cfg = relay_config(json.loads(template.read_text()), *read_link_addresses(args.native_observation.parent))
+        cfg = relay_config(json.loads(template.read_text()), *read_link_addresses(native))
         if block == 'smoke':
             cfg['arms'] = [arm for arm in cfg['arms'] if arm['name'] == 'size_only']
             cfg['trials'] = dict(reads_per_trial=2, trials_per_arm=1)
