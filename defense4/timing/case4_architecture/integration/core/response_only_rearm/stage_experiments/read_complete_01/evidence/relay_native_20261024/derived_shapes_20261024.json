@@ -1,0 +1,323 @@
+{
+  "when": "2026-10-24T07:14:04",
+  "src": "192.168.10.1",
+  "relay": "192.168.10.7",
+  "port": 20000,
+  "note": "Native relay READ shapes, measured READ-only through the switch production path (three evidence tier 3: physical SEL-751). Length is stable; content varies per poll (live measurement data), so the derived padding constants are proven content-independent across samples. 134->158 and 91->141 derived here from real bytes via general_read_padding.",
+  "mixed": {
+    "workload": "mixed",
+    "target": 141,
+    "n_samples": 3,
+    "constants_invariant": true,
+    "derived_constants": {
+      "status": "padded",
+      "target": 141,
+      "added": 50,
+      "padding_points": 26,
+      "construction": "prefix",
+      "prefix_frames": 1,
+      "native_link_len": 76,
+      "prefix_link_len": 39,
+      "prefix_user_len": 34,
+      "padobj_head": "0102010004190400000000000000000000000000000000000000000000",
+      "frames_out": [
+        50,
+        91
+      ],
+      "out_len": 141
+    },
+    "link_crc_delta_per_sample": [
+      29526,
+      29526,
+      29526
+    ],
+    "response_layout": [
+      [
+        1,
+        2,
+        0,
+        15
+      ],
+      [
+        30,
+        1,
+        0,
+        7
+      ]
+    ],
+    "samples": [
+      {
+        "native_hex": "05644c4401000000bb94d0c0818000010200000f81010101010156a8010101010101010101011e0100000701e70802000000010900000001020000000105431700000001080000000105000000010e00684b0000013c000000ed51",
+        "request_hex": "056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+        "status": "padded",
+        "target": 141,
+        "added": 50,
+        "padding_points": 26,
+        "construction": "prefix",
+        "prefix_frames": 1,
+        "native_link_len": 76,
+        "prefix_link_len": 39,
+        "prefix_user_len": 34,
+        "padobj_head": "0102010004190400000000000000000000000000000000000000000000",
+        "frames_out": [
+          50,
+          91
+        ],
+        "out_len": 141,
+        "link_crc_delta": 29526,
+        "response_layout": [
+          [
+            1,
+            2,
+            0,
+            15
+          ],
+          [
+            30,
+            1,
+            0,
+            7
+          ]
+        ]
+      },
+      {
+        "native_hex": "05644c4401000000bb94d2c2818000010200000f8101010101017eef010101010101010101011e0100000701e7080900000001020000000103000000010c97c400000001030000000105000000010900777c0000013c000000ed51",
+        "request_hex": "056412c400000100d0bbc0c201010200000f1e010000074cc8",
+        "status": "padded",
+        "target": 141,
+        "added": 50,
+        "padding_points": 26,
+        "construction": "prefix",
+        "prefix_frames": 1,
+        "native_link_len": 76,
+        "prefix_link_len": 39,
+        "prefix_user_len": 34,
+        "padobj_head": "0102010004190400000000000000000000000000000000000000000000",
+        "frames_out": [
+          50,
+          91
+        ],
+        "out_len": 141,
+        "link_crc_delta": 29526,
+        "response_layout": [
+          [
+            1,
+            2,
+            0,
+            15
+          ],
+          [
+            30,
+            1,
+            0,
+            7
+          ]
+        ]
+      },
+      {
+        "native_hex": "05644c4401000000bb94d4c4818000010200000f8101010101010626010101010101010101011e0100000701e7080900000001020000000103000000010c97c400000001030000000105000000010900777c0000013c000000ed51",
+        "request_hex": "056412c400000100d0bbc0c401010200000f1e01000007ec38",
+        "status": "padded",
+        "target": 141,
+        "added": 50,
+        "padding_points": 26,
+        "construction": "prefix",
+        "prefix_frames": 1,
+        "native_link_len": 76,
+        "prefix_link_len": 39,
+        "prefix_user_len": 34,
+        "padobj_head": "0102010004190400000000000000000000000000000000000000000000",
+        "frames_out": [
+          50,
+          91
+        ],
+        "out_len": 141,
+        "link_crc_delta": 29526,
+        "response_layout": [
+          [
+            1,
+            2,
+            0,
+            15
+          ],
+          [
+            30,
+            1,
+            0,
+            7
+          ]
+        ]
+      }
+    ]
+  },
+  "integrity": {
+    "workload": "integrity",
+    "target": 158,
+    "n_samples": 3,
+    "constants_invariant": true,
+    "derived_constants": {
+      "status": "padded",
+      "target": 158,
+      "added": 24,
+      "padding_points": 4,
+      "construction": "prefix",
+      "prefix_frames": 1,
+      "native_link_len": 115,
+      "prefix_link_len": 17,
+      "prefix_user_len": 12,
+      "padobj_head": "01020100040304",
+      "frames_out": [
+        24,
+        134
+      ],
+      "out_len": 158
+    },
+    "link_crc_delta_per_sample": [
+      18553,
+      18553,
+      18553
+    ],
+    "response_layout": [
+      [
+        1,
+        2,
+        0,
+        15
+      ],
+      [
+        10,
+        2,
+        0,
+        31
+      ],
+      [
+        30,
+        4,
+        0,
+        20
+      ]
+    ],
+    "samples": [
+      {
+        "native_hex": "05647344010000001a59d1c1818000010200000f810101010101c28b010101010101010101010a0200001f01fee801010101010101010101010101010101bbc30101010101010101010101010101011ec30d04000014020009000200050008000500db600e003c0010001100110011001d000000fefb0000000009000000000000000000e2c5",
+        "request_hex": "056414c40000010009d0c0c1013c02063c03063c04063c01067a6f",
+        "status": "padded",
+        "target": 158,
+        "added": 24,
+        "padding_points": 4,
+        "construction": "prefix",
+        "prefix_frames": 1,
+        "native_link_len": 115,
+        "prefix_link_len": 17,
+        "prefix_user_len": 12,
+        "padobj_head": "01020100040304",
+        "frames_out": [
+          24,
+          134
+        ],
+        "out_len": 158,
+        "link_crc_delta": 18553,
+        "response_layout": [
+          [
+            1,
+            2,
+            0,
+            15
+          ],
+          [
+            10,
+            2,
+            0,
+            31
+          ],
+          [
+            30,
+            4,
+            0,
+            20
+          ]
+        ]
+      },
+      {
+        "native_hex": "05647344010000001a59d3c3818000010200000f810101010101eacc010101010101010101010a0200001f01fee801010101010101010101010101010101bbc30101010101010101010101010101011ec30d040000140900020003000c000300050042e709003c0013000e000f0010001c000000fd2500000000080000000000000000008006",
+        "request_hex": "056414c40000010009d0c0c3013c02063c03063c04063c01069a12",
+        "status": "padded",
+        "target": 158,
+        "added": 24,
+        "padding_points": 4,
+        "construction": "prefix",
+        "prefix_frames": 1,
+        "native_link_len": 115,
+        "prefix_link_len": 17,
+        "prefix_user_len": 12,
+        "padobj_head": "01020100040304",
+        "frames_out": [
+          24,
+          134
+        ],
+        "out_len": 158,
+        "link_crc_delta": 18553,
+        "response_layout": [
+          [
+            1,
+            2,
+            0,
+            15
+          ],
+          [
+            10,
+            2,
+            0,
+            31
+          ],
+          [
+            30,
+            4,
+            0,
+            20
+          ]
+        ]
+      },
+      {
+        "native_hex": "05647344010000001a59d5c5818000010200000f8101010101019205010101010101010101010a0200001f01fee801010101010101010101010101010101bbc30101010101010101010101010101011ec30d040000140900020003000c000300050042e709003c0013000e000f0010001c000000fd2500000000080000000000000000008006",
+        "request_hex": "056414c40000010009d0c0c5013c02063c03063c04063c0106ba94",
+        "status": "padded",
+        "target": 158,
+        "added": 24,
+        "padding_points": 4,
+        "construction": "prefix",
+        "prefix_frames": 1,
+        "native_link_len": 115,
+        "prefix_link_len": 17,
+        "prefix_user_len": 12,
+        "padobj_head": "01020100040304",
+        "frames_out": [
+          24,
+          134
+        ],
+        "out_len": 158,
+        "link_crc_delta": 18553,
+        "response_layout": [
+          [
+            1,
+            2,
+            0,
+            15
+          ],
+          [
+            10,
+            2,
+            0,
+            31
+          ],
+          [
+            30,
+            4,
+            0,
+            20
+          ]
+        ]
+      }
+    ]
+  }
+}

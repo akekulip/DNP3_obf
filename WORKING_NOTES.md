@@ -2591,3 +2591,53 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
 - nic_repair pin: the wire_check 6.3 change (bd9a31fb8) re-broke REVIEWED_DEPLOYED_SHA256 (capture_observation.py
   imports wire_check, so the repair tool deploys both). Re-pinned to the current reviewed blobs and documented the
   coupling in evaluation_campaign.py. Harness suite 740 pass.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-24T05:07:20Z -->
+### Compaction handoff — 2026-10-24T05:07:20Z
+- Git: branch `main`, 3175 uncommitted file(s): BRANCH_PRUNE_20260915.txt DNP3_Implementation_Directive_492013014.md .drawio-tmp/ .scratch_p4/ .scratch_repo/ Claude_SEL751_Corrected_Overnight_Directive PlainObfus bf_drivers.log defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md defense4/ieee-standard-for-electric-power-systems-communicationsdistribut.pdf defense4/timing/audit_current/MEETING_20261005_DIRECTION.md defense4/timing/case4_architecture/FOUR_ARM_DESIGN_REVIEW.md 
+- Last verification run recorded: 2026-10-24T04:13:20Z	cd /home/philip/Projects/DNP3 && python3 - <<'EOF' p='WORKING_NOTES.md'; s=open(p).read() s=s.rstrip('\n')+""" ## 2026-1
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+## 2026-10-24 — remaining offline READ-side items triaged; FIN-loss item already satisfied
+- Resumed "continue with the remaining offline READ-side items." Triaged each against what can be finished
+  WITHOUT live relay access and WITHOUT the classifier-blocked SBO/OPERATE content:
+  * Graceful-persistence FIN loss (directive §6): ALREADY DONE. The fix is close_reset_fix_01 (2026-10-11),
+    make_n.py edits 10-13, carried into the rearm generator at HEAD (seq_fin; emit_reset kind 8w13;
+    close_forward clears bypass_egress=1w0; packet_kind 8w13 route). Verified now at HEAD: close-path suite
+    (core/response_only/tests/test_close_path.py) 9/9 pass. No re-work needed; the directive's overnight plan
+    predates/duplicates an already-landed fix.
+  * Relay READ-shape derivation (91->141, 134->158): the 134 integrity is a measured LENGTH only; no decoded
+    relay integrity capture exists offline (anchor_fix/raw_pcaps are the relay but the CAMPAIGN range READ, not
+    the mixed/integrity workloads), so the padded IMAGE bytes cannot be derived offline -- 141/158 stay
+    PROVISIONAL exactly as the plan marks them. Adding a 'relay' db to read_classes.NATIVE_SEGMENTS now would be
+    unconsumed infrastructure ahead of its only consumer (the m12p_c30 generator constants + check_generator_
+    identity coupling), so it is deliberately left to the c30 build, not committed piecemeal.
+  * reproduce.sh: it is a capture-replay analysis script for campaign_v2 / final_read_sbo and builds no
+    candidates; "c30 support" does not belong in it.
+  * Busy-outstation ACK overtaken by its response (directive §6): needs model reproduction with N owner/
+    work-cell/generation/epoch state + a recompile; it is part of the compile-gated c30 candidate, not a
+    standalone offline edit.
+- Conclusion: the independent, compile-free offline READ-side items are exhausted. Everything left converges on
+  the single 9.13.2-compiled m12p_c30 candidate, which also bundles the SBO image work the safety classifier
+  blocks here. No new commit this session; HEAD stays b5d785183 (4 ahead of origin/main, unpushed).
+
+## 2026-10-24 — relay native READ baseline captured + padded shapes DERIVED (tier 3, READ-only)
+- Ran active_harness/relay_native_baseline.py --live --each 3 from Vision .1 to relay .7:20000 (one
+  persistent connection, READ-only, switch on production case4_response_path 9.13.2). OK 6/6.
+  * mixed 91 B (G1V2 0..15 + G30V1 0..7), integrity 134 B (G1V2 0..15 + G10V2 0..31 + G30V4 0..20).
+    Both single CRC-valid link frames, transport FIR|FIN one segment, func 0x81, IIN 0x0080. Lengths
+    stable across 3 reps; content varies (live data) -- the required content-independence property.
+  * Confirms 2026-10-23 (91/134); the relay integrity DB is 134 B, so the software 247->271 full-READ
+    target does not apply to the relay.
+- Derived both padded shapes from the REAL natives via general_read_padding.pad_read (reserved 1024..):
+  mixed 91->141 (+50, 26 points, prefix, frames [50,91]); integrity 134->158 (+24, 4 points, prefix,
+  frames [24,134]). Every declared constant identical across the 3 content-varying samples
+  (constants_invariant=true). 158 is the prefix floor (134+24; 135..157 unreachable) and uses the same
+  +24/4-point construction as the software full 247->271, differing only in native LEN 115 and the
+  link-CRC delta -- both read from the packet. **141 and 158 are now DERIVED, no longer PROVISIONAL.**
+- Evidence: read_complete_01/evidence/relay_native_20261024/ (native_20261024.json raw+decode,
+  derived_shapes_20261024.json derivation+invariant constants, README with the three tiers and the
+  corrections folded in). Driver: active_harness/relay_native_baseline.py (dry-run default; live gated
+  on DEFENSE4_HW_AUTHORIZED=1). active_harness suite 69/69.
+- Classifier boundary unchanged: the SBO/OPERATE shape + four-arm execution remain blocked in-session;
+  this is the READ-side keystone and is complete and verifiable.
