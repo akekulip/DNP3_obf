@@ -332,3 +332,16 @@ def test_v3_rechecks_the_model_verdict_before_every_block(tmp_path, repo, monkey
         qualification='blocked', blocked_reasons=['contention: latest attempt _02 failed'],
         latest_by_driver={'contention': 'model_contention_x_01_02'})))
     assert fg.main(['check', str(out), '--config', str(config)]) == 1
+
+
+@pytest.mark.parametrize('compiler,compiles,loaded', [
+    ('p4c 9.13.2 (SHA: 1baf055)', ('compile_local',), 'compile_local'),               # one SDK (since 2026-10-23)
+    ('p4c 9.13.1 (SHA: 1baf055)', fg.COMPILES, 'compile_switch_9132'),               # older builds: both, switch loads
+    (None, fg.COMPILES, 'compile_switch_9132'),                                      # no local manifest: old rule
+])
+def test_one_sdk_build_freezes_and_loads_its_local_compile_only(tmp_path, compiler, compiles, loaded):
+    if compiler is not None:
+        (tmp_path / 'compile_local').mkdir()
+        (tmp_path / 'compile_local/manifest.json').write_text(json.dumps(dict(compiler=compiler)))
+    assert fg.build_compiles(tmp_path) == compiles
+    assert fg.loaded_compile(tmp_path) == loaded

@@ -1,0 +1,552 @@
+{
+ "E_byte_identical": false,
+ "E_sha256": "26eba9cd042a9f47d46a688aaf6857260d3c5c05537c0c69d1168bbc95baeb61",
+ "baseline_source_sha256": "d9b84fcc7ecb1dded4e7fddf47a1e74da568c9b4159c0065e4e780c38d49b5dc",
+ "candidate_sha256": "f1b61b5ccaa4132feb2206273120b74c6e21e5243cf8aea1531d86edfe359048",
+ "compiles": {
+  "compile_local": {
+   "baseline_stages": {
+    "E": 12,
+    "N": 12,
+    "T": 11
+   },
+   "bfrt_json_sha256": "6b0c3e2f8206e3260dda07a4ccaaecc3515195ebcadc0a8b108906881e00d90c",
+   "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+   "exit_code": 0,
+   "mirror_guard": "PASS select 0: session $tmp4 from H2;select 1: session md.clone_ses from H1;unconditional mirror_type=1: tbl_response_only2375",
+   "p4pp_sha256": "ae5003448866b62e0367e37bbf2f3e8f05eb4c162e6865ebd9f102a8aff8634b",
+   "placement": {
+    "E": {
+     "critical_dependency_chains": [
+      "1. conn_0(0) -> lifecycle_access_0(1) -> ina_img_t_0(2) -> front_t_0(2) -> acct_t_0(3) -> img_end_t_0(4) -> fwd_prep_t_0(5) -> classify_fwd_0(6) -> img_wend_t_0(7) -> classify_rev_0(8) -> window_t_0(9) (egress)",
+      "2. prepare_open_t_0(0) -> lifecycle_access_0(1) -> ina_img_t_0(2) -> front_t_0(2) -> acct_t_0(3) -> img_end_t_0(4) -> fwd_prep_t_0(5) -> classify_fwd_0(6) -> img_wend_t_0(7) -> classify_rev_0(8) -> window_t_0(9) (egress)",
+      "3. normalization_ack_t_0(0) -> prep_t_0(1) -> ina_img_t_0(2) -> front_t_0(2) -> acct_t_0(3) -> img_end_t_0(4) -> fwd_prep_t_0(5) -> classify_fwd_0(6) -> img_wend_t_0(7) -> classify_rev_0(8) -> window_t_0(9) (egress)",
+      "4. leff_t_0$precompute(0) -> leff_t_0(1) -> front_t_0(2) -> acct_t_0(3) -> img_end_t_0(4) -> fwd_prep_t_0(5) -> classify_fwd_0(6) -> img_wend_t_0(7) -> classify_rev_0(8) -> window_t_0(9) (egress)"
+     ],
+     "dependency_chain_note": "Raw SDK dependency-report levels; occupied indices above come from context.json.",
+     "direction": "egress",
+     "maximum_occupied_stage": 10,
+     "occupied_count": 11,
+     "occupied_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+     ],
+     "pipeline": "p0",
+     "stage_span": 11,
+     "stateful": [
+      {
+       "name": "r_Egress.epoch",
+       "size": 16,
+       "stages": [
+        1
+       ]
+      },
+      {
+       "name": "r_Egress.front",
+       "size": 16,
+       "stages": [
+        3
+       ]
+      },
+      {
+       "name": "r_Egress.mode",
+       "size": 16,
+       "stages": [
+        3
+       ]
+      },
+      {
+       "name": "r_Egress.master_isn",
+       "size": 16,
+       "stages": [
+        3
+       ]
+      },
+      {
+       "name": "r_Egress.acct",
+       "size": 16,
+       "stages": [
+        4
+       ]
+      },
+      {
+       "name": "r_Egress.img_start",
+       "size": 16,
+       "stages": [
+        5
+       ]
+      },
+      {
+       "name": "r_Egress.img_end",
+       "size": 16,
+       "stages": [
+        5
+       ]
+      },
+      {
+       "name": "r_Egress.img_wend",
+       "size": 16,
+       "stages": [
+        8
+       ]
+      }
+     ]
+    },
+    "N": {
+     "critical_dependency_chains": [],
+     "dependency_chain_note": "Raw SDK dependency-report levels; occupied indices above come from context.json.",
+     "direction": "ingress",
+     "maximum_occupied_stage": 10,
+     "occupied_count": 11,
+     "occupied_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+     ],
+     "pipeline": "p0",
+     "stage_span": 11,
+     "stateful": [
+      {
+       "name": "n_Ingress.retry_epoch",
+       "size": 1,
+       "stages": [
+        0
+       ]
+      },
+      {
+       "name": "n_Ingress.counter",
+       "size": 1,
+       "stages": [
+        3
+       ]
+      },
+      {
+       "name": "n_Ingress.work.work",
+       "size": 1,
+       "stages": [
+        4
+       ]
+      },
+      {
+       "name": "n_Ingress.epoch",
+       "size": 1,
+       "stages": [
+        5
+       ]
+      },
+      {
+       "name": "n_Ingress.server",
+       "size": 1,
+       "stages": [
+        6
+       ]
+      },
+      {
+       "name": "n_Ingress.client",
+       "size": 1,
+       "stages": [
+        6
+       ]
+      },
+      {
+       "name": "n_Ingress.application",
+       "size": 1,
+       "stages": [
+        6
+       ]
+      },
+      {
+       "name": "n_Ingress.pair_native_end_server_start",
+       "size": 1,
+       "stages": [
+        6
+       ]
+      },
+      {
+       "name": "n_Ingress.pair_real_off_native_start",
+       "size": 1,
+       "stages": [
+        7
+       ]
+      },
+      {
+       "name": "n_Ingress.pair_real_object_real_on",
+       "size": 1,
+       "stages": [
+        7
+       ]
+      },
+      {
+       "name": "n_Ingress.pair_real_tcp_dst_real_tcp_ports",
+       "size": 1,
+       "stages": [
+        7
+       ]
+      },
+      {
+       "name": "n_Ingress.pair_real_links_real_tcp_src",
+       "size": 1,
+       "stages": [
+        7
+       ]
+      },
+      {
+       "name": "n_Ingress.owner",
+       "size": 1,
+       "stages": [
+        8
+       ]
+      },
+      {
+       "name": "n_Ingress.read_app",
+       "size": 1,
+       "stages": [
+        8
+       ]
+      },
+      {
+       "name": "n_Ingress.count_busy",
+       "size": 8,
+       "stages": [
+        9
+       ]
+      },
+      {
+       "name": "n_Ingress.count_term",
+       "size": 4,
+       "stages": [
+        9
+       ]
+      },
+      {
+       "name": "n_Ingress.count_first",
+       "size": 4,
+       "stages": [
+        10
+       ]
+      }
+     ]
+    },
+    "T": {
+     "critical_dependency_chains": [
+      "1. cond-131(0) -> params_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-132(3) -> cond-134(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)",
+      "2. cond-131(0) -> tbl_response_only2438(0) -> params_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-132(3) -> cond-134(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)",
+      "3. tbl_response_only2438(0) -> params_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-132(3) -> cond-134(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)",
+      "4. params_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-132(3) -> cond-134(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)",
+      "5. cond-131(0) -> lifetime_access_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-132(3) -> cond-134(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)",
+      "6. tbl_response_only2438(0) -> lifetime_access_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-132(3) -> cond-134(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)",
+      "7. lifetime_access_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-132(3) -> cond-134(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)",
+      "8. gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-132(3) -> cond-134(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)",
+      "9. gen_access_0(1) -> t0_access_0(2) -> tbl_compute_readiness_delta(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)"
+     ],
+     "dependency_chain_note": "Raw SDK dependency-report levels; occupied indices above come from context.json.",
+     "direction": "ingress",
+     "maximum_occupied_stage": 10,
+     "occupied_count": 11,
+     "occupied_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+     ],
+     "pipeline": "p1",
+     "stage_span": 11,
+     "stateful": [
+      {
+       "name": "t_Ingress.cur_epoch_reg",
+       "size": 1,
+       "stages": [
+        0
+       ]
+      },
+      {
+       "name": "t_Ingress.gen_alloc_reg",
+       "size": 1,
+       "stages": [
+        1
+       ]
+      },
+      {
+       "name": "t_Ingress.t0_reg",
+       "size": 1,
+       "stages": [
+        2
+       ]
+      },
+      {
+       "name": "t_Ingress.op_gen_alloc_reg",
+       "size": 1,
+       "stages": [
+        2
+       ]
+      },
+      {
+       "name": "t_Ingress.child_seen0_reg",
+       "size": 1,
+       "stages": [
+        2
+       ]
+      },
+      {
+       "name": "t_Ingress.ack_seen_reg",
+       "size": 1,
+       "stages": [
+        2
+       ]
+      },
+      {
+       "name": "t_Ingress.op_t0_reg",
+       "size": 1,
+       "stages": [
+        3
+       ]
+      },
+      {
+       "name": "t_Ingress.ack_done_reg",
+       "size": 1,
+       "stages": [
+        5
+       ]
+      },
+      {
+       "name": "t_Ingress.ack_commit_gen_reg",
+       "size": 1,
+       "stages": [
+        6
+       ]
+      },
+      {
+       "name": "t_Ingress.ack_commit_at_reg",
+       "size": 1,
+       "stages": [
+        6
+       ]
+      },
+      {
+       "name": "t_Ingress.op_done_reg",
+       "size": 1,
+       "stages": [
+        7
+       ]
+      },
+      {
+       "name": "t_Ingress.resp_done_reg",
+       "size": 1,
+       "stages": [
+        8
+       ]
+      },
+      {
+       "name": "t_Ingress.outcomes",
+       "size": 25,
+       "stages": [
+        10
+       ]
+      }
+     ]
+    },
+    "p1_egress": {
+     "critical_dependency_chains": [],
+     "dependency_chain_note": "Raw SDK dependency-report levels; occupied indices above come from context.json.",
+     "direction": "egress",
+     "maximum_occupied_stage": 3,
+     "occupied_count": 4,
+     "occupied_indices": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "pipeline": "p1",
+     "stage_span": 4,
+     "stateful": []
+    }
+   },
+   "resources": {
+    "p0": {
+     "attributed": {
+      "egress": {
+       "crossbar_bytes": 257,
+       "sram": 56,
+       "stateful_alu": 8,
+       "tcam": 33
+      },
+      "ingress": {
+       "crossbar_bytes": 521,
+       "sram": 118,
+       "stateful_alu": 17,
+       "tcam": 62
+      },
+      "shared_or_unattributed": {
+       "crossbar_bytes": 95,
+       "sram": 2,
+       "stateful_alu": 0,
+       "tcam": 0
+      }
+     },
+     "available": true,
+     "mirror_resources": {
+      "egress": {
+       "maxBytes": 0,
+       "nTables": 0,
+       "table_phv": []
+      },
+      "ingress": {
+       "index_phv": 64,
+       "maxBytes": 1,
+       "nTables": 1,
+       "table_phv": [
+        {
+         "bytes": [
+          {
+           "byte_number": 0,
+           "phv_container": 132
+          }
+         ],
+         "table_id": 0
+        }
+       ]
+      }
+     },
+     "phv": {
+      "egress": {
+       "allocated_capacity_bits": 2320,
+       "allocated_containers": 128
+      },
+      "ingress": {
+       "allocated_capacity_bits": 2488,
+       "allocated_containers": 116
+      }
+     },
+     "pipeline_totals": {
+      "crossbar_bytes": 873,
+      "sram": 176,
+      "stateful_alu": 25,
+      "tcam": 95
+     },
+     "report_sha256": {
+      "phv.json": "92e97ee1aab353c34e0bbff700f2ca63fc3e42a6be7e564217fda2a99e34626e",
+      "resources.json": "145ade3985e0eacf969bfd610c2c1ee0e03a71ec8aad4c019f706f44e7dba406"
+     }
+    },
+    "p1": {
+     "attributed": {
+      "egress": {
+       "crossbar_bytes": 0,
+       "sram": 0,
+       "stateful_alu": 0,
+       "tcam": 0
+      },
+      "ingress": {
+       "crossbar_bytes": 294,
+       "sram": 49,
+       "stateful_alu": 13,
+       "tcam": 60
+      },
+      "shared_or_unattributed": {
+       "crossbar_bytes": 110,
+       "sram": 13,
+       "stateful_alu": 0,
+       "tcam": 3
+      }
+     },
+     "available": true,
+     "mirror_resources": {
+      "egress": {
+       "maxBytes": 0,
+       "nTables": 0,
+       "table_phv": []
+      },
+      "ingress": {
+       "index_phv": 64,
+       "maxBytes": 3,
+       "nTables": 2,
+       "table_phv": [
+        {
+         "bytes": [
+          {
+           "byte_number": 0,
+           "phv_container": 130
+          }
+         ],
+         "table_id": 0
+        },
+        {
+         "bytes": [
+          {
+           "byte_number": 0,
+           "phv_container": 129
+          },
+          {
+           "byte_number": 1,
+           "phv_container": 137
+          },
+          {
+           "byte_number": 2,
+           "phv_container": 135
+          }
+         ],
+         "table_id": 1
+        }
+       ]
+      }
+     },
+     "phv": {
+      "egress": {
+       "allocated_capacity_bits": 1464,
+       "allocated_containers": 78
+      },
+      "ingress": {
+       "allocated_capacity_bits": 1344,
+       "allocated_containers": 60
+      }
+     },
+     "pipeline_totals": {
+      "crossbar_bytes": 404,
+      "sram": 62,
+      "stateful_alu": 13,
+      "tcam": 63
+     },
+     "report_sha256": {
+      "phv.json": "ab4e6962c90c274ec4daf57a59fa04979892fd0d1a033b51cf6c503d75a52701",
+      "resources.json": "45a9d5c63530939c30568feff58c4f0c385311e69d96d9cac6e2d9400fc31411"
+     }
+    }
+   },
+   "source_sha256": "f1b61b5ccaa4132feb2206273120b74c6e21e5243cf8aea1531d86edfe359048",
+   "stages": {
+    "E": 11,
+    "N": 11,
+    "T": 11
+   }
+  },
+  "compile_switch_9132": {
+   "present": false
+  }
+ },
+ "source_matches_compiles": true
+}

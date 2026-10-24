@@ -143,7 +143,11 @@ def _source_profile(out):
         raise ValueError('supported profile requires artifact hashes for both SDK compiles')
     required = {'bfrt.json', 'response_only.p4pp', 'p0/context.json', 'p1/context.json',
                 'p0/tofino.bin', 'p1/tofino.bin'}
-    for name in ('compile_local', 'compile_switch_9132'):
+    # one SDK (since 2026-10-23): a build whose local compile is 9.13.2 pins compile_local alone; otherwise both
+    local_manifest = directory / 'compile_local' / 'manifest.json'
+    one_sdk = local_manifest.is_file() and re.match(
+        r'^p4c\s+9\.13\.2(?:\s|$)', json.loads(local_manifest.read_text()).get('compiler', '')) is not None
+    for name in (('compile_local',) if one_sdk else ('compile_local', 'compile_switch_9132')):
         pins = compiles.get(name)
         if not isinstance(pins, dict) or not required.issubset(pins) or \
                 any(not isinstance(value, str) or re.fullmatch('[0-9a-f]{64}', value) is None

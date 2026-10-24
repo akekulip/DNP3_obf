@@ -32,7 +32,7 @@ audited in this run.
 |---|---|---|
 | 1. generator | `STAGE/m12_fullsize/make_m12.py` (entry) -> `m12_fullsize/m12gen/{build,common,mapper,read_policy,segmented,two_read}.py` | split in 5671284aa; `check_generator_identity.py` proves every live mode byte-identical to the recorded reference `generator_identity.json` |
 | 2. P4 source and profile | `STAGE/ctl_timing_01/evidence/m12p_<id>/{response_only.p4, response_only.inputs.json, supported_profile.json}` | constants from `STAGE/read_complete_01/vectors/` (`derive.py`, `derive_two_read.py`, `make_two_read_templates.py`) |
-| 3. compile | `$ARCH/build.py` (local SDK 9.13.1) and `STAGE/ctl_timing_01/compile_switch_orchestrator.py` (switch SDK 9.13.2 over SSH) | outputs `compile_local/` and `compile_switch_9132/` beside the source |
+| 3. compile | `$ARCH/build.py` (local SDK 9.13.2 at `~/bf-sde-9.13.2`, a copy of the switch's install; one compile since 2026-10-23) | output `compile_local/`: the model tests it and the switch loads it (`freeze_gate.loaded_compile`). Builds before m12p_c29_sdk9132 used local 9.13.1 plus `compile_switch_orchestrator.py` (`compile_switch_9132/`, the loaded one) |
 | 4. model gate | `STAGE/ctl_timing_01/run_model.py` (drivers in `ctl_timing_01/model_*.py` and `STAGE/seg61_02/model_*.py`), verdict `ctl_timing_01/model_summary.py --v3` | dependency closure recorded by `ctl_timing_01/record_closure.py` |
 | 5. block configs and freeze | `STAGE/read_complete_01/hw/make_two_read_configs.py` -> `hw/config/rc01_m12p_*.json`; `$HW/freeze_gate.py` -> `freeze_v3.json`; `read_complete_01/hw/make_hw_manifest.py` -> campaign manifest | a block runs only through `$HW/run_block_frozen.sh`, which checks the freeze first |
 | 6. hardware supervisor | `$HW/evaluation_campaign.py` (init/start/status/resume/stop-after-current/reconcile); per block `run_block_frozen.sh` -> `run_block.sh`; restore check `restore_verify.py` | endpoints: `$ARCH/integration/evidence/rearm_01/repeat_sbo_endpoint`; library: `$ARCH/protocol/hw_vepa` (`campaign.py`, `wire_check.py`, `clrt_check.py`, `standards.py`); live testbed ownership state in `~/.local/state/dnp3-evaluation/tofino1-testbed/ownership.json` (never hand-edited) |
@@ -59,8 +59,8 @@ python3 $STAGE/m12_fullsize/check_generator_identity.py      # exit 1 if any liv
 Compile locally (never loads a device). c25's recorded manifest used a 1200 s timeout:
 
 ```sh
-python3 $ARCH/build.py BUILD/response_only.p4 BUILD/compile_local --timeout 1200
-python3 $STAGE/ctl_timing_01/compile_switch_orchestrator.py BUILD SOURCE_SHA256   # compile on the switch host's SDK 9.13.2
+python3 $ARCH/build.py BUILD/response_only.p4 BUILD/compile_local --timeout 1200   # SDK 9.13.2, the switch's
+python3 $STAGE/ctl_timing_01/efficiency_candidates.py BUILD --record-artifacts      # pin the artifacts BEFORE the gate
 ```
 
 Model gate (private local model, no hardware). Drivers: `abandon abort contention control_timing dup

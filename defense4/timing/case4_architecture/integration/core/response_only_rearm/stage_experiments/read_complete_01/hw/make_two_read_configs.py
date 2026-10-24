@@ -24,6 +24,7 @@ import argparse
 import copy
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -95,7 +96,11 @@ def main(argv):
     inputs = json.loads((BUILD / 'response_only.inputs.json').read_text())
     source = hashlib.sha256((BUILD / 'response_only.p4').read_bytes()).hexdigest()
     assert inputs['source_sha256'] == source and inputs['runnable']
-    switch = json.loads((BUILD / 'compile_switch_9132/manifest.json').read_text())
+    # the compile the switch loads: compile_local on a one-SDK build (local SDK 9.13.2, since 2026-10-23), else the
+    # switch-side 9.13.2 compile (freeze_gate.loaded_compile applies the same rule)
+    local = json.loads((BUILD / 'compile_local/manifest.json').read_text())
+    LOADED = 'compile_local' if re.match(r'^p4c\s+9\.13\.2(?:\s|$)', local.get('compiler', '')) else 'compile_switch_9132'
+    switch = json.loads((BUILD / LOADED / 'manifest.json').read_text())
     assert switch['exit_code'] == 0 and switch['source_sha256'] == source
     arts = switch['artifact_sha256']
     sh = shapes()
@@ -114,8 +119,8 @@ def main(argv):
         b.update(_note='two-READ-target candidate %s (mixed 91->141, full 247->271, SBO 37->61); derived from '
                        'the m11_09 config by make_two_read_configs.py' % NEW,
                  hashes={k: arts[k] for k in ('bfrt.json', 'p0/tofino.bin', 'p1/response_only.bfa', 'p1/tofino.bin')},
-                 manifest=rel(BUILD / 'compile_switch_9132/manifest.json'),
-                 out_dir=rel(BUILD / 'compile_switch_9132/out'),
+                 manifest=rel(BUILD / LOADED / 'manifest.json'),
+                 out_dir=rel(BUILD / LOADED / 'out'),
                  source_sha256=source, image_len=61, read_images=dict(images), read_padding=dict(padding))
         b.pop('read_image_len', None)        # no single READ image on this build: per class only
         cfg['builds'] = {NEW: b}
@@ -145,10 +150,10 @@ def main(argv):
         cid = cfg.get('ctl_timing_identity') or {}
         sc = dict(cid.get('switch_compile') or {})
         sc.update(artifact_sha256=dict(arts), bfrt_json_sha256=arts['bfrt.json'], compiler=switch['compiler'],
-                  manifest=rel(BUILD / 'compile_switch_9132/manifest.json'),
-                  manifest_sha256=hashlib.sha256((BUILD / 'compile_switch_9132/manifest.json').read_bytes()).hexdigest(),
-                  out_dir=rel(BUILD / 'compile_switch_9132/out'),
-                  p4pp_sha256=hashlib.sha256((BUILD / 'compile_switch_9132/out/response_only.p4pp').read_bytes()).hexdigest(),
+                  manifest=rel(BUILD / LOADED / 'manifest.json'),
+                  manifest_sha256=hashlib.sha256((BUILD / LOADED / 'manifest.json').read_bytes()).hexdigest(),
+                  out_dir=rel(BUILD / LOADED / 'out'),
+                  p4pp_sha256=hashlib.sha256((BUILD / LOADED / 'out/response_only.p4pp').read_bytes()).hexdigest(),
                   sdk='9.13.2', source_sha256=source, status='compiled')
         cid.update(design=rel(STAGE / 'm12_fullsize/make_m12.py'), source_sha256=source,
                    supported_profile=rel(BUILD / 'supported_profile.json'),

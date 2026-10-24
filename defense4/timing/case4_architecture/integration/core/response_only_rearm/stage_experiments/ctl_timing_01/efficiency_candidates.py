@@ -257,7 +257,8 @@ def generate(output, probes=()):
 
 
 def record_artifacts(output):
-    """Pin both verified compiler outputs in this successor's existing supported profile."""
+    """Pin the verified compiler output(s) in this successor's existing supported profile: the one 9.13.2 local
+    compile, or (local 9.13.1 builds) both the local and the switch-side compile."""
     from model_profile import resolve
     output = Path(output).resolve()
     inputs_path, profile_path = output / 'response_only.inputs.json', output / 'supported_profile.json'
@@ -270,7 +271,12 @@ def record_artifacts(output):
     required = {'bfrt.json', 'p0/context.json', 'p0/response_only.bfa', 'p0/tofino.bin',
                 'p1/context.json', 'p1/response_only.bfa', 'p1/tofino.bin', 'response_only.conf'}
     pins = {}
-    for name, version in (('compile_local', '9.13.1'), ('compile_switch_9132', '9.13.2')):
+    # since 2026-10-23 the local SDK is 9.13.2, the switch's: one local compile is complete on its own. A build whose
+    # local compile used 9.13.1 still needs the switch-side 9.13.2 compile pinned beside it.
+    local = json.loads((output / 'compile_local/manifest.json').read_text())
+    one_sdk = re.match(r'^p4c\s+9\.13\.2(?:\s|$)', local.get('compiler', '')) is not None
+    targets = [('compile_local', '9.13.2')] if one_sdk else [('compile_local', '9.13.1'), ('compile_switch_9132', '9.13.2')]
+    for name, version in targets:
         compiled = output / name
         manifest = json.loads((compiled / 'manifest.json').read_text())
         if manifest.get('exit_code') != 0 or manifest.get('source_sha256') != source_sha:

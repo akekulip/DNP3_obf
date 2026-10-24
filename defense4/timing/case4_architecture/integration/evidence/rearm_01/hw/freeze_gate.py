@@ -29,6 +29,7 @@ enough.
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -81,8 +82,8 @@ def rel(path):
 
 def collect(build, configs):
     files = [rel(build / f) for f in BUILD_FILES if (build / f).is_file()]
-    files += [rel(build / c / f) for c in ('compile_local', 'compile_switch_9132') for f in COMPILE_FILES]
-    files += [rel(build / c / 'out' / f) for c in COMPILES for f in manifest_artifacts(build, c)]
+    files += [rel(build / c / f) for c in build_compiles(build) for f in COMPILE_FILES]
+    files += [rel(build / c / 'out' / f) for c in build_compiles(build) for f in manifest_artifacts(build, c)]
     for d in HARNESS_DIRS:
         for g in HARNESS_GLOBS:
             files += [rel(p) for p in sorted((REPO / d).glob(g))]
@@ -122,6 +123,22 @@ def closure_files(build):
     return out
 
 
+def one_sdk(build):
+    """True for a build compiled once with the local SDK 9.13.2 (the switch's SDK; local default since 2026-10-23):
+    its compile_local is the compile the model tests and the switch loads. Older builds (local 9.13.1) keep both."""
+    path = Path(build) / 'compile_local' / 'manifest.json'
+    return path.is_file() and re.match(r'^p4c\s+9\.13\.2(?:\s|$)',
+                                       json.loads(path.read_text()).get('compiler', '')) is not None
+
+
+def build_compiles(build):
+    return ('compile_local',) if one_sdk(build) else COMPILES
+
+
+def loaded_compile(build):
+    return 'compile_local' if one_sdk(build) else LOADED_COMPILE
+
+
 def manifest_artifacts(build, compile_dir):
     """Every artifact a compile's manifest lists (review finding 2: context.json, .conf and .bfa are loaded too)."""
     path = build / compile_dir / 'manifest.json'
@@ -134,7 +151,7 @@ def compile_problems(build, source):
     """Why a compile does not belong to this source (review finding 1): its manifest must name the source, exit 0,
     and every artifact it lists must be on disk at the recorded sha256."""
     problems = []
-    for c in COMPILES:
+    for c in build_compiles(build):
         path = build / c / 'manifest.json'
         if not path.is_file():
             problems.append('%s: no manifest' % c)
@@ -197,10 +214,10 @@ def candidate_record(build, source, configs, exception):
         qualification, reasons = live['qualification'], live['blocked_reasons']
     artifacts = {c: dict({f: sha(rel(build / c / f)) for f in COMPILE_FILES},
                          **{'out/' + f: sha(rel(build / c / 'out' / f)) for f in manifest_artifacts(build, c)})
-                 for c in COMPILES}
+                 for c in build_compiles(build)}
     return dict(source_sha256=source, build=rel(build),
-                loaded_compile=dict(out_dir=rel(build / LOADED_COMPILE / 'out'),
-                                    manifest=rel(build / LOADED_COMPILE / 'manifest.json')),
+                loaded_compile=dict(out_dir=rel(build / loaded_compile(build) / 'out'),
+                                    manifest=rel(build / loaded_compile(build) / 'manifest.json')),
                 artifacts=artifacts,
                 model=dict(summary=rel(summary) if stored is not None else None,
                            summary_sha256=sha(rel(summary)) if stored is not None else None,
@@ -234,7 +251,8 @@ def candidate_binding(frozen, config):
         problems.append('config %s changed since the freeze' % path)
     cfg = json.loads(Path(config).read_text())
     loaded = cand['loaded_compile']
-    out_hashes = {f[len('out/'):]: h for f, h in cand['artifacts'][LOADED_COMPILE].items() if f.startswith('out/')}
+    loaded_name = Path(loaded['manifest']).parent.name    # compile_switch_9132, or compile_local on a one-SDK build
+    out_hashes = {f[len('out/'):]: h for f, h in cand['artifacts'][loaded_name].items() if f.startswith('out/')}
     builds = cfg.get('builds') or {}
     if not builds:
         problems.append('config names no build')
