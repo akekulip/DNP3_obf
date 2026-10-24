@@ -100,18 +100,41 @@ def read_egress_diag(sw):
     return out
 
 
-def add_n_counters(args):
-    """After the base snapshot wrote its file, add N's counters to it with a fresh read-only client."""
+def mau_snapshot_option(args):
+    """(args without --mau-snapshot SPEC, SPEC or None): the base snapshot's parser never sees the option."""
+    args = list(args)
+    if '--mau-snapshot' not in args:
+        return args, None
+    i = args.index('--mau-snapshot')
+    if i + 1 >= len(args) or args.count('--mau-snapshot') != 1:
+        raise SystemExit('--mau-snapshot needs exactly one SPEC')
+    return args[:i] + args[i + 2:], args[i + 1]
+
+
+def mau_snapshot_step(sw, spec_text, build_out, output):
+    """Diagnostic only (config diagnostic_mau_snapshot): arm in the _before call, read in the _after call.
+    Arming writes the snapshot fixed tables, never a forwarding table."""
+    mau = entry.module('rearm_mau_snapshot', HERE / 'mau_snapshot.py')
+    spec = mau.parse(spec_text)
+    if Path(output).name.endswith('_before.json'):
+        return dict(spec=spec_text, phase='armed', result=mau.arm(sw, spec, Path(build_out) / 'bfrt.json'))
+    return dict(spec=spec_text, phase='read', result=mau.read(sw, spec))
+
+
+def add_n_counters(args, mau_spec=None):
+    """After the base snapshot wrote its file, add N's counters to it with a fresh client (read-only unless a
+    diagnostic MAU snapshot spec is given)."""
     import argparse
     import json
     ap = argparse.ArgumentParser(add_help=False)
     ap.add_argument('-o', '--output')
+    ap.add_argument('--build-out')
     ap.add_argument('--program', default='response_only')
     ap.add_argument('--client-id', type=int, default=122)
     a, _ = ap.parse_known_args(args)
     from switch import Switch
     sw = Switch(a.program, a.client_id)
-    diag, diag_error = None, None
+    diag, diag_error, mau, mau_error = None, None, None, None
     try:
         counters = read_n_counters(sw, snapshot.tc.ALL_PIPES)
         state = read_n_state(sw, snapshot.tc.ALL_PIPES)
@@ -123,6 +146,11 @@ def add_n_counters(args):
                 diag = read_egress_diag(sw)
             except Exception as error:
                 diag_error = '%s: %s' % (type(error).__name__, str(error)[:300])
+        if mau_spec is not None:
+            try:
+                mau = mau_snapshot_step(sw, mau_spec, a.build_out, a.output)
+            except Exception as error:
+                mau_error = '%s: %s' % (type(error).__name__, str(error)[:600])
     finally:
         sw.close()
     path = Path(a.output)
@@ -134,17 +162,22 @@ def add_n_counters(args):
                                    index='master-visible tcp.ack[13:0]', lo='pure ACK', hi='response', entries=diag)
     if diag_error is not None:
         data['egress_diag_error'] = diag_error
+    if mau is not None:
+        data['mau_snapshot'] = mau
+    if mau_error is not None:
+        data['mau_snapshot_error'] = mau_error
     path.write_text(json.dumps(data, indent=1, default=str) + '\n')
     return 0
 
 
 def main(argv=None):
     args = sys.argv[1:] if argv is None else argv
+    args, mau_spec = mau_snapshot_option(args)
     if '--help' not in args and '-h' not in args:
         configure(entry.build_argument(args))
     rc = snapshot.main(args)
     if rc == 0 and '--help' not in args and '-h' not in args:
-        rc = add_n_counters(args)
+        rc = add_n_counters(args, mau_spec)
     return rc
 
 

@@ -15,10 +15,14 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 DRIVERS = {'fin_busy': HERE / 'model_fin_busy.py', 'relay_sbo': HERE / 'model_relay_sbo.py', 'control_timing': HERE / 'model_control_timing.py', 'select_lifecycle': HERE / 'model_select_lifecycle.py',
            'contention': HERE / 'model_contention.py', 'abort': HERE / 'model_abort.py', 'egress_diag': HERE / 'model_egress_diag.py', 'isolation_cleanup': HERE / 'model_isolation_cleanup.py',
-           'half_rst': HERE / 'model_half_rst.py'}  # diagnostic counterexample, not a required gate driver
+           'half_rst': HERE / 'model_half_rst.py',  # diagnostic counterexample, not a required gate driver
+           'hw_replay': HERE / 'model_hw_replay.py',  # diagnostic: exact silicon frames, not a gate driver
+           'mau_snapshot': HERE / 'model_mau_snapshot.py',  # diagnostic: snapshot tool proof, not a gate driver
+           'mau_probe': HERE / 'model_mau_probe.py'}  # diagnostic: snapshot write semantics, not a gate driver
 # wrapper drivers and the driver code they execute; local modules every driver imports
 WRAPPED = {name: {'model_contention.py': HERE / 'model_contention.py'} for name in ('abort', 'egress_diag')}
 WRAPPED['half_rst'] = {'model_packets.py': HERE.parent / 'seg61_02' / 'model_packets.py'}
+WRAPPED['hw_replay'] = WRAPPED['half_rst']
 DEPENDENCIES = [HERE.parent / 'seg61_02' / 'model_repeat.py', HERE.parents[2] / 'response_only' / 'model_drive_composite.py']
 for name in ('smoke', 'packets', 'rearm', 'dup', 'repeat', 'abandon', 'prefix', 'mixed', 'fullread', 'mixedfull', 'fullread_corrupt', 'fullread_boundary', 'policy', 'policy_boundary', 'smoke_sizeoff', 'segmented', 'two_read_robust'):
     DRIVERS[name] = HERE.parent / 'seg61_02' / ('model_%s.py' % name)

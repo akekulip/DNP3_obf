@@ -268,6 +268,9 @@ def validate_profile(cfg):
         if cfg.get('loss', {}).get('presets'):
             raise ValueError('traffic.sbo_cycles is not supported with loss presets (unsupported shape)')
     validate_read_classes(cfg)
+    spec = cfg.get('diagnostic_mau_snapshot')
+    if spec is not None and not (isinstance(spec, str) and MAU_SNAPSHOT_SPEC.fullmatch(spec)):
+        raise ValueError('diagnostic_mau_snapshot must be start=S,end=E,field=value/mask[,...]')
     quality = cfg.get('evaluation', {})
     if quality.get('purpose', 'qualification') not in ('qualification', 'stale_source_characterization',
                                                       'timing_precision_characterization'):
@@ -538,6 +541,9 @@ def default_installer_flags(flag):
     """Does hw/bringup_composite.py (the reviewed installer) accept `flag`? Read from its source."""
     src = open(os.path.join(ARCH, RESPONSE_ONLY, 'hw', 'bringup_composite.py')).read()
     return ("'%s'" % flag) in src or ('"%s"' % flag) in src
+
+
+MAU_SNAPSHOT_SPEC = re.compile(r'start=\d{1,2},end=\d{1,2}(,[a-z][a-z0-9_.$]*=(0x[0-9a-f]+|\d+)/(0x[0-9a-f]+|\d+))+')
 
 
 def q(x):
@@ -1895,9 +1901,13 @@ class Campaign:
                 + (' --t-pb %d' % t['pb'] if t.get('pb') is not None else ''))
 
     def snapshot(self, out_remote, name, check=True, preset=None):
+        # diagnostic_mau_snapshot (validated in validate_profile): the candidate snapshot arms an N-ingress MAU
+        # snapshot in its _before call and reads it in its _after call; no forwarding state changes
+        spec = self.cfg.get('diagnostic_mau_snapshot')
         return self.step('switch', 'counter snapshot %s' % name, check=check, cmd=self.hw_env(self.switch_cmd(
-            'snapshot_counters.py', '--build-out %s --ports %s %s -o %s/snap/%s.json'
-            % (out_remote, self.cfg['ports_map']['stat_ports'], shaping_args(self.cfg, burst=False, preset=preset), self.R, name))))
+            'snapshot_counters.py', '--build-out %s --ports %s %s -o %s/snap/%s.json%s'
+            % (out_remote, self.cfg['ports_map']['stat_ports'], shaping_args(self.cfg, burst=False, preset=preset), self.R, name,
+               ' --mau-snapshot %s' % q(spec) if spec else ''))))
 
     # ---- restoration: best effort, every step attempted, every failure recorded -------------------------------
     def restore(self):

@@ -14,6 +14,8 @@ import endpoint_profiles
 
 BLOCKS = ('smoke', 'reference', 'loss_mixed_950', 'loss_full_950', 'persistence_graceful_950',
           'persistence_rst_950', 'reconnect_950', 'held_operate_350')
+# N-ingress MAU snapshot of the READ request's first post-lap pass (hw/mau_snapshot.py; proven on the model).
+MAU_SNAPSHOT = 'start=0,end=10,m.packet_kind=9/0xff,m.lap=1/1,m.stage=0/3'
 NATIVE_OBSERVATION = HERE.parent / 'evidence/relay_native_capture_20261024/relay_native_20261024_02/relay_wire.json'
 
 
@@ -64,6 +66,8 @@ def main(argv=None):
     parser.add_argument('--template-build', default='m12p_c29_sdk9132')
     parser.add_argument('--output', type=Path, default=HERE / 'config')
     parser.add_argument('--native-observation', type=Path, default=NATIVE_OBSERVATION)
+    parser.add_argument('--diagnostic-mau-snapshot', action='store_true',
+                        help='write only smoke_mau: the smoke block plus an N-ingress MAU snapshot of the first READ')
     args = parser.parse_args(argv)
     build = args.build.resolve()
     profile = json.loads((build / 'supported_profile.json').read_text())
@@ -101,7 +105,7 @@ def main(argv=None):
             not manifest.get('compiler', '').startswith('p4c 9.13.2'):
         raise ValueError('selected SDK compile is not bound to the source')
     args.output.mkdir(parents=True, exist_ok=True)
-    for block in BLOCKS:
+    for block in (('smoke',) if args.diagnostic_mau_snapshot else BLOCKS):
         template = HERE / 'config' / ('rc01_%s_%s.json' % (args.template_build, 'reference' if block == 'smoke' else block))
         cfg = relay_config(json.loads(template.read_text()))
         if block == 'smoke':
@@ -135,10 +139,16 @@ def main(argv=None):
                                          source_sha256=source, artifact_sha256=manifest['artifact_sha256'],
                                          compiler=manifest['compiler'], sdk='9.13.2')
         cfg['ctl_timing_identity'] = identity
+        name = block
+        if args.diagnostic_mau_snapshot:
+            name = block + '_mau'
+            cfg['diagnostic_mau_snapshot'] = MAU_SNAPSHOT
+            cfg['_notes'].append('Diagnostic: N-ingress MAU snapshot of the first READ post-lap pass; traffic unchanged.')
+            cfg['evaluation']['campaign_block']['phase'] = name
         block_identity = cfg.get('evaluation', {}).get('campaign_block')
         if isinstance(block_identity, dict):
-            block_identity['id'] = 'rc01_%s_sel751_%s' % (build.name, block)
-        path = args.output / ('rc01_%s_sel751_%s.json' % (build.name, block))
+            block_identity['id'] = 'rc01_%s_sel751_%s' % (build.name, name)
+        path = args.output / ('rc01_%s_sel751_%s.json' % (build.name, name))
         with path.open('x') as stream:
             json.dump(cfg, stream, indent=2, sort_keys=True)
             stream.write('\n')
