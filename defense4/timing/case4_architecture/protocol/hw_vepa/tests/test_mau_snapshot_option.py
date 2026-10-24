@@ -62,6 +62,11 @@ class MauSnapshotOption(unittest.TestCase):
                         or diag.endswith(' --mau-snapshot start=0,end=10,m.packet_kind=9/0xff,m.lap=1/1,m.stage=0/3'))
         self.assertEqual(diag.replace(diag[diag.index(' --mau-snapshot'):], ''), plain)
 
+    def test_candidate_deploys_the_snapshot_module(self):
+        sys.path.insert(0, str(HERE.parents[2] / 'integration/evidence/rearm_01/hw'))
+        import candidate_campaign
+        self.assertIn('integration/core/response_only_rearm/hw/mau_snapshot.py', candidate_campaign.EXTRA_FILES)
+
 
 if __name__ == '__main__':
     unittest.main()

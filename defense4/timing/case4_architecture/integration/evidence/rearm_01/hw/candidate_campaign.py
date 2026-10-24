@@ -32,7 +32,8 @@ CONTROL_TIMED_SOURCES = frozenset({
 })
 EXTRA_FILES = (CANDIDATE + '/cp.py', CANDIDATE + '/hw/bringup_composite.py',
                CANDIDATE + '/hw/snapshot_counters.py', CANDIDATE + '/hw/sealed_profile.py',
-               CANDIDATE + '/hw/generation_headroom.py')
+               CANDIDATE + '/hw/generation_headroom.py',
+               CANDIDATE + '/hw/mau_snapshot.py')   # imported by snapshot_counters only for diagnostic_mau_snapshot
 
 
 def _native_inputs_supported(encoding, endpoint_profile='software'):

@@ -1,0 +1,189 @@
+{
+  "schema": "sel751-wire-v1",
+  "ok": false,
+  "failures": [
+    "master records/counts/plan differ from frozen expected denominators",
+    "READ workload sequence differs from frozen schedule",
+    "complete planned master denominators missing or failed",
+    "master transaction failed: READ",
+    "response complete wire/frame/application evidence missing or invalid",
+    "complete request/response TCP span missing: READ",
+    "response length differs from selected relay image: READ"
+  ],
+  "packets": {
+    "out": [
+      {
+        "index": 0,
+        "timestamp_ns": 1792879142233888000,
+        "seq": 2427616782,
+        "ack": 0,
+        "flags": 2,
+        "payload_len": 0,
+        "payload_hex": "",
+        "ipv4_header_bytes": 20,
+        "tcp_header_bytes": 40,
+        "tcp_options_hex": "020405b40402080a3c1256820000000001030307"
+      },
+      {
+        "index": 1,
+        "timestamp_ns": 1792879142236690000,
+        "seq": 2427616783,
+        "ack": 753883617,
+        "flags": 16,
+        "payload_len": 0,
+        "payload_hex": "",
+        "ipv4_header_bytes": 20,
+        "tcp_header_bytes": 32,
+        "tcp_options_hex": "0101080a3c1256894e4e52d4"
+      },
+      {
+        "index": 2,
+        "timestamp_ns": 1792879142237306000,
+        "seq": 2427616783,
+        "ack": 753883617,
+        "flags": 24,
+        "payload_len": 25,
+        "payload_hex": "056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+        "ipv4_header_bytes": 20,
+        "tcp_header_bytes": 32,
+        "tcp_options_hex": "0101080a3c12568a4e4e52d4"
+      },
+      {
+        "index": 3,
+        "timestamp_ns": 1792879142446197000,
+        "seq": 2427616783,
+        "ack": 753883617,
+        "flags": 24,
+        "payload_len": 25,
+        "payload_hex": "056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+        "ipv4_header_bytes": 20,
+        "tcp_header_bytes": 32,
+        "tcp_options_hex": "0101080a3c12575b4e4e52d4"
+      },
+      {
+        "index": 4,
+        "timestamp_ns": 1792879142654226000,
+        "seq": 2427616783,
+        "ack": 753883617,
+        "flags": 24,
+        "payload_len": 25,
+        "payload_hex": "056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+        "ipv4_header_bytes": 20,
+        "tcp_header_bytes": 32,
+        "tcp_options_hex": "0101080a3c12582b4e4e52d4"
+      },
+      {
+        "index": 5,
+        "timestamp_ns": 1792879143070222000,
+        "seq": 2427616783,
+        "ack": 753883617,
+        "flags": 24,
+        "payload_len": 25,
+        "payload_hex": "056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+        "ipv4_header_bytes": 20,
+        "tcp_header_bytes": 32,
+        "tcp_options_hex": "0101080a3c1259cb4e4e52d4"
+      },
+      {
+        "index": 6,
+        "timestamp_ns": 1792879143958198000,
+        "seq": 2427616783,
+        "ack": 753883617,
+        "flags": 24,
+        "payload_len": 25,
+        "payload_hex": "056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+        "ipv4_header_bytes": 20,
+        "tcp_header_bytes": 32,
+        "tcp_options_hex": "0101080a3c125d434e4e52d4"
+      },
+      {
+        "index": 7,
+        "timestamp_ns": 1792879145240664000,
+        "seq": 2427616808,
+        "ack": 753883617,
+        "flags": 17,
+        "payload_len": 0,
+        "payload_hex": "",
+        "ipv4_header_bytes": 20,
+        "tcp_header_bytes": 32,
+        "tcp_options_hex": "0101080a3c1262454e4e52d4"
+      },
+      {
+        "index": 8,
+        "timestamp_ns": 1792879145622210000,
+        "seq": 2427616783,
+        "ack": 753883617,
+        "flags": 25,
+        "payload_len": 25,
+        "payload_hex": "056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+        "ipv4_header_bytes": 20,
+        "tcp_header_bytes": 32,
+        "tcp_options_hex": "0101080a3c1263c34e4e52d4"
+      }
+    ],
+    "in": [
+      {
+        "index": 0,
+        "timestamp_ns": 1792879142236629000,
+        "seq": 753883616,
+        "ack": 2427616783,
+        "flags": 18,
+        "payload_len": 0,
+        "payload_hex": "",
+        "ipv4_header_bytes": 20,
+        "tcp_header_bytes": 44,
+        "tcp_options_hex": "020405b401030300010104020101080a4e4e52d43c125682"
+      }
+    ]
+  },
+  "exchanges": [
+    {
+      "operation": "READ",
+      "workload": "mixed",
+      "request": {
+        "sequence_start": 2427616783,
+        "complete": true,
+        "packets": [
+          {
+            "index": 2,
+            "timestamp_ns": 1792879142237306000,
+            "seq": 2427616783,
+            "ack": 753883617,
+            "flags": 24,
+            "payload_len": 25,
+            "payload_hex": "056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+            "ipv4_header_bytes": 20,
+            "tcp_header_bytes": 32,
+            "tcp_options_hex": "0101080a3c12568a4e4e52d4"
+          }
+        ],
+        "sequence_end": 2427616808,
+        "start_offset": 1,
+        "end_offset": 26,
+        "actual_payload_lengths": [
+          25
+        ],
+        "first_timestamp_ns": 1792879142237306000,
+        "complete_timestamp_ns": 1792879142237306000
+      },
+      "response": null,
+      "master_rtt_ns": null,
+      "ack_timestamp_ns": null,
+      "first_clrt_us": null,
+      "complete_clrt_us": null,
+      "piggyback": false,
+      "switch_residence_ns": null,
+      "operate_j_ns": null,
+      "null_reason": "only master NIC observed"
+    }
+  ],
+  "observation_scope": "single master NIC TX/RX; SYN/options and TCP sequence spans retained",
+  "independent_packet_boundary_calibration": false,
+  "same_packet_preservation_proven": false,
+  "artifacts": {
+    "out.pcap": "8ac1d0b99332c8b72dc00595647642134a39b0452f905557985aead2e75e26b0",
+    "in.pcap": "c8eb1dccf5cf9660d1cfe2033a5da38fd23daa544c3ce4492a45facdb41e5393",
+    "master.json": "01b714b5f9c5c216312fb763769e750f9f19f4f2131271c9e2de41fbbe3b7d59",
+    "result.json": "ea2e0f5bd6b681821d8d56b846865de87dbd367d2ffd3e279eaa57d893f19f35"
+  }
+}
