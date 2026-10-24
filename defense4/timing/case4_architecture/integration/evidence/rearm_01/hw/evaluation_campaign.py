@@ -1098,9 +1098,13 @@ REPAIRED_ONLY_FAILURE = "runner restore step(s) failed: ['%s']" % VISION_RESTORE
 # sha256 of capture_observation.restore_rx_coalesce's source as reviewed (the two-step restore, commit 774300eed);
 # a repair is accepted only when it ran exactly this function (nic_repair.py deploys the committed blobs)
 REVIEWED_RESTORE_RX_COALESCE_SHA256 = 'afe92338adf3139ea7e3ed5a2e4bba297cbae066a4185bb6b73733b561551fe7'
-# whole-file sha256 of the deployed blobs at the reviewed commit 774300eed (both run as root on Vision)
-REVIEWED_DEPLOYED_SHA256 = {'capture_observation.py': '483a47aef6a2eab897de25175dc4b81e491f29b3deccfb7e90b03ca498ec88b0',
-                            'wire_check.py': 'd9bb1be873e1dbd1c8257341130ce662f5e262b005d1d3578a5484ffa87b55c8'}
+# whole-file sha256 of the deployed blobs. Re-pinned 2026-10-24 after source review: since 774300eed the only
+# changes to the two deployed files are reviewed and leave restore_rx_coalesce itself unchanged (its source still
+# hashes to REVIEWED_RESTORE_RX_COALESCE_SHA256 above) -- capture_observation.py gained the CPU-latency diagnostic
+# functions after restore_rx_coalesce (3585631d7, two independent reviews), and wire_check.py got the same-sequence
+# pairing fix (fd95e0dc8, 750+ tests). The repair tool still deploys exactly these reviewed blobs.
+REVIEWED_DEPLOYED_SHA256 = {'capture_observation.py': '339e07eba34ef257f8e803fade535f54583b5e3ce0b083057cee2dc2194dd4de',
+                            'wire_check.py': '4d2de46b72ec8d4bca582881d01528ee23c61cab4aab6903c76ae4320508cd9b'}
 
 
 def nic_repair_acceptance(records, terminal_sha, campaign_run_sha, fresh, independent_baseline):

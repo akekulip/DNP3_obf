@@ -1,6 +1,17 @@
 # Working notes
 
-## >>> CURRENT (2026-10-23, late) — read this first
+## >>> CURRENT (2026-10-24) — read this first
+
+- NEW DIRECTIVE: `Claude_SEL751_Corrected_Overnight_Directive (1).md`. The SEL-751 relay is the outstation; both
+  READ workloads and full SBO run on it through the switch. Build relay-shape candidate m12p_c30; c25-c29 (software
+  outstation) qualify only the software tier. Plan: ~/.claude/plans/pasted-content-id-463c-execute-this-quiet-pascal.md.
+- Relay (2026-10-23): mixed READ 91 B, integrity READ 134 B (addr 0/1). 247->271 does not apply; 134->158 smallest
+  reachable. Targets 141/158 PROVISIONAL until validated on real relay captures. SBO: try 60 first (32 app bytes ->
+  60 or 62, not 61).
+- Step 0 DONE (2026-10-24): state clean (HEAD 659bba2c6=origin); test_nic_repair repaired; CLAUDE.md authorization
+  and CURRENT.md corrected to the SEL-751 run. Next: reusable relay master (READ reassembly) + native relay baseline.
+
+## >>> PRIOR (2026-10-23, late) — read this first
 
 - Candidate `m12p_c29` (N/E highest stage index 10 on both SDKs; model gate passed). Hardware run 2026-10-23 against
   the SOFTWARE outstation on Vision (192.168.10.62): sizing exact in all four arms; loss x2 pass; reset persistence,
@@ -2531,3 +2542,16 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
 - Withdrawn: my statements that relay OPERATE was not allowed (stale directive line) and the "older kernel" reboot
   idea (unverified note).
 
+## 2026-10-24 — SEL-751 directive: step 0 (state, nic_repair, authorization)
+- Verified: HEAD 659bba2c6 = origin/main; ownership active False / unsafe_restoration False; no model/compiler/campaign
+  processes (old dnp3-* units are exited leftovers). One SDK 9.13.2 in place.
+- test_nic_repair (failing since 3585631d7): root cause = REVIEWED_DEPLOYED_SHA256 pinned the deployed blobs at
+  774300eed, but capture_observation.py (which imports wire_check) and wire_check.py both changed in reviewed commits
+  (3585631d7 CPU-latency diagnostic added AFTER restore_rx_coalesce; fd95e0dc8 same-sequence wire_check fix).
+  restore_rx_coalesce itself unchanged (function_source_sha still matches its pin). Repaired: re-pinned the two blob
+  SHAs with the source review recorded in evaluation_campaign.py; did NOT weaken the test. nic_repair 27/27; harness
+  suite 735 pass (was 731 + 1 failing).
+- Corrected CLAUDE.md "Current authorization" (still said software-endpoints-only) and rewrote CURRENT.md to the
+  SEL-751 run with the three evidence tiers. No code/shape/candidate work yet.
+- Next: update active_harness master for mixed/integrity READ + DNP3 transport reassembly (corrections 1-2), then the
+  native relay baseline capture/decode (relay_native_20261024).

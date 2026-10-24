@@ -1,34 +1,40 @@
-# Current status — c26 headroom and timing + padding on hardware (run started 2026-10-23)
+# Current status — SEL-751 relay as outstation (run started 2026-10-24)
 
-One status file, updated in place. Dated history: STATUS.md; full record: COMPLETION_RECORD.md (sections 0, 0a).
-Directive: `Claude_C26_Headroom_Hardware_Directive.md` (repository root, untracked).
+One status file, updated in place. Dated history: STATUS.md; full record: COMPLETION_RECORD.md.
+Directive: `Claude_SEL751_Corrected_Overnight_Directive (1).md` (repository root, untracked).
 
 ## Scope
-Pipe-0 headroom (N and E both at highest occupied stage index <= 10 in one integrated build) on m12p_c26, then the
-four-arm comparison and recovery blocks on the selected image on the physical Tofino, through the existing gates.
-IEEE 1815 audit DEFERRED. No relay OPERATE, Vision reboot, kernel/firmware change, D/J/attacker campaign, keep-alive
-traffic, relaxed thresholds or manual ownership edits.
+The physical SEL-751 is the outstation. Build one relay-shape candidate (m12p_c30) whose two READ workloads and full
+SBO match the relay's decoded shapes, gate it on one SDK-9.13.2 bundle, then run the four-arm and recovery blocks
+against the relay through the Tofino. 100 us timing threshold unchanged. IEEE audit and paper out of scope. No Vision
+reboot/kernel/firmware, keep-alive, D/J or attacker campaign, manual ownership edits, or weaker restoration.
 
-## Starting state (verified 2026-10-23)
-- HEAD = origin/main = 403f60c3e; testbed ownership active False, unsafe_restoration False; no running units.
-- m12p_c26 (21b98f51...): generator reproduced (7 modes byte-identical); retained model evidence recomputed
-  (model_gate_passed); N/E/T/p1-egress 12/12/11/4. No hardware run on c26. c25 hardware: padding byte-exact, timing
-  FAILED, recovery not run (c25 evidence does not qualify c26 or any successor).
+## Three evidence tiers (keep distinct in every record)
+1. Software-reference encoding tests (no hardware).
+2. Software master/outstation (.61/.62) through the physical switch -- the c25-c29 runs; regression/comparison only.
+3. Physical SEL-751 (.7, DNP3 addr 0) through the switch -- the ONLY tier that qualifies the relay deliverable.
 
-## Completion criteria
+## Starting state (verified 2026-10-24)
+- HEAD = origin/main = 659bba2c6; ownership active False, unsafe_restoration False; no running model/compiler/campaign.
+- One SDK: local 9.13.2 (~/bf-sde-9.13.2) compiles once into compile_local; model tests it and the switch loads it.
+- m12p_c29 (software tier): sizing byte-exact all four arms on the software outstation; timing FAILED (p99 ~2-4 ms);
+  recovery mostly pass, graceful-persistence lost one FIN at close (open). Does NOT qualify the relay.
+- Relay measured 2026-10-23: mixed READ 91 B, integrity READ 134 B (addr 0/1). 247->271 was the software database and
+  does not apply; 134->158 is the smallest reachable padded size. SBO on the relay not yet freshly measured.
+- test_nic_repair repaired (reviewed re-pin of the deployed blobs; function unchanged); harness suite 735 pass.
+
+## Completion criteria (relay deliverable)
 | # | deliverable | criterion | state |
 |---|---|---|---|
-| 1 | headroom | both SDKs: N and E highest occupied index <= 10, T <= 11, p1 egress <= 4; per-stage evidence | MET by m12p_c29 (N 11/10, E 11/10, T 11/10, p1 4/3, both SDKs; reviewed equivalent) |
-| 2 | model | new model run: full v3 gate on the selected source; c26 control_timing_01 failure traced | c29 model_gate_passed (first attempt); c26 failure traced (host-clock stall) |
-| 3 | hardware four-arm | new hardware run: off/timing/size/combined on the selected image, readout, restore verified | c29: sizing byte-exact all arms, readout OK, restore verified |
-| 4 | hardware recovery | loss (mixed, full), persistence graceful/rst, reconnect, held OPERATE | c29: loss x2 PASS; persistence_rst, reconnect, held_operate pass recovery (fail timing only); persistence_graceful lost one FIN at close (open defect) |
-| 5 | timing | unchanged 100 us precision criterion measured; failures stay failures | FAILED on every timed block (p99 ~1.7-3.8 ms); NIC timestamps cannot see the path; reboot A/B/A needs Philip |
-| 6 | close | records, fresh-checkout reproduction, restoration verified | open |
+| 1 | relay baseline | native mixed/integrity READ + SBO decoded from real SEL-751 captures through the switch | open |
+| 2 | shapes | two READ targets + SBO image derived from the relay natives (141/158 provisional; SBO try 60 first) | open |
+| 3 | candidate | m12p_c30: relay shapes replace the fixture shapes; FIN/ACK and checker fixes; headroom retained | open |
+| 4 | model gate | full v3 gate + relay-shape and FIN/ACK regressions on the one pinned 9.13.2 bundle | open |
+| 5 | hardware four-arm | off/timing/size/combined on the relay; readout proves real SEL-751 responses; restore verified | open |
+| 6 | hardware recovery | loss (mixed, full), persistence graceful/rst, reconnect, held OPERATE on the relay | open |
+| 7 | timing | 100 us precision on the relay measured; failures stay failures | open |
+| 8 | close | records, clean-worktree reproduction (c30), restoration verified | open |
 
 ## Work in progress
-P4 placement experiments (Philip's three: calculations into the padding branch; CRC metadata isolated from lifecycle
-fields; unreachable READ declarations, checking compiler elimination first) in .scratch_p4; c26 control_timing_01 trace.
-
-## Next action
-Reproduce and fix the close-sequence FIN loss on the model, then one graceful-persistence rerun; timing needs Philip's
-decision on the kernel A/B/A reboot.
+Step 0 done: state verified, test_nic_repair repaired, authorization corrected. Next: reusable relay master
+(READ reassembly), then the native relay baseline capture and decode.

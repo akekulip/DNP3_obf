@@ -50,26 +50,36 @@ Sizing experiments, earlier defenses, and prototypes remain engineering history.
 manuscript claims. Refactoring them must preserve hash-bound sources, raw evidence, and the distinction
 between measurements and later candidates.
 
-## Current authorization (Philip, 2026-10-22 directive; this replaces every earlier authorization)
+## Current authorization (Philip, 2026-10-24 SEL-751 directive; this replaces every earlier authorization)
 
-- Hardware runs are allowed only with the existing software endpoints and only through the existing
-  ownership, preflight, freeze, dry-run and restoration machinery (`evaluation_campaign.py`,
-  `run_block_frozen.sh`, `restore_verify.py`). Each new live run needs its own recorded authorization and its
-  admission and restoration gates; an earlier smoke or timer authorization is not blanket authority.
-- The physical SEL-751 relay (192.168.10.7:20000, DNP3 address 0; master 192.168.10.1, address 1) is the
-  outstation. READ and select-before-operate, including OPERATE, run against it (Philip, 2026-10-23: research
-  environment; this replaces the earlier attended-only OPERATE rule).
+Directive: `Claude_SEL751_Corrected_Overnight_Directive (1).md` (repository root, untracked).
+
+- The physical SEL-751 is the outstation for the research evaluation. Both READ workloads and the complete
+  select-before-operate sequence (SELECT and OPERATE) run against the relay through the physical Tofino. Philip
+  authorized these relay operations in this research testbed, including the autonomous run; do not ask again
+  whether the relay may be used or whether OPERATE is authorized. Use the relay's established research command
+  point and parameters (the existing guarded SBO builders); do not invent control points or alter unrelated
+  relay configuration. This supersedes the earlier software-outstation-only and attended-only-OPERATE rules.
+- Hardware runs go only through the existing ownership, preflight, freeze, dry-run and restoration machinery
+  (`evaluation_campaign.py`, `run_block_frozen.sh`, `restore_verify.py`). Each new live run needs its own
+  recorded authorization and its admission and restoration gates; an earlier authorization is not blanket
+  authority.
+- Relay identity and measured shapes (192.168.10.7:20000, DNP3 address 0; master 192.168.10.1, address 1).
   Measured on the relay 2026-10-23 (three requests each, from 192.168.10.1 through the switch): mixed READ
   (g1v2 0..15 + g30v1 0..7) answers 91 bytes, matching the 91->141 target; the integrity READ answers 134
   bytes, so the 247->271 full-READ target (the software outstation's database) does not apply to the relay and
-  needs a new target. SBO on the relay is not yet measured. The c25-c29 hardware runs used the software
-  outstation on Vision (192.168.10.62), not the relay.
+  needs a new target (134->158 is the smallest reachable; targets 141/158 PROVISIONAL until validated against
+  actual relay READ captures). SBO on the relay is not yet freshly measured (retained captures show a native
+  two-CROB echo ~49 bytes). The c25-c29 hardware runs used the software outstation on Vision (192.168.10.62),
+  not the relay, and qualify only the software tier, not the relay deliverable.
 - Not allowed: any D/J or attacker campaign; rebooting Vision; OS or firmware updates.
-- Current run (2026-10-23, `Claude_C26_Headroom_Hardware_Directive.md`): pipe-0 headroom work on m12p_c26 and
-  hardware timing, sizing and recovery validation of the selected image ARE in scope through the gates above; the
-  gated candidate may be loaded and the authorized blocks run without asking again. The IEEE 1815 audit is
-  DEFERRED (no standards research, compliance matrix or certification claims). The 2026-10-22/23 cleanup-only
-  restriction is superseded.
+- Current run (2026-10-24, SEL-751 directive): a new relay-shape candidate, its READ/SBO shapes derived from
+  decoded relay captures, model gate on one SDK-9.13.2 bundle, then the four-arm and recovery blocks against the
+  SEL-751. The IEEE 1815 audit and paper writing remain OUT OF SCOPE. No Vision reboot, kernel/firmware change,
+  keep-alive traffic, D/J or attacker campaign, manual ownership edits, weaker restoration checks, or relaxed
+  timing thresholds (100 us unchanged). Keep three evidence tiers distinct in every record: software-reference
+  encoding; software master/outstation through the switch; physical SEL-751 through the switch (only the third
+  qualifies the relay deliverable).
 - Implementation work (separate candidate code, offline tests, protocol-aware padding and response carving,
   isolated BMv2 work, compiler evidence, analysis) is authorized, as it has been since the 2026-10-06 Case 4
   scope. Cases 1–3 remain explanation-only history.
