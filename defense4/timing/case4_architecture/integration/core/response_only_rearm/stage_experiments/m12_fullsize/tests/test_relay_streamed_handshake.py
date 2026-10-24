@@ -17,7 +17,7 @@ import test_relay_handshake_deposit as hs
 class StreamedHandshake(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        with patch.object(relay_sbo, 'retry_fin_phase', side_effect=lambda src: src), \
+        with patch.object(relay_sbo, 'retry_fin_phase', side_effect=lambda src: src), patch.object(relay_sbo, 'half_closed_rst', side_effect=lambda src: src), \
                 patch.object(relay_sbo, 'canonical_profile_keys', side_effect=lambda src: src):
             with patch.object(relay_ts, 'stream_handshake_options', side_effect=lambda src: src):
                 cls.original, _ = build(**ts.FLAGS, relay_ts=True)

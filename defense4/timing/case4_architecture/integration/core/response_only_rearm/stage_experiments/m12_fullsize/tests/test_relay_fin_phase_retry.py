@@ -4,8 +4,10 @@ import re
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from m12gen import relay_sbo
 from m12gen.build import build
 import test_n_read_shapes as shared
 import test_relay_ts as ts
@@ -26,6 +28,9 @@ class RelayFINPhaseRetry(unittest.TestCase):
     def setUpClass(cls):
         cls.original = (shared.STAGE / 'ctl_timing_01/evidence/m12p_c49_sdk9132/response_only.p4').read_text()
         cls.selected, _ = build(**ts.FLAGS, relay_ts=True)
+        # Source isolation of this layer excludes the later c51 half-closed RST rows.
+        with patch.object(relay_sbo, 'half_closed_rst', side_effect=lambda src: src):
+            cls.layer, _ = build(**ts.FLAGS, relay_ts=True)
 
     def test_exact_c49_fin_snapshot_loses_to_ack_then_recomputes_without_losing_flags(self):
         self.assertEqual(hashlib.sha256(self.original.encode()).hexdigest(),
@@ -120,8 +125,8 @@ class RelayFINPhaseRetry(unittest.TestCase):
     def test_only_existing_boundary_table_gains_three_bounded_fin_rows(self):
         def erase(text):
             return re.sub(r'table reset_boundary\{[^\n]+', '<reset_boundary>', text)
-        self.assertEqual(erase(self.selected), erase(self.original))
-        n = shared.n_source(self.selected)
+        self.assertEqual(erase(self.layer), erase(self.original))
+        n = shared.n_source(self.layer)
         rows = n.controls['Ingress'].tables['reset_boundary']['entries']
         self.assertEqual(len(rows), 10)
 

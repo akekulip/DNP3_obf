@@ -511,10 +511,76 @@ class PacketGate:
                                         ('both_statuses', (1, 2), b'\x00\x00'),
                                         ('iin_error', (0, 0), b'\x00\x01')):
                 state = self.failed_select_case('failed_SELECT_' + tag, *state, statuses=statuses, iin=iin)
+        if rp.SEL751:
+            self.half_closed_rst(*state)
         if rp.TCP_TIMESTAMPS:
             self.add('timestamp_options_receive_order', True,
                      rp.timestamp_order_ok([frame for _time, frame in self.captures['received']]))
         self.report.record['meta']['reflections'] = {r.port: r.summary() for r in self.reflectors}
+
+    def n_state(self):
+        m, h = self.m, self.h
+        state = {n: m.register_read('p0.n_Ingress.' + n, 0, pipe=0)
+                 for n in ('epoch', 'retry_epoch', 'owner', 'work.work')}
+        state['busy'] = [h.scalar(m.register_read('p0.n_Ingress.count_busy', i, pipe=0)) for i in range(8)]
+        return state
+
+    def half_closed_rst(self, cseq, native_sseq, wire_sseq, tag='half_rst'):
+        """c50 counterexample: a valid master RSTACK after master FIN + relay ACK (owner 0109).
+
+        The work cell is held busy so the RST takes the actual busy_retry_rst path, then
+        released. Reset forwarding, retirement and a fresh handshake+READ are recorded as
+        separate checks; a failed SYN stops before any dependent READ is counted.
+        """
+        m, h, v, add = self.m, self.h, self.v, self.report.add
+        meta = self.report.record['meta'].setdefault(tag, {})
+        cseq, native_sseq, wire_sseq = self.read_exchange(tag + '_read', cseq, native_sseq, wire_sseq, seq=5)
+        self.exchange(tag + '_master_FIN', v.packet(17, cseq, wire_sseq), v.packet(17, cseq, native_sseq))
+        self.exchange(tag + '_relay_ACK', v.packet(16, native_sseq, cseq + 1, reverse=True),
+                      v.packet(16, wire_sseq, cseq + 1, reverse=True), reverse=True)
+        half = meta['half_closed'] = self.n_state()
+        self.add(tag + '_owner_half_closed_0109', 0x109, h.scalar(half['owner']) >> 16)
+        work = half['work.work']
+        generation = work['n_Ingress.work.work.generation']
+        generation = generation[0] if isinstance(generation, list) else generation
+        # Hold the cell busy (phase1) with its real generation; restore phase4 on unlock.
+        m.register_write('p0.n_Ingress.work.work', 0,
+                         {'n_Ingress.work.work.generation': generation, 'n_Ingress.work.work.phase': 1}, pipe=0)
+        m.drain(self.ports)
+        sent = v.packet(20, cseq + 1, wire_sseq)
+        self.captures['sent'].append((time.time_ns() // 1000, sent))
+        m.send(self.master.dev_port, sent)
+        anchor, deadline = None, time.monotonic() + 3
+        while time.monotonic() < deadline:   # one register read per poll: the retry budget is finite
+            busy2 = h.scalar(m.register_read('p0.n_Ingress.count_busy', 2, pipe=0))
+            if busy2 > half['busy'][2]:
+                anchor = busy2
+                break
+        meta['busy_anchor_before_unlock'] = anchor
+        m.register_write('p0.n_Ingress.work.work', 0,
+                         {'n_Ingress.work.work.generation': generation, 'n_Ingress.work.work.phase': 4}, pipe=0)
+        got = m.capture(self.ports, timeout=3, quiet=.3)
+        self.captures['received'].extend((time.time_ns() // 1000, f) for fs in got.values() for f in fs)
+        after = meta['after_reset'] = self.n_state()
+        meta['received'] = {str(p): [f.hex() for f in fs] for p, fs in got.items()}
+        expected = v.packet(20, cseq + 1, native_sseq)
+        relay_frames = got.get(self.relay.dev_port, [])
+        add(tag + '_busy_retry_rst_anchor_before_unlock', True, anchor is not None)
+        add(tag + '_RSTACK_forwarded_exactly_once', 1,
+            sum(h.same_frame(f, expected, sent) for f in relay_frames),
+            ok=len(relay_frames) == 1 and h.same_frame(relay_frames[0], expected, sent) and
+            not got.get(self.master.dev_port), received=meta['received'], expected_frame=expected.hex())
+        add(tag + '_no_stale', 0, after['busy'][4] - half['busy'][4])
+        add(tag + '_not_exhausted', 0, after['busy'][3] - half['busy'][3])
+        add(tag + '_retired_0200', 0x200, h.scalar(after['owner']) >> 16)
+        # A failed SYN ends the case: the dependent READ is never attempted or counted.
+        try:
+            state = self.handshake(cseq + 3000, native_sseq + 3000, tag + '_fresh_')
+        except AssertionError:
+            add(tag + '_fresh_handshake', 'completed', 'failed', ok=False)
+            return
+        add(tag + '_fresh_handshake', 'completed', 'completed')
+        self.read_exchange(tag + '_fresh_read', *state, seq=6)
 
 
 def model_main():

@@ -1,0 +1,326 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "expected_frame": "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200001117000000000a002100018b40000020405b40402080a000f42400000000001030307",
+   "name": "half_rst_SYN",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200001117000000000a002100018b40000020405b40402080a000f42400000000001030307"
+    ],
+    "9": []
+   },
+   "sent": "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200001117000000000a002100018b40000020405b40402080a000f42400000000001030307"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e81200015f9000011171b01210003db20000020405b401030300010104020101080a000f6951000f4240",
+   "name": "half_rst_SYNACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e81200015f9000011171b01210003db20000020405b401030300010104020101080a000f6951000f4240"
+    ]
+   },
+   "sent": "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e81200015f9000011171b01210003db20000020405b401030300010104020101080a000f6951000f4240"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001117100015f91801010007e7b00000101080a000f4242000f6951",
+   "name": "half_rst_ACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001117100015f91801010007e7b00000101080a000f4242000f6951"
+    ],
+    "9": []
+   },
+   "sent": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001117100015f91801010007e7b00000101080a000f4242000f6951"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "0030a7024ca23cfdfecc5dc008004500004d000140004006a551c0a80a01c0a80a07e8124e200001117100015f9180181000d79200000101080a000f4243000f6951056412c400000100d0bbc0c501010200000f1e010000070bd4",
+   "name": "half_rst_read_request",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500004d000140004006a551c0a80a01c0a80a07e8124e200001117100015f9180181000d79200000101080a000f4243000f6951056412c400000100d0bbc0c501010200000f1e010000070bd4"
+    ],
+    "9": []
+   },
+   "sent": "0030a7024ca23cfdfecc5dc008004500004d000140004006a551c0a80a01c0a80a07e8124e200001117100015f9180181000d79200000101080a000f4243000f6951056412c400000100d0bbc0c501010200000f1e010000070bd4"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "3cfdfecc5dc00030a7024ca2080045000034000140004006a56ac0a80a07c0a80a014e20e81200015f910001118a801010007e5e00000101080a000f6954000f4243",
+   "name": "half_rst_read_server_ack",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000034000140004006a56ac0a80a07c0a80a014e20e81200015f910001118a801010007e5e00000101080a000f6954000f4243"
+    ]
+   },
+   "sent": "3cfdfecc5dc00030a7024ca2080045000034000140004006a56ac0a80a07c0a80a014e20e81200015f910001118a801010007e5e00000101080a000f6954000f4243"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "3cfdfecc5dc00030a7024ca20800450000c1000140004006a4ddc0a80a07c0a80a014e20e81200015f910001118a80181000d1af00000101080a000f6955000f42430564274401000000c8c245c5818000010201000419040000000086d600000000000000000000000000000000ffff0000ffff05644c4401000000bb948600000000010200000f8101010101010684010101010101010101011e0100000701e70802000000010900000001020000000105431700000001080000000105000000010e00684b0000013c000000ed51",
+   "name": "half_rst_read_response61",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca20800450000c1000140004006a4ddc0a80a07c0a80a014e20e81200015f910001118a80181000d1af00000101080a000f6955000f42430564274401000000c8c245c5818000010201000419040000000086d600000000000000000000000000000000ffff0000ffff05644c4401000000bb948600000000010200000f8101010101010684010101010101010101011e0100000701e70802000000010900000001020000000105431700000001080000000105000000010e00684b0000013c000000ed51"
+    ]
+   },
+   "sent": "3cfdfecc5dc00030a7024ca208004500008f000140004006a50fc0a80a07c0a80a014e20e81200015f910001118a80181000a70b00000101080a000f6955000f424305644c4401000000bb94c5c5818000010200000f810101010101cfa5010101010101010101011e0100000701e70802000000010900000001020000000105431700000001080000000105000000010e00684b0000013c000000ed51"
+  },
+  {
+   "expected": 141,
+   "name": "half_rst_read_payload_len",
+   "observed": 141,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001118a00015fec801010007dff00000101080a000f4246000f6955",
+   "name": "half_rst_read_mapped_ack",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001118a00015fec801010007dff00000101080a000f4246000f6955"
+    ],
+    "9": []
+   },
+   "sent": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001118a0001601e801010007dcd00000101080a000f4246000f6955"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001118a00015fec801110007dfd00000101080a000f4247000f6955",
+   "name": "half_rst_master_FIN",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001118a00015fec801110007dfd00000101080a000f4247000f6955"
+    ],
+    "9": []
+   },
+   "sent": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001118a0001601e801110007dcb00000101080a000f4247000f6955"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "3cfdfecc5dc00030a7024ca2080045000034000140004006a56ac0a80a07c0a80a014e20e8120001601e0001118b801010007dc800000101080a000f6958000f4247",
+   "name": "half_rst_relay_ACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000034000140004006a56ac0a80a07c0a80a014e20e8120001601e0001118b801010007dc800000101080a000f6958000f4247"
+    ]
+   },
+   "sent": "3cfdfecc5dc00030a7024ca2080045000034000140004006a56ac0a80a07c0a80a014e20e81200015fec0001118b801010007dfa00000101080a000f6958000f4247"
+  },
+  {
+   "expected": 265,
+   "name": "half_rst_owner_half_closed_0109",
+   "observed": 265,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "half_rst_busy_retry_rst_anchor_before_unlock",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "expected_frame": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001118b00015fec801410007df400000101080a000f4249000f6958",
+   "name": "half_rst_RSTACK_forwarded_exactly_once",
+   "observed": 0,
+   "ok": false,
+   "received": {
+    "64": [],
+    "9": []
+   }
+  },
+  {
+   "expected": 0,
+   "name": "half_rst_no_stale",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": 0,
+   "name": "half_rst_not_exhausted",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": 512,
+   "name": "half_rst_retired_0200",
+   "observed": 265,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e2000011d4200000000a00210000cd90000020405b40402080a000f42490000000001030307",
+   "name": "half_rst_fresh_SYN",
+   "observed": 0,
+   "ok": false,
+   "received": {
+    "64": [],
+    "9": []
+   },
+   "sent": "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e2000011d4200000000a00210000cd90000020405b40402080a000f42490000000001030307"
+  },
+  {
+   "expected": "completed",
+   "name": "half_rst_fresh_handshake",
+   "observed": "failed",
+   "ok": false
+  }
+ ],
+ "meta": {
+  "driver_sha256": "d234c8ea048d65d7a940b35aeea46df1cd613f28ae70c506d7d967957bd1dd4e",
+  "endpoint_profile": {
+   "alternate_tcp_port_fixture": "Unconfigured-connection probes use master source port 59411",
+   "dnp_master": 1,
+   "dnp_relay": 0,
+   "master_dev": 9,
+   "master_ip": "192.168.10.1",
+   "master_mac": "3c:fd:fe:cc:5d:c0",
+   "master_tcp_port": 59410,
+   "master_window_scale": 7,
+   "name": "sel751",
+   "relay_dev": 64,
+   "relay_ip": "192.168.10.7",
+   "relay_mac": "00:30:a7:02:4c:a2",
+   "relay_tcp_port": 20000,
+   "relay_window_scale": 0,
+   "syn_tcp_header_octets": 40,
+   "synack_tcp_header_octets": 44,
+   "tcp_header_octets": 32,
+   "tcp_profile": "sel751_ts",
+   "timestamp_policy": "monotonic logical steps; exact options retained across seq/ack mapping"
+  },
+  "half_rst": {
+   "after_reset": {
+    "busy": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.epoch.f1": [
+      1
+     ]
+    },
+    "owner": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.owner.f1": [
+      17367041
+     ]
+    },
+    "retry_epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.retry_epoch.f1": [
+      1
+     ]
+    },
+    "work.work": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.work.work.generation": [
+      8
+     ],
+     "n_Ingress.work.work.phase": [
+      4
+     ]
+    }
+   },
+   "busy_anchor_before_unlock": 1,
+   "half_closed": {
+    "busy": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.epoch.f1": [
+      1
+     ]
+    },
+    "owner": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.owner.f1": [
+      17367041
+     ]
+    },
+    "retry_epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.retry_epoch.f1": [
+      1
+     ]
+    },
+    "work.work": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.work.work.generation": [
+      8
+     ],
+     "n_Ingress.work.work.phase": [
+      4
+     ]
+    }
+   },
+   "received": {
+    "64": [],
+    "9": []
+   }
+  },
+  "physical": false,
+  "qualification_driver": false,
+  "scope": "diagnostic: half-closed RSTACK counterexample only"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "half_rst_RSTACK_forwarded_exactly_once",
+   "half_rst_retired_0200",
+   "half_rst_fresh_SYN",
+   "half_rst_fresh_handshake"
+  ],
+  "passed": 14,
+  "total": 18
+ }
+}

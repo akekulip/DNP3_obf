@@ -66,7 +66,7 @@ class RelayStaticProfileKeys(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.original = (shared.STAGE / 'ctl_timing_01/evidence/m12p_c48_sdk9132/response_only.p4').read_text()
-        with patch.object(relay_sbo, 'retry_fin_phase', side_effect=lambda src: src):
+        with patch.object(relay_sbo, 'retry_fin_phase', side_effect=lambda src: src), patch.object(relay_sbo, 'half_closed_rst', side_effect=lambda src: src):
             cls.selected, _ = build(**ts.FLAGS, relay_ts=True)
 
     def test_c48_loader_predicts_every_observed_bad_tail_field(self):

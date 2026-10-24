@@ -190,8 +190,35 @@ def transform(src):
     n = once(n, '(16w0x0564,8w38,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w0x81,8w10,8w2,8w0,8w0,8w22):eligible();', '')
     src = once(src, 'const PortId_t t_RELAY_PORT    = 9w9;', 'const PortId_t t_RELAY_PORT    = 9w64;')
     src = once(src, old_n, n)
-    return retry_fin_phase(canonical_profile_keys(relay_departure_provenance(separate_checksum_conditions(
-        transform_profile_crc(transform_status_lookup(transform_e(src)))))))
+    return half_closed_rst(retry_fin_phase(canonical_profile_keys(relay_departure_provenance(separate_checksum_conditions(
+        transform_profile_crc(transform_status_lookup(transform_e(src))))))))
+
+
+# Owner phases 0x101..0x10f as four disjoint ternary bands (low16 generation wildcard).
+HALF_CLOSED_BANDS = ((0x01010000, 0xfff10000), (0x01020000, 0xfff30000),
+                     (0x01040000, 0xfff70000), (0x01080000, 0xffff0000))
+HALF_CLOSED_ROWS = 2 * len(HALF_CLOSED_BANDS)   # both directions per band
+
+
+def half_closed_rst(src):
+    """Admit a sequence-valid RST/RSTACK while the owner is half-closed.
+
+    c50 fin_busy02: after master FIN and relay ACK the owner is 0109. A valid
+    RSTACK yields seq_fin5 and close_phase_t qualifies desired0x200 (work-free
+    stage0 applies close_phase_t before first_event), but first_event covered
+    only ACK16/FIN17 in those phases, so the reset was ignored and later SYNs
+    stayed blocked. Eight rows reuse first_close for exactly flags 4/20,
+    sequence_valid {1,5}, both directions and phases 0x101..0x10f. Epoch,
+    generation, work/CAS and retry guards downstream are unchanged.
+    """
+    start = src.index('table first_event{')
+    end = src.index('}}', start) + 2
+    table = once(src[start:end], 'size=176;', 'size=%d;' % (176 + HALF_CLOSED_ROWS))
+    rows = ''.join('(8w4,3w1&&&3w3,_,32w%#x&&&32w%#x,_,_,2w%d,8w4&&&8w0xef,_,_,_):first_close();'
+                   % (value, mask, direction)
+                   for value, mask in HALF_CLOSED_BANDS for direction in (1, 2))
+    table = table[:-2] + rows + '}}'
+    return src[:start] + table + src[end:]
 
 
 def retry_fin_phase(src):

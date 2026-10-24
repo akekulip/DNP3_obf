@@ -20,6 +20,7 @@ class EgressLengthOrder(unittest.TestCase):
     def setUpClass(cls):
         with ExitStack() as patches:
             patches.enter_context(patch.object(relay_sbo, 'retry_fin_phase', side_effect=lambda src: src))
+            patches.enter_context(patch.object(relay_sbo, 'half_closed_rst', side_effect=lambda src: src))
             patches.enter_context(patch.object(relay_sbo, 'canonical_profile_keys', side_effect=lambda src: src))
             patches.enter_context(patch.object(relay_sbo, 'relay_departure_provenance', side_effect=lambda src: src))
             for name in ('stream_handshake_options', 'padder_crc_placement'):
