@@ -6,6 +6,9 @@ beside them (model_*.log.xz). This writes each original back only if it is absen
 decompressed bytes hash to the value that run's closure pinned at launch. An existing log is checked, never
 replaced.
 
+Additional evidence/*_dependency_retention_*/manifest.json files supply archive and original-byte pins for
+other retained runs. Conflicting pins for one log fail before any restoration; reset closure pins still apply.
+
   python3 restore_retained_logs.py      # exit 1 on any missing pin or hash mismatch
 """
 import hashlib
@@ -23,8 +26,27 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def retained_logs():
+    manifests = set(RETENTION.parent.parent.glob('*_dependency_retention_*/manifest.json'))
+    if RETENTION.exists():
+        manifests.add(RETENTION)
+    retained, owners = {}, {}
+    pin_fields = ('sha256', 'archive', 'archive_sha256')
+    for manifest in sorted(manifests):
+        for log, record in json.loads(manifest.read_text()).get('logs', {}).items():
+            if log in retained and any(record.get(key) != retained[log].get(key) for key in pin_fields):
+                raise ValueError('conflicting retained log pins for %s in %s and %s' % (log, owners[log], manifest))
+            retained[log] = record
+            owners[log] = manifest
+    return retained
+
+
 def main():
-    retained = json.loads(RETENTION.read_text()).get('logs', {}) if RETENTION.exists() else {}
+    try:
+        retained = retained_logs()
+    except ValueError as error:
+        print('FAIL %s' % error)
+        return 1
     archives = sorted(set(EVIDENCE.glob('model_*_m12p_*/model_*.log.xz')) |
                       set(EVIDENCE.glob('model_*_m12p_*/model.out.xz')))
     if not archives:
@@ -58,7 +80,13 @@ def main():
             print('FAIL %s: archive does not decompress to the pinned sha256' % archive)
             failures += 1
             continue
-        log.write_bytes(data)
+        try:
+            with log.open('xb') as output:
+                output.write(data)
+        except FileExistsError:
+            print('FAIL %s: appeared during restoration; existing bytes preserved' % log)
+            failures += 1
+            continue
         print('ok   %s (restored, sha256 %s)' % (log.relative_to(EVIDENCE), pinned[:12]))
     return 1 if failures else 0
 

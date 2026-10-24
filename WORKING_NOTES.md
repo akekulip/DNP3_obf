@@ -2914,3 +2914,6 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   Smoke01 passes15checks through handshake, padded mixed READ and mapped ACK, then SELECT_request has no departure.
   This second runtime defect blocks the model gate; raw logs/captures remain retained. Generated eight physical
   configs are preparation only: no freeze authorizes this failed candidate and no hardware load has occurred.
+- Retained-log restoration now reads multiple candidate dependency-retention manifests, rejects conflicting pins
+  before any restoration, preserves reset-checker pin consistency and uses exclusive creation to protect an existing
+  or concurrently created log. Fifteen focused tests pass; independent review approves. No live logs were changed.
