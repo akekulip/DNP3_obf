@@ -1,0 +1,95 @@
+{
+ "time": 1792882880.948856,
+ "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c51_20261024_05_persistence_graceful_950",
+ "checks": {
+  "runner_restore": {
+   "record": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c51_20261024_05_persistence_graceful_950/campaign_run.json",
+   "steps": [
+    {
+     "step": "cold-swap bf_switchd back to the observed production program",
+     "rc": 0,
+     "ok": true
+    },
+    {
+     "step": "replay the pre-run $PORT snapshot on the production program",
+     "rc": 0,
+     "ok": true
+    },
+    {
+     "step": "reinstall the relay slot",
+     "rc": 0,
+     "ok": true
+    },
+    {
+     "step": "Vision: fixture off, namespace profile and NIC flag restored",
+     "rc": 255,
+     "ok": false
+    },
+    {
+     "step": "ping through the restored switch path",
+     "rc": 255,
+     "ok": false
+    }
+   ],
+   "missing": []
+  },
+  "program": {
+   "program": "case4_response_path",
+   "conf": "/home/decps/Philip_repo/logs/bringup_20261005/case4_response_path_conf.json"
+  },
+  "snapshot": {
+   "pre": "rc01_hw_c51_20261024_05_persistence_graceful_950_prerun.json",
+   "tables_compared": 399,
+   "volatile_ignored": [
+    "$PORT_STAT",
+    "log_tbl_counter",
+    "tbl_dbg_counter",
+    "tf1.log_tbl_counter"
+   ],
+   "errors": []
+  },
+  "vision_state": {
+   "rc": 255,
+   "state": "",
+   "baseline": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_baseline/vision_state_20261015.txt"
+  },
+  "vision_receive_offloads": {
+   "rc": 255,
+   "ethtool": "",
+   "baseline": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c51_20261024_05_persistence_graceful_950/vision_offload_baseline.json",
+   "failures": [
+    "Vision receive offloads differ from pre-capture baseline: actual {}, baseline {'gro': True, 'lro': False, 'rx-gro-hw': False, 'rx-gro-list': False}"
+   ]
+  },
+  "vision_rx_coalescing": {
+   "rc": 255,
+   "ethtool": "",
+   "baseline": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_baseline/vision_rx_coalesce_20261022.json",
+   "failures": [
+    "Vision RX coalescing unreadable: "
+   ]
+  },
+  "vision_cpu_latency": {
+   "rc": 255,
+   "probe": "",
+   "stderr": "ssh: connect to host 10.10.54.166 port 22: No route to host\n",
+   "baseline": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_baseline/vision_cpu_dma_latency_20261022.json",
+   "failures": [
+    "Vision CPU latency unreadable: "
+   ]
+  },
+  "ping": {
+   "rc": 255,
+   "tail": ""
+  }
+ },
+ "ok": false,
+ "failures": [
+  "runner restore step(s) failed: ['Vision: fixture off, namespace profile and NIC flag restored', 'ping through the restored switch path']",
+  "Vision state differs from the baseline (rc 255): ",
+  "Vision receive offloads differ from pre-capture baseline: actual {}, baseline {'gro': True, 'lro': False, 'rx-gro-hw': False, 'rx-gro-list': False}",
+  "Vision RX coalescing unreadable: ",
+  "Vision CPU latency unreadable: ",
+  "ping through the restored path failed (rc 255)"
+ ]
+}

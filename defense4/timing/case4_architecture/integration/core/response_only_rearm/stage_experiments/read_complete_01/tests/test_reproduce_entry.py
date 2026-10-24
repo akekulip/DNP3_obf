@@ -50,6 +50,7 @@ class ReproduceEntry(unittest.TestCase):
         identities = {
             'c49': '995386583fc373e9a770b22e50194b49c246afc0e1c5789ccd099d9ae0b31bc2',
             'c50': '1c4138ede50aaea8a662f0fba4db6b6dac2916cad46679b5d16599d34f67f43b',
+            'c51': '3fe7087971f165942f8af1c94cceab5d0bef163d5d83708957d03fc270065598',
         }
         for candidate, source in identities.items():
             with self.subTest(candidate=candidate):

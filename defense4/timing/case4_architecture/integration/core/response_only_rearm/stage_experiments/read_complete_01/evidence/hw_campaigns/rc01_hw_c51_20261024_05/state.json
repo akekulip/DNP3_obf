@@ -1,0 +1,44 @@
+{
+  "active_step": null,
+  "active_unit": null,
+  "campaign_id": "rc01_hw_c51_20261024_05",
+  "controller_generation": 1,
+  "controller_unit": "dnp3-eval-rc01_hw_c51_20261024_05-c718544a5b40-controller-1.service",
+  "created": 1792881744.0466008,
+  "deadline": 1792968144.1610255,
+  "evidence_kind": "hardware",
+  "manifest_sha256": "75bdb1025b40f9c838a24d399f1442d825b6056452bdc66051f321624c7b4267",
+  "phase": "stopped",
+  "start": 1792881744.1610255,
+  "started": true,
+  "steps": {
+    "rc01_hw_c51_20261024_05_persistence_graceful_950": {
+      "artifact_manifest": {
+        "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c51_20261024_05_persistence_graceful_950/artifact_manifest.json",
+        "sha256": "94c4d4ca1e0e660d76aab760dfcd9ecaca350eac00cdaa547384ecebe47933e4"
+      },
+      "finished": 1792882901.6843007,
+      "hardware_entry": 1792881744.2305148,
+      "id": "rc01_hw_c51_20261024_05_persistence_graceful_950",
+      "kind": "block",
+      "manifest_sha256": "75bdb1025b40f9c838a24d399f1442d825b6056452bdc66051f321624c7b4267",
+      "postcheck_rc": null,
+      "rc": 2,
+      "reason": "unsafe_restoration",
+      "restoration": {
+        "device": 2050,
+        "inode": 51785586,
+        "mtime_ns": 1792882901647759792,
+        "ok": false,
+        "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c51_20261024_05_persistence_graceful_950/restore_verify.json",
+        "sha256": "eccf9965e95c5f86d06904d0c8fff33c0059a3696c98b6ed1e8dbe08f71b40f2",
+        "size": 3429
+      },
+      "started": 1792881744.2249196,
+      "status": "failed",
+      "unit": "dnp3-eval-rc01_hw_c51_20261024_05-c718544a5b40-step-rc01_hw_c51_20261024_05_persistence_graceful_950.service"
+    }
+  },
+  "stop_after_current": false,
+  "stop_reason": "unsafe_restoration"
+}
