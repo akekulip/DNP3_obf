@@ -23,12 +23,26 @@ def case4_relative(path):
     return str(Path(path).resolve().relative_to(ARCH.resolve()))
 
 
-def relay_config(template):
+def read_link_addresses(native_dir):
+    """(read_dst, read_src) in the installer's wire order, from the native relay READ requests.
+
+    N compares the parsed link header (hdr.dl.dst/src, the octets as sent: DNP3 addresses are little-endian)
+    with read_configure's values. rc01_hw_c51_20261024_11's MAU snapshot showed the logical src 1 against the
+    wire 0x0100 setting m.badh, so every READ was refused before admission."""
+    records = json.loads((Path(native_dir) / 'master.json').read_text())['records']
+    headers = {bytes.fromhex(r['request_wire_hex'])[:8] for r in records if r['operation'] == 'READ'}
+    pairs = {(int.from_bytes(h[4:6], 'big'), int.from_bytes(h[6:8], 'big')) for h in headers}
+    if len(pairs) != 1 or any(h[:2] != b'\x05\x64' for h in headers):
+        raise ValueError('native READ requests do not share one link address pair: %s' % sorted(pairs))
+    return pairs.pop()
+
+
+def relay_config(template, read_dst, read_src):
     cfg = copy.deepcopy(template)
     cfg['endpoint_profile'] = 'sel751'
     cfg['endpoint'] = copy.deepcopy(endpoint_profiles.COMMAND)
     cfg['endpoints'] = dict(master_ip=endpoint_profiles.MASTER_IP, outstation_ip=endpoint_profiles.RELAY_IP,
-                            outstation_port=20000, read_src=1, read_dst=0)
+                            outstation_port=20000, read_src=read_src, read_dst=read_dst)
     cfg['ports_map'].update(master_dev=9, relay_dev=64)
     cfg['hosts'].update(vision='decps@10.10.54.166', vision_run_dir='/home/decps/sel751_guarded_20261024')
     cfg['fixture'] = dict(modes=['physical_relay'], delay_ms=0, jitter_ms=0)
@@ -107,7 +121,7 @@ def main(argv=None):
     args.output.mkdir(parents=True, exist_ok=True)
     for block in (('smoke',) if args.diagnostic_mau_snapshot else BLOCKS):
         template = HERE / 'config' / ('rc01_%s_%s.json' % (args.template_build, 'reference' if block == 'smoke' else block))
-        cfg = relay_config(json.loads(template.read_text()))
+        cfg = relay_config(json.loads(template.read_text()), *read_link_addresses(args.native_observation.parent))
         if block == 'smoke':
             cfg['arms'] = [arm for arm in cfg['arms'] if arm['name'] == 'size_only']
             cfg['trials'] = dict(reads_per_trial=2, trials_per_arm=1)

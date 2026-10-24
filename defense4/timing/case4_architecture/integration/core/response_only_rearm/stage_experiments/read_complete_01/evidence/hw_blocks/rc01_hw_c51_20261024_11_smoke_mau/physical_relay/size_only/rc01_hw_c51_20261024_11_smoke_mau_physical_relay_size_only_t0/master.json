@@ -1,0 +1,67 @@
+{
+  "schema": "sel751-master-v1",
+  "endpoint_profile": "sel751",
+  "ok": false,
+  "records": [
+    {
+      "operation": "READ",
+      "function": 1,
+      "app_seq": 0,
+      "outcome": "TIMEOUT",
+      "t_send": 426676.609419849,
+      "t_complete": 426679.612682795,
+      "elapsed_ms": 3003.2629459747113,
+      "budget_ms": 3000,
+      "remaining_ms_at_completion": -3.2629459747113287,
+      "response_function": null,
+      "iin": null,
+      "points": [],
+      "problems": [
+        "receive timed out with 0.000 ms of budget remaining"
+      ],
+      "stale_frames_discarded": 0,
+      "bytes_left_buffered": 0,
+      "request_wire_hex": "056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+      "request_app_hex": "c001010200000f1e01000007",
+      "request_frames_hex": [
+        "056412c400000100d0bbc0c001010200000f1e01000007fb5c"
+      ],
+      "response_wire_hex": "",
+      "response_app_hex": null,
+      "response_frames_hex": [],
+      "received_frames_hex": [],
+      "transport_bytes_buffered": 0,
+      "received_wire_hex": "",
+      "response_objects": [],
+      "local_address": [
+        "192.168.10.1",
+        60000
+      ],
+      "peer_address": [
+        "192.168.10.7",
+        20000
+      ],
+      "t_first_response": null,
+      "ack_evidence": "not observable at the application layer; requires a link capture",
+      "ok": false,
+      "workload": "mixed"
+    }
+  ],
+  "counts": {
+    "READ": 0,
+    "SELECT": 0,
+    "OPERATE": 0
+  },
+  "planned": {
+    "READ": 2,
+    "SELECT": 0,
+    "OPERATE": 0
+  },
+  "read_pause_ms": 25,
+  "run_sbo": false,
+  "close_grace_ms": 0,
+  "sbo_cycles": 0,
+  "read_schedule": "mixed_full",
+  "close_mode": "graceful",
+  "observation_scope": "master application/socket; TCP ACK evidence requires pcap"
+}
