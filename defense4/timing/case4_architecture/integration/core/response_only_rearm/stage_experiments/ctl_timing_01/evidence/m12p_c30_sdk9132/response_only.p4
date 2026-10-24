@@ -2574,7 +2574,7 @@ control x_Egress(inout x_headers_t hdr, inout x_meta_t m, in egress_intrinsic_me
         hdr.pluc.setValid(); hdr.pluc.crc = m.pl_uc2[7:0] ++ m.pl_uc2[15:8];
         hdr.rh.tpctrl = m.co_tp; hdr.rh.appctrl = 8w0; hdr.rh.func = 8w0; hdr.rh.iin = 16w0;
         hdr.c0.crc = m.co_c0[7:0] ++ m.co_c0[15:8];
-        hdr.ip.len = 16w311; m.len_delta = 16w24;
+        hdr.ip.len = 16w198; m.len_delta = 16w24;
     }
     table prefix_full_t { actions = { prefix_full; } size = 1; const default_action = prefix_full(); }
     apply {

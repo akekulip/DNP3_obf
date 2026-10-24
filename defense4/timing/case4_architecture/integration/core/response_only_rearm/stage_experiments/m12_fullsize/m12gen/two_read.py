@@ -436,7 +436,8 @@ def transform_two_read_reduce(src, _image=None):
         compare for every field value (checked exhaustively over 20 random blocks x 65,536 field values).
       - the outcome index is written where the outcome is decided (parser default 2, p1_pad_ok 3, pad_mx/pad_full 1)
         instead of an if/else chain after the tables; padding requires conn_ok, so the three cases are unchanged.
-      - IP length set to the constants 181/311: read_profile matches ip.len 131/287 exactly.
+      - IP length folded to an absolute per-shape constant (native ip.len + added): mixed 181, full 311 (software)
+        or 198 (relay); read_profile matches the native ip.len exactly.
       - deparser checksum conditions on one-bit flags set by pad_mx/pad_full instead of hdr.plz/plu2 validity
         (those headers become valid only in prefix_mx/prefix_full, which run exactly for those actions).
     E (e1): drop the rbad0/rbad1/rbadt compares. Their headers c0/c1/c2 are extracted only by parser state read_b0,
@@ -461,8 +462,15 @@ def transform_two_read_reduce(src, _image=None):
                '    action pad_mx() { m.pad = 1; m.full = 0; m.mx = 1; m.p1_res = 2w1; }\n'
                '    action pad_full() { m.pad = 1; m.full = 1; m.fl = 1; m.p1_res = 2w1; }')
     src = once(src, '    action p1_pad_ok() { m.conn_ok = 1; }', '    action p1_pad_ok() { m.conn_ok = 1; m.p1_res = 2w3; }')
-    src = once(src, 'hdr.ip.len = hdr.ip.len + 16w50; m.len_delta = 16w50;', 'hdr.ip.len = 16w181; m.len_delta = 16w50;')
-    src = once(src, 'hdr.ip.len = hdr.ip.len + 16w24; m.len_delta = 16w24;', 'hdr.ip.len = 16w311; m.len_delta = 16w24;')
+    # fold the padded image's IP total length to an absolute constant = native ip.len + added bytes. Both are
+    # per-shape (two_read_shapes): mixed 131+50=181 (tier-invariant), full 287+24=311 software / 174+24=198 relay.
+    # Hardcoding the full value broke the relay build, which emitted a correct 158-B image under a software 271-B
+    # ip.len (model_two_read_robust R_integrity_response).
+    _cm, _cf = two_read_shapes()
+    src = once(src, 'hdr.ip.len = hdr.ip.len + 16w50; m.len_delta = 16w50;',
+               'hdr.ip.len = 16w%d; m.len_delta = 16w50;' % (_cm['native_ip_len'] + _cm['added']))
+    src = once(src, 'hdr.ip.len = hdr.ip.len + 16w24; m.len_delta = 16w24;',
+               'hdr.ip.len = 16w%d; m.len_delta = 16w24;' % (_cf['native_ip_len'] + _cf['added']))
     src = once(src, 'if (m.conn_ok == 1w1 && hdr.c0.crc == (m.in_rb0[7:0] ++ m.in_rb0[15:8])) { read_profile.apply(); }',
                'if (m.conn_ok == 1w1 && m.in_rb0 == 16w0x993a) { read_profile.apply(); }   // CRC residue: block CRC correct')
     src = once(src, '                m.p1_res = 2w1;\n            }\n'

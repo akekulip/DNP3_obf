@@ -2695,3 +2695,28 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   two files (+28/-2). Testbed untouched (switch still cold on case4_response_path; no candidate loaded).
 - READ-side c30 is now DERIVED + GENERATED + COMPILED + SEALED (gate-ready). Remaining (model 14-driver run,
   SBO shape, hardware four-arm) still exercise SELECT/OPERATE control content -> unblocked run / Philip.
+
+### 2026-10-24 — c30 relay integrity bug FOUND + FIXED on the executing model (correction #1/#4 realized)
+- Ran the sealed c30 through the model drivers. `smoke` 30/30. `two_read_robust` caught a real defect:
+  `R_integrity_response` emitted 0 frames -> the relay integrity READ (134->158) was not validated at all.
+- Root cause #1 (test vectors, Philip's correction #1/#4): `two_read_templates.json` carries the SOFTWARE
+  integrity native (247 B); mixed is 91 B in both tiers so it masked the gap. The driver fed 247 to a build that
+  pads the relay 134 -> dropped. Fix: new `make_two_read_templates_relay.py` + `two_read_templates_relay.json`
+  (real SEL-751 captures, 91/134, padded to 141/158 via gp.pad_read); `model_policy._two_templates()` now selects
+  the template set whose native lengths are in `read_policy_expect.SHAPES` and fails loudly on a tier mismatch.
+  After this, R_integrity_response emitted a frame -- but still FAILED byte-exactness.
+- Root cause #2 (a real c30 GENERATOR bug): the model emitted a correct 158-B payload under a WRONG IP total
+  length. Only 4 bytes differed: IP total-length (0x0137=311 vs 0x00c6=198) + its checksum. `two_read.py`
+  `transform_two_read_reduce` folded the padded image's ip.len to a HARDCODED `16w311` (= software native 287+24);
+  the relay needs 174+24 = 198. Fixed to compute `native_ip_len + added` from `two_read_shapes()` (tier-aware):
+  mixed 181 (unchanged), full 311 software / 198 relay.
+- Rebuilt c30: regenerate (sha a374357 -> b006752) -> bf-p4c 9.13.2 (exit 0, 72.8s) -> record_artifacts seal.
+  Placement UNCHANGED: p0 11/11, p1 11/4 (stage idx 10/10, 10/3); the constant costs zero placement.
+- VERIFIED on the executing model: fixed c30 `two_read_robust` 163/163, `smoke` 30/30; sealed_profile.describe
+  sealed=True (b006752). Software REGRESSION: c29 `two_read_robust` 163/163 (vector selection picks the software
+  set; the generator fix leaves software byte-identical). check_generator_identity 10/10 byte-identical;
+  m12_fullsize 74 + 56 subtests pass. Testbed untouched (switch cold on case4_response_path).
+- READ-side c30 is now DERIVED + GENERATED + COMPILED + SEALED + MODEL-VALIDATED for BOTH relay READ shapes
+  (mixed 91->141 and integrity 134->158), retransmission/corruption/reset included. The 247->271 software full
+  path stays validated under c29. Control-coupled gate drivers (dup/rearm/select_lifecycle/.../SBO) + the hardware
+  four-arm remain for an unblocked run / Philip.

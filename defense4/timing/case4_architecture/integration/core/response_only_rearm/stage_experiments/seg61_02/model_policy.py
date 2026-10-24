@@ -37,8 +37,28 @@ CLASS_ORDER = ('range', 'analog', 'class0', 'integrity')      # the fixture endp
 # Two-READ-target build (inputs.json policy.constants_file): every READ slot alternates the two workloads from the
 # hardware endpoint's own captures (two_read_templates.json, fixture variants v0/v1), each padded to its own image.
 TWO_READ = mp.rp.TWO_READ
-TWO_TEMPLATES = (json.loads((HERE.parent / 'read_complete_01/vectors/two_read_templates.json').read_text())['variants']
-                 if TWO_READ else None)
+
+
+def _two_templates():
+    """Select the two-READ template set matching THIS build's padded shapes (read_policy_expect.SHAPES). The
+    software outstation's integrity response is 247 B, the physical SEL-751's is 134 B; a build pads one tier or
+    the other, so the vectors must be that tier's own captures. Try the relay set first, fall back to the
+    software set, and fail loudly if neither matches -- a build must never be validated against another tier's
+    captures (Philip's capture/checker correction)."""
+    vdir = HERE.parent / 'read_complete_01/vectors'
+    for fname in ('two_read_templates_relay.json', 'two_read_templates.json'):
+        path = vdir / fname
+        if not path.is_file():
+            continue
+        variants = json.loads(path.read_text())['variants']
+        lens = {len(bytes.fromhex(variants[v]['classes'][c]['native']))
+                for v in variants for c in variants[v]['classes']}
+        if lens <= set(mp.rp.SHAPES):
+            return variants
+    raise AssertionError('no two-READ template set matches this build SHAPES %s' % sorted(mp.rp.SHAPES))
+
+
+TWO_TEMPLATES = _two_templates() if TWO_READ else None
 TWO_ORDER = ('mixed', 'integrity')
 
 
