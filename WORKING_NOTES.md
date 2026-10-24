@@ -1,6 +1,38 @@
 # Working notes
 
-## >>> CURRENT (2026-10-24) — read this first
+## >>> CURRENT HANDOVER (2026-10-24) — read this first
+
+Philip requested handover to Claude, updated all notes/plans, and commit/push. All agents stopped cleanly.
+Read repository-root `CLAUDE_HANDOVER_20261024.md` and `plan.md`; they supersede stale checkpoints below.
+
+- Last verified image c50: source `1c4138ede50aaea8a662f0fba4db6b6dac2916cad46679b5d16599d34f67f43b`;
+  SDK9.13.2 compile95.989s, N/E/T0..10, pipe1 egress0..3, ten pins recorded before model; independent review approved.
+- Exact busy-FIN regression c50fin_busy01 **193/193**, all3 planned connections complete. Both retry-epoch and
+  concurrent-ACK owner-phase failure mechanisms are repaired in model. FIN remains OPEN for physical recovery.
+- c49 actual-SBO model **1085/1085**, all3 connections; one+11 commit, partial/full ACKs, retransmissions, complete
+  application/framing/checksums and timing. c49 diagnostic30/30, installed86 operands+8 masks exact SW/HW/context.
+  c49 fin_busy01/02 failures62/70 remain retained; c49 evidence cannot substitute final-image gates.
+- Complete-response master repaired/reviewed104tests/135subtests; physical native02 accepts mixed91, integrity134,
+  SELECT49 and OPERATE49, both CROBs SUCCESS, independent restore pass. Native responses whole TCP packets;
+  historical28+21 was switch PRE carving. No split-input machinery built. TCP SYN40/SYNACK44/DATA32, WS7/0.
+- Current generator143 tests and10 legacy identities pass. Physical campaign/restoration helpers1552 checks pass.
+  Compressed c30/c49/c50 model logs and exact source dependencies are retained; raw originals stay local.
+- **NEXT DEFECT:** valid RSTACK after half-close owner109 qualifies sequence/close_phase200 but first_event omits it.
+  Proposed c51 eight guarded rows and strict runtime/source tests are in plan.md. **No c51 implementation, new test,
+  model_packets half_closed_rst method, diagnostic wrapper, generated source or compile exists.**
+- **LEFT:** implement/review that bounded RST repair; freeze one final source and pass all16 model drivers; final config
+  dry-runs/freeze; physical padded READ smoke;772 four-arm exchanges; mixed/full loss, graceful/reset persistence,
+  reconnect/all3, held OPERATE, genuine timing/J anchors and independent restores; final clean-worktree reproduction.
+  No padded candidate hardware has been loaded; no final16-driver gate has passed. Preserve100us/no software fallback.
+- Source preimages for c49/c50 match their inputs. Active reproduce recognizes c30/c48/c49/c50 metadata; default is
+  historical c30, not a final qualification. Update selected candidate/default only with honest final gate/readout.
+- Last local ownership read active=false, unsafe_restoration=false; recheck before hardware. No model/compiler/
+  hardware campaign remains running from this session. Two pre-existing unrelated local deletions are preserved.
+
+## >>> HISTORICAL INITIAL CHECKPOINT (2026-10-24)
+
+The following initial directions predate the verified assessment and completed work above. In particular158 is
+the selected preserved-tail prefix floor, not a global minimum; targets141/158 are retained, not a new sizing task.
 
 - NEW DIRECTIVE: `Claude_SEL751_Corrected_Overnight_Directive (1).md`. The SEL-751 relay is the outstation; both
   READ workloads and full SBO run on it through the switch. Build relay-shape candidate m12p_c30; c25-c29 (software
@@ -2927,3 +2959,24 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   later mixed-width tail offsets to diverge. This does not claim inspection of9.13.2 loader source. Only N's two
   control profile tables exhibit that specific static-layout risk. Approved c49 repair merges each w0 predicate
   into one equivalent32-bit ternary key; every original bit check remains, with no SDK change or extra table/state.
+- c49 source995386583fc373e9a770b22e50194b49c246afc0e1c5789ccd099d9ae0b31bc2 changes only those two table lines.
+  Full137 tests plus focused5 tests (138 distinct current tests), ten legacy identities and independent source review pass.
+  SDK9.13.2 compile succeeds in96.674s; all ten pins verify before runtime. Independent raw-context audit confirms
+  unique profile positions, safe offsets for all86 static tables, N/E/T0–10 and pipe1 egress0–3. Resources unchanged:
+  P0 SRAM182/TCAM102/crossbar866bytes/SALU24, P1 SRAM61/TCAM63/crossbar403bytes/SALU13. Allocated hash coordinates
+  (stage,function,bit) total1077/178 and hash distribution slots23/5 for P0/P1; these are hardware allocation counts,
+  not PHV bits or distinct source Hash declarations. Pipe1 egress attribution remains in shared/unattributed totals.
+- c49 diagnostic01 has zero profile read errors and strict smoke30/30: handshake, mixed91→141, SELECT/OPERATE49→60,
+  complete original application bytes, both link frames, CRC/TCP checksums, mapped ACKs and totalgrowth72 all pass.
+  Installed-row comparison and formal16-driver gate proceed; exact fin_busy01 is running. FIN remains OPEN until
+  both its specific model regression and physical recovery qualify. Eight physical configs are generated, not frozen/loaded.
+
+- Final handover update: c49 relay_sbo01 completed1085/1085, all3 connections. c49 fin_busy01 and corrected-cleanup02
+  both fail62/70: epoch/stale/exhaust checks pass, but concurrent ACK wins owner CAS and the FIN is aborted. c50 adds
+  only3 strict reset_boundary rows, reusing bounded restart actions. Compiler95.989s and independent raw-artifact review
+  pass; exact fin_busy01 passes193/193 across all3 connections. Normal traversal unchanged; collision adds recovery retry lap.
+- Correct cleanup coordinates exposed a separate defect: post-master-FIN RSTACK20 atSEQ70234/wireACK90540 is
+  normalized to90422; owner01090001/work4 yields seq_fin5 and desired200, but first_event lacks half-closed RST rows.
+  Cleanup is ignored and following SYNs fail. Proposed c51 is eight qualified rows only, with source-dominance and
+  stale epoch/generation/CAS/sequence negatives; root plan.md includes alternatives and a required packets regression.
+  User requested handover before any c51/test implementation began. All writers stopped at verified c50.

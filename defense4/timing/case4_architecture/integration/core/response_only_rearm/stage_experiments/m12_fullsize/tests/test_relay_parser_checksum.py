@@ -20,6 +20,8 @@ class ParserChecksumPlacement(unittest.TestCase):
         # Isolate c42's two-edit repair; the separate handshake regression
         # exercises c43's deposit relocation on top of the complete c42 source.
         with ExitStack() as patches:
+            patches.enter_context(patch.object(relay_sbo, 'retry_fin_phase', side_effect=lambda src: src))
+            patches.enter_context(patch.object(relay_sbo, 'canonical_profile_keys', side_effect=lambda src: src))
             patches.enter_context(patch.object(relay_sbo, 'relay_departure_provenance', side_effect=lambda src: src))
             for name in ('handshake_checksum_deposits', 'handshake_mss_first', 'early_shallow_checksum',
                          'stream_read_timestamp_prefix', 'early_egress_lengths', 'stream_handshake_options',

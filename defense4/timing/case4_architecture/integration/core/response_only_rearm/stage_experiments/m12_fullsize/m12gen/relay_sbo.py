@@ -190,8 +190,58 @@ def transform(src):
     n = once(n, '(16w0x0564,8w38,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w0x81,8w10,8w2,8w0,8w0,8w22):eligible();', '')
     src = once(src, 'const PortId_t t_RELAY_PORT    = 9w9;', 'const PortId_t t_RELAY_PORT    = 9w64;')
     src = once(src, old_n, n)
-    return relay_departure_provenance(separate_checksum_conditions(
-        transform_profile_crc(transform_status_lookup(transform_e(src)))))
+    return retry_fin_phase(canonical_profile_keys(relay_departure_provenance(separate_checksum_conditions(
+        transform_profile_crc(transform_status_lookup(transform_e(src)))))))
+
+
+def retry_fin_phase(src):
+    """Recover only a current-epoch FIN whose owner phase changed meanwhile.
+
+    c49's ACK wins owner0101->0109 while the FIN still holds snapshot0101
+    and target010b. Preserve the CAS failure, then use the existing bounded
+    restart to reload/requalify against0109. This collision adds a recovery
+    retry lap; successful normal-path traversals are unchanged. Low16 owner
+    generation/full epoch mismatches still abort, as does attempt32. The
+    existing retry snapshot actions preserve that attempt count.
+    """
+    start = src.index('table reset_boundary{')
+    end = src.index('\n', start)
+    table = once(src[start:end], 'size=7;', 'size=10;')
+    anchor = '(2w1,_,32w0&&&32w0xffff,32w0,16w32,_,8w0x04&&&8w0x04):terminal_abort();'
+    rows = ('(2w1,_,32w0&&&32w0xffff,32w0,16w32,_,8w17):terminal_abort();'
+            '(2w1,_,32w0&&&32w0xffff,32w0,_,2w1,8w17):reset_restart_master();'
+            '(2w1,_,32w0&&&32w0xffff,32w0,_,2w2,8w17):reset_restart_out();')
+    table = once(table, anchor, rows + anchor)
+    return src[:start] + table + src[end:]
+
+
+def canonical_profile_keys(src):
+    """Keep each native profile field in one static-entry key position.
+
+    c48's 9.13.2 SW/HW readback shifted both CROB tail predicates. The
+    installed 9.13.1 driver's static-entry loader uses width[position]
+    rather than width[slice_index] when advancing offsets; replaying that
+    algorithm predicts every observed field. One wholeword ternary key
+    preserves the four/three original slice predicates exactly and avoids
+    that interface ambiguity without changing any packet or state field.
+    """
+    for name in ('profile', 'response_profile'):
+        start = src.index('table ' + name + '{')
+        end = src.index('\n', start)
+        table = src[start:end]
+        prefix = 'hdr.first.w0[31:24]:ternary;hdr.first.w0[23:16]:ternary;'
+        if name == 'profile':
+            table = once(table, prefix + 'hdr.first.w0[15:8]:exact;hdr.first.w0[7:0]:exact;',
+                         'hdr.first.w0:ternary;')
+            for fc in (3, 4):
+                table = once(table, '8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w%d,8w12,' % fc,
+                             '32w0xc0c0%02x0c&&&32w0xc0f0ffff,' % fc)
+        else:
+            table = once(table, prefix + 'hdr.first.w0[15:0]:ternary;', 'hdr.first.w0:ternary;')
+            table = once(table, '8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,16w0x8100&&&16w0xff00,',
+                         '32w0xc0c08100&&&32w0xc0f0ff00,')
+        src = src[:start] + table + src[end:]
+    return src
 
 
 def relay_departure_provenance(src):

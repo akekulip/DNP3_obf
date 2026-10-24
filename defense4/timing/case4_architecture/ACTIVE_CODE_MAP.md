@@ -1,5 +1,8 @@
 # Active code map: the two-READ size and timing candidate
 
+Claude continuation: repository-root [plan.md](../../../plan.md) and
+[CLAUDE_HANDOVER_20261024.md](../../../CLAUDE_HANDOVER_20261024.md). Handover stopped at c50; c51 RST fix is proposal only.
+
 One page for finding the code that is in use now. Status as of 2026-10-24. The single
 status file for the current run is `STAGE/read_complete_01/CURRENT.md`; the dated history is `STATUS.md` in
 the same directory and the full record is `COMPLETION_RECORD.md`.
@@ -17,8 +20,11 @@ PY312=${RESEARCH_PYTHON:-$HOME/.venvs/research/bin/python}   # Python 3.12; syst
 
 | build | what it is | state |
 |---|---|---|
+| `m12p_c50_sdk9132` | c49 plus guarded bounded FIN owner-phase restart | compiled/reviewed within limits; exact fin_busy193/193 across3connections; final16-driver gate and all padded physical runs pending |
+| `m12p_c49_sdk9132` | timestamp relay45/49 control profile with canonical constant keys | installed-row readback exact; diagnostic30/30; relay_sbo1085/1085; busy-FIN62/70 failure retained |
+| `m12p_c51_sdk9132` | proposed qualified half-closed RST admission | DOES NOT EXIST; root plan.md gives counterexample, eight-row proposal, alternatives and tests |
 | `m12p_c30_sdk9132` | relay READ91/134→141/158; legacy software SBO37→61 | READ compiled-model1332/1332; corrected control_timing415/415; no padded physical relay qualification |
-| `m12p_c31_sdk9132` through `m12p_c36_sdk9132` | integrated whole49→60 relay SBO, timestamp successor attempts | failed compilation/static preflight; retained; no selected qualified successor |
+| `m12p_c31_sdk9132` through `m12p_c48_sdk9132` | integrated whole49→60 relay SBO, timestamp successor attempts | failed compile/static attempts through46;47/48 compiled then exposed provenance/constant-key runtime defects, retained |
 | `m12p_c25` | two-READ build: mixed READ 91 -> 141, full integrity READ 247 -> 271, SELECT/OPERATE 37 -> 61 | model gate passed; on hardware the padding was byte-exact (campaign 02) and timing precision FAILED; recovery blocks not run |
 | `m12p_c26` | c25 plus a behavior-preserving resource reduction (`--reduce`; pipe-1 egress 7 -> 4 stages; N/E/T 12/12/11; both SDKs) | model gate passed (counts equal to c25's); not frozen; no hardware. See COMPLETION_RECORD section 0a |
 | `m11_09` | the four-arm build behind the manuscript evaluation `eval_m11_09_20261018_02` | frozen; the paper's evidence |
@@ -32,7 +38,7 @@ audited in this run.
 
 | stage | code | notes |
 |---|---|---|
-| 1. generator | `STAGE/m12_fullsize/make_m12.py` (entry) -> `m12_fullsize/m12gen/{build,common,mapper,read_policy,segmented,two_read}.py` | split in 5671284aa; `check_generator_identity.py` proves every live mode byte-identical to the recorded reference `generator_identity.json` |
+| 1. generator | `STAGE/m12_fullsize/make_m12.py` (entry) -> `m12_fullsize/m12gen/{build,common,mapper,read_policy,segmented,two_read,relay_sbo,relay_ts}.py` | legacy identities preserved; actual relay selected by --relay-sbo --relay-ts |
 | 2. P4 source and profile | `STAGE/ctl_timing_01/evidence/m12p_<id>/{response_only.p4, response_only.inputs.json, supported_profile.json}` | constants from `STAGE/read_complete_01/vectors/` (`derive.py`, `derive_two_read.py`, `make_two_read_templates.py`) |
 | 3. compile | `$ARCH/build.py` (local SDK 9.13.2 at `~/bf-sde-9.13.2`, a copy of the switch's install; one compile since 2026-10-23) | output `compile_local/`: the model tests it and the switch loads it (`freeze_gate.loaded_compile`). Builds before m12p_c29_sdk9132 used local 9.13.1 plus `compile_switch_orchestrator.py` (`compile_switch_9132/`, the loaded one) |
 | 4. model gate | `STAGE/ctl_timing_01/run_model.py` (drivers in `ctl_timing_01/model_*.py` and `STAGE/seg61_02/model_*.py`), verdict `ctl_timing_01/model_summary.py --v3` | dependency closure recorded by `ctl_timing_01/record_closure.py` |
@@ -64,7 +70,8 @@ python3 $ARCH/build.py BUILD/response_only.p4 BUILD/compile_local --timeout 1200
 python3 $STAGE/ctl_timing_01/efficiency_candidates.py BUILD --record-artifacts      # pin the artifacts BEFORE the gate
 ```
 
-Model gate (private local model, no hardware). Drivers: `abandon abort contention control_timing dup
+Model gate (private local model, no hardware). Actual SEL-751 requires16 drivers including relay_sbo and fin_busy.
+Drivers: `abandon abort contention control_timing dup fin_busy relay_sbo
 egress_diag fullread fullread_boundary fullread_corrupt isolation_cleanup mixed mixedfull packets policy
 policy_boundary prefix rearm repeat segmented select_lifecycle smoke smoke_sizeoff two_read_robust`; the v3
 summary names the ones it requires:

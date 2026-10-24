@@ -1,5 +1,15 @@
 # Case 4 architecture execution
 
+> **CURRENT CLAUDE HANDOVER (2026-10-24), supersedes conflicting checkpoints below.** Read repository-root
+> [plan.md](../../../plan.md) and [CLAUDE_HANDOVER_20261024.md](../../../CLAUDE_HANDOVER_20261024.md).
+> Physical SEL-751 only; standing guarded hardware authorization remains. Last verified image is c50:
+> SDK9.13.2 fit N/E/T0..10, pipe1 egress0..3; exact busy-FIN model193/193 across3connections.
+> c49 actual-SBO model1085/1085 and native02 physical91/134/49/49 are separate retained evidence.
+> c51 half-closed RST repair is a proposal only; no implementation/build exists. Remaining: its counterexample and
+> bounded fix, one final16-driver model gate, final freeze/dry-runs, physical padded READ smoke,772 exchanges,
+> loss/persistence/reconnect/held OPERATE, timing/J and independent restores. All agents stopped for requested handover.
+> Philip explicitly requested committing and pushing the handover; older no-push/await-Philip directions are historical.
+
 > **CURRENT CHECKPOINT (2026-10-19), supersedes the checkpoints below.** The candidate is m11_09
 > (`ctl_timing_01/evidence/m11_09`). It is evaluated on hardware: campaign `eval_m11_09_20261018_02` is COMPLETE
 > (154/154). Results: `seg61_02/evidence/evaluation_campaigns/eval_m11_09_20261018_02_RESULTS.md`. Start at

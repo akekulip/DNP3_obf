@@ -1,0 +1,324 @@
+{
+  "schema_version": "3.0.1",
+  "target": "tofino",
+  "build_date": "Sat Oct 24 14:48:07 2026",
+  "compiler_version": "9.13.2 (1baf055)",
+  "compilation_succeeded": true,
+  "compilation_time": "89.89502620697021",
+  "run_id": "5c81fb42f8894306",
+  "target_data": {
+    "architecture": "tna",
+    "architectureConfig": {
+      "name": "32q",
+      "pipes": [
+        {
+          "pipe": 0,
+          "ingress": {
+            "pipeName": "n_Ingress",
+            "nextControl": [
+              {
+                "pipe": 0,
+                "pipeName": "r_Egress"
+              },
+              {
+                "pipe": 1,
+                "pipeName": "x_Egress"
+              }
+            ]
+          },
+          "egress": {
+            "pipeName": "r_Egress",
+            "nextControl": []
+          }
+        },
+        {
+          "pipe": 1,
+          "ingress": {
+            "pipeName": "t_Ingress",
+            "nextControl": [
+              {
+                "pipe": 0,
+                "pipeName": "r_Egress"
+              },
+              {
+                "pipe": 1,
+                "pipeName": "x_Egress"
+              }
+            ]
+          },
+          "egress": {
+            "pipeName": "x_Egress",
+            "nextControl": [
+              {
+                "pipe": 1,
+                "pipeName": "t_Ingress"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "conf_file": "response_only.conf"
+  },
+  "programs": [
+    {
+      "program_name": "response_only.p4",
+      "p4_version": "p4-16",
+      "event_log_file": "events.json",
+      "frontend_ir_log_file": "frontend-ir.json",
+      "source_files": {
+        "src_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c49_sdk9132/compile_local/source",
+        "src_map": "source.json",
+        "includes": [],
+        "defines": []
+      },
+      "pipes": [
+        {
+          "pipe_id": 0,
+          "pipe_name": "p0",
+          "files": {
+            "context": {
+              "path": "p0/context.json"
+            },
+            "resources": [
+              {
+                "path": "p0/logs/resources.json",
+                "type": "resources"
+              }
+            ],
+            "graphs": [
+              {
+                "path": "p0/graphs/program_graph.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p0/graphs/n_Ingress.dot",
+                "gress": "ingress",
+                "graph_type": "control",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p0/graphs/r_Egress.dot",
+                "gress": "egress",
+                "graph_type": "control",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p0/graphs/dep.json",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".json"
+              },
+              {
+                "path": "p0/graphs/table_dep_graph_placement_0.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p0/graphs/power_graph.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p0/graphs/placement_graph.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              }
+            ],
+            "logs": [
+              {
+                "path": "p0/logs/flexible_packing.log",
+                "log_type": "parser"
+              },
+              {
+                "path": "p0/logs/parser.characterize.log",
+                "log_type": "parser"
+              },
+              {
+                "path": "p0/logs/parser.log",
+                "log_type": "parser"
+              },
+              {
+                "path": "p0/logs/phv.json",
+                "log_type": "phv"
+              },
+              {
+                "path": "p0/logs/phv_allocation_0.log",
+                "log_type": "phv"
+              },
+              {
+                "path": "p0/logs/phv_allocation_history_0.log",
+                "log_type": "phv"
+              },
+              {
+                "path": "p0/logs/phv_allocation_summary_0.log",
+                "log_type": "phv"
+              },
+              {
+                "path": "p0/logs/power.json",
+                "log_type": "power"
+              },
+              {
+                "path": "p0/logs/pragmas.log",
+                "log_type": "phv"
+              },
+              {
+                "path": "p0/logs/table_dependency_graph.log",
+                "log_type": "mau"
+              },
+              {
+                "path": "p0/logs/table_dependency_summary.log",
+                "log_type": "mau"
+              },
+              {
+                "path": "p0/logs/table_placement_1.log",
+                "log_type": "mau"
+              },
+              {
+                "path": "p0/logs/table_summary.log",
+                "log_type": "mau"
+              },
+              {
+                "path": "p0/logs/mau.json",
+                "log_type": "mau"
+              },
+              {
+                "path": "p0/logs/mau.json",
+                "log_type": "mau"
+              }
+            ],
+            "metrics": {
+              "path": "p0/logs/metrics.json"
+            }
+          }
+        },
+        {
+          "pipe_id": 1,
+          "pipe_name": "p1",
+          "files": {
+            "context": {
+              "path": "p1/context.json"
+            },
+            "resources": [
+              {
+                "path": "p1/logs/resources.json",
+                "type": "resources"
+              }
+            ],
+            "graphs": [
+              {
+                "path": "p1/graphs/t_Ingress.dot",
+                "gress": "ingress",
+                "graph_type": "control",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p1/graphs/x_Egress.dot",
+                "gress": "egress",
+                "graph_type": "control",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p1/graphs/program_graph.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p1/graphs/placement_graph.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p1/graphs/dep.json",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".json"
+              },
+              {
+                "path": "p1/graphs/power_graph.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "p1/graphs/table_dep_graph_placement_1.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              }
+            ],
+            "logs": [
+              {
+                "path": "p1/logs/flexible_packing.log",
+                "log_type": "parser"
+              },
+              {
+                "path": "p1/logs/parser.characterize.log",
+                "log_type": "parser"
+              },
+              {
+                "path": "p1/logs/parser.log",
+                "log_type": "parser"
+              },
+              {
+                "path": "p1/logs/phv.json",
+                "log_type": "phv"
+              },
+              {
+                "path": "p1/logs/phv_allocation_2.log",
+                "log_type": "phv"
+              },
+              {
+                "path": "p1/logs/phv_allocation_history_2.log",
+                "log_type": "phv"
+              },
+              {
+                "path": "p1/logs/phv_allocation_summary_2.log",
+                "log_type": "phv"
+              },
+              {
+                "path": "p1/logs/power.json",
+                "log_type": "power"
+              },
+              {
+                "path": "p1/logs/pragmas.log",
+                "log_type": "phv"
+              },
+              {
+                "path": "p1/logs/table_dependency_graph.log",
+                "log_type": "mau"
+              },
+              {
+                "path": "p1/logs/table_dependency_summary.log",
+                "log_type": "mau"
+              },
+              {
+                "path": "p1/logs/table_placement_3.log",
+                "log_type": "mau"
+              },
+              {
+                "path": "p1/logs/table_summary.log",
+                "log_type": "mau"
+              },
+              {
+                "path": "p1/logs/mau.json",
+                "log_type": "mau"
+              }
+            ],
+            "metrics": {
+              "path": "p1/logs/metrics.json"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "compile_command": "/home/philip/bf-sde-9.13.2/install/bin/bf-p4c --target tofino --arch tna -g -Xp4c=--enable-event-logger -Xp4c=-Tlower_parser:5 -o /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c49_sdk9132/compile_local/out /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c49_sdk9132/compile_local/source/response_only.p4"
+}

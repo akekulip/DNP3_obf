@@ -12,7 +12,7 @@ N/E highest physical index ≤10; T ≤11 occupied stages; pipe-1 egress ≤4. K
 Only guarded research points {1,3} and established command parameters; successful complete SELECT before OPERATE.
 Use existing ownership, frozen wrapper and independent restoration. Unsafe restoration stops hardware.
 No reboot, kernel/firmware change, keep-alive masking, main D/J/attacker campaign, manual ownership edits,
-weaker restoration, IEEE audit or paper work. Philip author/committer; no co-author; no push.
+weaker restoration, IEEE audit or paper work. Philip author/committer; no co-author. Philip later explicitly authorized commit/push for the Claude handover.
 
 ## Task 1: Trustworthy master and native verdicts
 
@@ -95,3 +95,26 @@ verdicts and restoration records required. Commit coherent reviewed milestones w
   resource/dependency repair. No candidate/model gate or padded hardware claim yet. All attempts immutable.
 - Task4 summary gate now requires16drivers forsel751;61unit tests pass. Independent model-retarget review fixes
   are implemented; scoped re-review pending. Final review and real packet gates remain required.
+
+
+## Handover checkpoint — Philip requested stop/commit/push
+
+The current continuation and possible solutions are repository-root `plan.md` and `CLAUDE_HANDOVER_20261024.md`.
+No c51 implementation or half_closed_rst model extension was started. All agents stopped cleanly at c50.
+
+- Task1 COMPLETE: reviewed master104tests/135subtests, native verdicts repaired; f60a3ae21.
+- Task2 SOFTWARE + NATIVE COMPLETE: explicit physical profile, reviewed campaign/restoration and1552checks;
+  native02 accepts all4 exchanges on actual SYN40/SYNACK44/DATA32 path. Whole49 input; historical28+21 was PRE carving.
+- Task3 PARTIAL: actual SBO encoding/model proven on c49 (1085/1085,3connections); source143tests/legacy10 pass.
+  c50 exact FIN race193/193 across3connections passes. Qualified RST after half-close still misses first_event.
+- Task4 PARTIAL: c50 compile/resource/static-offset/mirror/artifact review passes; all ten pins recorded before model.
+  N/E/T0..10, pipe1 egress0..3. Final16-driver gate is BLOCKED; c50 has only fin_busy qualified.
+- Task5 NOT RUN on padded candidate: final config dry-runs/freeze, READ smoke,772 reference exchanges and all6 recovery
+  blocks with every connection, genuine timing/J anchors and independent restores remain.
+- Task6 HANDOVER PREPARED: c30/c49/c50 exact dependencies/logs retained with hash-checked compression; source preimages,
+  notes, active reproduce metadata through c50 and root continuation plan are retained in the handover commits. Final selected
+  clean-worktree reproduction and hardware readout remain Claude's completion task.
+
+Next: add a strict sel751-only half_closed_rst case to the required packets driver and retain focused failure on c50;
+implement/review the proposed eight guarded first_event rows in fresh c51 (or next unused identity), compile once,
+pin artifacts, run all16 model gates, then physical qualification. Preserve all failed attempts and do not relax guards.

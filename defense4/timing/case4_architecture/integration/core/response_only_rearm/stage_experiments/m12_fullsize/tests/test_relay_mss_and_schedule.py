@@ -20,6 +20,8 @@ class MSSAndSchedule(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         with ExitStack() as patches:
+            patches.enter_context(patch.object(relay_sbo, 'retry_fin_phase', side_effect=lambda src: src))
+            patches.enter_context(patch.object(relay_sbo, 'canonical_profile_keys', side_effect=lambda src: src))
             patches.enter_context(patch.object(relay_sbo, 'relay_departure_provenance', side_effect=lambda src: src))
             for name in ('stream_read_timestamp_prefix', 'early_egress_lengths', 'stream_handshake_options',
                          'padder_crc_placement'):

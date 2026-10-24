@@ -37,6 +37,8 @@ def main():
     report.record['meta'].update(planned_connections=3, attempted_connections=0, completed_connections=0, connections=[])
     gate.configure()
     for connection in range(3):
+        c, s, w = None, None, None
+        master_half_close_accepted = False
         point = {'connection': connection, 'status': 'attempted'}
         report.record['meta']['connections'].append(point)
         report.record['meta']['attempted_connections'] += 1
@@ -52,6 +54,7 @@ def main():
             point['before'] = before
             fin = v.packet(17, c, w)
             gate.exchange('master_half_close_FIN', fin, v.packet(17, c, s))
+            master_half_close_accepted = True
             half = snapshot()
             point['after_master_half_close'] = half
             # The physical trace's next pair is the relay's pure ACK followed by its FIN.
@@ -90,8 +93,9 @@ def main():
             report.add('c%d_exception' % connection, 'none', traceback.format_exc(), ok=False)
             # A bounded reset allows the remaining planned connection attempts to run.
             try:
-                m.send(gate.master.dev_port, v.packet(20, c, w))
-                m.capture(gate.ports, timeout=2, quiet=.3)
+                if c is not None and w is not None:
+                    m.send(gate.master.dev_port, v.packet(20, c + int(master_half_close_accepted), w))
+                    m.capture(gate.ports, timeout=2, quiet=.3)
             except Exception:
                 point['reset_exception'] = traceback.format_exc()
     report.add('all_three_planned_connections_completed', 3, report.record['meta']['completed_connections'])

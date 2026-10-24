@@ -4,6 +4,8 @@
 #   bash reproduce.sh                                # offline relay READ reference (CANDIDATE=c30 default)
 #   bash reproduce.sh --candidate-info                # selected directory, exact flags/hash and evidence tier only
 #   CANDIDATE=c48 bash reproduce.sh                    # integrated timestamp-bearing SEL-751 profile, all16 model gates
+#   CANDIDATE=c49 bash reproduce.sh                    # canonical profile keys for the same guarded relay profile
+#   CANDIDATE=c50 bash reproduce.sh                    # bounded FIN owner-phase retry repair
 #   CANDIDATE=c26 bash reproduce.sh                  # c25 + behavior-preserving resource reduction (--reduce)
 #   CANDIDATE=c24 bash reproduce.sh                  # c25's P4 with the uncorrected disposition text (historical)
 #   CANDIDATE=c12 bash reproduce.sh                  # the preserved rotate4 checkpoint
@@ -31,6 +33,14 @@ RELAY_READ=0
 EVIDENCE_TIER="historical software endpoint profile (offline only)"
 BUILD_SUFFIX="$CANDIDATE"
 case "$CANDIDATE" in
+  c50) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts"
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c50_sdk9132
+       SOURCE_SHA=1c4138ede50aaea8a662f0fba4db6b6dac2916cad46679b5d16599d34f67f43b
+       EVIDENCE_TIER="integrated SEL-751 timestamp profile; qualification requires recorded gates" ;;
+  c49) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts"
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c49_sdk9132
+       SOURCE_SHA=995386583fc373e9a770b22e50194b49c246afc0e1c5789ccd099d9ae0b31bc2
+       EVIDENCE_TIER="integrated SEL-751 timestamp profile; qualification requires recorded gates" ;;
   c48) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts"
        TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c48_sdk9132
        SOURCE_SHA=902a84bf1714d15788b707b7c23b86c4abe8f66a4ba8395d1d52f0377a2eae66
@@ -49,7 +59,7 @@ case "$CANDIDATE" in
        SOURCE_SHA=1e94c31d80e6708ab31ca117f066d15f5ec23244fc6f7bf7b9ca68dc81a2a27b ;;
   b08) GEN_ARGS="--policy"
        SOURCE_SHA=7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f ;;
-  *) echo "unknown CANDIDATE $CANDIDATE (c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
+  *) echo "unknown CANDIDATE $CANDIDATE (c50 | c49 | c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
 esac
 BUILD="$STAGE/ctl_timing_01/evidence/m12p_$BUILD_SUFFIX"
 FREEZE="$BUILD/freeze_v3.json"
@@ -114,7 +124,7 @@ python3 "$STAGE/m12_fullsize/make_m12.py" "$SCRATCH/m12p" $GEN_ARGS >/dev/null
 got="$(sha256sum "$SCRATCH/m12p/response_only.p4" | cut -d' ' -f1)"
 [ "$got" = "$SOURCE_SHA" ] || { echo "regenerated source $got != $SOURCE_SHA"; exit 1; }
 echo "source $got"
-if [ "$CANDIDATE" = c48 ]; then
+if [ "$CANDIDATE" = c48 ] || [ "$CANDIDATE" = c49 ] || [ "$CANDIDATE" = c50 ]; then
   step "4b. integrated relay generator, checksum, admission and boundary regressions"
   (cd "$STAGE/m12_fullsize" && "$PY312" -m pytest -q tests)
   python3 "$STAGE/m12_fullsize/check_generator_identity.py"

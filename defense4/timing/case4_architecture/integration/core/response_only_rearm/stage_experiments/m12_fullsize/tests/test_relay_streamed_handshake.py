@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from m12gen import relay_ts
+from m12gen import relay_ts, relay_sbo
 from m12gen.build import build
 import test_n_read_shapes as shared
 import test_relay_ts as ts
@@ -17,9 +17,11 @@ import test_relay_handshake_deposit as hs
 class StreamedHandshake(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        with patch.object(relay_ts, 'stream_handshake_options', side_effect=lambda src: src):
-            cls.original, _ = build(**ts.FLAGS, relay_ts=True)
-        cls.selected, _ = build(**ts.FLAGS, relay_ts=True)
+        with patch.object(relay_sbo, 'retry_fin_phase', side_effect=lambda src: src), \
+                patch.object(relay_sbo, 'canonical_profile_keys', side_effect=lambda src: src):
+            with patch.object(relay_ts, 'stream_handshake_options', side_effect=lambda src: src):
+                cls.original, _ = build(**ts.FLAGS, relay_ts=True)
+            cls.selected, _ = build(**ts.FLAGS, relay_ts=True)
 
     def test_only_handshake_headers_and_parser_states_change(self):
         old, new = shared.role(self.original, 'N'), shared.role(self.selected, 'N')

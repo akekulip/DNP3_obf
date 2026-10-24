@@ -10,6 +10,8 @@ manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
 
 ## Agent start
 
+0. Current SEL-751 continuation (2026-10-24): read root `CLAUDE_HANDOVER_20261024.md` and `plan.md` first.
+   c50 compiled/model FIN193/193; c51 RST repair is proposal only. Final model gate and physical qualification remain.
 1. Read `defense4/timing/case4_architecture/ACTIVE_CODE_MAP.md`: the active code path with commands.
 2. Read the run's status file `.../stage_experiments/read_complete_01/CURRENT.md` (history in `STATUS.md`,
    full record in `COMPLETION_RECORD.md`).
@@ -23,7 +25,7 @@ manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
   (`.../stage_experiments/m12_fullsize/make_m12.py` with `m12gen/`), builds and model gate
   (`.../ctl_timing_01`), the manuscript evaluation (`.../seg61_02`), the current run (`.../read_complete_01`),
   the hardware supervisor (`integration/evidence/rearm_01/hw`) and the endpoint library (`protocol/hw_vepa`).
-  Current candidate: `m12p_c29` (pipe-0 headroom; hardware-run 2026-10-23 against the software outstation).
+  Current verified checkpoint: `m12p_c50_sdk9132` (actual relay profile, compiled/model only; no padded hardware run).
 - `defense4/timing/` (outside `case4_architecture/`) — the timing-only record: the P4 that ran
   (`implementation/`), the campaigns (`evidence/campaign_v2/`, which corrects the acknowledgment-anchored
   `campaign_v1/`; `final_read_sbo/` is older), the anchor fix (`anchor_fix/FINDINGS.md`), audits, the delay
@@ -52,7 +54,8 @@ between measurements and later candidates.
 
 ## Current authorization (Philip, 2026-10-24 SEL-751 directive; this replaces every earlier authorization)
 
-Directive: `Claude_SEL751_Corrected_Overnight_Directive (1).md` (repository root, untracked).
+Current tracked assessment/command: `Claude_dd7741152_Verified_Assessment_and_Overnight_Command.md`.
+Latest continuation: root `plan.md` and `CLAUDE_HANDOVER_20261024.md`; older local directives are historical context.
 
 - The physical SEL-751 is the outstation for the research evaluation. Both READ workloads and the complete
   select-before-operate sequence (SELECT and OPERATE) run against the relay through the physical Tofino. Philip
@@ -62,15 +65,16 @@ Directive: `Claude_SEL751_Corrected_Overnight_Directive (1).md` (repository root
   relay configuration. This supersedes the earlier software-outstation-only and attended-only-OPERATE rules.
 - Hardware runs go only through the existing ownership, preflight, freeze, dry-run and restoration machinery
   (`evaluation_campaign.py`, `run_block_frozen.sh`, `restore_verify.py`). Each new live run needs its own
-  recorded authorization and its admission and restoration gates; an earlier authorization is not blanket
-  authority.
+  recorded authorization and its admission and restoration gates. Record the assessment and Philip's “Implement
+  the plan” standing authorization for these guarded SEL-751 blocks; do not request approval again for each block.
 - Relay identity and measured shapes (192.168.10.7:20000, DNP3 address 0; master 192.168.10.1, address 1).
   Measured on the relay 2026-10-23 (three requests each, from 192.168.10.1 through the switch): mixed READ
   (g1v2 0..15 + g30v1 0..7) answers 91 bytes, matching the 91->141 target; the integrity READ answers 134
   bytes, so the 247->271 full-READ target (the software outstation's database) does not apply to the relay and
-  needs a new target (134->158 is the smallest reachable; targets 141/158 PROVISIONAL until validated against
-  actual relay READ captures). SBO on the relay is not yet freshly measured (retained captures show a native
-  two-CROB echo ~49 bytes). The c25-c29 hardware runs used the software outstation on Vision (192.168.10.62),
+  uses retained134->158.158 is the preserved-tail prefix floor, not a global minimum; preserve141/158 without
+  restarting sizing. Fresh native02 physical captures accept91/134/49/49 with whole TCP payloads and successful
+  two-CROB SBO. Current TCP headers are SYN40/SYNACK44/DATA32, WS7/0; padded physical qualification remains pending.
+  Historical c25-c29 hardware runs used the software outstation on Vision (192.168.10.62),
   not the relay, and qualify only the software tier, not the relay deliverable.
 - Not allowed: any D/J or attacker campaign; rebooting Vision; OS or firmware updates.
 - Current run (2026-10-24, SEL-751 directive): a new relay-shape candidate, its READ/SBO shapes derived from
@@ -83,7 +87,8 @@ Directive: `Claude_SEL751_Corrected_Overnight_Directive (1).md` (repository root
 - Implementation work (separate candidate code, offline tests, protocol-aware padding and response carving,
   isolated BMv2 work, compiler evidence, analysis) is authorized, as it has been since the 2026-10-06 Case 4
   scope. Cases 1–3 remain explanation-only history.
-- Work directly on `main`; no new branch. Push only on explicit instruction.
+- Work directly on `main`; no new branch. Push only on explicit instruction. Philip explicitly requested commit/push
+  for this2026-10-24 handover; that authorizes publishing the completed task work and retained evidence now.
 - Implementation work does not touch `paper/`. The manuscript rebuild is a separate stream governed by the
   paper rules below.
 - Earlier authorizations (the 2026-09-29 offline-only boundary, the 2026-09-29 paper freeze, the campaign_v2

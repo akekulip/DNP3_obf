@@ -1,0 +1,74 @@
+ingress::parse_tev is split into 2 states:
+  ingress::parse_tev
+  ingress::parse_tev.$split_0
+ingress::parse_clone is split into 2 states:
+  ingress::parse_clone
+  ingress::parse_clone.$split_0
+egress::b0 is split into 2 states:
+  egress::b0
+  egress::b0.$split_0
+egress::ts12 is split into 2 states:
+  egress::ts12
+  egress::ts12.$split_0
+egress::ip is split into 2 states:
+  egress::ip
+  egress::ip.$split_0
+egress::min_parse_depth_accept_loop.$it3 is split into 2 states:
+  egress::min_parse_depth_accept_loop.$it3
+  egress::min_parse_depth_accept_loop.$it3.$split_0
+egress::min_parse_depth_accept_loop.$it2 is split into 2 states:
+  egress::min_parse_depth_accept_loop.$it2
+  egress::min_parse_depth_accept_loop.$it2.$split_0
+egress::min_parse_depth_accept_loop.$it1 is split into 2 states:
+  egress::min_parse_depth_accept_loop.$it1
+  egress::min_parse_depth_accept_loop.$it1.$split_0
+egress::min_parse_depth_accept_loop is split into 2 states:
+  egress::min_parse_depth_accept_loop
+  egress::min_parse_depth_accept_loop.$split_0
+allocated { $half } to {  [ $entry_point.start : inbuf bit[7..15] ig_intr_md.ingress_port; ] }
+allocated { $byte1 } to {  [ ingress::parse_tev.$split_0 : inbuf bit[64..71] hdr.tev/tev.kind; ] }
+allocated { $half } to {  [ ingress::parse_tev.$split_0 : inbuf bit[80..95] hdr.tev/tev.reserved; ] }
+allocated { $byte1 } to {  [ ingress::single_response_child : inbuf bit[-24..-17] hdr.tev/tev.stage; ] }
+allocated { $byte1 } to {  [ ingress::parse_ladder : inbuf bit[8..15] hdr.ladder/ladder.child; ] }
+allocated { $byte1 } to {  [ ingress::single_ladder_role : inbuf bit[-64..-57] hdr.ladder/ladder.role; ] }
+allocated { $byte1 } to {  [ ingress::clone_or_token : inbuf bit[0..7] pkt.lookahead<bit<8>>(); ] }
+allocated { $byte1 } to {  [ ingress::parse_clone.$split_0 : inbuf bit[64..71] hdr.tev/tev.kind; ] }
+allocated { $half } to {  [ ingress::parse_clone.$split_0 : inbuf bit[80..95] hdr.tev/tev.reserved; ] }
+allocated { $byte1 } to {  [ ingress::parse_timer : inbuf bit[3..4] hdr.timer/timer.pipe_id; ]  [ ingress::parse_timer : inbuf bit[5..7] hdr.timer/timer.app_id; ] }
+allocated { $half } to {  [ $entry_point.start : inbuf bit[7..15] eg_intr_md.egress_port; ] }
+allocated { $half } to {  [ egress::tev : inbuf bit[96..103] hdr.tev/tev.kind; ]  [ egress::tev : inbuf bit[104..111] hdr.tev/tev.stage; ] }
+allocated { $half } to {  [ egress::eth : inbuf bit[96..111] hdr.eth/eth.type; ] }
+allocated { $byte1 } to {  [ egress::ip.$split_0 : inbuf bit[-80..-77] hdr.ip/ip.version; ]  [ egress::ip.$split_0 : inbuf bit[-76..-73] hdr.ip/ip.ihl; ] }
+allocated { $byte0 } to {  [ egress::ip.$split_0 : inbuf bit[-8..-1] hdr.ip/ip.proto; ] }
+allocated { $half } to {  [ egress::ip_len : inbuf bit[-144..-129] hdr.ip/ip.len; ] }
+allocated { $half } to {  [ egress::dl_start : inbuf bit[-80..-65] hdr.dl/dl.start; ] }
+allocated { $byte1 } to {  [ egress::dl : inbuf bit[16..23] hdr.dl/dl.len; ] }
+allocated { $half $byte0 $byte1 } to {  [ egress::ts12.$split_0 : inbuf bit[-64..-33] hdr.tso/tso.a; ] }
+allocated { $byte1 } to {  [ egress::tcp : inbuf bit[96..99] hdr.tcp/tcp.offset; ] }
+allocated { $half } to {  [ egress::ip_frag : inbuf bit[-112..-110] hdr.ip/ip.flags; ]  [ egress::ip_frag : inbuf bit[-109..-97] hdr.ip/ip.frag; ] }
+allocated { $byte0 $byte1 } to {  [ egress::ip_len : inbuf bit[-144..-129] hdr.ip/ip.len; ] }
+allocated { $half } to {  [ $entry_point.start : inbuf bit[7..15] ig_intr_md.ingress_port; ] }
+allocated { $byte1 } to {  [ ingress::parse_tev.$split_0 : inbuf bit[64..71] hdr.tev/tev.kind; ] }
+allocated { $half } to {  [ ingress::parse_tev.$split_0 : inbuf bit[80..95] hdr.tev/tev.reserved; ] }
+allocated { $byte1 } to {  [ ingress::single_response_child : inbuf bit[-24..-17] hdr.tev/tev.stage; ] }
+allocated { $byte1 } to {  [ ingress::parse_ladder : inbuf bit[8..15] hdr.ladder/ladder.child; ] }
+allocated { $byte1 } to {  [ ingress::single_ladder_role : inbuf bit[-64..-57] hdr.ladder/ladder.role; ] }
+allocated { $byte1 } to {  [ ingress::clone_or_token : inbuf bit[0..7] pkt.lookahead<bit<8>>(); ] }
+allocated { $byte1 } to {  [ ingress::parse_clone.$split_0 : inbuf bit[64..71] hdr.tev/tev.kind; ] }
+allocated { $half } to {  [ ingress::parse_clone.$split_0 : inbuf bit[80..95] hdr.tev/tev.reserved; ] }
+allocated { $byte1 } to {  [ ingress::parse_timer : inbuf bit[3..4] hdr.timer/timer.pipe_id; ]  [ ingress::parse_timer : inbuf bit[5..7] hdr.timer/timer.app_id; ] }
+allocated { $half } to {  [ $entry_point.start : inbuf bit[7..15] eg_intr_md.egress_port; ] }
+allocated { $half } to {  [ egress::tev : inbuf bit[96..103] hdr.tev/tev.kind; ]  [ egress::tev : inbuf bit[104..111] hdr.tev/tev.stage; ] }
+allocated { $half } to {  [ egress::eth : inbuf bit[96..111] hdr.eth/eth.type; ] }
+allocated { $byte1 } to {  [ egress::ip.$split_0 : inbuf bit[-48..-45] hdr.ip/ip.version; ]  [ egress::ip.$split_0 : inbuf bit[-44..-41] hdr.ip/ip.ihl; ] }
+allocated { $byte0 } to {  [ egress::ip.$split_0 : inbuf bit[24..31] hdr.ip/ip.proto; ] }
+allocated { $half } to {  [ egress::ip_len : inbuf bit[-144..-129] hdr.ip/ip.len; ] }
+allocated { $byte0 $byte1 } to {  [ egress::ip_frag : inbuf bit[-112..-110] hdr.ip/ip.flags; ]  [ egress::ip_frag : inbuf bit[-109..-97] hdr.ip/ip.frag; ] }
+allocated { $byte1 } to {  [ egress::tcp : inbuf bit[96..99] hdr.tcp/tcp.offset; ] }
+allocated { $half $byte0 $byte1 } to {  [ egress::ts12.$split_0 : inbuf bit[-64..-33] hdr.tso/tso.a; ] }
+allocated { $byte1 } to {  [ egress::dl : inbuf bit[16..23] hdr.dl/dl.len; ] }
+allocated { $half } to {  [ egress::dl_start : inbuf bit[-80..-65] hdr.dl/dl.start; ] }
+need to allocate 1 logical checksum calculations to egress parser
+allocated parser checksum unit 0 to tcp_old_1
+need to allocate 1 logical checksum calculations to egress parser
+allocated parser checksum unit 0 to tcp_old_1

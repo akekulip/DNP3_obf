@@ -1,8 +1,9 @@
-# Current status — physical SEL-751 qualification (2026-10-24, in progress)
+# Current status — Claude handover (2026-10-24)
 
 Authority: repository-root Claude_dd7741152_Verified_Assessment_and_Overnight_Command.md and Philip's subsequent
 packetization corrections. Execution plan/ledger: OVERNIGHT_PLAN_20261024.md. History: STATUS.md;
-full record: COMPLETION_RECORD.md. Work on main; no push.
+full record: COMPLETION_RECORD.md. Continuation: repository-root plan.md and CLAUDE_HANDOVER_20261024.md.
+Philip requested handover and commit/push; implementation and runtime execution are stopped at verified c50.
 
 ## Demonstrated current tier
 
@@ -35,14 +36,14 @@ master MAC3c:fd:fe:cc:5d:c0, relay MAC00:30:a7:02:4c:a2.
 | Master complete-response validation | Independently reviewed and committed f60a3ae21;104tests+135subtests pass; prefix-only acceptance repaired |
 | Native baseline READ/SBO | Physical02 block PASS; all4 planned exchanges; full capture and independent restoration retained |
 | READ construction | Preserve c30 source b006752 and its original READ model evidence;91→141 and134→158 targets fixed |
-| Actual SBO encoding | Whole49→60/15+17app offline reference and generated-byte tests pass; ASIC/model qualification pending |
-| Integrated candidate | c48 compiles within every limit and passes artifact review. Model smoke passes handshake and padded mixed READ, then drops SELECT; no successor loaded on hardware |
-| Exact model gate | Corrected c30 control_timing04 passes415/415; successor requires14 existing drivers+relay_sbo+fin_busy on one sealed bundle |
-| FIN race | OPEN: c29 fin_busy01 reproduces half-close retry_epoch invalidation, stale retries and missing FIN; successor repair unqualified |
+| Actual SBO encoding | c49 relay_sbo1085/1085 across3 connections, including complete application, one+11 commit, partial/full ACKs, replay and timing; final-image/physical qualification pending |
+| Integrated candidate | c50 compiled/reviewed within every limit; exact fin_busy193/193 across3 connections. No successor loaded on hardware |
+| Exact model gate | BLOCKED: c50 has fin_busy only; all16 required on final repaired source. c49 SBO pass cannot substitute |
+| FIN race | OPEN for physical recovery: c50 repairs exact busy FIN race in model193/193. Separate half-closed qualified RST defect remains unimplemented |
 | Relay padded/four-arm/recovery/timing/J | NOT RUN; requires current timestamp-capable image, placement, review and complete model gate |
-| Reproduction | Active reproduce.sh recognizes c30_sdk9132 and exact flags/hash; selected integrated candidate pending |
+| Reproduction | Active reproduce.sh recognizes c30/c48/c49/c50 exact metadata; default remains historical c30. Final candidate/full gate/readout pending |
 
-## Active work
+## Handover state and retained milestones
 
 - P4/resource lane: c47 source `2191c15b94f4f83fcd78650b0bdc8f66f3029eda66253d8df85abfb48e1711fe`
   compiles successfully on pinned SDK9.13.2. Raw contexts confirm N/E/T stages0–10 and pipe1 egress0–3;
@@ -54,12 +55,23 @@ master MAC3c:fd:fe:cc:5d:c0, relay MAC00:30:a7:02:4c:a2.
   Source `902a84bf1714d15788b707b7c23b86c4abe8f66a4ba8395d1d52f0377a2eae66` compiles in96.862s;
   physical indices, PHV summaries and table placement match c47. All ten pins and mirror guards verify independently.
   Smoke01 passes15checks through SYN/SYNACK, READ91→141 and mapped ACK, then SELECT_request produces no departure.
-  The reproduced SELECT drop is under investigation; the complete16-driver gate remains blocked.
-- Model lane: all14 gates retargeted and reviewed for actual45/49→60, physical IP/MAC and TS options; runtime execution pending. Strengthen actual-SBO one-commit/growth/retransmission and partial-ACK observations.
+  Installed-row diagnostics localized this SELECT drop to constant-key offsets; c49 repairs it.
+- c49 repairs the installed constant-key encoding by merging repeated w0 slices into equivalent whole-word
+  predicates. Source `995386583fc373e9a770b22e50194b49c246afc0e1c5789ccd099d9ae0b31bc2` compiles in96.674s;
+  physical stage limits and resource use remain unchanged. All86 static tables pass the offset-layout audit.
+  Diagnostic01 passes30/30, including READ141 and SELECT/OPERATE60, independent application/framing checks and ACKs.
+  Dedicated relay_sbo passes1085/1085 across3 connections; fin_busy01/02 fail62/70 and remain retained.
+- c50 source `1c4138ede50aaea8a662f0fba4db6b6dac2916cad46679b5d16599d34f67f43b` adds3 guarded FIN retry rows.
+  Compile95.989s, all ten pins, stages/resources/mirror/static-offset review pass. Exact fin_busy193/193 completes all3
+  connections.143 offline tests and10 legacy identities pass. Normal traversal unchanged; the proven collision adds
+  one bounded recovery retry lap.
+- Model lane: actual-SBO assertions are exercised on c49; c50 final gate remains blocked with15 drivers unexecuted.
+  c51 half-closed RST admission and its model_packets regression are proposals only: no edits/tests/source/build exist.
   Keep old fixtures only as offline historical regressions. Gate fails closed for missing relay/FIN evidence.
 - Campaign lane: explicit sel751 profile, permitted privileged Python application with explicit --apply,
   persistent+independent NIC/firewall restoration and frozen helper closure committed d3d2fe634;1543tests+5export checks pass. Physical four-arm/recovery await the image gate.
-- Integrator: source/artifact identity, serialize model/testbed, review, docs, active reproduce and milestone commits.
+- Integrator: all agents stopped; source/artifacts/logs and handover notes retained for commit/push. Continue from
+  root plan.md: reproduce qualified half-closed RST, implement/review c51, run all16 gates, then physical smoke/reference/recovery.
 
 ## Boundaries and corrected claims
 

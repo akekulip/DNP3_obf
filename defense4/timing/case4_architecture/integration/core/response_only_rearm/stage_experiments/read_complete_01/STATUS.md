@@ -1,6 +1,6 @@
 # read_complete_01 — status (newest first)
 
-## 2026-10-24 — approved SEL-751 execution in progress
+## 2026-10-24 — Claude handover at verified c50
 
 The current authority is `CURRENT.md` and `OVERNIGHT_PLAN_20261024.md`. Older completion claims below are historical.
 c30 establishes relay READ construction and compiled-model behavior; it does not establish padded physical relay
@@ -13,12 +13,17 @@ machinery is being added. Current TCP is SYN40/SYNACK44/DATA32 with timestamps a
 restoration are under `evidence/relay_native_capture_20261024/relay_native_20261024_02/`; supervisor COMPLETE rc0.
 All89 frozen source entries are retained byte-exact beside that run. Native01 failure and restoration remain separate.
 
-The old c29 exact busy-FIN probe passes6/11 and fails5checks, with stale retries and missing relay FIN/final ACK. FIN remains OPEN until
-the successor passes the exact model regression and physical recovery. c31–c34 failed compiler lowering/PHV/stage fit;
-c35 was rejected by static parser preflight; c36 failed two RegisterAction type signatures. Every attempt is retained.
-The timestamp successor and physical recovery helpers are under implementation/review. No padded relay candidate has
-been loaded. No final model/resource/timing/recovery qualification is claimed. Timing remains100us; timing failure
-will not suppress safe recovery runs. No software outstation is used. No push is authorized.
+The old c29 exact busy-FIN probe fails5checks and remains retained. c49 fixes installed constant-key corruption:
+strict diagnostic30/30 and relay_sbo1085/1085 across3 connections pass. Its fin_busy01/02 still fail62/70.
+c50 source1c4138ede50aaea8a662f0fba4db6b6dac2916cad46679b5d16599d34f67f43b repairs the FIN/ACK owner-CAS collision:
+compile95.989s, all ten pins and independent artifact/resource review pass; exact fin_busy193/193 completes all3.
+143 offline tests and10 legacy identities pass. The collision adds a bounded recovery retry lap; normal traversal is unchanged.
+FIN remains OPEN for physical recovery. A separate valid half-closed RST is still ignored by first_event; c51's approved
+8-row proposal and runtime counterexample are NOT implemented. See repository-root plan.md and CLAUDE_HANDOVER_20261024.md.
+Philip requested handover, all working notes updated and commit/push; all agents stopped with no partial implementation.
+No final16-driver gate has passed and no padded candidate has been loaded. Physical smoke,772 exchanges, loss/recovery,
+reconnect, held OPERATE, timing/J and independent restoration remain. Keep100us; timing failure must not suppress safe recovery.
+No software outstation is used. Current push is explicitly authorized by Philip's latest instruction.
 
 Plan: ~/.claude/plans/pasted-content-id-463c-execute-this-quiet-pascal.md (approved 2026-10-20).
 Production implementation stays m12_fullsize/make_m12.py + its consumers; this directory holds evidence,

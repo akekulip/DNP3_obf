@@ -16,9 +16,13 @@ import test_relay_ts as ts
 class RelayDepartureProvenance(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        with patch.object(relay_sbo, 'relay_departure_provenance', side_effect=lambda src: src):
-            cls.original, _ = build(**ts.FLAGS, relay_ts=True)
-        cls.selected, _ = build(**ts.FLAGS, relay_ts=True)
+        # Preserve this historical c47-to-c48 parser-only regression; the
+        # independent c49 static-key repair has its own equivalence tests.
+        with patch.object(relay_sbo, 'retry_fin_phase', side_effect=lambda src: src), \
+                patch.object(relay_sbo, 'canonical_profile_keys', side_effect=lambda src: src):
+            with patch.object(relay_sbo, 'relay_departure_provenance', side_effect=lambda src: src):
+                cls.original, _ = build(**ts.FLAGS, relay_ts=True)
+            cls.selected, _ = build(**ts.FLAGS, relay_ts=True)
 
     def test_only_physical_relay_port_is_added_to_provenance_parser(self):
         self.assertEqual(hashlib.sha256(self.original.encode()).hexdigest(),

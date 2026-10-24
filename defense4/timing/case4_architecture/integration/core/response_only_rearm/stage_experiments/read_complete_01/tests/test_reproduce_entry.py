@@ -46,6 +46,20 @@ class ReproduceEntry(unittest.TestCase):
                          '--relay', '--relay-sbo', '--relay-ts'])
         self.assertEqual(info['evidence_tier'], 'integrated SEL-751 timestamp profile; qualification requires recorded gates')
 
+    def test_profile_and_fin_successors_identify_exact_source(self):
+        identities = {
+            'c49': '995386583fc373e9a770b22e50194b49c246afc0e1c5789ccd099d9ae0b31bc2',
+            'c50': '1c4138ede50aaea8a662f0fba4db6b6dac2916cad46679b5d16599d34f67f43b',
+        }
+        for candidate, source in identities.items():
+            with self.subTest(candidate=candidate):
+                result = self.info(candidate)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                info = json.loads(result.stdout)
+                self.assertTrue(info['build'].endswith('/m12p_%s_sdk9132' % candidate))
+                self.assertEqual(info['source_sha256'], source)
+                self.assertEqual(info['generator_args'], json.loads(self.info('c48').stdout)['generator_args'])
+
     def test_unknown_candidate_fails_before_reproduction(self):
         result = self.info('not_a_candidate')
         self.assertEqual(result.returncode, 2)
