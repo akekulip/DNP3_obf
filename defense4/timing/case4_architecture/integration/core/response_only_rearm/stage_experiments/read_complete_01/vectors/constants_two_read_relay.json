@@ -1,0 +1,139 @@
+{
+ "profile": "relay two-READ-target (mixed 91 -> 141, integrity 134 -> 158); SEL-751 outstation",
+ "policy_targets": [
+  141,
+  158
+ ],
+ "reserved_range": [
+  1024,
+  4095
+ ],
+ "seed": 11949,
+ "encoder_sha256": "8a5f6b68988c59860699149a49c897b453c1b1bb133fa945779816966bcc5295",
+ "captures": "read_complete_01/evidence/relay_native_20261024/native_20261024.json",
+ "captures_sha256": "5272d4674da730c471588fd6c4799991171f1f2ea6e2045e7d761926ef3acc0e",
+ "note": "Relay integrity answers 134 B (G1V2 0..15 + G10V2 0..31 + G30V4 0..20), not the software 247 B; 158 is the prefix floor (134 + 24). Derived from real relay captures 2026-10-24.",
+ "live_checks": {
+  "mixed": {
+   "n": 3,
+   "native_sha256": [
+    "6c3800b64e4d247162f194b465a9673905193ffd0f75d5168b6f66ac831b8667",
+    "7c60052dd9871121a82c469e4a7baad6216b88ac02bed4790c17c30a2fcb1970",
+    "67fa231b69c5b752e5817b7886ce982f0bcbc865d4ad85829a7e466c0d96b17e"
+   ]
+  },
+  "integrity": {
+   "n": 3,
+   "native_sha256": [
+    "8c266011483e97126e7943b2e2c3a13e8c38746a72e7b91234af19044caa3b18",
+    "3e13dbcea343401c8d0faa62890b1c0889001a7fe83b475e24201f177b00a9f7",
+    "c3eff51c1e290e7960206b5a2e242874cb81f11afc55462e69cf6f8a538c08db"
+   ]
+  }
+ },
+ "shapes": {
+  "mixed_g1v2_g30v1_91": {
+   "shape": "mixed_g1v2_g30v1_91",
+   "native_total": 91,
+   "native_link_len": 76,
+   "native_ip_len": 131,
+   "target": 141,
+   "added": 50,
+   "padding_points": 26,
+   "padding_indices": [
+    1024,
+    1049
+   ],
+   "padding_object": "g1v2 q0x01 (16-bit start/stop), every point octet 0x00 = state 0, flags 0x00",
+   "frames_out": [
+    50,
+    91
+   ],
+   "prefix_frame_len": 50,
+   "prefix_link_len": 39,
+   "prefix_link_ctrl": 68,
+   "prefix_user_len": 34,
+   "padobj_head": "0102010004190400000000000000000000000000000000000000000000",
+   "padobj_header": "01020100041904",
+   "block0_tail": "0102010004190400000000",
+   "rest": "00000000000000000000000000000000ffff0000ffff",
+   "link_crc_delta": 29526,
+   "request_len": 25,
+   "request_link_len": 18,
+   "request_ip_len": 65,
+   "request_objects": "010200000f1e01000007",
+   "response_headers": [
+    [
+     1,
+     2,
+     0,
+     0,
+     15
+    ],
+    [
+     30,
+     1,
+     0,
+     0,
+     7
+    ]
+   ],
+   "verified_samples": 512
+  },
+  "integrity_134": {
+   "shape": "integrity_134",
+   "native_total": 134,
+   "native_link_len": 115,
+   "native_ip_len": 174,
+   "target": 158,
+   "added": 24,
+   "padding_points": 4,
+   "padding_indices": [
+    1024,
+    1027
+   ],
+   "padding_object": "g1v2 q0x01 (16-bit start/stop), every point octet 0x00 = state 0, flags 0x00",
+   "frames_out": [
+    24,
+    134
+   ],
+   "prefix_frame_len": 24,
+   "prefix_link_len": 17,
+   "prefix_link_ctrl": 68,
+   "prefix_user_len": 12,
+   "padobj_head": "01020100040304",
+   "padobj_header": "01020100040304",
+   "block0_tail": "01020100040304",
+   "rest": "",
+   "link_crc_delta": 18553,
+   "request_len": 27,
+   "request_link_len": 20,
+   "request_ip_len": 67,
+   "request_objects": "3c02063c03063c04063c0106",
+   "response_headers": [
+    [
+     1,
+     2,
+     0,
+     0,
+     15
+    ],
+    [
+     10,
+     2,
+     0,
+     0,
+     31
+    ],
+    [
+     30,
+     4,
+     0,
+     0,
+     20
+    ]
+   ],
+   "verified_samples": 512
+  }
+ }
+}
