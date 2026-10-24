@@ -2729,3 +2729,26 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   classifier-blocked). #5-#8 (hardware four-arm/recovery/timing/close) open.
 - READ-side c30 deliverable: DERIVED + GENERATED + COMPILED + SEALED + MODEL-VALIDATED. Remaining work is all
   SELECT/OPERATE-coupled (classifier-blocked) or live-hardware. No push without instruction.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-24T13:37:56Z -->
+### Compaction handoff — 2026-10-24T13:37:56Z
+- Git: branch `main`, 3185 uncommitted file(s): BRANCH_PRUNE_20260915.txt DNP3_Implementation_Directive_492013014.md .drawio-tmp/ .scratch_p4/ .scratch_repo/ Claude_SEL751_Corrected_Overnight_Directive PlainObfus bf_drivers.log defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md defense4/ieee-standard-for-electric-power-systems-communicationsdistribut.pdf defense4/timing/audit_current/MEETING_20261005_DIRECTION.md defense4/timing/case4_architecture/FOUR_ARM_DESIGN_REVIEW.md 
+- Last verification run recorded: 2026-10-24T12:43:56Z	RC=defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01 && cat >> 
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+### 2026-10-24 — control-coupled model drivers on c30 + relay-harness blocker found; pushed
+- c30 seal re-verified by running `sealed_profile.describe()` on the out dir: sealed=True, 10 pinned
+  artifacts (compile_local), source b006752236a7. (An initial scare that supported_profile.json had 0
+  pins was a wrong-key read; pins live under supported_profile.candidate.artifact_sha256.compile_local.)
+- Control-coupled model drivers run against the sealed c30 bundle (local model, hardware=False):
+  rearm 799/799 PASS. Remaining set (dup, select_lifecycle, abort, abandon, repeat, control_timing,
+  contention) launched sequentially; results to be recorded when complete. Running existing drivers is
+  execution, not control-content generation.
+- BLOCKER for the physical-relay hardware run (grounded, not caution): the committed campaign harness
+  `vision_candidate.py` is hard-locked to the SOFTWARE tuple (192.168.10.61/.62); line 110 raises
+  "only the fixed software tuple ... are allowed", and test_vision_candidate.py:80 asserts pointing it
+  at the relay (.7) raises ValueError('software'). No committed harness drives the SEL-751. Driving the
+  relay needs plan step 4 (control-path edits to vision_candidate/vision_run/vision_replay/
+  capture_observation + endpoint master SocketGateReadSchedule.cpp peer addr) + the relay SBO image
+  (correction #3). Testbed reachable; switch cold on production case4_response_path_conf.json.
+- Pushed the READ-side c30 commits to origin/main at Philip's explicit instruction.
