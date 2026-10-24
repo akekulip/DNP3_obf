@@ -22,6 +22,7 @@ Writes restore_verify.json beside the evidence; exit 0 only when every check pas
 """
 import argparse
 import glob
+import hashlib
 import json
 import shlex
 import subprocess
@@ -38,6 +39,21 @@ STATISTICS = frozenset({'$COUNTER_SPEC_PKTS', '$COUNTER_SPEC_BYTES', 'drop_count
 BASELINE = HERE / 'restore_baseline/vision_state_20261015.txt'
 RX_COALESCE_BASELINE = HERE / 'restore_baseline/vision_rx_coalesce_20261022.json'
 CPU_LATENCY_BASELINE = HERE / 'restore_baseline/vision_cpu_dma_latency_20261022.json'
+
+
+def offload_failures(ethtool_text, baseline):
+    """Compare a fresh NIC feature read with the independently retained pre-capture baseline."""
+    sys.path.insert(0, str(HERE.parents[3] / 'protocol/hw_vepa'))
+    import capture_observation
+    expected = baseline.get('features') or {}
+    if baseline.get('interface') != capture_observation.PARENT or type(expected.get('gro')) is not bool or any(
+            key not in capture_observation.MANAGED_OFFLOADS or type(value) is not bool for key, value in expected.items()):
+        return ['physical receive-offload baseline missing or malformed']
+    features = capture_observation.parse_ethtool_features(ethtool_text)
+    actual = {key: value for key, value in features.items() if key in capture_observation.MANAGED_OFFLOADS}
+    if actual != expected:
+        return ['Vision receive offloads differ from pre-capture baseline: actual %r, baseline %r' % (actual, expected)]
+    return []
 # read-only: the effective constraint, and any helper still running (its command line carries this marker)
 def cpu_latency_probe(device='/dev/cpu_dma_latency'):
     """Read-only probe source: the effective constraint, then -- after closing its own descriptor -- whether any
@@ -187,6 +203,30 @@ def main(argv=None):
     out['checks']['vision_state'] = {'rc': r.returncode, 'state': r.stdout, 'baseline': a.vision_baseline}
     if r.returncode or r.stdout != want:
         fails.append('Vision state differs from the baseline (rc %d): %s' % (r.returncode, r.stdout[-300:]))
+
+    if cfg.get('endpoint_profile') == 'sel751':
+        baseline_path = root / 'vision_offload_baseline.json'
+        try:
+            raw = baseline_path.read_bytes()
+            offload_base = json.loads(raw)
+            if record is None or hashlib.sha256(raw).hexdigest() != record.get('vision_offload_baseline_sha256'):
+                raise ValueError('retained receive-offload baseline differs from runner pre-capture identity')
+            r = ssh(hosts['vision'], 'ethtool -k %s' % shlex.quote(offload_base['interface']))
+            errors = offload_failures(r.stdout if not r.returncode else '', offload_base)
+            out['checks']['vision_receive_offloads'] = dict(rc=r.returncode, ethtool=r.stdout,
+                                                           baseline=str(baseline_path), failures=errors)
+            fails.extend(errors)
+            if 'iptables' in offload_base:
+                observed = ssh(hosts['vision'], 'sudo -n /usr/bin/python3 %s/relay_loss.py --snapshot' % shlex.quote(V))
+                actual = json.loads(next(line for line in reversed(observed.stdout.splitlines()) if line.startswith('{')))
+                errors = []
+                if observed.returncode or actual.get('pending_owner') is not False or actual.get('chains') != offload_base['iptables']:
+                    errors.append('physical host firewall/owned loss state differs from campaign baseline')
+                out['checks']['vision_physical_loss_restoration'] = dict(rc=observed.returncode, actual=actual,
+                                                                        baseline=offload_base['iptables'], failures=errors)
+                fails.extend(errors)
+        except (OSError, ValueError, KeyError, TypeError, StopIteration) as error:
+            fails.append('physical receive-offload restoration unverified: ' + str(error))
 
     rx_base = json.loads(RX_COALESCE_BASELINE.read_text())
     r = ssh(hosts['vision'], 'ethtool -c %s' % rx_base['interface'])

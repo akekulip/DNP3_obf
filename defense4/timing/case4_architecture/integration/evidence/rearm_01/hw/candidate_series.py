@@ -256,23 +256,31 @@ def series_read_shape(cfg, build, default=None):
 def scheduled_read_growth(cfg, arm, reads):
     """External growth of one connection's READs under traffic.read_schedule: sum over the scheduled classes of
     count * (image - native), from the per-class expectation for `reads` (vision_candidate issues the schedule)."""
+    if base.endpoint_profiles.is_relay(cfg):
+        order = ('mixed', 'integrity') if cfg['traffic']['read_schedule'] == 'mixed_full' else \
+            ('mixed',) if cfg['traffic']['read_schedule'] == 'mixed' else ('integrity',)
+        native = dict(mixed=91, integrity=134)
+        images = cfg['builds'][arm['build']]['read_images']
+        return sum(images[order[i % len(order)]] - native[order[i % len(order)]] for i in range(reads)) if arm['padding'] else 0
     expectation = standards.read_class_expectations(cfg, arm, {'reads': reads})
     return sum(e['count'] * (e['image'] - e['native']) for e in expectation['classes'].values())
 
 
-def series_switch_gate(cfg, arm, reads, ev, lifecycle):
+def series_switch_gate(cfg, arm, reads, ev, lifecycle, piggybacks=None):
     """Switch-only aggregate gate for a three-connection protected candidate series."""
     run_sbo = cfg['traffic'].get('run_sbo', True)
     build = cfg['builds'][arm['build']]
+    piggybacks = piggybacks or {}
     failures, observed = checks.evaluate_switch(
         cfg['expectations'], arm, 3 * reads, ev, checks.allowed_gap(build),
         cfg['service']['k'] if build.get('mirror_fix') else None,
         checks.max_token_stale(build), diagnostic=build.get('diagnostic', False),
-        sbo_count=3 * int(run_sbo), complete_reads=3 * reads, piggyback_reads=0,
+        sbo_count=3 * int(run_sbo), complete_reads=3 * reads, piggyback_reads=piggybacks.get('READ', 0),
         # control-timed builds also time each connection's SELECT and OPERATE (commits, releases, SELECT blocker
         # triggers and their bounded stranded tokens), as campaign.py's verdict does
         control_timed=bool(build.get('control_timed')), piggyback_bound=bool(build.get('piggyback_bound')),
-        piggyback_controls=0, gen_exhausted_outcome=build.get('gen_exhausted_outcome'))
+        piggyback_controls=piggybacks.get('SELECT', 0) + piggybacks.get('OPERATE', 0),
+        gen_exhausted_outcome=build.get('gen_exhausted_outcome'))
     try:
         growth = (_mapper_reg(lifecycle, 'acct', '.lo') - _mapper_reg(lifecycle, 'front')) & 0xffffffff
         unacked = _mapper_reg(lifecycle, 'acct', '.hi')
@@ -282,7 +290,7 @@ def series_switch_gate(cfg, arm, reads, ev, lifecycle):
         else:
             read_image, read_native = series_read_shape(cfg, build, image)   # a chosen single-frame class, else range
             read_growth = reads * (read_image - read_native)
-        expected = (read_growth + (2 * (image - 37) if build.get('control_padding', True) else 0)
+        expected = (read_growth + (2 * (image - (49 if base.endpoint_profiles.is_relay(cfg) else 37)) if build.get('control_padding', True) else 0)
                     if arm['padding'] else 0)
         observed.update(external_growth_bytes=growth, external_growth_expected=expected, unacked=unacked)
         if growth != expected:
@@ -331,7 +339,7 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
             raise ValueError('candidate series requires timing and padding enabled')
         if len(self.fixtures) != 1:
             raise ValueError('candidate series requires exactly one fixture')
-        if self.fixtures != ['separate_ack']:
+        if self.fixtures != (['physical_relay'] if base.endpoint_profiles.is_relay(self.cfg) else ['separate_ack']):
             raise ValueError('candidate series requires separate_ack qualification fixture')
         if self.cfg.get('trial_mode') != 'per_trial_cold' or self.cfg['trials'].get('trials_per_arm') != 1:
             raise ValueError('candidate series requires exactly one cold trial')
@@ -341,6 +349,17 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
             raise ValueError('candidate series requires SBO enabled')
         if 'sbo_cycles' in self.cfg['traffic']:
             raise ValueError('candidate series does not carry traffic.sbo_cycles (vision_candidate runs one SBO)')
+        if base.endpoint_profiles.is_relay(self.cfg):
+            base.validate_endpoint_profile(self.cfg)
+            if self.cfg['traffic'].get('read_schedule') not in ('mixed_full', 'mixed', 'full'):
+                raise ValueError('physical persistence requires a declared relay READ schedule')
+            traffic = self.cfg['traffic']
+            if (traffic.get('range'), traffic.get('gap_ms'), traffic.get('start_delay_ms'),
+                    traffic.get('read_pause_ms', 25), self.cfg['seeds']['rng_seed']) != (8, 0, 0, 25, 12345):
+                raise ValueError('physical series requires range8/gap0/start0/pause25/seed12345')
+            if self.cfg.get('evaluation', {}).get('read_precision', True) is not True:
+                raise ValueError('physical series requires READ precision gate')
+            return
         series_class = self.cfg['traffic'].get('series_read_class')
         if 'read_schedule' in self.cfg['traffic']:
             build = self.cfg['builds'].get(self.arms[0].get('build')) or {}
@@ -383,6 +402,8 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
 
     def vision_identity(self):
         super().vision_identity()
+        if base.endpoint_profiles.is_relay(self.cfg):
+            return
         host = self.cfg['hosts']['vision']
         identity = {name: base.sha256_file(path) for name, path in VISION_EXTRA.items()}
         self.step('local', 'deploy candidate same-tuple Vision helper and local analyzers',
@@ -420,6 +441,11 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
         if connect_must_fail or drop or scenario or reconnect_port is not None:
             raise ValueError('candidate series traffic must be one protected installed tuple with no base scenario/drop')
         traffic = self.cfg['traffic']
+        if base.endpoint_profiles.is_relay(self.cfg):
+            return (base.RELAY_PYTHON + ' %s/vision_run.py run %s --master-port %d --reads %d --range 8 --gap-ms 0 '
+                    '--scenario persistence --close-mode %s --close-grace-ms %d --read-schedule %s '
+                    '--endpoint-profile sel751 --apply' % (base.runner.V_RUN, label, master_port, reads,
+                    self.close_mode, self.rst_grace_ms if self.close_mode == 'rst' else 0, traffic['read_schedule']))
         scheduled = traffic.get('read_schedule') is not None
         # a schedule is checked per class (--read-classes), so no single READ image is passed
         read_image = None if scheduled else series_read_shape(self.cfg, self.cfg['builds'][self._series_build])[0]
@@ -499,6 +525,40 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
                                           timing=os.path.join(root, 'timing.json'))
 
     def verdict(self, trial, rec, label, dest, v, arm, fixture):
+        if base.endpoint_profiles.is_relay(self.cfg):
+            self.relay_verdict(trial, rec, label, dest, v, arm, fixture,
+                               connections={name: (os.path.join(dest, name), trial['master_port'])
+                                            for name in ('c1', 'c2', 'c3')},
+                               raise_on_failure=False, close_mode=self.close_mode)
+            if self.rn.dry:
+                return
+            snapdir = os.path.join(dest, 'snapshots')
+            snapshots = checks.load_evidence_files(before=os.path.join(snapdir, label + '_before.json'),
+                                                  after=os.path.join(snapdir, label + '_after.json'))
+            lifecycle = _load_json(os.path.join(snapdir, label + '_after_lifecycle.json')) or {}
+            piggybacks = {operation: sum(row['operation'] == operation and row['piggyback']
+                        for name in ('c1', 'c2', 'c3') for row in
+                        (_load_json(os.path.join(dest, name, 'relay_wire.json')) or {}).get('exchanges', []))
+                          for operation in ('READ', 'SELECT', 'OPERATE')}
+            sfail, sobs = series_switch_gate(self.cfg, arm, trial['reads'], snapshots, lifecycle, piggybacks)
+            lfail, lobs = lifecycle_gate(lifecycle, self.close_mode)
+            import relay_check
+            fresh, previous = {}, None
+            for name in ('c1', 'c2', 'c3'):
+                try:
+                    previous = relay_check.freshness(_load_json(os.path.join(dest, name, 'relay_wire.json')) or {}, previous)
+                    fresh[name] = previous
+                except (OSError, ValueError, KeyError, TypeError) as error:
+                    lfail.append(name + ': ' + str(error))
+            trial['failures'] += ['switch: ' + error for error in sfail] + ['lifecycle: ' + error for error in lfail]
+            trial['observed'].update(series_switch=sobs, lifecycle=lobs, fresh_mapping=fresh)
+            trial['scenario'] = dict(policy='physical_same_tuple_protected', installed_connections_expected=3,
+                                     connections={name: dict(master_port=trial['master_port']) for name in ('c1', 'c2', 'c3')})
+            trial['ok'] = not trial['failures']
+            Path(dest, 'trial.json').write_text(json.dumps(trial, indent=2) + '\n')
+            if sfail or lfail or not trial['dimension_verdicts']['application'] or v.rc:
+                raise base.StepFailed('physical same-tuple application/lifecycle/switch gate failed')
+            return
         tool_rcs = {}
         scheduled = self.cfg['traffic'].get('read_schedule') is not None
         policy = self.read_policy_arg(trial, arm) if scheduled else ''

@@ -1,0 +1,29 @@
+{
+  "which": "relay",
+  "master_port": 59410,
+  "enable": 0,
+  "no_forwarding": false,
+  "passthrough": true,
+  "Egress.conn": [],
+  "Egress.odd_ip_t": [],
+  "Ingress.forwarding": [
+    {
+      "key": {
+        "ig.ingress_port": 64
+      },
+      "data": {
+        "port": 9,
+        "action_name": "Ingress.route"
+      }
+    },
+    {
+      "key": {
+        "ig.ingress_port": 9
+      },
+      "data": {
+        "port": 64,
+        "action_name": "Ingress.route"
+      }
+    }
+  ]
+}

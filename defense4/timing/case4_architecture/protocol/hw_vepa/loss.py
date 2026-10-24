@@ -197,9 +197,17 @@ class LossRule:
     nsx(ns, *cmd) must behave like `ip netns exec ns cmd...` (returncode/stdout/stderr)."""
     MODE = 'limit-burst-1 chain (kernel-atomic)'
 
-    def __init__(self, nsx, spec, ip_m, ip_o, master_port, outstation_port):
+    def __init__(self, nsx, spec, ip_m, ip_o, master_port, outstation_port, chain='INPUT', log_prefix=None):
         self.nsx, self.spec = nsx, spec
         self.ns, self.rules = build_rules(spec, ip_m, ip_o, master_port, outstation_port)
+        self.chain = chain
+        if chain not in ('INPUT', 'OUTPUT'):
+            raise ValueError('loss chain must be INPUT or OUTPUT')
+        if log_prefix is not None:
+            if not re.fullmatch(r'D4R[0-9a-f]{16}', log_prefix):
+                raise ValueError('invalid owned relay loss log identity')
+            self.rules.insert(-1, self.rules[-1][:-2] + ['-j', 'LOG', '--log-prefix', log_prefix + ' ',
+                                                       '--log-tcp-sequence'])
         self.installed, self.finished = [], False
         self.state_before = self.state_after = None
         self.remove_errors, self.removed = [], False
@@ -209,14 +217,14 @@ class LossRule:
         return self.nsx(self.ns, 'iptables', '-w', *args)
 
     def _chain(self):
-        r = self._ipt('-S', 'INPUT')
+        r = self._ipt('-S', self.chain)
         return [l.strip() for l in r.stdout.splitlines() if l.strip()] if r.returncode == 0 else None
 
     def install(self):
         self.state_before = self._chain()
         try:
             for i, rule in enumerate(self.rules, 1):
-                r = self._ipt('-I', 'INPUT', str(i), *rule)
+                r = self._ipt('-I', self.chain, str(i), *rule)
                 if r.returncode:
                     raise RuntimeError('iptables insert %d/%d failed in %s: %s' % (i, len(self.rules), self.ns,
                                                                                    (r.stderr or '').strip()))
@@ -227,7 +235,7 @@ class LossRule:
         return self
 
     def counters(self):
-        r = self._ipt('-L', 'INPUT', '-v', '-n', '-x', '--line-numbers')
+        r = self._ipt('-L', self.chain, '-v', '-n', '-x', '--line-numbers')
         if r.returncode:
             raise RuntimeError('iptables -L failed in %s: %s' % (self.ns, (r.stderr or '').strip()))
         out = []
@@ -248,7 +256,7 @@ class LossRule:
 
     def remove(self):
         for rule in self.installed:
-            r = self._ipt('-D', 'INPUT', *rule)
+            r = self._ipt('-D', self.chain, *rule)
             if r.returncode:
                 self.remove_errors.append('delete failed: %s' % (r.stderr or '').strip())
         self.installed = []
@@ -265,8 +273,9 @@ class LossRule:
         return False
 
     def record(self):
-        drop = next((c for c in self.counter_list if c['target'] == 'DROP'), None)
-        accepts = [c for c in self.counter_list if c['target'] == 'ACCEPT']
+        owned = [c for c in self.counter_list if c['pos'] <= len(self.rules)]
+        drop = next((c for c in owned if c['target'] == 'DROP'), None)
+        accepts = [c for c in owned if c['target'] == 'ACCEPT']
         earlier = sum(c['pkts'] for c in accepts)
         s = self.spec
         exact = bool(drop and drop['pkts'] == 1 and drop['bytes'] == s['ip_len'] and
@@ -274,7 +283,7 @@ class LossRule:
                      all(c['pkts'] == 1 for c in accepts))
         return {'class': s['class'], 'n': s['n'], 'occurrence': s['occurrence'], 'base': s['base'],
                 'dir': s['dir'], 'ip_len': s['ip_len'], 'flags': s['flags'], 'length_only': s.get('length_only', False),
-                'ns': self.ns, 'chain': 'INPUT',
+                'ns': self.ns, 'chain': self.chain,
                 'mode': self.MODE, 'rules': [' '.join(r) for r in self.rules], 'counters': self.counter_list,
                 'counter_error': self.counter_error,
                 'dropped_packets': drop['pkts'] if drop else None, 'dropped_bytes': drop['bytes'] if drop else None,

@@ -30,13 +30,18 @@ ap.add_argument('which', choices=('vepa', 'relay'))
 ap.add_argument('--master-port', type=int)
 ap.add_argument('--enable', type=int, choices=(0, 1), default=1)
 ap.add_argument('--no-forwarding', action='store_true')
+ap.add_argument('--passthrough', action='store_true', help='relay only: forwarding rows only; no mapper or padding connection')
 a = ap.parse_args()
+if a.passthrough and (a.which != 'relay' or a.enable != 0 or a.no_forwarding):
+    ap.error('passthrough requires relay --enable 0 with forwarding')
 if a.which == 'vepa':
     if a.master_port is None:
         ap.error('vepa needs --master-port')
     outstation, master = Endpoint('192.168.10.62', 20000, 9), Endpoint('192.168.10.61', a.master_port, 9)
 else:
-    outstation, master = Endpoint('192.168.10.7', 20000, 64), Endpoint('192.168.10.1', 54321, 9)
+    if a.master_port is not None and not 1024 <= a.master_port <= 65535:
+        ap.error('relay master port must be in 1024..65535')
+    outstation, master = Endpoint('192.168.10.7', 20000, 64), Endpoint('192.168.10.1', a.master_port or 54321, 9)
 
 iface = gc.ClientInterface('localhost:50052', client_id=125, device_id=0)
 try:
@@ -63,10 +68,13 @@ try:
             t.entry_del(tg, keys)
     rows = Registry().plan(0, outstation, master, pad_enable=bool(a.enable))
     for r in rows:
+        if a.passthrough and r.table != 'Ingress.forwarding':
+            continue
         if a.no_forwarding and r.table == 'Ingress.forwarding':
             continue
         add(r.table, r.key_dict, r.action, r.data_dict)
-    out = {'which': a.which, 'master_port': master.port, 'enable': a.enable, 'no_forwarding': a.no_forwarding}
+    out = {'which': a.which, 'master_port': master.port, 'enable': a.enable, 'no_forwarding': a.no_forwarding,
+           'passthrough': a.passthrough}
     for name in TABLES:
         out[name] = [{'key': {k: v['value'] for k, v in key.to_dict().items()},
                       'data': {k: v for k, v in data.to_dict().items() if k != 'is_default_entry'}}

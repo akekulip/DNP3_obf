@@ -64,6 +64,7 @@ COMPILE_FILES = ('manifest.json', 'out/bfrt.json', 'out/response_only.p4pp', 'ou
 COMPILES = ('compile_local', 'compile_switch_9132')
 LOADED_COMPILE = 'compile_switch_9132'           # the compile the switch loads (SDK 9.13.2)
 FREEZE_V3 = 'freeze-v3-20261017'
+BASELINE_V1 = 'production-baseline-v1'
 CASE4 = A                                       # configs give paths relative to case4_architecture/
 
 
@@ -91,7 +92,19 @@ def collect(build, configs):
         files += [rel(p) for p in sorted((REPO / d).rglob('*')) if p.is_file()]
     files += list(HARNESS_FILES) + list(ANALYSIS) + [rel(c) for c in configs]
     files += closure_files(build)
+    files += config_closure(configs)
     return sorted(set(files))
+
+
+def config_closure(configs):
+    sys.path.insert(0, str(HW.parents[3] / 'protocol/hw_vepa'))
+    import endpoint_profiles
+    files = []
+    for path in configs:
+        cfg = json.loads(Path(path).read_text())
+        if endpoint_profiles.is_relay(cfg) and cfg.get('purpose') != 'relay-native-baseline':
+            files += [rel(source) for source in endpoint_profiles.native_observation_files(cfg)]
+    return files
 
 
 def model_summary_module():
@@ -240,6 +253,14 @@ def candidate_binding(frozen, config):
       out_dir and manifest, and any pinned artifact hash equals the candidate's;
     - ctl_timing_identity names the same source and the same loaded compile;
     - the model verdict is model_gate_passed, or a diagnostic exception is recorded (its blocks do not qualify)."""
+    if frozen.get('freeze_version') == BASELINE_V1:
+        try:
+            cfg = json.loads(Path(config).read_text())
+            baseline_files(cfg, [config])
+        except (ValueError, KeyError, OSError) as error:
+            return ['invalid production baseline: ' + str(error)]
+        path = rel(config)
+        return [] if (frozen.get('configs') or {}).get(path) == sha(path) else ['baseline config not frozen or changed']
     cand = frozen.get('candidate')
     if frozen.get('freeze_version') != FREEZE_V3 or not cand:
         return ['freeze %s has no candidate record (version 3 required)' % frozen.get('freeze_version')]
@@ -324,9 +345,43 @@ def check(a):
     return 0 if result['ok'] else 1
 
 
+def baseline_files(cfg, configs):
+    sys.path.insert(0, str(HW.parents[3] / 'protocol/hw_vepa'))
+    import endpoint_profiles
+    import campaign
+    endpoint_profiles.validate_baseline(cfg)
+    files = []
+    for directory in HARNESS_DIRS:
+        for glob in HARNESS_GLOBS:
+            files += [rel(p) for p in (REPO / directory).glob(glob)]
+    files += [rel(p) for p in (REPO / 'defense4/timing/active_harness').glob('*.py')]
+    files += ['defense4/timing/implementation/harness/' + name for name in
+              ('relay_operate_guarded.py', 'relay_read_g10_23.py', 'dnp3_wire.py')]
+    files += list(HARNESS_FILES) + [rel(c) for c in configs]
+    files += [rel(path) for path, _name in campaign.switch_tools()]
+    files += [rel(p) for p in (HW / 'restore_baseline').rglob('*') if p.is_file()]
+    return sorted(set(files))
+
+
+def write_baseline(a):
+    cfg = json.loads(Path(a.config).read_text())
+    files = baseline_files(cfg, [a.config])
+    record = dict(freeze_version=BASELINE_V1, source_sha256=None, production=cfg['production'],
+                  configs={rel(a.config): sha(rel(a.config))},
+                  files={f: dict(sha256=sha(f), tracked=tracked(f)) for f in files},
+                  qualifies=False, purpose='native observation only; authorizes no candidate load')
+    with open(a.output, 'x') as stream:
+        json.dump(record, stream, indent=2)
+        stream.write('\n')
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest='cmd', required=True)
+    baseline = sub.add_parser('write-baseline')
+    baseline.add_argument('--config', required=True)
+    baseline.add_argument('-o', '--output', required=True)
     w = sub.add_parser('write')
     w.add_argument('build')
     w.add_argument('-o', '--output', required=True)
@@ -339,7 +394,7 @@ def main(argv=None):
     c.add_argument('--config', help='the block config; it must belong to the frozen candidate')
     c.add_argument('--record')
     a = ap.parse_args(argv)
-    return write(a) if a.cmd == 'write' else check(a)
+    return write_baseline(a) if a.cmd == 'write-baseline' else (write(a) if a.cmd == 'write' else check(a))
 
 
 if __name__ == '__main__':

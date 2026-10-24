@@ -35,13 +35,16 @@ EXTRA_FILES = (CANDIDATE + '/cp.py', CANDIDATE + '/hw/bringup_composite.py',
                CANDIDATE + '/hw/generation_headroom.py')
 
 
-def _native_inputs_supported(encoding):
+def _native_inputs_supported(encoding, endpoint_profile='software'):
     """The control-timing contract's native inputs: SELECT/OPERATE 37 and either the range READ (49, the single-READ
     builds) or the two-READ-target profile's READ list, which must equal the keys of its declared read_images map,
     each image larger than its native (mixed 91 -> 141, full 247 -> 271). Anything else is refused."""
     native = encoding.get('native_input_octets')
+    control_native = 49 if endpoint_profile == 'sel751' else 37
     if not isinstance(native, dict) or set(native) != {'READ', 'SELECT', 'OPERATE'} or \
-            native.get('SELECT') != 37 or native.get('OPERATE') != 37:
+            native.get('SELECT') != control_native or native.get('OPERATE') != control_native:
+        return False
+    if endpoint_profile == 'sel751' and native.get('READ') != [91, 134]:
         return False
     if native['READ'] == 49 and 'read_images' not in encoding:
         return True
@@ -133,7 +136,7 @@ class CandidateCampaign(base.Campaign):
 
     def _headroom_required(self, rec):
         build = self.cfg.get('builds', {}).get(rec.get('build'), {})
-        return bool(build.get('profile') == 'candidate61' or
+        return bool(base.endpoint_profiles.is_relay(self.cfg) or build.get('profile') == 'candidate61' or
                     build.get('packet_boundary_required') or
                     self.cfg.get('standards', {}).get('packet_boundary_required'))
 
@@ -143,6 +146,7 @@ class CandidateCampaign(base.Campaign):
         Historical builds without this profile keep the explicit registry/flag
         contract. No compiler output is needed to verify a source-only profile.
         """
+        cfg = getattr(self, 'cfg', {})
         directory = Path(base.path_of(build['out_dir'])).parent.parent
         inputs_path = directory / 'response_only.inputs.json'
         inputs = json.loads(inputs_path.read_text()) if inputs_path.is_file() else {}
@@ -156,6 +160,8 @@ class CandidateCampaign(base.Campaign):
                 raise HEADROOM.HeadroomError('supported profile file differs from build inputs')
             profile = separate
         if profile is None:
+            if base.endpoint_profiles.is_relay(cfg):
+                raise HEADROOM.HeadroomError('physical SEL-751 candidate requires its source-bound supported profile')
             return None
         if not isinstance(profile, dict):
             raise HEADROOM.HeadroomError('supported profile must be an object')
@@ -169,8 +175,21 @@ class CandidateCampaign(base.Campaign):
             raise HEADROOM.HeadroomError('supported profile source identity does not match the build and inputs')
         encoding, timing = profile.get('encoding', {}), profile.get('timing_ns', {})
         keys = ('D_release_budget', 'J_operate_hold', 'pb_piggyback_bound', 'readiness', 'da', 'cap')
-        if not _native_inputs_supported(encoding) or \
-                encoding.get('output_octets') != 61 or type(profile.get('t_child_count')) is not int or \
+        endpoint_profile = cfg.get('endpoint_profile', 'software')
+        if endpoint_profile == 'sel751' and (profile.get('endpoint_profile') != 'sel751' or
+                profile.get('ports', {}).get('master_dev') != 9 or profile.get('ports', {}).get('relay_dev') != 64):
+            raise HEADROOM.HeadroomError('SEL-751 profile endpoint/physical port identity mismatch')
+        if endpoint_profile == 'sel751' and (profile.get('tcp_profile') != 'sel751_ts' or
+                encoding.get('tcp_header_octets') != 32 or encoding.get('syn_tcp_header_octets') != 40 or
+                encoding.get('synack_tcp_header_octets') != 44 or encoding.get('ipv4_ihl') != 5 or
+                encoding.get('timestamp_option_prefix') != '0101080a'):
+            raise HEADROOM.HeadroomError('SEL-751 profile does not bind the observed timestamp/header contract')
+        if endpoint_profile == 'sel751' and (encoding.get('read_images') != {'91': 141, '134': 158} or
+                build.get('image_len') != 60 or build.get('read_images') != {'mixed': 141, 'integrity': 158} or
+                build.get('read_padding') != {'mixed': 26, 'integrity': 4}):
+            raise HEADROOM.HeadroomError('SEL-751 config and profile must bind the selected two READ images and control60')
+        if not _native_inputs_supported(encoding, endpoint_profile) or \
+                encoding.get('output_octets') != (60 if endpoint_profile == 'sel751' else 61) or type(profile.get('t_child_count')) is not int or \
                 profile['t_child_count'] not in (1, 3) or \
                 any(type(timing.get(key)) is not int or timing[key] <= 0 for key in keys):
             raise HEADROOM.HeadroomError('unsupported control-timing profile contract')
@@ -220,6 +239,11 @@ class CandidateCampaign(base.Campaign):
         """Budget every unit before the switch is touched: a refused or malformed budget is a preflight error,
         not an exception between install and collection."""
         errs = super().preflight()
+        if base.endpoint_profiles.is_relay(self.cfg):
+            try:
+                base.endpoint_profiles.native_observation_files(self.cfg)
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                errs.append('physical packet profile provenance: ' + str(error))
         for unit in self.units():
             arm = unit['arm']
             rec = {'build': arm.get('build'), 'T': arm.get('T')}

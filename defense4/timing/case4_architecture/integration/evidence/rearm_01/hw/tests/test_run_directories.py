@@ -52,6 +52,7 @@ def block_rig(tmp_path, monkeypatch):
             shutil.copyfile(HW / name, hw / name)
     cfg = repo / 'config.json'
     cfg.write_text(json.dumps({'evidence_dir': 'runs'}))
+    (repo / 'freeze.json').write_text(json.dumps({'freeze_version': 'freeze-v3-20261017'}))
     (hw / 'candidate_campaign.py').write_text("""
 import json, os, pathlib, sys, time
 args = sys.argv[1:]

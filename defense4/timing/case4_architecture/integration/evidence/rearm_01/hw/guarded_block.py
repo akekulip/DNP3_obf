@@ -69,6 +69,10 @@ def block(tool, config, run_id, arguments, freeze=None):
     config = Path(config).resolve(strict=True)
     if freeze is not None:
         freeze = str(Path(freeze).resolve())
+        frozen = json.loads(Path(freeze).read_text())
+        baseline = frozen.get('freeze_version') == 'production-baseline-v1'
+        if baseline != (tool == 'candidate_relay_native'):
+            raise ValueError('production baseline freeze authorizes only candidate_relay_native; candidate freezes authorize candidate tools')
     cfg = json.loads(config.read_text())
     os.chdir(ARCH.parents[2])
     supplied_root = ARCH / cfg['evidence_dir'] / run_id

@@ -2838,3 +2838,13 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   Sourcebytes recoveredonlywhenoriginalclosurehashmatched; failedattempts/recordsunchanged. Existingrestore utility
   extendedtohonor thesepins fornon-resetlogs;4focusedtests covertrace/console reconstruction andtamper rejection. Thisdoesnot
   qualifychangedcurrentmodelhelpers; historicaldependencies andcurrentqualification remain distinct.
+- Physicalcampaignhelpers now independently reviewed with allfour integration repairs: executeall3connectionsafter
+  ordinaryfailure; stoponfailed/missingstructuredrestore; enforce capturedSYN40/SYNACK44MSS1460/WS7/0 layouts;
+  selectedartifactpaths matchfreeze. Scope includesownedatomiclossrules andfreshindependentfirewall/offloadrestore.
+  Freshcombinedprotocol/HWtests1543/1543pass; post-stageexportmarker5/5pass. Native02exact89sourcehashesretained.
+  Existingmanifestgenerator nowselectsphysicalconfigprefix/fixture, resolvesrunroot, andrefusesmanifestoverwrite;
+  9configtests pass. No candidatehardwareyet; native readiness/switchresidence/J remainunproven.
+- c38 sourcef6cdbe5f7b2b357b9ce412d340d7952c8185a56a8d1f1f48d63b2d0568921e54 replacesfour fixed-profile tail
+  CRChashes with exactnativeCRC/lookuplinearity (256status+64transportrows, no16Kcrossproduct), retainingallN/E
+  fixedfieldchecks andCRCs. Newofflineproofs cover64×256outputs andfixed-field corruption. Compilationrunning;
+  independentreviewpending. Thisisnotan image/resource/runtimepass.

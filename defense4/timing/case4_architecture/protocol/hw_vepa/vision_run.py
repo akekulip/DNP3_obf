@@ -35,6 +35,205 @@ import threading
 import capture_observation
 import loss  # shared packet classes and iptables rule lifecycle; deployed beside this file
 
+
+def authorize_relay_run(args):
+    """Trusted application entrypoint for the frozen wrapper's explicit --apply intent."""
+    if args.endpoint_profile != 'sel751' or args.mode != 'run':
+        raise ValueError('explicit apply is supported only by the physical SEL-751 run entrypoint')
+    if not args.label or not re.fullmatch(r'[A-Za-z0-9_]+', args.label) or not 1024 <= args.master_port <= 65535:
+        raise ValueError('invalid fixed-profile label or source port')
+    if not 1 <= args.reads <= 65 or not 0 <= args.sbo_cycles <= 64 or args.sbo_cycles >= args.reads:
+        raise ValueError('invalid bounded physical workload')
+    if args.run_sbo not in (0, 1) or (args.sbo_cycles and not args.run_sbo):
+        raise ValueError('invalid guarded SBO controls')
+    if args.read_schedule not in (None, 'mixed_full', 'mixed', 'full') or any(
+            not 0 <= value <= 5000 for value in (args.gap_ms, args.read_pause_ms, args.close_grace_ms)):
+        raise ValueError('unsupported physical READ schedule or bounded timing')
+    if args.endpoint_binary or args.pad_expect or getattr(args, 'db', None) is not None:
+        raise ValueError('software endpoint and unsupported loss controls are forbidden on the physical profile')
+    if args.drop:
+        import relay_loss
+        relay_loss.parse_drop(args.drop, args.read_schedule, args.relay_padding)
+    if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1' and not args.apply:
+        raise ValueError('physical run requires authorization environment or explicit --apply')
+    from relay_master import preflight
+    preflight()  # fixed frozen {1,3} builders; no socket or capture
+    if args.apply:
+        os.environ['DEFENSE4_HW_AUTHORIZED'] = '1'
+
+
+def relay_offload_lifecycle(mode, baseline_path=None, run=None, loss_baseline=False):
+    """Campaign-level recovery survives failure of a per-capture offload context."""
+    baseline_path = OFFLOAD_BASELINE if baseline_path is None else baseline_path
+    run = capture_observation.sh if run is None else run
+    if mode == 'setup':
+        if os.path.exists(baseline_path):
+            raise RuntimeError('physical setup refused: pending offload baseline exists; restore first')
+        baseline = capture_observation.record_offload_baseline(baseline_path, PARENT, run=run)
+        if loss_baseline:
+            import relay_loss
+            if os.path.exists(HOME + '/relay_loss_state.json'):
+                raise RuntimeError('pending physical loss ownership exists; restore first')
+            baseline['iptables'] = relay_loss.firewall_snapshot(run=run)
+            with open(baseline_path, 'w') as stream:
+                json.dump(baseline, stream, indent=2)
+        return baseline
+    if mode == 'restore':
+        import relay_loss
+        cleanup = relay_loss.restore_owned(HOME + '/relay_loss_state.json', run=run)
+        errors = capture_observation.restore_offload_baseline(baseline_path, PARENT, run=run)
+        errors += cleanup['errors']
+        return dict(errors=errors, restored=not errors, loss=cleanup)
+    raise ValueError('physical offload lifecycle supports setup/restore only')
+
+
+def run_relay_connection(run_dir, label, master_port, reads, gap_ms=0, read_pause_ms=25,
+                         run_sbo=True, close_grace_ms=0, sbo_cycles=0, read_schedule=None,
+                         qualify_capture=False, start_delay_max=0, start_seed=0, close_mode='graceful', **unused):
+    """Capture one real master socket. Never start an outstation or alter TCP settings."""
+    from relay_master import workload
+    from endpoint_profiles import MASTER_IP, RELAY_IP
+    os.makedirs(run_dir)
+    open(os.path.join(run_dir, 'state.txt'), 'w').write(state() + '\n')
+    result = dict(label=label, endpoint_profile='sel751', master_port=master_port, reads=reads,
+                  observation_scope='single master NIC TX/RX; switch residence and OPERATE J unproven',
+                  endpoint_controls=dict(read_pause_ms=read_pause_ms, run_sbo=bool(run_sbo),
+                                         close_grace_ms=close_grace_ms), tcpdump={}, ok=False)
+    caps, loss_owner = {}, [None]
+    def capture():
+        try:
+            result['source_port_wait'] = wait_relay_port_free(master_port)
+            if result['source_port_wait']['result'] != 'free':
+                raise RuntimeError('physical source port unavailable: ' + str(result['source_port_wait']))
+            flt = 'tcp and host %s and host %s and port 20000' % (MASTER_IP, RELAY_IP)
+            for direction in ('out', 'in'):
+                command = ['tcpdump', '--immediate-mode', '-i', PARENT, '-Q', direction, '-s0', '-U', '-n',
+                           '-w', os.path.join(run_dir, direction + '.pcap'), flt]
+                caps[direction] = subprocess.Popen(command, stderr=subprocess.PIPE, text=True)
+            time.sleep(2)
+            for direction, proc in caps.items():
+                if proc.poll() is not None or not os.path.isfile(os.path.join(run_dir, direction + '.pcap')):
+                    raise RuntimeError('relay capture failed before traffic: ' + direction)
+            if unused.get('drop'):
+                import relay_loss
+                loss_owner[0] = relay_loss.RelayLoss(unused['drop'], master_port, label, HOME + '/relay_loss_state.json')
+                loss_owner[0].install()
+            time.sleep(start_delay_ms(start_delay_max, start_seed) / 1000)
+            master = workload(master_port, reads, schedule=read_schedule or 'mixed_full', sbo_cycles=sbo_cycles,
+                              run_sbo=run_sbo, gap_ms=gap_ms, read_pause_ms=read_pause_ms,
+                              close_grace_ms=close_grace_ms, close_mode=close_mode)
+            json.dump(master, open(os.path.join(run_dir, 'master.json'), 'w'), indent=2)
+            result.update(ok=master['ok'], master_rc=0 if master['ok'] else 1)
+            result['close_observation'] = wait_relay_close(run_dir, master_port, close_mode)
+        except Exception as error:
+            result.update(error=str(error), master_rc=1)
+        finally:
+            if loss_owner[0] is not None:
+                try:
+                    result['loss'] = loss_owner[0].finish()
+                except Exception as error:
+                    import relay_loss
+                    result['loss'] = dict(exact=False, error=str(error),
+                                         restoration=relay_loss.restore_owned(HOME + '/relay_loss_state.json'))
+                result['ok'] = bool(result['ok'] and result['loss'].get('exact') and
+                                    result['loss'].get('restoration', {}).get('restored'))
+            for direction, proc in caps.items():
+                proc.terminate()
+                try:
+                    _, stderr = proc.communicate(timeout=10)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    _, stderr = proc.communicate()
+                result['tcpdump'][direction] = parse_tcpdump_stats(stderr or '')
+            json.dump(result, open(os.path.join(run_dir, 'result.json'), 'w'), indent=2)
+        return result
+    if qualify_capture:
+        with capture_observation.offload_capture_context(run_dir, interface=PARENT):
+            return capture()
+    return capture()
+
+
+def wait_relay_port_free(port, tries=80):
+    """Passive host TCP-state barrier; no namespace/profile/sysctl mutation."""
+    start = time.monotonic()
+    for poll in range(1, tries + 1):
+        probe = sh('ss', '-tan')
+        if probe.returncode:
+            return dict(result='probe_error', error=probe.stderr, polls=poll)
+        if ':%d ' % port not in probe.stdout:
+            return dict(result='free', polls=poll, elapsed_s=time.monotonic() - start)
+        time.sleep(1)
+    return dict(result='busy', polls=tries, elapsed_s=time.monotonic() - start)
+
+
+def wait_relay_close(run_dir, master_port, mode, tries=60):
+    """Retain capture until close is observed or 3 seconds expire; no packet/socket creation."""
+    import wire_check
+    from endpoint_profiles import MASTER_IP, RELAY_IP, RELAY_PORT
+    start, last_error = time.monotonic(), None
+    for poll in range(1, tries + 1):
+        try:
+            outgoing = [p for p in wire_check.parse(os.path.join(run_dir, 'out.pcap'))[0] if
+                        (p['src'], p['dst'], p['sport'], p['dport']) == (MASTER_IP, RELAY_IP, master_port, RELAY_PORT)]
+            incoming = [p for p in wire_check.parse(os.path.join(run_dir, 'in.pcap'))[0] if
+                        (p['src'], p['dst'], p['sport'], p['dport']) == (RELAY_IP, MASTER_IP, RELAY_PORT, master_port)]
+            complete = any(p['flags'] & wire_check.RST for p in outgoing) if mode == 'rst' else (
+                any(p['flags'] & wire_check.FIN and any(q['flags'] & wire_check.ACK and
+                    q['ack'] == (p['seq'] + p['len'] + 1) & 0xffffffff for q in outgoing) for p in incoming) and
+                any(p['flags'] & wire_check.FIN and any(q['flags'] & wire_check.ACK and
+                    q['ack'] == (p['seq'] + p['len'] + 1) & 0xffffffff for q in incoming) for p in outgoing))
+            if complete:
+                return dict(complete=True, mode=mode, polls=poll, elapsed_s=time.monotonic() - start)
+        except Exception as error:  # a live pcap may end in an unfinished record during the read
+            last_error = str(error)
+        time.sleep(.05)
+    return dict(complete=False, mode=mode, polls=tries, elapsed_s=time.monotonic() - start, error=last_error)
+
+
+def run_relay_series(label, master_port, reads, close_mode, close_grace_ms, read_schedule):
+    parent = os.path.join(RUNS, label)
+    os.makedirs(parent)
+    open(os.path.join(parent, 'state.txt'), 'w').write(state() + '\n')
+    result = dict(scenario='physical_same_tuple', label=label, close_mode=close_mode, connections={}, ok=False)
+    for index in range(1, 4):
+        name = 'c%d' % index
+        try:
+            result['connections'][name] = run_connection(
+                os.path.join(parent, name), label + '_' + name, master_port, reads, 8, 0, 0, 12344 + index,
+                read_pause_ms=25, run_sbo=True, close_grace_ms=close_grace_ms, qualify_capture=True,
+                read_schedule=read_schedule, endpoint_profile='sel751', relay_close_mode=close_mode)
+            if relay_restore_uncertain(result['connections'][name], os.path.join(parent, name), qualified=True):
+                for pending in range(index + 1, 4):
+                    result['connections']['c%d' % pending] = dict(ok=False, ran=False,
+                                                        error='capture/loss restoration unverified; stopped')
+                break
+        except (RuntimeError, ValueError, OSError) as error:
+            result['connections'][name] = dict(ok=False, error=str(error), master_port=master_port)
+            if relay_restore_uncertain(result['connections'][name], os.path.join(parent, name), qualified=True):
+                for pending in range(index + 1, 4):
+                    result['connections']['c%d' % pending] = dict(ok=False, ran=False,
+                                                        error='capture restoration unverified; stopped')
+                break
+    result['ok'] = len(result['connections']) == 3 and all(record.get('ok') for record in result['connections'].values())
+    result.update(planned_connections=3, attempted_connections=sum(record.get('ran', True) for record in result['connections'].values()),
+                  completed_connections=sum(record.get('ok', False) for record in result['connections'].values()))
+    json.dump(result, open(os.path.join(parent, 'scenario.json'), 'w'), indent=2)
+    return result
+
+
+def relay_restore_uncertain(record, run_dir=None, qualified=False):
+    uncertain = bool(record.get('restoration_uncertain') or 'restore failed' in str(record.get('error', '')).lower() or
+                    (record.get('loss') is not None and record['loss'].get('restoration', {}).get('restored') is not True))
+    if qualified and run_dir is not None and os.path.isdir(run_dir):
+        try:
+            restoration = json.load(open(os.path.join(run_dir, 'capture_offloads.json')))
+            uncertain = uncertain or restoration.get('restore_ok') is not True
+        except (OSError, ValueError, TypeError):
+            uncertain = True
+    if uncertain:
+        record['restoration_uncertain'] = True
+    return uncertain
+
 PARENT = 'enp59s0f0np0'
 NS_M, NS_O = 'ns_vepa_a', 'ns_vepa_b'
 IP_M, IP_O, PORT_O = '192.168.10.61', '192.168.10.62', 20000
@@ -272,7 +471,19 @@ def _run_master_evidence(run_dir, master_port, command, timeout):
 def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
                    connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False,
                    qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None, endpoint_binary_name=None,
-                   pad_expect=None):
+                   pad_expect=None, endpoint_profile='software', relay_close_mode='graceful'):
+    if endpoint_profile == 'sel751':
+        if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':
+            raise ValueError('physical run requires authorization before capture/socket creation')
+        if connect_must_fail or endpoint_binary_name or pad_expect:
+            raise ValueError('unsupported physical relay control; refusing before traffic')
+        return run_relay_connection(run_dir, label, master_port, reads, gap_ms=gap_ms,
+                                    read_pause_ms=read_pause_ms, run_sbo=run_sbo,
+                                    close_grace_ms=close_grace_ms, sbo_cycles=sbo_cycles,
+                                    read_schedule=read_schedule, qualify_capture=qualify_capture,
+                                    start_delay_max=start_delay_max, start_seed=start_seed, close_mode=relay_close_mode, drop=drop)
+    if endpoint_profile != 'software':
+        raise ValueError('unknown endpoint profile')
     """One connection with its own captures, outstation and master. run_dir must not exist (a label is never
     reused). capture_immediate enables tcpdump's immediate mode for live observers.
     sbo_cycles N>0 (repeated-SBO endpoint only): reads is the total READ count; the master issues reads-N READs,
@@ -440,7 +651,7 @@ def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, sta
 
 def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_delay_max, start_seed,
                   read_pause_ms=25, run_sbo=True, close_grace_ms=0, qualify_capture=False, sbo_cycles=0,
-                  read_schedule=None, db=None, endpoint_binary_name=None, pad_expect=None):
+                  read_schedule=None, db=None, endpoint_binary_name=None, pad_expect=None, endpoint_profile='software'):
     """Reconnect scenario: RUNS/label/{c1,c2,c3}, each a complete connection with its own pcaps and endpoint JSON.
 
       c1  the installed master port: READs + SBO + normal close (must succeed, else the scenario stops)
@@ -466,12 +677,18 @@ def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_
                                  run_sbo=run_sbo, close_grace_ms=close_grace_ms,
                                  qualify_capture=qualify_capture, sbo_cycles=sbo_cycles,
                                  read_schedule=read_schedule, db=db, endpoint_binary_name=endpoint_binary_name,
-                                 pad_expect=pad_expect if name != 'c2' else None)
+                                 pad_expect=pad_expect if name != 'c2' else None,
+                                 **({'endpoint_profile': endpoint_profile} if endpoint_profile != 'software' else {}))
         except RuntimeError as e:                         # e.g. the port never left TIME-WAIT: recorded, not fatal
             res = {'label': '%s_%s' % (label, name), 'master_port': port, 'ok': False, 'error': str(e)}
         res['role'] = role
         out['connections'][name] = res
-        if name in ('c1', 'c2') and not res.get('ok'):
+        if endpoint_profile == 'sel751' and relay_restore_uncertain(res, os.path.join(parent, name), qualify_capture):
+            for pending, pending_port, pending_role in plan[len(out['connections']):]:
+                out['connections'][pending] = dict(role=pending_role, master_port=pending_port, ran=False, ok=False,
+                                                   error='capture/loss restoration unverified; stopped')
+            break
+        if endpoint_profile != 'sel751' and name in ('c1', 'c2') and not res.get('ok'):
             if name == 'c2':
                 out['connections']['c3'] = {'role': 'installed_again', 'master_port': master_port,
                                              'ran': False, 'ok': False, 'comparable': False,
@@ -479,6 +696,10 @@ def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_
             break
     c = out['connections']
     out['ok'] = bool(c.get('c1', {}).get('ok') and c.get('c2', {}).get('ok'))
+    if endpoint_profile == 'sel751':
+        out['ok'] = out['ok'] and bool(c.get('c3', {}).get('ok'))
+        out.update(planned_connections=3, attempted_connections=sum(record.get('ran', True) for record in c.values()),
+                   completed_connections=sum(record.get('ok', False) for record in c.values()))
     json.dump(out, open(os.path.join(parent, 'scenario.json'), 'w'), indent=1)
     return out
 
@@ -491,6 +712,10 @@ def bounded_ms(value):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument('--endpoint-profile', choices=('software', 'sel751'), default='software')
+    ap.add_argument('--apply', action='store_true', help='explicit frozen-wrapper authorization for a validated physical run')
+    ap.add_argument('--relay-padding', type=int, choices=(0, 1), default=0)
+    ap.add_argument('--loss-baseline', action='store_true', help='physical setup: retain host firewall baseline for independent restore')
     ap.add_argument('mode', choices=('setup', 'restore', 'state', 'casea', 'run'))
     ap.add_argument('label', nargs='?')
     ap.add_argument('--master-port', type=int)
@@ -515,10 +740,11 @@ def main():
     ap.add_argument('--jitter-ms', type=int, default=0, help='netem jitter of the separate_ack response delay')
     ap.add_argument('--distribution', choices=DISTRIBUTIONS, help='netem jitter distribution (needed with --jitter-ms)')
     ap.add_argument('--connect-must-fail', action='store_true')
-    ap.add_argument('--scenario', choices=('reconnect',),
+    ap.add_argument('--scenario', choices=('reconnect', 'persistence'),
                     help='reconnect: c1 on the installed port, c2 on a new unknown port (expected native), c3 on the '
                          'installed tuple again (characterized, not asserted); each its own evidence under RUNS/LABEL/')
     ap.add_argument('--reconnect-port', type=int, help='source port of c2 (default: master port + 1)')
+    ap.add_argument('--close-mode', choices=('graceful', 'rst'), default='graceful')
     ap.add_argument('--drop', metavar='CLASS[:N]',
                     help='drop exactly the Nth packet of a class at the receiving namespace ingress (see loss.py); '
                          'classes: ' + ', '.join(loss.names()))
@@ -531,6 +757,24 @@ def main():
     ap.add_argument('--pad-expect', help='read-schedule endpoint, padded arm: CASE4_PAD_EXPECT for the master only '
                                          '(<class>=<n>[,...]; needs --read-schedule)')
     a = ap.parse_args()
+    if a.apply and (a.endpoint_profile != 'sel751' or a.mode != 'run'):
+        sys.exit('--apply is only supported for the physical SEL-751 run entrypoint')
+    if a.endpoint_profile == 'sel751' and a.mode == 'run':
+        try:
+            authorize_relay_run(a)
+        except (ValueError, TypeError) as error:
+            sys.exit(str(error))
+
+    if a.endpoint_profile == 'sel751' and a.mode != 'run':
+        if a.mode not in ('setup', 'restore', 'state'):
+            sys.exit('physical relay does not use an emulated fixture')
+        lifecycle = relay_offload_lifecycle(a.mode, loss_baseline=a.loss_baseline) if a.mode in ('setup', 'restore') else None
+        if lifecycle is not None:
+            print(json.dumps(dict(endpoint_profile='sel751', mode=a.mode, offload=lifecycle)))
+        print(state())
+        if a.mode == 'restore' and lifecycle['errors']:
+            sys.exit('physical receive offload restore failed: ' + '; '.join(lifecycle['errors']))
+        return
 
     if a.mode == 'setup':
         # before ANY change: no block (diagnostic or not) starts on a host carrying a CPU-latency state or constraint
@@ -609,15 +853,26 @@ def main():
     drop = None
     if a.drop:
         try:
-            drop = loss.parse_drop(a.drop, a.reads)      # a bad spec stops the run before anything is created
+            if a.endpoint_profile == 'sel751':
+                import relay_loss
+                drop = relay_loss.parse_drop(a.drop, a.read_schedule, a.relay_padding)
+            else:
+                drop = loss.parse_drop(a.drop, a.reads)      # a bad spec stops the run before anything is created
         except ValueError as e:
             sys.exit(str(e))
+    if a.scenario == 'persistence':
+        if a.endpoint_profile != 'sel751':
+            sys.exit('persistence scenario requires the physical relay profile')
+        result = run_relay_series(a.label, a.master_port, a.reads, a.close_mode, a.close_grace_ms, a.read_schedule)
+        print(json.dumps(result))
+        sys.exit(0 if result['ok'] else 1)
     if a.scenario == 'reconnect':
         try:
             out = run_reconnect(a.label, a.master_port, a.reconnect_port or a.master_port + 1, a.reads, a.range,
                                 a.gap_ms, a.start_delay_ms, a.start_seed, a.read_pause_ms, bool(a.run_sbo),
                                 a.close_grace_ms, a.qualify_capture, a.sbo_cycles, read_schedule=a.read_schedule,
-                                db=a.db, endpoint_binary_name=a.endpoint_binary, pad_expect=a.pad_expect)
+                                db=a.db, endpoint_binary_name=a.endpoint_binary, pad_expect=a.pad_expect,
+                                endpoint_profile=a.endpoint_profile)
         except ValueError as e:
             sys.exit(str(e))
         print(json.dumps(out))
@@ -628,7 +883,7 @@ def main():
                                 a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms,
                                 qualify_capture=a.qualify_capture, sbo_cycles=a.sbo_cycles,
                                 read_schedule=a.read_schedule, db=a.db, endpoint_binary_name=a.endpoint_binary,
-                                pad_expect=a.pad_expect)
+                                pad_expect=a.pad_expect, endpoint_profile=a.endpoint_profile, relay_close_mode=a.close_mode)
     except (RuntimeError, ValueError) as e:
         sys.exit(str(e))
     print(json.dumps(result))

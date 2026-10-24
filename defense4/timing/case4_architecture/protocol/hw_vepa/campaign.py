@@ -55,6 +55,11 @@ import loss  # noqa: E402
 import read_classes  # noqa: E402  (per-class READ declarations: builds[b].read_images, traffic.read_schedule/db)
 import run as runner  # noqa: E402  (evaluate(): the reviewed per-run gate)
 import standards  # noqa: E402
+import endpoint_profiles
+from pathlib import Path
+validate_endpoint_profile = endpoint_profiles.validate
+RELAY_PYTHON = 'sudo -n /usr/bin/python3'
+
 import vision_run as vr  # noqa: E402  (the Vision-side paths the endpoint runner itself uses)
 
 # where the hw installer scripts live on the switch, relative to the copied source tree (hw/README.md)
@@ -70,7 +75,7 @@ REQUIRED = ('endpoints', 'endpoint', 'hosts', 'ports_map', 'builds', 'arms', 'ti
 # mirror-defect guard reads (out/p1/*.bfa), pinned here to tie the checked file to the loaded binaries.
 BUILD_HASHED = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa')
 ROLES = ('ack', 'resp', 'op')
-FIXTURES = ('separate_ack', 'piggyback')
+FIXTURES = ('separate_ack', 'piggyback', 'physical_relay')
 LADDER = (0, 58, 232, 930, 3723, 14892, 59570, 238281)   # the TM shaper realizes only these PPS values (0 = off)
 HEX64 = re.compile(r'[0-9a-f]{64}')
 HEX40 = re.compile(r'[0-9a-f]{40}')
@@ -167,6 +172,9 @@ def validate_read_classes(cfg):
     support a scheduled class, is refused here, never run against a native expectation. Loss presets
     identify packets by one READ request/response length, so they do not carry a READ-class schedule."""
     traffic = cfg['traffic']
+    if endpoint_profiles.is_relay(cfg):
+        validate_endpoint_profile(cfg)
+        return
     if 'binary' in cfg['endpoint'] and (not isinstance(cfg['endpoint']['binary'], str) or
                                         not re.fullmatch(r'[A-Za-z0-9_.-]+', cfg['endpoint']['binary']) or
                                         cfg['endpoint']['binary'] in ('.', '..')):
@@ -240,6 +248,9 @@ def validate_read_classes(cfg):
 def validate_profile(cfg):
     """The hardware profile the campaign may run: the 8-bit-range READ, a positive K, non-negative shaping
     rates, and fixture jitter only with a netem distribution on the separate_ack fixture."""
+    validate_endpoint_profile(cfg)
+    if endpoint_profiles.is_relay(cfg) and cfg.get('fixture', {}).get('modes') != ['physical_relay']:
+        raise ValueError('sel751 requires the real physical_relay fixture, without emulated ACK delay')
     for key, default in (('read_pause_ms', 25), ('close_grace_ms', 0)):
         value = cfg['traffic'].get(key, default)
         if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 5000:
@@ -432,6 +443,12 @@ def check_bindings(cfg, arms=None, all_builds=False):
                 errs.append('build %s: %s on disk is %s but the compile manifest records %s'
                             % (name, rel, got, want[rel]))
     ep = cfg['endpoint']
+    if endpoint_profiles.is_relay(cfg):
+        try:
+            validate_endpoint_profile(cfg)
+        except ValueError as error:
+            errs.append(str(error))
+        return errs
     for k in ('binary_sha256', 'lib_sha256'):
         if not (isinstance(ep.get(k), str) and HEX64.fullmatch(ep[k])):
             errs.append('endpoint.%s is not pinned (%r); it cannot be derived offline, pin it with: %s'
@@ -698,7 +715,7 @@ class Campaign:
         build = self.cfg.get('builds', {}).get(arm.get('build'), {})
         required = (build.get('profile') == 'candidate61' or build.get('packet_boundary_required') or
                     self.cfg.get('standards', {}).get('packet_boundary_required'))
-        return ' --qualify-capture' if required else ''
+        return ' --qualify-capture' if endpoint_profiles.is_relay(self.cfg) or required else ''
 
     def _load_standards_checker(self):
         spec = importlib.util.spec_from_file_location('dnp3_standards_check_capture', CHECK_CAPTURE)
@@ -830,6 +847,8 @@ class Campaign:
         return classes[0], e['native'], e['image']
 
     def _padded_suffix(self, arm, cls=None):
+        if endpoint_profiles.is_relay(self.cfg):
+            return ''
         """'@LEN' for builds whose padded response is not 58 octets (loss.parse_drop), else ''. A READ drop class
         uses the build's read_image_len when its READ image differs from the control image; on a single-class READ
         workload, that class's image."""
@@ -945,7 +964,8 @@ class Campaign:
         return controls
 
     def endpoint_control_args(self):
-        return ''.join(' --%s %s' % (key.replace('_', '-'), value if isinstance(value, str) else int(value))
+        prefix = ' --endpoint-profile sel751 --apply' if endpoint_profiles.is_relay(self.cfg) else ''
+        return prefix + ''.join(' --%s %s' % (key.replace('_', '-'), value if isinstance(value, str) else int(value))
                        for key, value in self.endpoint_controls().items())
 
     def pad_expect_arg(self, arm):
@@ -953,6 +973,8 @@ class Campaign:
         profile): the padding the switch is declared to add per scheduled class, so the endpoint's strict check
         requires exactly it. An off arm, or a build without read_padding, passes nothing -- the endpoint then fails on
         any added point."""
+        if endpoint_profiles.is_relay(self.cfg):
+            return ' --relay-padding %d' % arm['padding']
         build = self.cfg['builds'][arm['build']]
         padding = build.get('read_padding')
         if not arm.get('padding') or not padding or not self.cfg['traffic'].get('read_schedule'):
@@ -971,6 +993,8 @@ class Campaign:
     def read_policy_arg(self, trial, arm, unbound_native=False):
         """clrt_check --read-policy for a build with a per-class READ declaration, else ''. unbound_native: a
         connection the switch has no rows for (reconnect c2), whose READs are expected native."""
+        if endpoint_profiles.is_relay(self.cfg):
+            return ''
         expectation = standards.read_class_expectations(self.cfg, arm, trial, unbound_native)
         if expectation is None:
             return ''
@@ -1035,6 +1059,8 @@ class Campaign:
     def vision_identity(self):
         """Read-only identity checks on Vision (the only change is copying vision_run.py)."""
         ep, V = self.cfg['endpoint'], self.V
+        if endpoint_profiles.is_relay(self.cfg):
+            return self.relay_vision_identity()
         files = ('vision_run.py', 'loss.py', 'capture_observation.py', 'wire_check.py')
         self.step('local', 'deploy Vision run/capture helpers to Vision',
                   'scp -q %s %s:%s/' % (' '.join(q(os.path.join(HERE, f)) for f in files),
@@ -1063,6 +1089,41 @@ class Campaign:
                                             'vision_helper_sha256': helper_hashes,
                                             'vision_run_sha256': helper_hashes['vision_run.py'],
                                             'loss_sha256': helper_hashes['loss.py']}
+
+    def relay_vision_identity(self):
+        validate_endpoint_profile(self.cfg)
+        files = {name: Path(HERE) / name for name in
+                 ('vision_run.py', 'endpoint_profiles.py', 'relay_master.py', 'loss.py',
+                  'capture_observation.py', 'wire_check.py', 'relay_check.py', 'relay_loss.py')}
+        active = Path(ARCH).parents[0] / 'active_harness'
+        files.update({'active_harness/' + p.name: p for p in active.glob('*.py')})
+        # Frozen builders resolve repository-relative originals: retain that layout on Vision.
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('relay_frozen_identity', active / 'frozen_builders.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        for name in ('relay_operate_guarded.py', 'relay_read_g10_23.py', 'dnp3_wire.py'):
+            files['implementation/harness/' + name] = Path(module.FROZEN_HARNESS) / name
+        self.step('vision', 'make relay helper directories', 'mkdir -p %s/active_harness %s/implementation/harness' % (q(self.V), q(self.V)))
+        for name, path in files.items():
+            self.step('local', 'deploy relay helper ' + name, 'scp -q %s %s:%s' %
+                      (q(path), self.cfg['hosts']['vision'], q(self.V + '/' + name)))
+        result = self.step('vision', 'verify every relay master/helper identity', 'sha256sum ' +
+                           ' '.join(q(self.V + '/' + name) for name in files))
+        hashes = {name: sha256_file(path) for name, path in files.items()}
+        if not self.rn.dry:
+            got = {line.split()[1]: line.split()[0] for line in result.out.splitlines() if len(line.split()) == 2}
+            for name, digest in hashes.items():
+                if got.get(self.V + '/' + name) != digest:
+                    raise StepFailed('relay helper identity mismatch: ' + name)
+        self.record['endpoint_observed'] = dict(endpoint_profile='sel751', source_hashes=hashes,
+                                                master_ip='192.168.10.1', relay_ip='192.168.10.7')
+        command = RELAY_PYTHON + ' %s/relay_master.py --preflight' % q(self.V)
+        result = self.step('vision', 'isolated deployed relay helper imports and frozen-builder dry check', command, check=False)
+        self.record['relay_helper_preflight'] = dict(command=command, rc=result.rc, stdout=result.out, stderr=result.err)
+        self.save(self.root, 'relay_helper_preflight.out', result)
+        if result.rc or (not self.rn.dry and runner.last_json(result.out).get('ok') is not True):
+            raise StepFailed('deployed relay helper preflight failed: ' + (result.err or result.out)[-1200:], result)
 
     def deploy_switch(self):
         """Copy every tool and build into the configured switch directory and verify each tool's sha256 there.
@@ -1133,6 +1194,16 @@ class Campaign:
     def vision_setup(self):
         V = self.V
         self.vision_touched = True
+        if endpoint_profiles.is_relay(self.cfg):
+            result = self.step('vision', 'record physical master offload baseline before capture',
+                      RELAY_PYTHON + ' %s/vision_run.py setup --endpoint-profile sel751' % q(V) +
+                      (' --loss-baseline' if self.loss_preset is not None else ''))
+            if not self.rn.dry:
+                baseline = runner.last_json(result.out)['offload']
+                path = Path(self.root) / 'vision_offload_baseline.json'
+                path.write_text(json.dumps(baseline, indent=2) + '\n')
+                self.record['vision_offload_baseline_sha256'] = sha256_file(path)
+            return
         host = self.cfg.get('host_diagnostic') or {}
         unknown = set(host) - {'rx_coalescing', 'cpu_latency', '_note', 'derived_from'}
         if unknown:
@@ -1182,6 +1253,9 @@ class Campaign:
 
     def set_fixture(self, fixture, delay_ms):
         """separate_ack: the emulated relay (separate ACK, delayed response); piggyback: fixture off."""
+        if endpoint_profiles.is_relay(self.cfg):
+            self.record['fixture'] = dict(mode='physical_relay', emulated=False)
+            return
         if fixture == 'separate_ack':
             jitter = self.cfg['fixture'].get('jitter_ms', 0)
             spread = (' --jitter-ms %d --distribution %s' % (jitter, self.cfg['fixture']['distribution'])
@@ -1270,7 +1344,7 @@ class Campaign:
                                             unit['start_seed'], drop=unit.get('drop'), scenario=unit.get('scenario'),
                                             reconnect_port=(port + c['scenarios'][unit['scenario']]['reconnect_port_offset']
                                                             if unit.get('scenario') else None)
-                                            ).replace(runner.V_RUN, self.V) + self.endpoint_control_args()
+                                            ).replace(runner.V_RUN, self.V).replace('sudo python3', RELAY_PYTHON if endpoint_profiles.is_relay(c) else 'sudo python3') + self.endpoint_control_args()
                           + self.endpoint_binary_arg() + self.pad_expect_arg(arm) + self.qualify_capture_arg(arm),
                           check=False)
             self.save(dest, 'vision_run.out', v)
@@ -1360,7 +1434,90 @@ class Campaign:
         if state['installed']:
             self.collect(label, 'bring-up manifest', 'local', fetch(manifest))
 
+    def relay_verdict(self, trial, rec, label, dest, v, arm, fixture, connections=None, raise_on_failure=True,
+                      close_mode=None):
+        """Physical observations and switch counters; no software callbacks or reflected-copy assumptions."""
+        if self.rn.dry:
+            return
+        import relay_check
+        failures, observed, application_failures = [], {}, []
+        sbo = checks.sbo_count(self.cfg['traffic'])
+        connections = connections or {'single': (dest, trial['master_port'])}
+        reports = {}
+        for name, (directory, port) in connections.items():
+            try:
+                report = relay_check.analyze(directory, port, dict(READ=trial['reads'], SELECT=sbo, OPERATE=sbo),
+                                             self.cfg['traffic']['read_schedule'])
+                master = json.loads((Path(directory) / 'master.json').read_text())
+                for direction, packets in report['packets'].items():
+                    for packet in packets:
+                        header = 40 if direction == 'out' else 44
+                        if packet['flags'] & 2:
+                            if packet['tcp_header_bytes'] != header:
+                                report['failures'].append('SYN header differs from selected physical TCP profile')
+                        elif packet['payload_len'] and (packet['tcp_header_bytes'] != 32 or
+                                packet['ipv4_header_bytes'] != 20 or not packet['tcp_options_hex'].startswith('0101080a')):
+                            report['failures'].append('data header/options differ from selected physical TCP profile')
+                native_connection = name == 'c2' and self.scenario == 'reconnect'
+                padded = bool(arm['padding'] and not native_connection)
+                for record in master['records']:
+                    operation, workload = record['operation'], record.get('workload')
+                    expected = ({'mixed': 141, 'integrity': 158} if padded else {'mixed': 91, 'integrity': 134}).get(workload) \
+                        if operation == 'READ' else (60 if padded else 49)
+                    if len(bytes.fromhex(record.get('response_wire_hex', ''))) != expected:
+                        report['failures'].append('response length differs from selected relay image: ' + operation)
+                report['ok'] = not report['failures']
+                if close_mode is not None:
+                    report['failures'] += relay_check.close_checks(report, close_mode)
+                    report['ok'] = not report['failures']
+                (Path(directory) / 'relay_wire.json').write_text(json.dumps(report, indent=2) + '\n')
+                reports[name] = report
+                application_failures += [name + ': ' + error for error in report['failures']]
+                observed[name] = dict(application=report['ok'], preservation='same-packet originals unobserved',
+                                      master_acceptance=master.get('ok') is True and master.get('counts') ==
+                                          dict(READ=trial['reads'], SELECT=sbo, OPERATE=sbo),
+                                      timing_gated=bool(arm['T'] and not native_connection),
+                                      precision=relay_check.precision(report, self.cfg['timing_params_ns']['gap']),
+                                      switch_residence='unproven: no relay-side observation',
+                                      operate_j='unproven: no relay-side observation')
+                if arm['T'] and not native_connection:
+                    for operation, verdict in observed[name]['precision'].items():
+                        if not verdict['pass_']:
+                            failures.append(name + ': ' + operation + ' complete master CLRT failed 100 us criterion')
+                    failures.append(name + ': OPERATE J unproven without relay-side observation')
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                application_failures.append(name + ': missing/malformed physical relay evidence: ' + str(error))
+        snapshots = checks.load_evidence_files(
+            before=os.path.join(dest, 'snapshots', label + '_before.json'),
+            after=os.path.join(dest, 'snapshots', label + '_after.json'))
+        build = self.cfg['builds'][arm['build']]
+        installed = len(connections) - int(self.scenario == 'reconnect')
+        installed_reports = [report for name, report in reports.items() if not (self.scenario == 'reconnect' and name == 'c2')]
+        read_piggybacks = sum(row['operation'] == 'READ' and row['piggyback'] for report in installed_reports for row in report['exchanges'])
+        control_piggybacks = sum(row['operation'] in ('SELECT', 'OPERATE') and row['piggyback']
+                                for report in installed_reports for row in report['exchanges'])
+        switch_failures, switch_observed = checks.evaluate_switch(
+            self.cfg['expectations'], arm, installed * trial['reads'], snapshots,
+            checks.allowed_gap(build), self.cfg['service']['k'] if build.get('mirror_fix') else None,
+            checks.max_token_stale(build), diagnostic=build.get('diagnostic', False),
+            sbo_count=installed * sbo, piggyback_reads=read_piggybacks, piggyback_controls=control_piggybacks,
+            control_timed=bool(build.get('control_timed')),
+            piggyback_bound=bool(build.get('piggyback_bound')), gen_exhausted_outcome=build.get('gen_exhausted_outcome'))
+        failures = application_failures + failures + switch_failures
+        if v is None or v.rc:
+            failures.append('physical relay Vision workload failed')
+        trial.update(ok=not failures, failures=failures, observed=dict(connections=observed, switch=switch_observed),
+                     endpoint_profile='sel751', dimension_verdicts=dict(application=not application_failures,
+                     switch=not switch_failures, timing=not arm['T'] or not failures, same_packet_preservation='unproven'))
+        (Path(dest) / 'trial.json').write_text(json.dumps(trial, indent=2) + '\n')
+        # Timing qualification is retained as failed; continue safely to requested recovery blocks.
+        if raise_on_failure and (application_failures or switch_failures or v is None or v.rc):
+            raise StepFailed('physical relay application/switch gate failed: ' + '; '.join(failures[:4]))
+        return trial
+
     def verdict(self, trial, rec, label, dest, v, arm, fixture):
+        if endpoint_profiles.is_relay(self.cfg):
+            return self.relay_verdict(trial, rec, label, dest, v, arm, fixture)
         """The gate: independent wire verification, timing extraction and run.evaluate over the collected files."""
         w = self.step('local', '%s: independent wire verification' % label,
                       '%s %s/wire_check.py %s %s --json %s' % (runner.PY, q(HERE), q(dest + '/out.pcap'),
@@ -1494,6 +1651,23 @@ class Campaign:
         return sorted(vals)[len(vals) // 2] if vals else None
 
     def verdict_loss(self, trial, rec, label, dest, v, arm, fixture, unit, port):
+        if endpoint_profiles.is_relay(self.cfg):
+            self.relay_verdict(trial, rec, label, dest, v, arm, fixture, raise_on_failure=False)
+            if self.rn.dry:
+                return
+            import relay_loss
+            result = json.loads(Path(dest, 'result.json').read_text())
+            wire = json.loads(Path(dest, 'relay_wire.json').read_text())
+            failures = relay_loss.target_checks(result.get('loss') or {}, wire, port)
+            trial['loss'] = result.get('loss')
+            trial['failures'] += failures
+            trial['dimension_verdicts']['loss_target'] = not failures
+            trial['observed']['loss_timing'] = 'not qualified: capture includes intentionally dropped attempts'
+            trial['ok'] = not trial['failures']
+            Path(dest, 'trial.json').write_text(json.dumps(trial, indent=2) + '\n')
+            if failures or not trial['dimension_verdicts']['application'] or v.rc:
+                raise StepFailed('physical relay loss recovery/target gate failed')
+            return
         """Gate for a trial with one deterministic drop. A failed recovery is RECORDED (trial not ok, campaign goes
         on to the next trial); only infrastructure failures stop the campaign."""
         w = self.step('local', '%s: independent wire verification' % label,
@@ -1573,6 +1747,11 @@ class Campaign:
             sys.stderr.write('LOSS TRIAL %s: %s\n' % (label, '; '.join(fails)))
 
     def verdict_scenario(self, trial, label, dest, v, arm):
+        if endpoint_profiles.is_relay(self.cfg):
+            return self.relay_verdict(trial, {}, label, dest, v, arm, 'physical_relay',
+                connections={name: (os.path.join(dest, name), trial['master_port'] +
+                    (self.cfg['scenarios']['reconnect']['reconnect_port_offset'] if name == 'c2' else 0))
+                    for name in ('c1', 'c2', 'c3')}, close_mode='graceful')
         """Reconnect scenario: analyse c1..c3 separately. c1 must succeed and carry the arm's response lengths; c2
         (a port the switch has no rows for) must complete natively; c3 (the installed tuple again) is characterized or protected according to the effective policy."""
         conns = ('c1', 'c2', 'c3')
@@ -1755,7 +1934,7 @@ class Campaign:
                 attempt('switch', 'reinstall the relay slot', 'python3 %s/switch_slot.py relay' % aux)
         if self.vision_touched:
             attempt('vision', 'Vision: fixture off, namespace profile and NIC flag restored',
-                    'sudo python3 %s/vision_run.py restore' % self.V)
+                    (RELAY_PYTHON if endpoint_profiles.is_relay(c) else 'sudo python3') + ' %s/vision_run.py restore' % self.V + (' --endpoint-profile sel751' if endpoint_profiles.is_relay(c) else ''))
         if self.vision_touched or self.switch_touched:
             pg = p['ping']
             attempt('vision', 'ping through the restored switch path',
