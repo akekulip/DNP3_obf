@@ -2917,3 +2917,13 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
 - Retained-log restoration now reads multiple candidate dependency-retention manifests, rejects conflicting pins
   before any restoration, preserves reset-checker pin consistency and uses exclusive creation to protect an existing
   or concurrently created log. Fifteen focused tests pass; independent review approves. No live logs were changed.
+- c48 installed-table diagnostic02 reproduces SELECT failure and reads both N profile tables without read errors.
+  Software/hardware readbacks agree: each request row has six wrong second-CROB values, and response has four;
+  masks/actions/priorities/row counts match. The captured guarded request is exact45 bytes with valid CRCs and
+  normal smoke setup never writes these constant tables. Diagnostic01's pre-traffic metadata exception is retained;
+  its source was restored and verified against the launch hash before creating a separately named diagnostic02.
+- Two independent simulations of inspected local9.13.1 loader code predict every observed9.13.2 readback value:
+  the static-entry offset loop indexes a physical sliced-key array by logical position. Repeated w0 slices cause
+  later mixed-width tail offsets to diverge. This does not claim inspection of9.13.2 loader source. Only N's two
+  control profile tables exhibit that specific static-layout risk. Approved c49 repair merges each w0 predicate
+  into one equivalent32-bit ternary key; every original bit check remains, with no SDK change or extra table/state.

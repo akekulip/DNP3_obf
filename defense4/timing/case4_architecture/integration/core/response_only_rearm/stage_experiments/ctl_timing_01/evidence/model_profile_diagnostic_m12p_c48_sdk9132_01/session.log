@@ -1,0 +1,19 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+FAIL exception                          expected=none       observed=Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_smoke.py", line 107, in main
+    step(name, frame, frame, reverse)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_smoke.py", line 88, in step
+    got = m.exchange(relay.dev_port if reverse else master.dev_port,
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c48_sdk9132/profile_diagnostic.py", line 104, in exchange
+    observations.append(dump_profiles(self))
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c48_sdk9132/profile_diagnostic.py", line 32, in dump_profiles
+    model_grpc=model.grpc, program=model.prog, pipe_id=model.target.pipe_id,
+AttributeError: 'Target' object has no attribute 'pipe_id'
+
+SUMMARY {'total': 1, 'passed': 0, 'failed': ['exception']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196
