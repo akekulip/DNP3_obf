@@ -2555,3 +2555,12 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   SEL-751 run with the three evidence tiers. No code/shape/candidate work yet.
 - Next: update active_harness master for mixed/integrity READ + DNP3 transport reassembly (corrections 1-2), then the
   native relay baseline capture/decode (relay_native_20261024).
+
+## 2026-10-24 — wire_check reorder detection (review 6.3)
+- Fixed wire_check.match: reordering was judged by comparing the returned time order to a canonical (rel_seq, flags,
+  len) sort, which flagged a false reorder whenever the SENT order was itself non-canonical (e.g. a retransmission of
+  a lower sequence after a higher one). Now instances are paired first (_lcs_align), then a pair is reordered only
+  when its rank in the returned time order differs from its rank in the sent time order. Genuine loss/duplicate/swap
+  detection and the same-sequence ACK/FIN swap pairing are preserved.
+- Regression test SentOrderNotCanonicalSort: fails on the old code (false reorder), passes on the fix. wire_check
+  13/13; harness suite 735 pass.

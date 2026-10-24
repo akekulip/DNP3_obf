@@ -251,11 +251,18 @@ def match(sent, returned):
         # (rel_seq, flags, len): segments sharing a sequence number (a pure ACK and a FIN-ACK at close) align by kind,
         # not by capture order, so a swap of such a pair is reported as reordered rather than as unmatched
         S = sorted(g['s'], key=lambda s: (s['rel_seq'], s['flags'], s['len']))
-        R_time = sorted(g['r'], key=lambda s: (s['t_us'], s['index']))
         R = sorted(g['r'], key=lambda s: (s['rel_seq'], s['flags'], s['len']))
-        if [x['index'] for x in R_time] != [x['index'] for x in R]:
-            reordered += [x['index'] for x in R_time if R_time.index(x) != R.index(x)]
         pairs = _lcs_align(S, R)
+        # reordering is judged on matched instances (review 6.3): a pair is reordered when its rank in the returned
+        # time order differs from its rank in the sent time order. Comparing returned time order to a canonical
+        # sequence sort (the previous approach) flagged false reorders whenever the SENT order was itself
+        # non-canonical, e.g. a retransmission of a lower sequence after a higher one. Same-sequence swaps still
+        # show (an ACK and its FIN pair by kind, and their sent and returned time orders disagree).
+        matched_pairs = [(S[i], R[j]) for i, j in pairs]
+        by_sent = sorted(matched_pairs, key=lambda sr: (sr[0]['t_us'], sr[0]['index']))
+        by_ret = sorted(matched_pairs, key=lambda sr: (sr[1]['t_us'], sr[1]['index']))
+        rank_sent = {id(pair): k for k, pair in enumerate(by_sent)}
+        reordered += [pair[1]['index'] for k, pair in enumerate(by_ret) if rank_sent[id(pair)] != k]
         matched_s = {i for i, _ in pairs}
         matched_r = {j for _, j in pairs}
         for i, j in pairs:

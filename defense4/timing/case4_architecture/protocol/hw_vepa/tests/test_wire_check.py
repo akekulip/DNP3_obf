@@ -156,3 +156,32 @@ class SameSequenceSwap(unittest.TestCase):
         self.assertEqual(rep['matched'], 2)
         self.assertEqual((rep['unmatched_sent'], rep['unmatched_returned']), ([], []))
         self.assertTrue(rep['reordered_returned_indices'])
+
+
+class SentOrderNotCanonicalSort(unittest.TestCase):
+    """Review 6.3: reordering is judged against the SENT time order, not a canonical sequence sort. Two data segments
+    whose send-time order is the reverse of their sequence order, reflected in that same send-time order, are NOT a
+    reorder. (The old code compared returned time order to a rel_seq sort and flagged this falsely.)"""
+
+    def test_noncanonical_sent_order_reflected_faithfully_is_not_reordered(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            # B carries the higher sequence but is sent first; A (lower seq) is sent second. Returned in send order.
+            out = [
+                (0,    tk.frame(M, O, 40000, 20000, 1000, 0,    SYN,       ip_id=1)),
+                (200,  tk.frame(O, M, 20000, 40000, 5000, 1001, SYN | ACK, ip_id=2)),
+                (400,  tk.frame(M, O, 40000, 20000, 1001, 5001, ACK,       ip_id=3)),
+                (1000, tk.frame(M, O, 40000, 20000, 3001, 5001, PSH | ACK, tk.read_request(1), ip_id=4)),  # higher seq, first
+                (1100, tk.frame(M, O, 40000, 20000, 2001, 5001, PSH | ACK, tk.read_request(2), ip_id=5)),  # lower seq, second
+            ]
+            ret = [
+                (50,   tk.frame(M, O, 40000, 20000, 1000, 0,    SYN,       ip_id=1)),
+                (250,  tk.frame(O, M, 20000, 40000, 5100, 1001, SYN | ACK, ip_id=2)),
+                (450,  tk.frame(M, O, 40000, 20000, 1001, 5101, ACK,       ip_id=3)),
+                (1050, tk.frame(M, O, 40000, 20000, 3001, 5101, PSH | ACK, tk.read_request(1), ip_id=4)),
+                (1150, tk.frame(M, O, 40000, 20000, 2001, 5101, PSH | ACK, tk.read_request(2), ip_id=5)),
+            ]
+            op, ip = os.path.join(tmp, 'out.pcap'), os.path.join(tmp, 'in.pcap')
+            tk.write_pcap(op, out); tk.write_pcap(ip, ret)
+            rep = wc.analyze(op, ip)
+        self.assertEqual((rep['unmatched_sent'], rep['unmatched_returned']), ([], []))
+        self.assertEqual(rep['reordered_returned_indices'], [], 'faithful reflection of a non-canonical send order is not a reorder')
