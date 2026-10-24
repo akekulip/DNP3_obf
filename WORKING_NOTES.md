@@ -2577,3 +2577,17 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
     request asked for; legacy G10V2 stays the default so read_driver is unchanged. Threaded through session.transaction.
 - Offline only; 69/69 active_harness tests pass. Targets 141/158 and SBO size still PROVISIONAL (need real relay
   captures). Next: decode retained relay READ captures; a read-only baseline run is a separate live step.
+
+## 2026-10-24 — overtaken_handshake_acks bound to one incarnation (review 6.2) + nic_repair re-pin
+- overtaken_handshake_acks excused too broadly: it accepted any following payload (not proven a READ) and matched the
+  returned packet on length+payload alone, so an unrelated packet or another connection's READ could excuse a real
+  loss. Rewritten to assign incarnations and bind everything to one (flow, incarnation): the candidate is the first
+  pure ACK after that connection's SYN-ACK; the next master segment in the SAME connection must classify as a DNP3
+  READ (read_classes.classify_request_frames) with the ACK's seq/ack; and that exact READ must be RETURNED on the same
+  (flow, incarnation, seq, ack, payload). Real c28 held_operate still excuses index 2 (class 'mixed'); c26 loss still
+  refused. New deterministic synthetic tests (test_overtaken_ack_synthetic.py): genuine overtake excused; not-a-READ,
+  READ-not-returned, and READ-returned-on-a-different-flow all refused. The different-flow negative fails on the old
+  code, passes on the fix.
+- nic_repair pin: the wire_check 6.3 change (bd9a31fb8) re-broke REVIEWED_DEPLOYED_SHA256 (capture_observation.py
+  imports wire_check, so the repair tool deploys both). Re-pinned to the current reviewed blobs and documented the
+  coupling in evaluation_campaign.py. Harness suite 740 pass.

@@ -1102,9 +1102,12 @@ REVIEWED_RESTORE_RX_COALESCE_SHA256 = 'afe92338adf3139ea7e3ed5a2e4bba297cbae066a
 # changes to the two deployed files are reviewed and leave restore_rx_coalesce itself unchanged (its source still
 # hashes to REVIEWED_RESTORE_RX_COALESCE_SHA256 above) -- capture_observation.py gained the CPU-latency diagnostic
 # functions after restore_rx_coalesce (3585631d7, two independent reviews), and wire_check.py got the same-sequence
-# pairing fix (fd95e0dc8, 750+ tests). The repair tool still deploys exactly these reviewed blobs.
+# pairing fix (fd95e0dc8) and the review-6.3 reorder fix (bd9a31fb8). The repair tool still deploys exactly these
+# reviewed blobs.
+# COUPLING: capture_observation.py imports wire_check, so the repair tool deploys BOTH; any reviewed edit to either
+# file changes a value here, and REVIEWED_DEPLOYED_SHA256 must be re-pinned (test_nic_repair enforces it).
 REVIEWED_DEPLOYED_SHA256 = {'capture_observation.py': '339e07eba34ef257f8e803fade535f54583b5e3ce0b083057cee2dc2194dd4de',
-                            'wire_check.py': '4d2de46b72ec8d4bca582881d01528ee23c61cab4aab6903c76ae4320508cd9b'}
+                            'wire_check.py': '742eded14f7dca1cb30c6d7ff41006e685cd93197ef6e5ead1d60a3a9335c953'}
 
 
 def nic_repair_acceptance(records, terminal_sha, campaign_run_sha, fresh, independent_baseline):

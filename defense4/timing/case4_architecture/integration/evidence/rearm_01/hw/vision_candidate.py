@@ -37,6 +37,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(LIBRARY))
 import vision_run as vr
 import wire_check as wc
+import read_classes as rc
 import clrt_check as clrt
 import checks
 from token_window import PRE_READ_GRACE_MS
@@ -290,27 +291,41 @@ def held_operate_duplicates(out_pcap, unmatched):
 def overtaken_handshake_acks(out_pcap, in_pcap, unmatched):
     """Split unmatched sent frames into (excused, remaining) for a build whose N admits a READ that overtakes the final
     handshake ACK (m12p_c28+, transform_n_read_completes_handshake): N then drops the late pure ACK by design. Excused
-    only when ALL hold: the frame is the master's first pure ACK after the SYN-ACK (flags exactly ACK, no payload); the
-    next master segment carries a payload with the same seq and ack (the overtaking READ, which carries the same
-    cumulative ACK); and that READ was returned by the switch. Anything else stays a wire-mapping failure."""
-    sent = wc.parse(out_pcap)[0]
-    returned = wc.parse(in_pcap)[0]
+    only when ALL hold, all bound to ONE connection incarnation (review 6.2 -- the earlier form excused any following
+    payload and matched the returned packet on length+payload alone, so an unrelated packet or another connection's
+    READ could excuse a real loss):
+      * the frame is the master's first pure ACK after the SYN-ACK of its own (flow, incarnation): flags exactly ACK,
+        no payload;
+      * the next master segment IN THE SAME (flow, incarnation) carries a DNP3 READ request
+        (read_classes.classify_request_frames is not None) with the same seq and ack (the overtaking READ carries the
+        pure ACK's cumulative ack and, having advanced no sequence, its seq);
+      * that exact READ was returned by the switch, matched on (flow, incarnation, seq, ack, payload).
+    Anything else stays a wire-mapping failure."""
+    sent = wc.assign_incarnations(wc.parse(out_pcap)[0])
+    returned = wc.assign_incarnations(wc.parse(in_pcap)[0])
     by_index = {s['index']: s for s in sent}
-    master = sorted((s for s in sent if s['src'] == MASTER), key=lambda s: (s['t_us'], s['index']))
     excused, remaining = [], []
     for u in unmatched:
         s = by_index.get(u.get('sent_index'))
         ok = s is not None and s['src'] == MASTER and s['flags'] == wc.ACK and s['len'] == 0
+        read_class = None
         if ok:
-            pos = master.index(s)
-            first_pure_ack = all(e['flags'] & wc.SYN for e in master[:pos])
-            following = master[pos + 1] if pos + 1 < len(master) else None
-            ok = (first_pure_ack and following is not None and following['len'] > 0 and
-                  following['seq'] == s['seq'] and following['ack'] == s['ack'] and
-                  any(r['src'] == MASTER and r['len'] == following['len'] and r['payload'] == following['payload']
-                      for r in returned))
+            key = (s['flow'], s['inc'])
+            conn = sorted((e for e in sent if e['src'] == MASTER and (e['flow'], e['inc']) == key),
+                          key=lambda e: (e['t_us'], e['index']))
+            pos = conn.index(s)
+            first_pure_ack = all(e['flags'] & wc.SYN for e in conn[:pos])
+            following = conn[pos + 1] if pos + 1 < len(conn) else None
+            if first_pure_ack and following is not None and following['len'] > 0 and \
+                    following['seq'] == s['seq'] and following['ack'] == s['ack']:
+                read_class = rc.classify_request_frames(following['payload'])
+                ok = read_class is not None and any(
+                    r['src'] == MASTER and (r['flow'], r['inc']) == key and r['seq'] == following['seq'] and
+                    r['ack'] == following['ack'] and r['payload'] == following['payload'] for r in returned)
+            else:
+                ok = False
         if ok:
-            excused.append(dict(u, seq=s['seq'], ack=s['ack'], t_us=s['t_us']))
+            excused.append(dict(u, seq=s['seq'], ack=s['ack'], t_us=s['t_us'], read_class=read_class))
         else:
             remaining.append(u)
     return excused, remaining
