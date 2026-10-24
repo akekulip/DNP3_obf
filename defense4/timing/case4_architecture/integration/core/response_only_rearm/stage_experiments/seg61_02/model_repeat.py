@@ -42,8 +42,9 @@ import encode61  # noqa: E402
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))  # read_policy_expect is beside this file
 import read_policy_expect as rp  # noqa: E402
 rp.install(encode61)
-IMAGE_LEN = 61
-READ_NATIVE, CONTROL_NATIVE = 49, 37
+rp.configure_helpers(helpers)
+IMAGE_LEN = rp.CONTROL_IMAGE_LEN
+READ_NATIVE, CONTROL_NATIVE = rp.READ_NATIVE_LEN, rp.CONTROL_NATIVE_LEN
 PM, MASTER, RELAY = helpers.PM, helpers.MASTER, helpers.OUTSTATION
 # Link headers exactly as the retained model vectors use them (codec.build_frame rewrites LEN and the CRC):
 # READ from read_support.request_frame/response_frame, SELECT/OPERATE from vectors.native_select/native_response37.
@@ -64,6 +65,8 @@ class Sequences:
         self.master_transport = (self.master_transport + 1) % 64
         self.wraps['master_transport'] += self.master_transport == 0
         head = REQ_HEAD['READ' if fc == 1 else 'CONTROL']
+        if rp.SEL751:
+            head = bytes.fromhex('056400c400000100')
         frame = codec.build_frame(head, bytes((tp, app, fc)) + objects)
         return frame, self.app
 
@@ -72,6 +75,8 @@ class Sequences:
         self.outstation_transport = (self.outstation_transport + 1) % 64
         self.wraps['outstation_transport'] += self.outstation_transport == 0
         head = RSP_HEAD['READ' if kind == 'READ' else 'CONTROL']
+        if rp.SEL751:
+            head = bytes.fromhex('0564004401000000')
         return codec.build_frame(head, bytes((tp, 0xc0 | app_seq, 0x81)) + body)
 
     def next_app(self):
@@ -80,11 +85,18 @@ class Sequences:
 
 
 def crob(on_ms):
+    if rp.SEL751:
+        return rp._std().deframe(rp.relay_control_frame())[1][3:]
     return bytes.fromhex('0c012801000100') + bytes((0x01, 0x01)) + on_ms.to_bytes(4, 'little') + \
         (100).to_bytes(4, 'little') + b'\x00'
 
 
 READ_OBJECTS = bytes.fromhex('0a02000016')
+READ_BODY = bytes((0x80, 0x00)) + READ_OBJECTS + bytes(range(23))
+if rp.SEL751:
+    _q, _r = rp.read_frames()
+    READ_OBJECTS = rp._std().deframe(_q)[1][3:]
+    READ_BODY = rp._std().deframe(_r)[1][3:]
 
 
 def repeat_milestone():
@@ -108,6 +120,7 @@ def main():
                     scope='E61 compiled repeated SBO: READ, %d x (SELECT, OPERATE, READ) on one connection, then '
                           '%d timed cycles; sequence wraps; unpaired OPERATE after READ' % (cycles, timed_cycles),
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+    rp.report_endpoint(report)
     try:
         milestone = repeat_milestone()
         report.record['meta']['expectation_milestone'] = milestone
@@ -159,6 +172,8 @@ def main():
             return scalar(m.register_read('p1.t_Ingress.outcomes', index, pipe=1))
 
         def step(name, sent, expected, master=True):
+            expected = rp.preserve_options(sent, expected)
+            rp.advance_timestamp()
             got = m.exchange(MASTER.dev_port if master else RELAY.dev_port, sent, ports, timeout=3, quiet=.15)
             flat = [frame for frames in got.values() for frame in frames]
             good = len(flat) == (0 if expected is None else 1)
@@ -201,7 +216,7 @@ def main():
             counts[kind] += 1
             return ok, native, image
 
-        read_body = bytes((0x80, 0x00)) + READ_OBJECTS + bytes(range(23))
+        read_body = READ_BODY
 
         def control_body(on_ms):
             return bytes((0x00, 0x00)) + crob(on_ms)
@@ -235,7 +250,8 @@ def main():
         report.add('phaseA_all_cycles_exact', None, failed_cycle)
         report.add('phaseA_counts', {'READ': cycles + 1, 'SELECT': cycles, 'OPERATE': cycles}, dict(counts))
         # name kept from m11_09 (12 per READ there); the expectation is this build's own READ growth
-        report.add('phaseA_growth_12_per_READ_24_per_control', rp.growth(bytes(49), IMAGE_LEN) * (cycles + 1) + 24 * 2 * cycles, growth)
+        report.add('phaseA_growth_12_per_READ_24_per_control', rp.growth(bytes(READ_NATIVE), IMAGE_LEN) * (cycles + 1) +
+                   (IMAGE_LEN - CONTROL_NATIVE) * 2 * cycles, growth)
         # Observed rollovers of the counters whose values every exact frame above carried on the wire.
         wraps = dict(seqs.wraps)
         report.record['meta']['phaseA_wraps'] = wraps

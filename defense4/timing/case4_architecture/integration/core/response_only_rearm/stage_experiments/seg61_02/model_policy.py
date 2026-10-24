@@ -40,22 +40,9 @@ TWO_READ = mp.rp.TWO_READ
 
 
 def _two_templates():
-    """Select the two-READ template set matching THIS build's padded shapes (read_policy_expect.SHAPES). The
-    software outstation's integrity response is 247 B, the physical SEL-751's is 134 B; a build pads one tier or
-    the other, so the vectors must be that tier's own captures. Try the relay set first, fall back to the
-    software set, and fail loudly if neither matches -- a build must never be validated against another tier's
-    captures (Philip's capture/checker correction)."""
-    vdir = HERE.parent / 'read_complete_01/vectors'
-    for fname in ('two_read_templates_relay.json', 'two_read_templates.json'):
-        path = vdir / fname
-        if not path.is_file():
-            continue
-        variants = json.loads(path.read_text())['variants']
-        lens = {len(bytes.fromhex(variants[v]['classes'][c]['native']))
-                for v in variants for c in variants[v]['classes']}
-        if lens <= set(mp.rp.SHAPES):
-            return variants
-    raise AssertionError('no two-READ template set matches this build SHAPES %s' % sorted(mp.rp.SHAPES))
+    """Use the same strict captured-template selector as the timing gate."""
+    from two_read_templates import select_templates
+    return select_templates(HERE.parent / 'read_complete_01/vectors', mp.rp.SHAPES)[0]
 
 
 TWO_TEMPLATES = _two_templates() if TWO_READ else None
@@ -263,7 +250,11 @@ class PolicyBoundaryGate(PolicyGate):
                   'full': lambda c, n, w, t: self._commit_two(c, n, w, t, 'integrity', seq=1),
                   'sbo': self._commit_sbo}
         isn = 1000
-        for name, label in (('mx', 'READ141'), ('full', 'READ271'), ('sbo', 'SBO61')):
+        selected = TWO_TEMPLATES['v0']['classes']
+        labels = (('mx', 'READ%d' % mp.rp.SHAPES[len(bytes.fromhex(selected['mixed']['native']))]['target']),
+                  ('full', 'READ%d' % mp.rp.SHAPES[len(bytes.fromhex(selected['integrity']['native']))]['target']),
+                  ('sbo', 'SBO%d' % mp.IMAGE_LEN))
+        for name, label in labels:
             cseq, nsq, wsq = self.handshake(isn, isn + 800, name + '_')
             cseq, nsq, we, _s, L = commit[name](cseq, nsq, wsq, name)
             self._bound(label, cseq, we, L)

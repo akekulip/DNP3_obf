@@ -37,6 +37,7 @@ def main():
                     scope='ctl_timing m4 compiled: Table 4-9 selection cancellation, replacement, retry and stale '
                           'OPERATE, T disabled then enabled',
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+    rep.rp.report_endpoint(report)
     try:
         m = Model(ports=[], enable=False)
         ports = sorted({MASTER.dev_port, RELAY.dev_port})
@@ -82,6 +83,8 @@ def main():
             return scalar(m.register_read('p0.n_Ingress.owner', 0, pipe=0)) >> 16
 
         def step(name, sent, expected, master=True):
+            expected = rep.rp.preserve_options(sent, expected)
+            rep.rp.advance_timestamp()
             got = m.exchange(MASTER.dev_port if master else RELAY.dev_port, sent, ports, timeout=3, quiet=.15)
             flat = [frame for frames in got.values() for frame in frames]
             good = len(flat) == (0 if expected is None else 1)
@@ -127,7 +130,7 @@ def main():
             state['s'] = s + len(native)
             state['growth'] = growth + rep.rp.growth(native, IMAGE_LEN)
 
-        read_body = bytes((0x80, 0x00)) + READ_OBJECTS + bytes(range(23))
+        read_body = rep.READ_BODY
 
         def control_body(on_ms):
             return bytes((0x00, 0x00)) + crob(on_ms)
@@ -185,16 +188,37 @@ def main():
 
             # OPERATE for the REPLACED selection (A's objects, next application sequence after B): only B may be
             # operated, so this is dropped with no release and no OPERATE generation; it retires the connection
-            select('%s_old_sel_A' % phase, 106)
+            old_app = select('%s_old_sel_A' % phase, 106)
             select('%s_old_sel_B' % phase, 107)
             op_gen0, rel0 = t_reg('op_gen_alloc_reg'), outcome(5)
             frame, _app = state['seqs'].request(4, crob(106))
+            if rep.rp.SEL751:
+                head, user = rep.rp._std().deframe(frame)
+                # Fixed guarded CROBs are identical for A and B. Use A's
+                # stale application identity to exercise replacement authority.
+                frame = rep.rp._std().frame(head, user[:1] + bytes([0xc0 | ((old_app + 1) & 15)]) + user[2:])
             got = m.exchange(MASTER.dev_port, vectors.packet(24, state['c'], state['s'] + state['growth'],
                                                              payload=frame), ports, timeout=3, quiet=.15)
             report.add('%s_replaced_selection_OPERATE_dropped' % phase, 0, sum(len(v) for v in got.values()),
                        received=got)
             report.add('%s_replaced_selection_OPERATE_no_release' % phase, rel0, outcome(5))
             report.add('%s_replaced_selection_OPERATE_no_generation' % phase, op_gen0, t_reg('op_gen_alloc_reg'))
+            if rep.rp.SEL751:
+                frame, _app = state['seqs'].request(4, crob(107))
+                head, user = rep.rp._std().deframe(frame)
+                # Current application identity, but second CROB targets point 2.
+                # Refusal proves both command objects remain inside the guard.
+                user = user[:19] + b'\x02' + user[20:]
+                frame = rep.rp._std().frame(head, user)
+                got = m.exchange(MASTER.dev_port, vectors.packet(24, state['c'], state['s'] + state['growth'],
+                                                                 payload=frame), ports, timeout=3, quiet=.15)
+                report.add('%s_out_of_profile_second_CROB_OPERATE_dropped' % phase, 0,
+                           sum(len(v) for v in got.values()), received=got)
+                report.add('%s_out_of_profile_OPERATE_no_generation' % phase, op_gen0, t_reg('op_gen_alloc_reg'))
+                report.add('%s_out_of_profile_OPERATE_no_release' % phase, rel0, outcome(5))
+                report.record['meta']['replacement_contract'] = (
+                    'fixed guarded command; replacement changes application/TCP identity; stale application refused; '
+                    'current application with out-of-profile second CROB refused; identical current OPERATE is valid')
             step('%s_replaced_RST' % phase, vectors.packet(20, state['c'], state['s'] + state['growth']),
                  vectors.packet(20, state['c'], state['s']))
             connect('%s_after_replaced' % phase, client + 5000, server + 5000)

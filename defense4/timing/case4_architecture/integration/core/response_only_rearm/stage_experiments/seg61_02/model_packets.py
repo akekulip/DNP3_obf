@@ -33,10 +33,11 @@ import dnp3_std as std
 import wire_check
 import pcaptk
 
-IMAGE_LEN = 61
-READ_NATIVE = 49
-CONTROL_NATIVE = 37
-READ_GROWTH = IMAGE_LEN - READ_NATIVE
+IMAGE_LEN = rp.CONTROL_IMAGE_LEN
+READ_NATIVE = rp.READ_NATIVE_LEN
+CONTROL_NATIVE = rp.CONTROL_NATIVE_LEN
+READ_REQUEST = 25 if rp.SEL751 else 20
+CONTROL_REQUEST = rp.CONTROL_REQUEST_LEN
 CONTROL_GROWTH = IMAGE_LEN - CONTROL_NATIVE
 READ_IMAGE_LEN = rp.read_image_len(IMAGE_LEN)   # the policy READ image (141) on a policy build, else 61
 READ_GROWTH = READ_IMAGE_LEN - READ_NATIVE
@@ -58,6 +59,10 @@ def read_user(seq, statuses, app=0xc0, iin=b'\x80\x00'):
 
 
 def read_frame(seq, statuses, app=0xc0, iin=b'\x80\x00'):
+    if rp.SEL751:
+        native = rp.read_frames(seq, app & 15, variant=seq & 1)[1]
+        head, user = std.deframe(native)
+        return std.frame(head, user[:3] + iin + user[5:])
     return std.frame(bytes.fromhex('0564264401000000'), read_user(seq, statuses, app, iin))
 
 
@@ -67,12 +72,20 @@ def crob_object(index=1, code=1, count=1, on=100, off=100, status=0):
 
 
 def control_request(seq=0, app=0, fc=3, index=1, code=1, count=1, on=100, off=100, status=0):
+    if rp.SEL751:
+        return rp.relay_control_frame(seq, app, fc, statuses=(status, status))
     user = bytes([0xc0 | (seq & 0x3f), 0xc0 | (app & 0x0f), fc]) + crob_object(index, code, count, on, off, status)
     return std.frame(bytes.fromhex('05641ac40a000100'), user)
 
 
 def control_response(seq=0, app=0, fc=3, index=1, code=1, count=1, on=100, off=100,
                      status=0, iin=b'\x00\x00', con=False):
+    if rp.SEL751:
+        native = rp.relay_control_frame(seq, app, fc, response=True, statuses=(status, status), iin=iin)
+        if con:
+            head, user = std.deframe(native)
+            native = std.frame(head, user[:1] + bytes([user[1] | 0x20]) + user[2:])
+        return native
     app_ctrl = (0xe0 if con else 0xc0) | (app & 0x0f)
     user = (bytes([0xc0 | (seq & 0x3f), app_ctrl, 0x81]) + iin
             + crob_object(index, code, count, on, off, status))
@@ -127,7 +140,7 @@ def mutate_payload(packet, payload):
     old_payload = tcp_payload(frame)
     if len(old_payload) != len(payload):
         raise ValueError('payload length change not supported here')
-    frame[TCP_PAYLOAD_OFFSET:14 + total] = payload
+    frame[rp.tcp_payload_offset(frame):14 + total] = payload
     return fix_checksums(bytes(frame))
 
 
@@ -139,7 +152,7 @@ def assert_ip_tcp(frame):
 
 def validate_read_image(native, image, expected_statuses=None):
     if rp.POLICY:
-        return rp.check_read_image(native, image, expected_statuses)
+        return rp.check_read_image(native, image, None if rp.SEL751 else expected_statuses)
     if len(native) != READ_NATIVE or len(image) != IMAGE_LEN:
         raise AssertionError('READ length mismatch: %d -> %d' % (len(native), len(image)))
     if not wire_check.dnp3_ok(image)[0]:
@@ -156,7 +169,7 @@ def validate_read_image(native, image, expected_statuses=None):
             'iin': image_user[3:5].hex(), 'transport_seq': image_user[0] & 0x3f}
 
 
-def validate_control_image(req, native, image):
+def validate_control_image(req, native, image, require_success=True):
     if len(native) != CONTROL_NATIVE or len(image) != IMAGE_LEN:
         raise AssertionError('control length mismatch: %d -> %d' % (len(native), len(image)))
     if not wire_check.dnp3_ok(image)[0]:
@@ -169,17 +182,43 @@ def validate_control_image(req, native, image):
         raise AssertionError('control transport reassembly failed: %r %r' % (fragments, events))
     if fragments[0][0] != native_user[1:]:
         raise AssertionError('control application bytes changed')
-    std.check_control_echo(req_user, std.fragment_user(fragments[0][0]))
+    if require_success:
+        std.check_control_echo(req_user, std.fragment_user(fragments[0][0]))
     outcome = std.check_control_outcome(req_user, std.fragment_user(fragments[0][0]))
-    if not outcome['authorizes_or_succeeds']:
+    if outcome['authorizes_or_succeeds'] != require_success:
         raise AssertionError('control success semantics failed: %r' % outcome)
     ths = [std.deframe(frame)[1][0] for frame in frames]
     return {'native_len': len(native), 'image_len': len(image), 'frame_lengths': [len(f) for f in frames],
-            'transport_headers': ths, 'first_seq': ths[0] & 0x3f}
+            'transport_headers': ths, 'first_seq': ths[0] & 0x3f,
+            'authorizes_or_succeeds': outcome['authorizes_or_succeeds']}
 
 
 def vector_cases():
     cases = []
+    if rp.SEL751:
+        for seq in range(64):
+            for cls in ('mixed', 'integrity'):
+                request, native = rp.read_frames(seq, seq & 15, cls, seq & 1)
+                cases.append(('%s_seq_%02d' % (cls, seq),
+                              validate_read_image(native, encode61.read61(native))))
+            request = control_request(seq, seq & 15)
+            native = control_response(seq, seq & 15)
+            cases.append(('SBO_seq_%02d' % seq, validate_control_image(request, native, encode61.ctl61(native))))
+        for name, statuses, iin in (('first_control_status', (1, 0), b'\x00\x00'),
+                                    ('second_control_status', (0, 1), b'\x00\x00'),
+                                    ('both_control_statuses', (1, 2), b'\x00\x00'),
+                                    ('control_iin_error', (0, 0), b'\x00\x01')):
+            native = rp.relay_control_frame(response=True, statuses=statuses, iin=iin)
+            image = encode61.ctl61(native)
+            cases.append((name, validate_control_image(control_request(), native, image, require_success=False)))
+        for name, native in (('control_con', control_response(con=True)),):
+            if encode61.ctl61(native) is not None:
+                raise AssertionError('%s unexpectedly encoded' % name)
+            cases.append((name, {'admitted_by_oracle': False}))
+        if encode61.read61(bytes(49)) is not None:
+            raise AssertionError('obsolete READ49 admitted by relay oracle')
+        cases.append(('obsolete_READ49', {'admitted_by_oracle': False}))
+        return cases
     for seq in range(64):
         statuses = [((seq * 7 + i * 13) & 0xff) | (0x80 if i % 5 == 0 else 0) for i in range(23)]
         native = read_frame(seq, statuses, app=0xc0 | (seq & 0x0f),
@@ -227,6 +266,8 @@ def run_vector_validation(out=None):
 
 class PacketGate:
     def __init__(self, report, model, helpers, cp):
+        rp.configure_helpers(helpers)
+        rp.report_endpoint(report)
         self.report, self.m, self.h, self.cp = report, model, helpers, cp
         self.v, self.rs = helpers.vectors, helpers.rs
         self.master, self.relay, self.pm = helpers.MASTER, helpers.OUTSTATION, helpers.PM
@@ -268,6 +309,8 @@ class PacketGate:
             raise AssertionError(name)
 
     def exchange(self, name, sent, expected=None, reverse=False, allow_drop=False):
+        expected = rp.preserve_options(sent, expected)
+        rp.advance_timestamp()
         self.captures['sent'].append((time.time_ns() // 1000, sent))
         got = self.m.exchange(self.relay.dev_port if reverse else self.master.dev_port,
                               sent, self.ports, timeout=3, quiet=.15)
@@ -294,21 +337,21 @@ class PacketGate:
         statuses = statuses if statuses is not None else list(range(23))
         request = self.rs.request_packet(seq=cseq, ack=wire_sseq, app=0xc0 | (seq & 15))
         self.exchange(name + '_request', request, self.rs.request_packet(seq=cseq, ack=native_sseq, app=0xc0 | (seq & 15)))
-        ack = self.rs.ack_packet(seq=native_sseq, ack=cseq + 20)
-        self.exchange(name + '_server_ack', ack, self.rs.ack_packet(seq=wire_sseq, ack=cseq + 20), reverse=True)
+        ack = self.rs.ack_packet(seq=native_sseq, ack=cseq + READ_REQUEST)
+        self.exchange(name + '_server_ack', ack, self.rs.ack_packet(seq=wire_sseq, ack=cseq + READ_REQUEST), reverse=True)
         native = read_frame(seq, statuses, app=0xc0 | (seq & 0x0f), iin=iin)
         image = encode61.read61(native)
         validate_read_image(native, image, statuses)
         got = self.exchange(name + '_response61',
-                            self.v.packet(24, native_sseq, cseq + 20, reverse=True, payload=native),
-                            self.v.packet(24, wire_sseq, cseq + 20, reverse=True, payload=image),
+                            self.v.packet(24, native_sseq, cseq + READ_REQUEST, reverse=True, payload=native),
+                            self.v.packet(24, wire_sseq, cseq + READ_REQUEST, reverse=True, payload=image),
                             reverse=True)
         self.add(name + '_payload_len', READ_IMAGE_LEN, len(tcp_payload(got)))
         if expect_growth:
             self.exchange(name + '_mapped_ack',
-                          self.v.packet(16, cseq + 20, wire_sseq + READ_IMAGE_LEN),
-                          self.v.packet(16, cseq + 20, native_sseq + READ_NATIVE))
-        return cseq + 20, native_sseq + READ_NATIVE, wire_sseq + READ_IMAGE_LEN
+                          self.v.packet(16, cseq + READ_REQUEST, wire_sseq + READ_IMAGE_LEN),
+                          self.v.packet(16, cseq + READ_REQUEST, native_sseq + READ_NATIVE))
+        return cseq + READ_REQUEST, native_sseq + READ_NATIVE, wire_sseq + READ_IMAGE_LEN
 
     def control_exchange(self, name, cseq, native_sseq, wire_sseq, seq=0, app=0, fc=3, **kw):
         req = control_request(seq=seq, app=app, fc=fc, **kw)
@@ -318,14 +361,48 @@ class PacketGate:
         image = encode61.ctl61(native)
         validate_control_image(req, native, image)
         got = self.exchange(name + '_response61',
-                            self.v.packet(24, native_sseq, cseq + 35, reverse=True, payload=native),
-                            self.v.packet(24, wire_sseq, cseq + 35, reverse=True, payload=image),
+                            self.v.packet(24, native_sseq, cseq + CONTROL_REQUEST, reverse=True, payload=native),
+                            self.v.packet(24, wire_sseq, cseq + CONTROL_REQUEST, reverse=True, payload=image),
                             reverse=True)
         self.add(name + '_payload_len', IMAGE_LEN, len(tcp_payload(got)))
         self.exchange(name + '_mapped_ack',
-                      self.v.packet(16, cseq + 35, wire_sseq + IMAGE_LEN),
-                      self.v.packet(16, cseq + 35, native_sseq + CONTROL_NATIVE))
-        return cseq + 35, native_sseq + CONTROL_NATIVE, wire_sseq + IMAGE_LEN
+                      self.v.packet(16, cseq + CONTROL_REQUEST, wire_sseq + IMAGE_LEN),
+                      self.v.packet(16, cseq + CONTROL_REQUEST, native_sseq + CONTROL_NATIVE))
+        return cseq + CONTROL_REQUEST, native_sseq + CONTROL_NATIVE, wire_sseq + IMAGE_LEN
+
+    def failed_select_case(self, name, cseq, native_sseq, wire_sseq, statuses, iin):
+        """Faithful failed SELECT delivery grants no OPERATE authority; a fresh connection recovers."""
+        req = control_request()
+        self.exchange(name + '_SELECT_request', self.v.packet(24, cseq, wire_sseq, payload=req),
+                      self.v.packet(24, cseq, native_sseq, payload=req))
+        cseq += len(req)
+        native = rp.relay_control_frame(response=True, statuses=statuses, iin=iin)
+        image = encode61.ctl61(native)
+        info = validate_control_image(req, native, image, require_success=False)
+        before = self.growth()
+        got = self.exchange(name + '_failed_SELECT_delivered',
+                            self.v.packet(24, native_sseq, cseq, reverse=True, payload=native),
+                            self.v.packet(24, wire_sseq, cseq, reverse=True, payload=image), reverse=True)
+        validate_control_image(req, native, tcp_payload(got), require_success=False)
+        self.add(name + '_failed_SELECT_no_success_semantics', False, info['authorizes_or_succeeds'])
+        self.add(name + '_failed_SELECT_growth_once', before + CONTROL_GROWTH, self.growth())
+        native_sseq += len(native)
+        wire_sseq += len(image)
+        self.exchange(name + '_failed_SELECT_ACK', self.v.packet(16, cseq, wire_sseq),
+                      self.v.packet(16, cseq, native_sseq))
+        operate = control_request(seq=1, app=1, fc=4)
+        self.exchange(name + '_OPERATE_without_successful_SELECT_blocked',
+                      self.v.packet(24, cseq, wire_sseq, payload=operate), allow_drop=True)
+        self.add(name + '_blocked_OPERATE_no_growth', before + CONTROL_GROWTH, self.growth())
+        # The dropped TCP slot is outstanding: retire it before testing recovery.
+        self.exchange(name + '_reset', self.v.packet(20, cseq, wire_sseq),
+                      self.v.packet(20, cseq, native_sseq))
+        cseq, native_sseq, wire_sseq = self.handshake(cseq + 2000, native_sseq + 2000, name + '_recovery_')
+        cseq, native_sseq, wire_sseq = self.control_exchange(name + '_fresh_SELECT', cseq, native_sseq, wire_sseq)
+        cseq, native_sseq, wire_sseq = self.control_exchange(name + '_fresh_OPERATE', cseq, native_sseq, wire_sseq,
+                                                            seq=1, app=1, fc=4)
+        self.close(cseq, native_sseq, wire_sseq, name + '_recovery_close')
+        return self.handshake(cseq + 2000, native_sseq + 2000, name + '_next_')
 
     def growth(self):
         acct = self.m.register_read('p0.r_Egress.acct', 0, pipe=0)
@@ -364,22 +441,26 @@ class PacketGate:
         # Consistent retransmission: replay the same response before its ACK; ACK maps once.
         request = self.rs.request_packet(seq=cseq, ack=wire_sseq)
         self.exchange('retx_request', request, self.rs.request_packet(seq=cseq, ack=native_sseq))
-        ack = self.rs.ack_packet(seq=native_sseq, ack=cseq + 20)
-        self.exchange('retx_server_ack', ack, self.rs.ack_packet(seq=wire_sseq, ack=cseq + 20), reverse=True)
+        ack = self.rs.ack_packet(seq=native_sseq, ack=cseq + READ_REQUEST)
+        self.exchange('retx_server_ack', ack, self.rs.ack_packet(seq=wire_sseq, ack=cseq + READ_REQUEST), reverse=True)
         before = self.growth()
         native = read_frame(7, [0x55] * 23)
         image = encode61.read61(native)
         first = self.exchange('retx_response_first',
-                              self.v.packet(24, native_sseq, cseq + 20, reverse=True, payload=native),
-                              self.v.packet(24, wire_sseq, cseq + 20, reverse=True, payload=image), reverse=True)
+                              self.v.packet(24, native_sseq, cseq + READ_REQUEST, reverse=True, payload=native),
+                              self.v.packet(24, wire_sseq, cseq + READ_REQUEST, reverse=True, payload=image), reverse=True)
         second = self.exchange('retx_response_second',
-                               self.v.packet(24, native_sseq, cseq + 20, reverse=True, payload=native),
-                               self.v.packet(24, wire_sseq, cseq + 20, reverse=True, payload=image), reverse=True)
-        self.add('retx_identical_image', first.hex(), second.hex())
+                               self.v.packet(24, native_sseq, cseq + READ_REQUEST, reverse=True, payload=native),
+                               self.v.packet(24, wire_sseq, cseq + READ_REQUEST, reverse=True, payload=image), reverse=True)
+        self.add('retx_identical_image',
+                 tcp_payload(first).hex() if rp.TCP_TIMESTAMPS else first.hex(),
+                 tcp_payload(second).hex() if rp.TCP_TIMESTAMPS else second.hex())
+        if rp.TCP_TIMESTAMPS:
+            self.add('retx_new_timestamp_preserved', True, rp.timestamp_values(second)[0] > rp.timestamp_values(first)[0])
         self.add('retx_no_doublegrowth_before_ack', before + READ_GROWTH, self.growth())
-        self.exchange('retx_ack_maps_once', self.v.packet(16, cseq + 20, wire_sseq + READ_IMAGE_LEN),
-                      self.v.packet(16, cseq + 20, native_sseq + READ_NATIVE))
-        cseq += 20
+        self.exchange('retx_ack_maps_once', self.v.packet(16, cseq + READ_REQUEST, wire_sseq + READ_IMAGE_LEN),
+                      self.v.packet(16, cseq + READ_REQUEST, native_sseq + READ_NATIVE))
+        cseq += READ_REQUEST
         native_sseq += READ_NATIVE
         wire_sseq += READ_IMAGE_LEN
 
@@ -387,40 +468,52 @@ class PacketGate:
         # subsequent legal response must still complete that same transaction.
         request = self.rs.request_packet(seq=cseq, ack=wire_sseq)
         self.exchange('neg_read_request', request, self.rs.request_packet(seq=cseq, ack=native_sseq))
-        self.exchange('neg_read_ack', self.rs.ack_packet(seq=native_sseq, ack=cseq + 20),
-                      self.rs.ack_packet(seq=wire_sseq, ack=cseq + 20), reverse=True)
+        self.exchange('neg_read_ack', self.rs.ack_packet(seq=native_sseq, ack=cseq + READ_REQUEST),
+                      self.rs.ack_packet(seq=wire_sseq, ack=cseq + READ_REQUEST), reverse=True)
         good = read_frame(0, range(23))
-        user = std.deframe(good)[1]
-        bad_read = std.frame(bytes.fromhex('0564264401000000'), user[:9] + b'\x17' + user[10:])
-        con_read = std.frame(bytes.fromhex('0564264401000000'), user[:1] + b'\xe0' + user[2:])
+        head, user = std.deframe(good)
+        bad_user = user[:5] + b'\xff' + user[6:] if rp.SEL751 else user[:9] + b'\x17' + user[10:]
+        bad_read = std.frame(head, bad_user)
+        con_read = std.frame(head, user[:1] + b'\xe0' + user[2:])
         before = self.growth()
         for name, native in (('neg_read_wrongshape', bad_read), ('neg_read_CON', con_read)):
-            self.exchange(name, self.v.packet(24, native_sseq, cseq + 20, reverse=True, payload=native),
+            self.exchange(name, self.v.packet(24, native_sseq, cseq + READ_REQUEST, reverse=True, payload=native),
                           allow_drop=True, reverse=True)
         self.add('neg_read_no_growth', before, self.growth())
-        self.exchange('neg_read_recovery', self.v.packet(24, native_sseq, cseq + 20, reverse=True, payload=good),
-                      self.v.packet(24, wire_sseq, cseq + 20, reverse=True, payload=encode61.read61(good)), reverse=True)
-        cseq, native_sseq, wire_sseq = cseq + 20, native_sseq + READ_NATIVE, wire_sseq + READ_IMAGE_LEN
+        self.exchange('neg_read_recovery', self.v.packet(24, native_sseq, cseq + READ_REQUEST, reverse=True, payload=good),
+                      self.v.packet(24, wire_sseq, cseq + READ_REQUEST, reverse=True, payload=encode61.read61(good)), reverse=True)
+        cseq, native_sseq, wire_sseq = cseq + READ_REQUEST, native_sseq + READ_NATIVE, wire_sseq + READ_IMAGE_LEN
         self.exchange('neg_read_recovery_ack', self.v.packet(16, cseq, wire_sseq), self.v.packet(16, cseq, native_sseq))
         req = control_request()
         self.exchange('neg_control_request', self.v.packet(24, cseq, wire_sseq, payload=req),
                       self.v.packet(24, cseq, native_sseq, payload=req))
         before = self.growth()
-        for name, native in (('neg_control_con', control_response(con=True)),
-                             ('neg_control_status', control_response(status=1)),
-                             ('neg_control_iin_error', control_response(iin=b'\x00\x01'))):
-            self.exchange(name, self.v.packet(24, native_sseq, cseq + 35, reverse=True, payload=native),
+        excluded = [('neg_control_con', control_response(con=True))]
+        if not rp.SEL751:
+            excluded += [('neg_control_status', control_response(status=1)),
+                         ('neg_control_iin_error', control_response(iin=b'\x00\x01'))]
+        for name, native in excluded:
+            self.exchange(name, self.v.packet(24, native_sseq, cseq + CONTROL_REQUEST, reverse=True, payload=native),
                           allow_drop=True, reverse=True)
         self.add('neg_control_no_growth', before, self.growth())
         good = control_response()
-        self.exchange('neg_control_recovery', self.v.packet(24, native_sseq, cseq + 35, reverse=True, payload=good),
-                      self.v.packet(24, wire_sseq, cseq + 35, reverse=True, payload=encode61.ctl61(good)), reverse=True)
-        cseq, native_sseq, wire_sseq = cseq + 35, native_sseq + CONTROL_NATIVE, wire_sseq + IMAGE_LEN
+        self.exchange('neg_control_recovery', self.v.packet(24, native_sseq, cseq + CONTROL_REQUEST, reverse=True, payload=good),
+                      self.v.packet(24, wire_sseq, cseq + CONTROL_REQUEST, reverse=True, payload=encode61.ctl61(good)), reverse=True)
+        cseq, native_sseq, wire_sseq = cseq + CONTROL_REQUEST, native_sseq + CONTROL_NATIVE, wire_sseq + IMAGE_LEN
         self.exchange('neg_control_recovery_ack', self.v.packet(16, cseq, wire_sseq), self.v.packet(16, cseq, native_sseq))
         cseq, native_sseq, wire_sseq = self.control_exchange('neg_recovered_operate', cseq, native_sseq, wire_sseq,
                                                             app=1, fc=4)
         self.close(cseq, native_sseq, wire_sseq, 'close')
-        self.handshake(cseq + 1000, native_sseq + 1000, 'fresh_rearm_')
+        state = self.handshake(cseq + 1000, native_sseq + 1000, 'fresh_rearm_')
+        if rp.SEL751:
+            for tag, statuses, iin in (('first_status', (1, 0), b'\x00\x00'),
+                                        ('second_status', (0, 1), b'\x00\x00'),
+                                        ('both_statuses', (1, 2), b'\x00\x00'),
+                                        ('iin_error', (0, 0), b'\x00\x01')):
+                state = self.failed_select_case('failed_SELECT_' + tag, *state, statuses=statuses, iin=iin)
+        if rp.TCP_TIMESTAMPS:
+            self.add('timestamp_options_receive_order', True,
+                     rp.timestamp_order_ok([frame for _time, frame in self.captures['received']]))
         self.report.record['meta']['reflections'] = {r.port: r.summary() for r in self.reflectors}
 
 

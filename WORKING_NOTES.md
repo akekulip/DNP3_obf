@@ -2848,3 +2848,29 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   CRChashes with exactnativeCRC/lookuplinearity (256status+64transportrows, no16Kcrossproduct), retainingallN/E
   fixedfieldchecks andCRCs. Newofflineproofs cover64×256outputs andfixed-field corruption. Compilationrunning;
   independentreviewpending. Thisisnotan image/resource/runtimepass.
+- c38 compileexit4/80.23s: backendInternalCompilerError precedes secondarysummaryloggingfailure. Itsplacement
+  improvesNhighest10/Ewindow10 butTCPchecksumcondition11. Diagnosticgraph/placement showsPHVactiondependency
+  betweenIP/TCPchecksumconditionbits packedinH55. ThisdoesnotestablishthatstageexcesscausedtheICE.
+- c39 source13792217481fcf3babd59dc3d0d168296922f7677f4b323cd1347b8fe5cefb02 changesonlythreepa_no_packhints
+  separatinggeneratedIP/TCPchecksumconditions. Removingthosehints yieldsbyteidenticalc38.107offline tests/10legacy
+  identitiespass, independentfocusedreviewapproved; compilationrunning. Needactualhintresolution, successfulbackend,
+  physicalindices andchecksumruntimebeforequalification.
+- Modelretargetreviewfoundstale abortsummary48/50READtags after actualREADnegative offsets became90/92; two
+  regressionsfailedthenpassedwithsource-profile-aware expectations andexacttag/offsetbinding.69summarytests pass;
+  scopedreviewapproved. FailedSELECTstatus/IIN2 delivery isfaithfulwithnoOPERATEauthority andfreshconnectionrecovery;
+  modeltestrepairsreviewed, runtimepending. Exactc29FINrace remainsOPEN.
+- StrengthenedactualRelayGate independentlyreviewed: observedpayload all32appbytes/validchecksums/[28,32], exactly
+  oneEcommit/+11, privatepartialACK28/29/59 normalizeSstartwithcorrectwindow/options andnowiredeparture; replay
+  addsoneEreplay/zeroextra commit/growth; fullACKmapsS+49.3adversarialtests pass; runtimeunexecuted.
+- READ-onlysmokeconfig now precedesphysicalreference/recovery: size_only, mixed+integrity,2READs/zeroSELECT/OPERATE.
+  Independentreview13configtests pass; freshfullprotocol/HW/export suite1552/1552pass. No candidatehardwareyet.
+- c39 compileexit4/80.42s stillICE/N10E11. FreshPHVreadbackprovesoriginalthreehintsapplied: IPupdatedflagmoved,
+  butIPoriginalflagremainedpackedwithTCPselectors. c40 addedall6pairs andpriorityif/elsechecksums (all8cases
+  equivalent), buttargetrejectselseif(m.changed) with'Destination m.changed must be intrinsic metadata' (exit3,
+  48.096s). Thisisaconcreteunsupporteddeparserform, separatefromearlierICE. Allattemptsretained.
+- Buildhelpernow supportsdocumentedopt-in --event-logger (-Xp4c=--enable-event-logger), defaultsunchanged andexact
+  commandretainedinmanifest.16buildtests pass, scopedreviewapproved. Itrecordsbackendtracewithoutchangingoptimization.
+- c41 source97025e0c2a440ae2b5ab60d42f4c30622d89115bc93d501736def99ff451afb8 restores exactsequentialc38
+  checksums andretains6IP/TCPflagseparationpairs; stripping6hintlines givesbyteidenticalc38.108offlinetests and10
+  legacyidentitiespass; independentidentity/sourceapproval. SDK9.13.2compilationwithevents running; no successor
+  compilation/model/physicalqualificationclaim. Sourcecheckpoint includesreviewedmodel/campaignchanges andfailedattempts.

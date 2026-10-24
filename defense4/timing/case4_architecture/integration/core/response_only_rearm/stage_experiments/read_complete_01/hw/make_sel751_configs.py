@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Derive the seven existing qualification blocks for one source-bound physical SEL-751 candidate."""
+"""Derive a READ acceptance smoke and seven qualification blocks for one source-bound SEL-751 candidate."""
 import argparse
 import copy
 import hashlib
@@ -12,7 +12,7 @@ ARCH = HERE.parents[5]
 sys.path.insert(0, str(ARCH / 'protocol/hw_vepa'))
 import endpoint_profiles
 
-BLOCKS = ('reference', 'loss_mixed_950', 'loss_full_950', 'persistence_graceful_950',
+BLOCKS = ('smoke', 'reference', 'loss_mixed_950', 'loss_full_950', 'persistence_graceful_950',
           'persistence_rst_950', 'reconnect_950', 'held_operate_350')
 NATIVE_OBSERVATION = HERE.parent / 'evidence/relay_native_capture_20261024/relay_native_20261024_02/relay_wire.json'
 
@@ -102,8 +102,18 @@ def main(argv=None):
         raise ValueError('selected SDK compile is not bound to the source')
     args.output.mkdir(parents=True, exist_ok=True)
     for block in BLOCKS:
-        template = HERE / 'config' / ('rc01_%s_%s.json' % (args.template_build, block))
+        template = HERE / 'config' / ('rc01_%s_%s.json' % (args.template_build, 'reference' if block == 'smoke' else block))
         cfg = relay_config(json.loads(template.read_text()))
+        if block == 'smoke':
+            cfg['arms'] = [arm for arm in cfg['arms'] if arm['name'] == 'size_only']
+            cfg['trials'] = dict(reads_per_trial=2, trials_per_arm=1)
+            cfg['traffic'].update(run_sbo=False, expected_reads_per_class=dict(mixed=1, integrity=1), start_delay_ms=0)
+            cfg['traffic'].pop('sbo_cycles', None)  # absence is the existing guarded runner's zero-cycle default
+            cfg['traffic']['master_port_note'] = 'One bounded padded mixed/full READ acceptance connection.'
+            cfg['scenarios'] = {}
+            cfg['evaluation'].update(arm_order=['size_only'], purpose='qualification')
+            cfg['evaluation']['campaign_block'].update(arms=['size_only'], expected_exchanges=2, phase='smoke',
+                arguments=['--arms', 'size_only', '--fixtures', 'physical_relay'])
         cfg['wire_profile'] = dict(tcp_profile='sel751_ts', ipv4_header_octets=20, tcp_header_octets=32,
                                   native_observation=str(args.native_observation.resolve()),
                                   native_observation_sha256=hashlib.sha256(args.native_observation.read_bytes()).hexdigest(),

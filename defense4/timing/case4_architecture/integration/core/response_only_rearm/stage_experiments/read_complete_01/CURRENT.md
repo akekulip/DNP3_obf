@@ -36,7 +36,7 @@ master MAC3c:fd:fe:cc:5d:c0, relay MAC00:30:a7:02:4c:a2.
 | Native baseline READ/SBO | Physical02 block PASS; all4 planned exchanges; full capture and independent restoration retained |
 | READ construction | Preserve c30 source b006752 and its original READ model evidence;91→141 and134→158 targets fixed |
 | Actual SBO encoding | Whole49→60/15+17app offline reference and generated-byte tests pass; ASIC/model qualification pending |
-| Integrated candidate | c31–c34 retained failed compile attempts; no new candidate loaded; current TS profile implementation/resource fit in progress |
+| Integrated candidate | c31–c40 failed compile/static attempts retained; c41 compiling; no successor loaded or qualified |
 | Exact model gate | Corrected c30 control_timing04 passes415/415; successor requires14 existing drivers+relay_sbo+fin_busy on one sealed bundle |
 | FIN race | OPEN: c29 fin_busy01 reproduces half-close retry_epoch invalidation, stale retries and missing FIN; successor repair unqualified |
 | Relay padded/four-arm/recovery/timing/J | NOT RUN; requires current timestamp-capable image, placement, review and complete model gate |
@@ -45,12 +45,12 @@ master MAC3c:fd:fe:cc:5d:c0, relay MAC00:30:a7:02:4c:a2.
 ## Active work
 
 - P4/resource lane: add observed TS profile without host changes; reduce verified critical-path/resource cost.
-  c31 failed action lowering; c32 PHV allocation; c33/c34 use14 p0 stages and fail assembler. All sources/logs kept.
+  c31 failed action lowering; c32 PHV allocation; c33/c34 use14 p0 stages and fail assembler. c37/c38 hit an internal compiler error; c38 placement reaches N10/E11. c39 still failed with an original checksum flag sharing a container. c40 hit an unsupported deparser else-if form; c41 restores sequential checksum branches and separates all six flag pairs. All sources/logs kept.
   N/E highest occupied physical index must remain≤10; T≤11 occupied; pipe1 egress≤4. No check/traversal waiver.
-- Model lane: retarget all14 semantic gates to actual45/49→60 and two READ shapes; use physical IP/MAC and TS options.
+- Model lane: all14 gates retargeted and reviewed for actual45/49→60, physical IP/MAC and TS options; runtime execution pending. Strengthen actual-SBO one-commit/growth/retransmission and partial-ACK observations.
   Keep old fixtures only as offline historical regressions. Gate fails closed for missing relay/FIN evidence.
 - Campaign lane: explicit sel751 profile, permitted privileged Python application with explicit --apply,
-  persistent+independent NIC offload restoration, complete frozen helper closure; finish physical four-arm/recovery.
+  persistent+independent NIC/firewall restoration and frozen helper closure committed d3d2fe634;1543tests+5export checks pass. Physical four-arm/recovery await the image gate.
 - Integrator: source/artifact identity, serialize model/testbed, review, docs, active reproduce and milestone commits.
 
 ## Boundaries and corrected claims

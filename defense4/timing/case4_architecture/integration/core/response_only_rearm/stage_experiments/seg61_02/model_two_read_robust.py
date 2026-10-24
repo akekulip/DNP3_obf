@@ -57,6 +57,7 @@ def tail_crc_ok(frame_bytes):
 class RobustGate(pol.PolicyGate):
     def _send(self, name, pkt, reverse):
         """Send one packet; return the frames that left toward the master and toward the outstation."""
+        mp.rp.advance_timestamp()
         got = self.m.exchange(self.relay.dev_port if reverse else self.master.dev_port, pkt, self.ports,
                               timeout=3, quiet=.2)
         self.captures['sent'].append((0, pkt))
@@ -92,11 +93,22 @@ class RobustGate(pol.PolicyGate):
                         'copies %d, all exact %s' % (len(to_master), exact), ok=exact,
                         disposition='replayed' if to_master else 'not forwarded', copies=len(to_master))
         self.report.record['meta'].setdefault('retransmission', {})[cls] = len(to_master)
+        if mp.rp.TCP_TIMESTAMPS:
+            fresh = self.v.packet(24, nsq, cseq + qlen, reverse=True, payload=native)
+            fresh_want = mp.rp.preserve_options(fresh, self.v.packet(24, wsq, cseq + qlen, reverse=True, payload=image))
+            copies, _ = self._send(tag + '_new_timestamp_retransmission', fresh, True)
+            self.add(tag + '_new_timestamp_exact_retransmission', True,
+                     bool(copies) and all(self.h.same_frame(f, fresh_want, fresh) for f in copies)
+                     and mp.rp.timestamp_values(fresh)[0] > mp.rp.timestamp_values(sent)[0])
         self.exchange(tag + '_mapped_ack', self.v.packet(16, cseq + qlen, wsq + len(image)),
                       self.v.packet(16, cseq + qlen, nsq + len(native)))
         self.close(cseq + qlen, nsq + len(native), wsq + len(image), tag + '_close')
 
     def case_retransmission_range_control(self, isn):
+        if mp.rp.SEL751:
+            # Both admitted relay READs pad; integrity is the independent
+            # retransmission control for the mixed workload.
+            return self.case_retransmission('integrity', isn, 1)
         tag = 'R_range_control'
         cseq, nsq, wsq = self.handshake(isn, isn + 800, tag + '_')
         request = self.rs.request_packet(seq=cseq, ack=wsq, app=0xc0)
@@ -152,11 +164,32 @@ class RobustGate(pol.PolicyGate):
                         copy_lens=[len(mp.tcp_payload(f)) for f in to_master])
         self.report.record['meta'].setdefault('corruption', {})[tag] = dict(
             copies=len(to_master), lens=[len(mp.tcp_payload(f)) for f in to_master])
+        qualified = []
+        for frame in to_master:
+            try:
+                ip_ok, tcp_ok, _ = mp.wire_check.ip_tcp_checksum({'frame': frame})
+                mp.rp.check_read_image(native, mp.tcp_payload(frame))
+                if ip_ok and tcp_ok:
+                    qualified.append(frame)
+            except (AssertionError, ValueError):
+                pass
+        self.add(tag + '_no_receiver_qualified_corrupt_response', 0, len(qualified))
+        self.report.record['meta']['corruption_scope'] = (
+            'receiver-visible TCP/DNP3 validity; shallow switch admission may forward invalid tails')
         # the good response afterwards: delivered exactly once as the exact padded image
+        if mp.rp.TCP_TIMESTAMPS:
+            good = self.v.packet(24, nsq, cseq + qlen, reverse=True, payload=native)
+            want = mp.rp.preserve_options(good, self.v.packet(24, wsq, cseq + qlen, reverse=True, payload=image))
         to_master, _ = self._send(tag + '_good_after', good, True)
         ok = len(to_master) == 1 and self.h.same_frame(to_master[0], want, good)
         self.report.add(tag + '_good_after_delivered_exact', 'one exact padded image', 'copies %d' % len(to_master),
                         ok=ok, copies=len(to_master))
+        if ok:
+            mp.assert_ip_tcp(to_master[0])
+            mp.rp.check_read_image(native, mp.tcp_payload(to_master[0]))
+            if mp.rp.TCP_TIMESTAMPS:
+                self.add(tag + '_valid_retransmission_new_timestamp', True,
+                         mp.rp.timestamp_values(to_master[0])[0] > mp.rp.timestamp_values(bad)[0])
         self.exchange(tag + '_mapped_ack', self.v.packet(16, cseq + qlen, wsq + len(image)),
                       self.v.packet(16, cseq + qlen, nsq + len(native)))
         self.close(cseq + qlen, nsq + len(native), wsq + len(image), tag + '_close')
@@ -172,7 +205,8 @@ class RobustGate(pol.PolicyGate):
         tag = 'X'
         cseq, nsq, wsq = self.handshake(isn, isn + 800, tag + '_')
         cseq, nsq, wsq = self.two_read_exchange(tag + '_mixed_before', 'mixed', cseq, nsq, wsq, 0)
-        for cls in ('analog', 'class0'):
+        excluded = ('range', 'analog', 'class0') if mp.rp.SEL751 else ('analog', 'class0')
+        for cls in excluded:
             t = pol.TEMPLATES[cls]
             request = pol.resequence(bytes.fromhex(t['request']), 0, 0xC0 | 5, dst=0x0000, src=0x0100)
             for attempt in ('request', 'request_retransmitted'):

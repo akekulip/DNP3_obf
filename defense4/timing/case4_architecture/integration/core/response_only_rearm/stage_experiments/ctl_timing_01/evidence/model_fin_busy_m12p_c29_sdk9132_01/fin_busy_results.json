@@ -1,0 +1,295 @@
+{
+ "cases": [
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200001117000000000600210009f610000020405b4",
+   "name": "race_SYN",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200001117000000000600210009f610000020405b40000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002c00014000400626c90a0000010a00000275314e200001117000000000600210009f610000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100015f9000011171601210003fbf0000020405b4",
+   "name": "race_SYNACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100015f9000011171601210003fbf0000020405b40000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002c00014000400626c90a0000020a0000014e20753100015f9000011171601210003fbf0000020405b4"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001117100015f9150101000577c0000",
+   "name": "race_ACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001117100015f9150101000577c0000000000000000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001117100015f9150101000577c0000"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001117100015f9150111000577b0000",
+   "name": "master_half_close_FIN",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "9": [
+     "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001117100015f9150111000577b0000000000000000"
+    ]
+   },
+   "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001117100015f9150111000577b0000"
+  },
+  {
+   "expected": true,
+   "name": "busy_retry_rst_anchor_before_unlock",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "half_close_keeps_current_retry_epoch",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "same_epoch_retry_not_stale",
+   "observed": 2,
+   "ok": false
+  },
+  {
+   "expected": 0,
+   "name": "retry_not_exhausted",
+   "observed": 0,
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "relay_FIN",
+   "observed": 0,
+   "ok": false
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001117200015f9250101000577a0000",
+   "name": "last_ACK",
+   "observed": 0,
+   "ok": false,
+   "received": {
+    "9": []
+   },
+   "sent": "001122334455aabbccddeeff08004500002800014000400626cd0a0000010a00000275314e200001117200015f9250101000577a0000"
+  },
+  {
+   "expected": "none",
+   "name": "exception",
+   "observed": "Traceback (most recent call last):\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_fin_busy.py\", line 68, in main\n    gate.exchange('last_ACK', v.packet(16, c + 1, w + 1), v.packet(16, c + 1, s + 1))\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py\", line 281, in exchange\n    self.add(name, 'one exact frame', len(flat), ok=exact, sent=sent, received=got, expected_frame=expected)\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py\", line 268, in add\n    raise AssertionError(name)\nAssertionError: last_ACK\n",
+   "ok": false
+  }
+ ],
+ "meta": {
+  "after_master_half_close": {
+   "busy": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "epoch": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.epoch.f1": [
+     1
+    ]
+   },
+   "owner": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.owner.f1": [
+     16842753
+    ]
+   },
+   "retry_epoch": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.retry_epoch.f1": [
+     0
+    ]
+   },
+   "work.work": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.work.work.generation": [
+     3
+    ],
+    "n_Ingress.work.work.phase": [
+     4
+    ]
+   }
+  },
+  "after_race": {
+   "busy": [
+    0,
+    0,
+    1,
+    0,
+    2,
+    0,
+    1,
+    0
+   ],
+   "epoch": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.epoch.f1": [
+     1
+    ]
+   },
+   "owner": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.owner.f1": [
+     16842753
+    ]
+   },
+   "retry_epoch": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.retry_epoch.f1": [
+     0
+    ]
+   },
+   "work.work": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.work.work.generation": [
+     2147483646
+    ],
+    "n_Ingress.work.work.phase": [
+     4
+    ]
+   }
+  },
+  "before": {
+   "busy": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "epoch": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.epoch.f1": [
+     1
+    ]
+   },
+   "owner": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.owner.f1": [
+     327681
+    ]
+   },
+   "retry_epoch": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.retry_epoch.f1": [
+     1
+    ]
+   },
+   "work.work": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.work.work.generation": [
+     3
+    ],
+    "n_Ingress.work.work.phase": [
+     4
+    ]
+   }
+  },
+  "busy_anchor_before_unlock": {
+   "busy": [
+    0,
+    0,
+    1,
+    0,
+    2,
+    0,
+    1,
+    0
+   ],
+   "epoch": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.epoch.f1": [
+     1
+    ]
+   },
+   "owner": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.owner.f1": [
+     16842753
+    ]
+   },
+   "retry_epoch": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.retry_epoch.f1": [
+     0
+    ]
+   },
+   "work.work": {
+    "action_name": null,
+    "is_default_entry": false,
+    "n_Ingress.work.work.generation": [
+     2147483646
+    ],
+    "n_Ingress.work.work.phase": [
+     1
+    ]
+   }
+  },
+  "driver_sha256": "545f4c5832d17193050f6dc9687cc7750c2e53558bb237dd20215890835bb945",
+  "physical": false,
+  "received": {
+   "9": []
+  },
+  "scope": "c29 busy FIN race and same-port recovery"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "half_close_keeps_current_retry_epoch",
+   "same_epoch_retry_not_stale",
+   "relay_FIN",
+   "last_ACK",
+   "exception"
+  ],
+  "passed": 6,
+  "total": 11
+ }
+}

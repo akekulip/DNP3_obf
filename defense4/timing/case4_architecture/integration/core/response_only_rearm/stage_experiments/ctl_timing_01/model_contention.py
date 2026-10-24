@@ -70,7 +70,7 @@ OP_HOLD_S = 0.9                # > J (200 ms model) in wall time
 # TRACE_sweep_SELECT_000ms.md (m6_07): a point's verdict is T's own lane (commit and release required). Before m7, T's lane
 # could be fooled by 32-bit readiness aliasing past 2^32 ns (_02); m7's clock moves that to 9.16 minutes. The request-
 # to-ACK wall time is recorded only; model-time stimulus checks are read from the model log (trace_model_log.py).
-READ_BODY = bytes((0x80, 0x00)) + rb.READ_OBJECTS + bytes(range(23))
+READ_BODY = rb.READ_BODY
 
 
 class PointInterrupted(Exception):
@@ -98,6 +98,7 @@ def main():
 
     def section_on(name):
         return not sections or name in sections
+    rb.rp.report_endpoint(report)
     try:
         m = Model(ports=[], enable=False)
         ports = sorted({MASTER.dev_port, RELAY.dev_port})
@@ -169,6 +170,8 @@ def main():
             return got
 
         def step(name, sent, expected, master=True):
+            expected = rb.rp.preserve_options(sent, expected)
+            rb.rp.advance_timestamp()
             log = view.log_path()
             size0, mono0, wall0 = view.size(log), time.monotonic(), time.time()
             got = m.exchange(MASTER.dev_port if master else RELAY.dev_port, sent, ports, timeout=3, quiet=.15)
@@ -250,6 +253,7 @@ def main():
             c, s = st['c'], st['s']
             native = st['seqs'].response(app, body, kind)
             ack = vectors.packet(16, s, c, reverse=True)
+            rb.rp.advance_timestamp()
             sent_rsp = vectors.packet(24, s, c, reverse=True, payload=native)
             if keep_queued:
                 st['queued'] = capture(0.02, 0.01)
@@ -268,8 +272,10 @@ def main():
         def judge(tag, kind, native, ack, got, before, busy0, extra=None, sent_rsp=None):
             s, g, c = st['s'], st['growth'], st['c']
             image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
-            want_ack = vectors.packet(16, s + g, c, reverse=True)
+            want_ack = rb.rp.preserve_options(ack, vectors.packet(16, s + g, c, reverse=True))
             want_rsp = vectors.packet(24, s + g, c, reverse=True, payload=image)
+            if sent_rsp is not None:
+                want_rsp = rb.rp.preserve_options(sent_rsp, want_rsp)
             # the contended connection's frames only (a second connection's packets also reach the master port)
             to_master = [(t, f) for t, p, f in got if p == MASTER.dev_port
                          and int.from_bytes(f[36:38], 'big') == vectors.CLIENT_PORT]
@@ -288,6 +294,9 @@ def main():
                 to_master = [(t, f) for t, p, f in got if p == MASTER.dev_port
                              and int.from_bytes(f[36:38], 'big') == vectors.CLIENT_PORT]
             after, busy1 = outcomes(), busy()
+            if rb.rp.TCP_TIMESTAMPS:
+                report.add('%s_timestamp_options_delivery_order' % tag, True,
+                           rb.rp.timestamp_order_ok([f for _t, f in to_master]))
             lane = {k: after[k] - before[k] for k in LANE}
             counts = [b - a for a, b in zip(busy0, busy1)]
             stimulus = (st['t_ack_sent'] - st['t_relayed']) if st.get('t_relayed') and st.get('t_ack_sent') else None
@@ -364,9 +373,9 @@ def main():
             s, g, c = st['s'], st['growth'], st['c']
             image = encode61.ctl61(native)
             frames = [f for _t, p, f in got if p == MASTER.dev_port]
+            expected = rb.rp.preserve_options(_rsp, vectors.packet(24, s + g, c, reverse=True, payload=image))
             report.add('%s_setup_SELECT_completed' % tag, True, ok and len(frames) == 2 and same_frame(
-                frames[1], vectors.packet(24, s + g, c, reverse=True, payload=image),
-                vectors.packet(24, s + g, c, reverse=True, payload=image)))
+                frames[1], expected, _rsp))
             st['s'] += len(native)
             st['growth'] += rb.rp.growth(native, IMAGE_LEN)
 
@@ -605,7 +614,8 @@ def main():
                     admitted = (None, None)
                     got += capture(0.3, 0.3)
                 held_ok = None                                   # decided by the pre-send read below
-            ahead = len(native) + (0 if offset is None else offset - (49 if kind == 'READ' else 37))
+            reference = rb.rp.abort_reference_len(kind)
+            ahead = len(native) + (0 if offset is None else offset - reference)
             rst = vectors.packet(20, s + ahead, c, reverse=True)
             # the order evidence, read immediately before the send (code review: a release seen only afterwards may
             # have escaped after T applied the reset, inside the N-to-T propagation window)
@@ -645,7 +655,8 @@ def main():
             good_rst = row['rst_ack'] == [c] and all(row['rst_checksums_ok'])
             if offset is not None:
                 # negative controls: 48/50 must not reset the master; 49/37 with nothing held is recorded only
-                if offset in (48, 50):
+                negatives = (reference - 1, reference + 1) if rb.rp.SEL751 else (48, 50)
+                if offset in negatives:
                     report.add('%s_no_master_reset' % tag, True, ok and rst_frames == [] and e1 - e0 == 0, **row)
                 else:
                     report.record['meta'].setdefault('abort_negative_characterization', []).append(row)
@@ -704,10 +715,11 @@ def main():
                 abort_case(kind, 'held')
                 abort_case(kind, 'released')
             for kind in ('READ', 'SELECT'):
-                abort_case(kind, 'held', offset=48)
-                abort_case(kind, 'held', offset=50)
-            abort_case('READ', 'released', offset=49)            # 49 ahead with nothing held: recorded only
-            abort_case('SELECT', 'released', offset=37)
+                negative = rb.rp.abort_reference_len(kind)
+                for offset in ((negative - 1, negative + 1) if rb.rp.SEL751 else (48, 50)):
+                    abort_case(kind, 'held', offset=offset)
+            abort_case('READ', 'released', offset=rb.rp.abort_reference_len('READ'))
+            abort_case('SELECT', 'released', offset=rb.rp.abort_reference_len('SELECT'))
             # the tuple still works afterwards: one ordinary READ through T's committed path
             tag = 'abort_followed_by_READ'
             got, native, ack, before, busy0, extra = point(tag, 'READ', 0)

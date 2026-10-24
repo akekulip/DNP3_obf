@@ -3,6 +3,7 @@
   python3 make_hw_manifest.py [--build m12p_b08] FREEZE.json CAMPAIGN_ID [BLOCK ...]   # default: all blocks, reference first
 
 The default block list follows the build's configs: the b08 six, or the two-READ seven (loss per READ class).
+Physical SEL-751 defaults prepend the padded mixed/full READ acceptance smoke.
 
 Each step runs run_block_frozen.sh FREEZE TOOL CONFIG RUN_ID with the tool and arguments recorded in the config's
 own evaluation.campaign_block (the four-arm reference block runs every arm). Run roots are the configs'
@@ -41,7 +42,8 @@ def main(argv):
     prefix = build + ('_sel751' if profile == 'sel751' else '')
     freeze, campaign = str(Path(argv[0]).resolve(strict=True)), argv[1]
     two_read = (HERE / 'config' / ('rc01_%s_loss_mixed_950.json' % prefix)).exists()
-    blocks = argv[2:] or (ORDER_TWO_READ if two_read else ORDER)
+    default_blocks = (['smoke'] if profile == 'sel751' else []) + (ORDER_TWO_READ if two_read else ORDER)
+    blocks = argv[2:] or default_blocks
     steps = []
     for name in blocks:
         path = HERE / 'config' / ('rc01_%s_%s.json' % (prefix, name))

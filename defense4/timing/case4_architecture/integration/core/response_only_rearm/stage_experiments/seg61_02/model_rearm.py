@@ -35,7 +35,8 @@ import encode61
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))  # read_policy_expect is beside this file
 import read_policy_expect as rp  # noqa: E402
 rp.install(encode61)
-IMAGE_LEN = 61
+rp.configure_helpers(helpers)
+IMAGE_LEN = rp.CONTROL_IMAGE_LEN
 if rp.TWO_READ:
     # A two-READ build leaves the range READ native, so the inverse-normalization probe below would see no image at
     # all. It drives the padded mixed READ instead (fixture variant 0, captured bytes re-addressed to the model
@@ -64,7 +65,7 @@ def read_request_packet(seq, ack):
 
 def read_response_packet(seq, ack):
     return vectors.packet(24, seq, ack, reverse=True, payload=READ_RESPONSE)
-CONTROL_NATIVE = 37
+CONTROL_NATIVE = rp.CONTROL_NATIVE_LEN
 PM, MASTER, RELAY = helpers.PM, helpers.MASTER, helpers.OUTSTATION
 PKTGEN_RETURN = helpers.PKTGEN_RETURN
 
@@ -73,6 +74,7 @@ def main():
     report = Report(os.environ['PROG'], physical=False,
                     scope='E61 compiled protected reconnect; actual N/E/T; all 61 reverse distances and stale isolation',
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+    rp.report_endpoint(report)
     try:
         child_regs = sealed_profile.child_registers(sealed_profile.describe(
             Path(os.environ['PORT_MAP']).parent / 'compile_local/out'))
@@ -137,6 +139,8 @@ def main():
             return state
 
         def step(name, sent, expected, master=True):
+            expected = rp.preserve_options(sent, expected)
+            rp.advance_timestamp()
             got = m.exchange(MASTER.dev_port if master else RELAY.dev_port, sent, ports, timeout=3, quiet=.15)
             flat = [frame for frames in got.values() for frame in frames]
             good = len(flat) == (0 if expected is None else 1)
@@ -195,7 +199,7 @@ def main():
                 pseudo = sent[26:34] + bytes((0, 6)) + struct.pack('!H', len(sent) - 34)
                 sent[50:52] = struct.pack('!H', vectors.checksum(pseudo + sent[34:]))
                 expected = bytearray(vectors.packet(16, 101 + READ_REQ, 901))
-                expected_window = 0 if window < distance else min(READ_NATIVE + window - distance, 65535)
+                expected_window = rp.reverse_window(window, distance, READ_NATIVE)
                 expected[48:50] = struct.pack('!H', expected_window)
                 expected[50:52] = bytes(2)
                 expected[50:52] = struct.pack('!H', vectors.checksum(pseudo + expected[34:]))
@@ -291,20 +295,20 @@ def main():
              vectors.packet(24, c, n, payload=vectors.native_select(0, 3)))
         response = helpers.native_response37(0, 3)
         image = encode61.ctl61(response)
-        step('new_SELECT_response_61', vectors.packet(24, n, c + 35, reverse=True, payload=response),
-             vectors.packet(24, (7001 + READ_IMAGE_LEN), c + 35, reverse=True, payload=image), master=False)
+        step('new_SELECT_response_61', vectors.packet(24, n, c + rp.CONTROL_REQUEST_LEN, reverse=True, payload=response),
+             vectors.packet(24, (7001 + READ_IMAGE_LEN), c + rp.CONTROL_REQUEST_LEN, reverse=True, payload=image), master=False)
         params['enabled'] = 1
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
-        operate = vectors.packet(24, c + 35, (7001 + READ_IMAGE_LEN + IMAGE_LEN), payload=vectors.native_select(1, 4))
+        operate = vectors.packet(24, c + rp.CONTROL_REQUEST_LEN, (7001 + READ_IMAGE_LEN + IMAGE_LEN), payload=vectors.native_select(1, 4))
         step('new_OPERATE_hold_native', operate,
-             vectors.packet(24, c + 35, n + 37, payload=vectors.native_select(1, 4)))
+             vectors.packet(24, c + rp.CONTROL_REQUEST_LEN, n + CONTROL_NATIVE, payload=vectors.native_select(1, 4)))
         report.add('OPERATE_release_count', 1, scalar(m.register_read('p1.t_Ingress.outcomes', 5, pipe=1)))
         response = helpers.native_response37(1, 4)
         image = encode61.ctl61(response)
-        step('new_OPERATE_response_61', vectors.packet(24, n + 37, c + 70, reverse=True, payload=response),
-             vectors.packet(24, (7001 + READ_IMAGE_LEN + IMAGE_LEN), c + 70, reverse=True, payload=image), master=False)
-        step('qualified_RST', vectors.packet(20, c + 70, (7001 + READ_IMAGE_LEN + 2 * IMAGE_LEN)),
-             vectors.packet(20, c + 70, n + 74))
+        step('new_OPERATE_response_61', vectors.packet(24, n + CONTROL_NATIVE, c + 2 * rp.CONTROL_REQUEST_LEN, reverse=True, payload=response),
+             vectors.packet(24, (7001 + READ_IMAGE_LEN + IMAGE_LEN), c + 2 * rp.CONTROL_REQUEST_LEN, reverse=True, payload=image), master=False)
+        step('qualified_RST', vectors.packet(20, c + 2 * rp.CONTROL_REQUEST_LEN, (7001 + READ_IMAGE_LEN + 2 * IMAGE_LEN)),
+             vectors.packet(20, c + 2 * rp.CONTROL_REQUEST_LEN, n + 2 * CONTROL_NATIVE))
         report.add('RST_retired', 0x200, scalar(snapshot()['N']['owner']) >> 16)
         handshake(9000, 11000)
         report.record['meta']['reflections'] = {r.port: r.summary() for r in reflectors}

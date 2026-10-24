@@ -1,0 +1,122 @@
+#pipeline p1
+#stage 0
+^------ --- ---- -------------- --- --- --- ------- ---- -- - --- ---- ----- - cond-129(0,1) : ingress
+A^----- --- ---- -------------- --- --- --- ------- ---- -- - --- ---- ----- - tbl_response_only2437(0,1) : ingress
+BB^---- --- ---- -------------- --- --- --- ------- ---- -- - --- ---- ----- - params_0(0,1) : ingress
+BB-^--- --- ---- -------------- --- --- --- ------- ---- -- - --- ---- ----- - lifetime_access_0(0,1) : ingress
+BB--^-- --- ---- -------------- --- --- --- ------- ---- -- - --- ---- ----- - clock_0(0,2) : ingress
+BB---^- --- ---- -------------- --- --- --- ------- ---- -- - --- ---- ----- - tbl_response_only2381(0,4) : ingress
+BB----^ --- ---- -------------- --- --- --- ------- ---- -- - --- ---- ----- - tbl_response_only2374(0,4) : ingress
+#stage 1
+BBCC--- ^-- ---- -------------- --- --- --- ------- ---- -- - --- ---- ----- - gen_access_0(1,2) : ingress
+BBD-D-- -^- ---- -------------- --- --- --- ------- ---- -- - --- ---- ----- - tbl_held_offsets(1,3) : ingress
+BBD-D-- --^ ---- -------------- --- --- --- ------- ---- -- - --- ---- ----- - tbl_op_offset(1,4) : ingress
+#stage 2
+BBC-C-- C-- ^--- -------------- --- --- --- ------- ---- -- - --- ---- ----- - t0_access_0(2,3) : ingress
+BBC---- C-- -^-- -------------- --- --- --- ------- ---- -- - --- ---- ----- - operate_generation_access_0(2,3) : ingress
+BBC---- C-- --^- -------------- --- --- --- ------- ---- -- - --- ---- ----- - child_seen0_access_0(2,4) : ingress
+BB----- C-- ---^ -------------- --- --- --- ------- ---- -- - --- ---- ----- - ack_seen_access_0(2,4) : ingress
+#stage 3
+BBC-C-- C-- -C-- ^------------- --- --- --- ------- ---- -- - --- ---- ----- - operate_anchor_access_0(3,4) : ingress
+BBEEEEE EEE EEEE E^------------ --- --- --- ------- ---- -- - --- ---- ----- - cond-130(3,4) : ingress
+------- --- ---- -F^----------- --- --- --- ------- ---- -- - --- ---- ----- - cond-132(3,4) : ingress
+------- G-- -G-- --F^---------- --- --- --- ------- ---- -- - --- ---- ----- - tbl_token_diffs(3,4) : ingress
+------- G-- ---- ---F^--------- --- --- --- ------- ---- -- - --- ---- ----- - tbl_read_lgen_diff(3,4) : ingress
+------- -G- G--- ----H^-------- --- --- --- ------- ---- -- - --- ---- ----- - tbl_compute_readiness_delta(3,4) : ingress
+------- -G- G--- ----H-^------- --- --- --- ------- ---- -- - --- ---- ----- - tbl_compute_da_delta(3,4) : ingress
+------- -G- G--- ----H--^------ --- --- --- ------- ---- -- - --- ---- ----- - tbl_compute_pb_delta(3,5) : ingress
+------- --- -G-- ----F---^----- --- --- --- ------- ---- -- - --- ---- ----- - tbl_op_lgen_diff(3,6) : ingress
+--G---- --- ---- --B------^---- --- --- --- ------- ---- -- - --- ---- ----- - cond-133(3,8) : ingress
+------- --- ---- --------F-^--- --- --- --- ------- ---- -- - --- ---- ----- - tbl_drop_foreign(3,11) : ingress
+--G---- --- ---- -B---------^-- --- --- --- ------- ---- -- - --- ---- ----- - cond-131(3,11) : ingress
+II-J--- G-- ---I -I---------A^- --- --- --- ------- ---- -- - --- ---- ----- - tbl_admit_operate_held(3,11) : ingress
+------- --- ---- -----------FF^ --- --- --- ------- ---- -- - --- ---- ----- - tbl_drop_clone(3,11) : ingress
+#stage 4
+--K--K- K-- --K- ----LMME------ ^-- --- --- ------- ---- -- - --- ---- ----- - ack_go_check_0(4,5) : ingress
+------- --- ---- G-------H----- -^- --- --- ------- ---- -- - --- ---- ----- - tbl_compute_op_t0_masked(4,6) : ingress
+IIGI--N K-- ---I ---L---------- --^ --- --- ------- ---- -- - --- ---- ----- - token_verdict_0(4,10) : ingress
+#stage 5
+------- K-- ---- -------------- L-- ^-- --- ------- ---- -- - --- ---- ----- - tbl_try_ack_done(5,6) : ingress
+------- K-- ---- -------------- F-- -^- --- ------- ---- -- - --- ---- ----- - tbl_read_ack_done(4,6) : ingress
+------- --G ---- --------H----- -D- --^ --- ------- ---- -- - --- ---- ----- - tbl_compute_op_delta(5,7) : ingress
+#stage 6
+------- K-- ---- ----H--------- K-- CC- ^-- ------- ---- -- - --- ---- ----- - commit_generation_access_0(6,7) : ingress
+----K-- -K- ---- ----H--------- K-- CC- -^- ------- ---- -- - --- ---- ----- - commit_at_access_0(6,7) : ingress
+--K---- K-- ---- --------L----- -E- --M --^ ------- ---- -- - --- ---- ----- - op_go_check_0(6,8) : ingress
+#stage 7
+------- G-- -K-- ---------A---- --- --- --- ^------ ---- -- - --- ---- ----- - tbl_read_op_done(3,8) : ingress
+--K---- K-- ---K ----LMEM------ O-- PP- MM- -^----- ---- -- - --- ---- ----- - resp_go_check_0(7,8) : ingress
+------- --- -K-- -------------- --- --- --L --^---- ---- -- - --- ---- ----- - tbl_try_op_done(7,9) : ingress
+------- --- -K-- -------------- --- --- --F ---^--- ---- -- - --- ---- ----- - tbl_read_op_done_0(6,9) : ingress
+--G---- --- ---- --B------O---- --- --- --- P---^-- ---- -- - --- ---- ----- - cond-134(3,9) : ingress
+------- G-- --G- -------------- --- --- --- ----A^- ---- -- - --- ---- ----- - tbl_response_only2397(3,9) : ingress
+--G---- --- ---- --B------O---- --- --- --- P---OP^ ---- -- - --- ---- ----- - cond-135(3,9) : ingress
+#stage 8
+------- K-- ---- -------------- --- NN- II- -L----- ^--- -- - --- ---- ----- - tbl_try_resp_done(8,9) : ingress
+------- Q-- ---- -------------- --- --- --- N-----A -^-- -- - --- ---- ----- - tbl_read_resp_done(4,9) : ingress
+------- K-- ---- -------------- --- NN- II- -F----- --^- -- - --- ---- ----- - tbl_read_resp_done_0(7,9) : ingress
+IIK---N K-- --I- --------L----- --- --C --- --CC--- ---^ -- - --- ---- ----- - hb_verdict_0(8,10) : ingress
+#stage 9
+IIK--KN K-- --R- ----LCC------- --- CC- CC- ------- C-C- ^- - --- ---- ----- - held_verdict_0(9,10) : ingress
+IIQJ--N Q-- -Q-I --B----------- --- --- --- C----C- -C-- -^ - --- ---- ----- - tin_verdict_0(5,10) : ingress
+#stage 10
+BB----C --- ---- -------------- --C --- --- ------- ---C CC ^ --- ---- ----- - outcome_count_0(10,11) : ingress
+#stage 0
+------- --- ---- -------------- --- --- --- ------- ---- -- - ^-- ---- ----- - p1_conn_0(0,9) : egress
+------- --- ---- -------------- --- --- --- ------- ---- -- - H^- ---- ----- - set_tp_t_0(0,9) : egress
+------- --- ---- -------------- --- --- --- ------- ---- -- - H-^ ---- ----- - in_rb0_t_0(0,9) : egress
+#stage 1
+------- --- ---- -------------- --- --- --- ------- ---- -- - HC- ^--- ----- - crc_co_c0_t_0(1,10) : egress
+------- --- ---- -------------- --- --- --- ------- ---- -- - HC- -^-- ----- - crc_pl_uc2_t_0(1,10) : egress
+------- --- ---- -------------- --- --- --- ------- ---- -- - HC- --^- ----- - crc_pl_uc_t_0(1,10) : egress
+------- --- ---- -------------- --- --- --- ------- ---- -- - S-D ---^ ----- - read_profile_1(1,10) : egress
+#stage 2
+------- --- ---- -------------- --- --- --- ------- ---- -- - L-- ---C ^---- - tbl_response_only2587(2,11) : egress
+------- --- ---- -------------- --- --- --- ------- ---- -- - HPP PPPD -^--- - cond-147(2,11) : egress
+------- --- ---- -------------- --- --- --- ------- ---- -- - -JT GTUJ -B^-- - prefix_mx_t_0(2,11) : egress
+------- --- ---- -------------- --- --- --- ------- ---- -- - -JT GUTI --F^- - prefix_full_t_0(2,11) : egress
+------- --- ---- -------------- --- --- --- ------- ---- -- - --- ---C ----^ - egresshdr.ip.checksum_encode_update_condition_6(2,11) : egress
+#stage 3
+------- --- ---- -------------- --- --- --- ------- ---- -- - --- ---C ----- ^ egresshdr.tcp.checksum_encode_update_condition_7(2,11) : egress
+#dependencies
+A :  CONTROL_ACTION
+B :  CONTROL_COND_TRUE
+C :  IXBAR_READ ANTI_NEXT_TABLE_DATA
+D :  ACTION_READ ANTI_NEXT_TABLE_DATA
+E :  ANTI_NEXT_TABLE_DATA ANTI_NEXT_TABLE_CONTROL
+F :  CONTROL_COND_FALSE
+G :  ACTION_READ
+H :  CONTROL_DEFAULT_NEXT_TABLE
+I :  ANTI_ACTION_READ
+J :  ACTION_READ ANTI_ACTION_READ
+K :  IXBAR_READ
+L :  CONTROL_DEFAULT_NEXT_TABLE IXBAR_READ
+M :  IXBAR_READ ANTI_NEXT_TABLE_DATA ANTI_NEXT_TABLE_CONTROL
+N :  OUTPUT
+O :  ANTI_NEXT_TABLE_CONTROL
+P :  ANTI_NEXT_TABLE_DATA
+Q :  IXBAR_READ ACTION_READ
+R :  IXBAR_READ ANTI_ACTION_READ
+S :  CONTROL_DEFAULT_NEXT_TABLE ACTION_READ OUTPUT
+T :  ANTI_TABLE_READ
+U :  ACTION_READ ANTI_TABLE_READ
+
+*** Table dependency chains (of minimum length 8) ***
+
+1. cond-129(0) -> params_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-130(3) -> cond-132(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)
+
+2. cond-129(0) -> tbl_response_only2437(0) -> params_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-130(3) -> cond-132(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)
+
+3. tbl_response_only2437(0) -> params_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-130(3) -> cond-132(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)
+
+4. params_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-130(3) -> cond-132(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)
+
+5. cond-129(0) -> lifetime_access_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-130(3) -> cond-132(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)
+
+6. tbl_response_only2437(0) -> lifetime_access_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-130(3) -> cond-132(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)
+
+7. lifetime_access_0(0) -> gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-130(3) -> cond-132(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)
+
+8. gen_access_0(1) -> operate_generation_access_0(2) -> operate_anchor_access_0(3) -> cond-130(3) -> cond-132(3) -> tbl_token_diffs(3) -> tbl_read_lgen_diff(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)
+
+9. gen_access_0(1) -> t0_access_0(2) -> tbl_compute_readiness_delta(3) -> ack_go_check_0(4) -> tbl_try_ack_done(5) -> commit_at_access_0(6) -> resp_go_check_0(7) -> tbl_try_resp_done(8) -> held_verdict_0(9) -> outcome_count_0(10) (ingress)

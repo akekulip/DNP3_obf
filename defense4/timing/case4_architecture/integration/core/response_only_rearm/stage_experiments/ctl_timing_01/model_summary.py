@@ -176,21 +176,22 @@ def _disclosed_exception(note, run, base, run_dir):
     return latest['run']
 
 
-def _abort_negatives(results):
-    """Abort negatives (48/50 octets ahead while held): no master reset, no E-16, and the held response survives,
+def _abort_negatives(results, relay=False):
+    """Abort negatives at native response length±1: no master reset, no E-16, and the held response survives,
     released exactly once (review finding: the driver asserted only the first two)."""
-    expected = {'abort_held_%s_plus%d' % (kind, offset)
-                for kind in ('READ', 'SELECT') for offset in (48, 50)}
+    offsets = {'READ': (90, 92) if relay else (48, 50), 'SELECT': (48, 50)}
+    expected = {'abort_held_%s_plus%d' % (kind, offset): offset
+                for kind, values in offsets.items() for offset in values}
     points = (results.get('meta') or {}).get('points', [])
     tags = [row.get('tag') for row in points if row.get('tag') in expected]
     bad = ['missing or duplicate: ' + tag for tag in sorted(expected) if tags.count(tag) != 1]
     for row in points:
         # selected by tag as well as offset (review finding 5: a required tag without a usable offset was skipped)
-        if row.get('tag') not in expected and (not str(row.get('tag', '')).startswith('abort_')
-                                               or row.get('offset') not in (48, 50)):
+        if row.get('tag') not in expected:
             continue
         released = sum((row.get('t_deltas') or {}).get(k, 0) for k in ('RESP_RELEASE', 'RESP_FALLBACK'))
-        if row.get('resets_seq') != [] or row.get('e_reset_front_delta') != 0 or row.get('responses') != 1 \
+        if row.get('offset') != expected[row['tag']] or row.get('resets_seq') != [] \
+                or row.get('e_reset_front_delta') != 0 or row.get('responses') != 1 \
                 or released != 1:
             bad.append(row.get('tag'))
     return bad
@@ -234,7 +235,7 @@ def summarize_v2(build):
         if r['driver'] in REQUIRED_SECTIONS and r['sections'] != REQUIRED_SECTIONS[r['driver']]:
             problems.append('sections %r, required %r' % (r['sections'], REQUIRED_SECTIONS[r['driver']]))
         if r['driver'] == 'abort':
-            neg = _abort_negatives(results)
+            neg = _abort_negatives(results, relay='relay_sbo' in base['required_drivers'])
             r['abort_negative_failures'] = neg
             if neg or not any(str(x.get('tag', '')).endswith(('plus48', 'plus50'))
                               for x in meta.get('points', [])):

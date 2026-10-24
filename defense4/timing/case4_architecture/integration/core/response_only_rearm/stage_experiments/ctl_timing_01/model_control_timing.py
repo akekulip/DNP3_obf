@@ -53,6 +53,7 @@ def main():
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing_01 %s: T hold/release per transaction (READ, SELECT, OPERATE)' % milestone,
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+    rb.rp.report_endpoint(report)
     try:
         m = Model(ports=[], enable=False)
         ports = sorted({MASTER.dev_port, RELAY.dev_port})
@@ -116,6 +117,8 @@ def main():
             return got
 
         def step(name, sent, expected, master=True):
+            expected = rb.rp.preserve_options(sent, expected)
+            rb.rp.advance_timestamp()
             got = m.exchange(MASTER.dev_port if master else RELAY.dev_port, sent, ports, timeout=3, quiet=.15)
             flat = [frame for frames in got.values() for frame in frames]
             good = len(flat) == (0 if expected is None else 1) and (expected is None or same_frame(flat[0], expected, sent))
@@ -132,7 +135,7 @@ def main():
         c, s = c + 1, s + 1
         step('final_ACK', vectors.packet(16, c, s), vectors.packet(16, c, s))
         seqs = rb.Sequences()
-        read_body = bytes((0x80, 0x00)) + rb.READ_OBJECTS + bytes(range(23))
+        read_body = rb.READ_BODY
 
         def transaction(kind, fc, objects, body, mode='separate', inject=None):
             """Request, then (mode) 'separate': standalone ACK and response; 'slow': the ACK only after the piggyback
@@ -198,6 +201,7 @@ def main():
                 else:
                     report.add('%s_ACK_forwarded_at_once' % tag, True,
                                len(early) == 1 and same_frame(early[0][2], want_ack, ack))
+            rb.rp.advance_timestamp()
             native = seqs.response(app, body, kind)
             if kind == 'READ' and len(native) in rb.rp.PASSTHROUGH_LENS:
                 image = native                                 # pass-through READ class: already at a policy target
@@ -210,8 +214,20 @@ def main():
             m.drain(ports)
             t_sent = time.monotonic()
             m.send(RELAY.dev_port, sent_rsp)
+            late_want_ack = None
+            if mode == 'lateack':
+                # A newer timestamp ACK arrives while the older response waits
+                # in T. Any forwarded copy must not overtake that response and
+                # make its original timestamp stale at the receiver.
+                rb.rp.advance_timestamp()
+                late_ack = vectors.packet(16, s, c, reverse=True)
+                late_want_ack = rb.rp.preserve_options(late_ack, vectors.packet(16, s + growth, c, reverse=True))
+                m.send(RELAY.dev_port, late_ack)
             got = timed_capture(3.0, 0.3)
             frames = [(t, f) for t, p, f in got if p == MASTER.dev_port]
+            if rb.rp.TCP_TIMESTAMPS:
+                report.add('%s_timestamp_options_delivery_order' % tag, True,
+                           rb.rp.timestamp_order_ok([f for _t, f in frames]))
             if mode == 'piggyback':
                 after = outcomes()
                 report.add('%s_released_by_bound' % tag, True,
@@ -232,13 +248,20 @@ def main():
                 report.add('%s_counters' % tag, {'ACK_COMMIT': 0, 'RESP_RELEASE': 1, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 0},
                            {k: after[k] - before[k] for k in ('ACK_COMMIT', 'RESP_RELEASE', 'ACK_FALLBACK', 'RESP_FALLBACK')},
                            all_deltas={k: after[k] - before[k] for k in after if after[k] != before[k]})
-            elif is_timed and mode == 'dupack':
+            elif is_timed and mode in ('dupack', 'lateack'):
                 # a duplicate ACK must not release anything early or twice: ACK copies first (a forwarded duplicate
                 # TCP ACK is harmless), then exactly one exact 61-octet response, last
                 rsp = [f for _t, f in frames if same_frame(f, want_rsp, sent_rsp)]
-                acks = [f for _t, f in frames[:-1] if same_frame(f, want_ack, ack)]
-                ok = (len(frames) >= 2 and len(rsp) == 1 and same_frame(frames[-1][1], want_rsp, sent_rsp)
-                      and len(acks) == len(frames) - 1)
+                if mode == 'lateack':
+                    acks = [f for _t, f in frames if same_frame(f, want_ack, ack)
+                            or same_frame(f, late_want_ack, late_ack)]
+                    ok = (len(frames) >= 2 and len(rsp) == 1 and len(acks) == len(frames) - 1
+                          and same_frame(frames[0][1], want_ack, ack)
+                          and rb.rp.timestamp_order_ok([f for _t, f in frames]))
+                else:
+                    acks = [f for _t, f in frames[:-1] if same_frame(f, want_ack, ack)]
+                    ok = (len(frames) >= 2 and len(rsp) == 1 and same_frame(frames[-1][1], want_rsp, sent_rsp)
+                          and len(acks) == len(frames) - 1)
                 report.add('%s_ACKs_then_one_61_response' % tag, True, ok, ack_copies=len(acks),
                            frames=[f.hex() for _t, f in frames])
                 after = outcomes()
@@ -297,6 +320,9 @@ def main():
             # a duplicate standalone ACK in owner state 9 (SELECT) and 0xc (OPERATE): no early or double release
             transaction('SELECT', 3, rb.crob(110), bytes(2) + rb.crob(110), 'dupack')
             transaction('OPERATE', 4, rb.crob(110), bytes(2) + rb.crob(110), 'dupack')
+            if rb.rp.TCP_TIMESTAMPS:
+                transaction('SELECT', 3, rb.crob(110), bytes(2) + rb.crob(110), 'lateack')
+                transaction('OPERATE', 4, rb.crob(110), bytes(2) + rb.crob(110), 'lateack')
         if m4_rows:
             # a late copy of the old SELECT's response after a replacement SELECT: dropped, B completes exactly
             old = transaction('SELECT', 3, rb.crob(111), bytes(2) + rb.crob(111))
@@ -336,10 +362,11 @@ def main():
             # fixture variants so the measurement bytes differ between rounds. Each READ must be held by T and released
             # ACK-then-response with ITS OWN padded image (mixed 141, full 271: rp.construct by native length, exactly
             # equal); each OPERATE held for J; the mapper's growth advances by each image (both transition directions).
-            two = json.loads((HERE.parent / 'read_complete_01/vectors/two_read_templates.json').read_text())
+            from two_read_templates import select_templates
+            two, two_path = select_templates(HERE.parent / 'read_complete_01/vectors', rb.rp.SHAPES)
             rounds = 6
             for rnd in range(rounds):
-                variant = two['variants']['v%d' % (rnd % 2)]['classes']
+                variant = two['v%d' % (rnd % 2)]['classes']
                 for cls in ('mixed', 'integrity'):
                     t = variant[cls]
                     q_user = encode61.std.deframe(bytes.fromhex(t['request']))[1]
@@ -349,8 +376,8 @@ def main():
             report.record['meta']['two_read_cycles'] = {
                 'rounds': rounds, 'order': ['mixed', 'SELECT', 'OPERATE', 'integrity', 'SELECT', 'OPERATE'],
                 'images': {str(k): v['target'] for k, v in rb.rp.SHAPES.items()},
-                'templates_sha256': hashlib.sha256((HERE.parent / 'read_complete_01/vectors/two_read_templates.json')
-                                                   .read_bytes()).hexdigest()}
+                'templates_file': two_path.name,
+                'templates_sha256': hashlib.sha256(two_path.read_bytes()).hexdigest()}
 
         def reconnect(tag, client, server):
             nonlocal c, s, growth, seqs

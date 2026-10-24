@@ -151,7 +151,7 @@ def resource_summary(out):
     return result
 
 
-def compile_candidate(source, output, compiler=DEFAULT_COMPILER, *, timeout=300, defines=()):
+def compile_candidate(source, output, compiler=DEFAULT_COMPILER, *, timeout=300, defines=(), event_logger=False):
     source, output, compiler = Path(source).resolve(), Path(output).resolve(), Path(compiler).resolve()
     files = source_files(source)
     output.mkdir(parents=True, exist_ok=False)
@@ -164,6 +164,7 @@ def compile_candidate(source, output, compiler=DEFAULT_COMPILER, *, timeout=300,
         shutil.copyfile(path, target)
         source_hashes[relative] = sha(target)
     command = [str(compiler), '--target', 'tofino', '--arch', 'tna', '-g',
+               *(['-Xp4c=--enable-event-logger'] if event_logger else []),
                *['-D' + value for value in defines], '-o', str(output / 'out'),
                str(snapshot / source.name)]
     report = {'source': str(source), 'source_sha256': sha(snapshot / source.name),
@@ -270,10 +271,11 @@ def main():
     parser.add_argument('output', type=Path)
     parser.add_argument('--compiler', type=Path, default=DEFAULT_COMPILER)
     parser.add_argument('--timeout', type=int, default=300)
+    parser.add_argument('--event-logger', action='store_true', help='retain SDK backend events for compiler diagnostics')
     parser.add_argument('-D', dest='defines', action='append', default=[])
     args = parser.parse_args()
     result = compile_candidate(args.source, args.output, args.compiler,
-                               timeout=args.timeout, defines=args.defines)
+                               timeout=args.timeout, defines=args.defines, event_logger=args.event_logger)
     print(json.dumps(result, indent=2, sort_keys=True))
     raise SystemExit(result['exit_code'] or (1 if 'evidence_error' in result else 0))
 

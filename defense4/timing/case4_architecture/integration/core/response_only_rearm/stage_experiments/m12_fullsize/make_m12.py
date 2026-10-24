@@ -52,7 +52,14 @@ def main():
     ap.add_argument('--relay', action='store_true',
                     help='m12p_c30: relay (SEL-751) two-READ shapes -- integrity 134->158 instead of the software '
                          '247->271; requires --two-read (constants_two_read_relay.json)')
+    ap.add_argument('--relay-sbo', dest='relay_sbo', action='store_true',
+                    help='actual guarded two-CROB relay45/49 exchange, faithful49->60 (requires --relay --headroom)')
+    ap.add_argument('--relay-ts', dest='relay_ts', action='store_true', help='observed SEL-751 TCP timestamp profile (requires --relay-sbo)')
     a = ap.parse_args()
+    if a.relay_ts and not a.relay_sbo:
+        ap.error('--relay-ts requires --relay-sbo')
+    if a.relay_sbo and not (a.relay and a.headroom):
+        ap.error('--relay-sbo requires --relay --headroom')
     if a.headroom and not a.read_handshake:
         ap.error('--headroom requires --read-handshake')
     if a.read_handshake and not a.ack_retry:
@@ -76,7 +83,7 @@ def main():
     src, applied = build(a.only, c3=a.c3, shapes=a.shapes, segmented_pad=a.segmented_pad,
                          segmented_full=a.segmented_full, two_read_build=a.two_read, reduce=a.reduce,
                          ack_retry=a.ack_retry, read_handshake=a.read_handshake,
-                         headroom=a.headroom, relay=a.relay)
+                         headroom=a.headroom, relay=a.relay, relay_sbo=a.relay_sbo, relay_ts=a.relay_ts)
     sha = write_outputs(out, a, src, applied)
     print('wrote %s (image=%d, transforms=%s, sha=%s)' % (out / 'response_only.p4', image, applied, sha[:12]))
 

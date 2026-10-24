@@ -13,13 +13,26 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DRIVERS = {'control_timing': HERE / 'model_control_timing.py', 'select_lifecycle': HERE / 'model_select_lifecycle.py',
+DRIVERS = {'fin_busy': HERE / 'model_fin_busy.py', 'relay_sbo': HERE / 'model_relay_sbo.py', 'control_timing': HERE / 'model_control_timing.py', 'select_lifecycle': HERE / 'model_select_lifecycle.py',
            'contention': HERE / 'model_contention.py', 'abort': HERE / 'model_abort.py', 'egress_diag': HERE / 'model_egress_diag.py', 'isolation_cleanup': HERE / 'model_isolation_cleanup.py'}
 # wrapper drivers and the driver code they execute; local modules every driver imports
 WRAPPED = {name: {'model_contention.py': HERE / 'model_contention.py'} for name in ('abort', 'egress_diag')}
 DEPENDENCIES = [HERE.parent / 'seg61_02' / 'model_repeat.py', HERE.parents[2] / 'response_only' / 'model_drive_composite.py']
 for name in ('smoke', 'packets', 'rearm', 'dup', 'repeat', 'abandon', 'prefix', 'mixed', 'fullread', 'mixedfull', 'fullread_corrupt', 'fullread_boundary', 'policy', 'policy_boundary', 'smoke_sizeoff', 'segmented', 'two_read_robust'):
     DRIVERS[name] = HERE.parent / 'seg61_02' / ('model_%s.py' % name)
+
+
+def model_ports(inputs):
+    """Ports are source-profile data, including distinct physical relay dev64."""
+    profile = inputs.get('supported_profile') or {}
+    ports = profile.get('ports') or {}
+    values = {int(v) for k, v in ports.items() if k != 'stat_ports' and type(v) is int}
+    pm = inputs.get('port_map') or {}
+    values.update(int(v) for v in pm.values())
+    values.add(9)
+    values.add(68)
+    values.add(((int(pm.get('t_in', 180)) >> 7) << 7) + 68)
+    return ' '.join(map(str, sorted(values)))
 
 
 def check_reset(out, inputs_path):
@@ -87,7 +100,7 @@ def main():
     # every run goes through record_closure.py, which records each repository file the driver executed (review
     # of af7bd434: a wrapper plus one inner driver is not the imported closure)
     command = ['bash', str(HERE.parents[2] / 'launch_model.sh'), '-p', str(build / 'compile_local/out'),
-               '-o', str(out), '-P', '9 48 68 180 181 182 196', '-d', str(HERE / 'record_closure.py')]
+               '-o', str(out), '-P', model_ports(inputs), '-d', str(HERE / 'record_closure.py')]
     env = dict(os.environ, PORT_MAP=str(build / 'response_only.inputs.json'), PAD_ENABLE='1',
                MILESTONE=args.milestone, CTL_CLOSURE_TARGET=str(launched),
                CTL_CLOSURE_OUT=str(out / 'dependency_closure.json'))

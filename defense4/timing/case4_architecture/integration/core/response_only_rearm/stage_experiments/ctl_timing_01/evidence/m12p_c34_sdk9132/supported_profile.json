@@ -1,0 +1,91 @@
+{
+  "candidate": {
+    "build": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c34_sdk9132",
+    "milestone": "m12",
+    "source_sha256": "1c9ffe0a27af5ec3cf913bef8eb9a3045a2b214a41306eb4af2affbb011dd384",
+    "segment_sha256": {
+      "N": "b3271f0434b7320b46a6120ba72a57812ea4425b0652dc0f32b57fe768df81fa",
+      "E": "85eb54d17aab2da3404119d1b2e172cfb30dcb829f7c0b31b9f77814f4929731",
+      "T": "146ebd254a44c511f0868ecf652706fa1e7e97b22ae45c20e676f623e0423cd5"
+    },
+    "artifact_sha256": {}
+  },
+  "reset_restart_required": true,
+  "t_child_count": 1,
+  "profile_version": "supported-profile-v1-20261017",
+  "clock": {
+    "t_unit_ns": 256,
+    "t_grid_ns": 512,
+    "t_source": "global_tstamp[39:8] & ~1",
+    "rounding": "durations in ns are converted to T units by t_config.t_units (one shared writer)"
+  },
+  "timing_ns": {
+    "D_release_budget": 950000,
+    "J_operate_hold": 2400000,
+    "pb_piggyback_bound": 4000000,
+    "readiness": 30000000,
+    "da": 2000000,
+    "cap": 40000000,
+    "held_operate_overrides": {
+      "D_release_budget": 800000,
+      "J_operate_hold": 350000000,
+      "pb_piggyback_bound": 360000000,
+      "readiness": 380000000,
+      "cap": 400000000
+    },
+    "note": "qualification values of the ctl_m10_* configs; the held-OPERATE block uses held_operate_overrides"
+  },
+  "n": {
+    "retry_budget_laps": 32,
+    "restart_counter": "count_busy[5]"
+  },
+  "ports": {
+    "master_dev": 9,
+    "relay_dev": 64,
+    "n_ack_return": 48,
+    "t_in": 180,
+    "hb_return": 181,
+    "held_return": 182,
+    "recirc": 68,
+    "stat_ports": "9,64",
+    "note": "physical SEL-751: master dev9, relay dev64"
+  },
+  "encoding": {
+    "native_input_octets": {
+      "READ": [
+        91,
+        134
+      ],
+      "SELECT": 49,
+      "OPERATE": 49
+    },
+    "output_octets": 60,
+    "output_octets_note": "SELECT/OPERATE image (the control-timing contract field); the READ image is read_output_octets",
+    "read_output_octets": [
+      141,
+      158
+    ],
+    "read_construction": "prefix (read_complete_01/vectors/constants_two_read_relay.json shapes mixed_g1v2_g30v1_91, integrity_134)",
+    "control_application_partition": [
+      15,
+      17
+    ],
+    "control_partition_note": "all32 original application octets, transport15+17; whole49 TCP input",
+    "read_images": {
+      "91": 141,
+      "134": 158
+    },
+    "control_request_octets": 45,
+    "control_frames": [
+      28,
+      32
+    ]
+  },
+  "_note": "SEL-751 guarded two-CROB45/49 profile; READ91->141 and134->158; SBO49->60; one TCP child; whole input only",
+  "endpoint_profile": "sel751",
+  "not_admitted_reads": [
+    "range_g10v2_23",
+    "analog",
+    "class0"
+  ]
+}

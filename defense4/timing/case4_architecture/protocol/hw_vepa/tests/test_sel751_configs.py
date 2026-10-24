@@ -66,7 +66,41 @@ def test_generator_refuses_unbound_source_and_pins_selected_compile(tmp_path, mo
     native.write_text(json.dumps(observation))
     assert mod.main(['--build', str(build), '--output', str(output), '--native-observation', str(native)]) == 0
     configs = list(output.glob('*.json'))
-    assert len(configs) == 7
+    assert len(configs) == 8
+    smoke = json.loads((output / 'rc01_selected_relay_sel751_smoke.json').read_text())
+    import campaign
+    import checks
+    campaign.validate_profile(smoke)
+    assert [arm['name'] for arm in smoke['arms']] == ['size_only']
+    assert smoke['evaluation']['arm_order'] == ['size_only']
+    assert smoke['evaluation']['campaign_block']['expected_exchanges'] == 2
+    assert smoke['evaluation']['campaign_block']['arguments'] == ['--arms', 'size_only', '--fixtures', 'physical_relay']
+    assert smoke['trials'] == dict(reads_per_trial=2, trials_per_arm=1)
+    assert smoke['traffic']['read_schedule'] == 'mixed_full'
+    assert smoke['traffic']['expected_reads_per_class'] == dict(mixed=1, integrity=1)
+    assert smoke['traffic']['run_sbo'] is False
+    assert checks.sbo_count(smoke['traffic']) == 0
+    controls = campaign.Campaign(smoke, campaign.DryRunner(), 'smoke_offline').endpoint_control_args()
+    assert '--run-sbo 0' in controls
+    assert '--sbo-cycles' not in controls
+    import relay_master
+    from session import Outcome
+    calls = []
+    class ReadSession:
+        def __init__(self, *args, **kwargs): pass
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def transaction(self, **kwargs):
+            calls.append((kwargs['operation'], kwargs.get('expect_read_workload')))
+            return Outcome(operation=kwargs['operation'], function=kwargs['function'], app_seq=kwargs['app_seq'], outcome='OK')
+    monkeypatch.setenv('DEFENSE4_HW_AUTHORIZED', '1')
+    monkeypatch.setattr(relay_master, 'Session', ReadSession)
+    result = relay_master.workload(60000, smoke['trials']['reads_per_trial'],
+                                  schedule=smoke['traffic']['read_schedule'], run_sbo=smoke['traffic']['run_sbo'],
+                                  sbo_cycles=smoke['traffic'].get('sbo_cycles', 0), read_pause_ms=0)
+    assert result['ok']
+    assert result['planned'] == result['counts'] == dict(READ=2, SELECT=0, OPERATE=0)
+    assert calls == [('READ', 'mixed'), ('READ', 'integrity')]
     for path in configs:
         cfg = json.loads(path.read_text())
         selected = cfg['builds']['selected_relay']
@@ -154,3 +188,34 @@ def test_existing_manifest_generator_selects_physical_configs_and_fixture(tmp_pa
     assert step['argv'][4].endswith('rc01_selected_sel751_reference.json')
     assert step['argv'][-2:] == ['--fixtures', 'physical_relay']
     assert Path(step['run_root']).is_absolute()
+
+
+@pytest.mark.parametrize('profile,two_read,explicit,expected', [
+    ('sel751', True, [], ['smoke', 'reference', 'persistence_graceful_950', 'persistence_rst_950',
+                         'loss_mixed_950', 'loss_full_950', 'reconnect_950', 'held_operate_350']),
+    ('sel751', True, ['reference', 'smoke'], ['reference', 'smoke']),
+    ('software', True, [], ['reference', 'persistence_graceful_950', 'persistence_rst_950',
+                          'loss_mixed_950', 'loss_full_950', 'reconnect_950', 'held_operate_350']),
+    ('software', False, [], ['reference', 'persistence_graceful_950', 'persistence_rst_950',
+                           'reconnect_950', 'held_operate_350', 'loss_core_950']),
+])
+def test_manifest_defaults_smoke_first_only_for_physical_profile(tmp_path, monkeypatch, profile, two_read, explicit, expected):
+    spec = importlib.util.spec_from_file_location('smoke_manifest_test', PATH.parent / 'make_hw_manifest.py')
+    manifest_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(manifest_module)
+    root = tmp_path / 'hw'
+    (root / 'config').mkdir(parents=True)
+    prefix = 'selected_sel751' if profile == 'sel751' else 'selected'
+    names = set(expected) | {'reference'}
+    if two_read:
+        names.add('loss_mixed_950')
+    for name in names:
+        cfg = dict(endpoint_profile=profile, evidence_dir='integration/evidence/smoke_test',
+                   evaluation=dict(arm_order=['size_only'], campaign_block=dict(tool='candidate_campaign', arguments=[])))
+        (root / 'config' / ('rc01_%s_%s.json' % (prefix, name))).write_text(json.dumps(cfg))
+    frozen = tmp_path / 'freeze.json'
+    frozen.write_text('{}')
+    monkeypatch.setattr(manifest_module, 'HERE', root)
+    manifest_module.main(['--build', 'selected', '--endpoint-profile', profile, str(frozen), 'smoke_order'] + explicit)
+    result = json.loads((tmp_path / 'evidence/hw_campaigns/smoke_order.manifest.json').read_text())
+    assert [step['id'] for step in result['steps']] == ['smoke_order_' + name for name in expected]

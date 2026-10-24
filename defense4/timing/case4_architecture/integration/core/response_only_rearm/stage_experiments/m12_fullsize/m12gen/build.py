@@ -2,7 +2,7 @@
 import hashlib
 import json
 
-from . import mapper, read_policy, segmented, two_read
+from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp
 from .common import (CONSTANTS, CONSTANTS_TWO, HERE, M11_09, M11_09_PROFILE, M11_09_SHA, combined)
 
 TRANSFORM = {
@@ -19,6 +19,8 @@ TRANSFORM = {
     'segmented_t': segmented.transform_segmented_t,
     'n_read_completes_handshake': two_read.transform_n_read_completes_handshake,
     'pipe0_headroom': two_read.transform_pipe0_headroom,
+    'relay_sbo': relay_control.transform,
+    'relay_ts': relay_timestamp.transform,
 }
 
 
@@ -29,7 +31,7 @@ def generator_files():
 
 
 def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False,
-          reduce=False, ack_retry=False, read_handshake=False, headroom=False, relay=False):
+          reduce=False, ack_retry=False, read_handshake=False, headroom=False, relay=False, relay_sbo=False, relay_ts=False):
     # Select the two-READ shape source for this build (relay only applies to a two-READ build).
     two_read.use_relay_shapes(relay and two_read_build)
     src = M11_09.read_text()
@@ -69,6 +71,14 @@ def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_
             # are remapped across the +24 shift for the WHOLE 401 image. native 377 -> image 401; keyed in classify_rev
             # on native length mod 256 (377 & 0xFF = 121, distinct).
             per_image[segmented.segmented_shape()['native_total']] = segmented.segmented_shape()['target']
+    if relay_sbo:
+        if not (relay and headroom and two_read_build):
+            raise ValueError('relay SBO requires relay two-READ headroom build')
+        transforms.append('relay_sbo')
+    if relay_ts:
+        if not relay_sbo:
+            raise ValueError('relay timestamps require relay SBO')
+        transforms.append('relay_ts')
     applied = []
     for name in transforms:
         if name == 'mapper_var':
@@ -180,6 +190,30 @@ def write_outputs(out, a, src, applied):
             'read_images': {str(cm['native_total']): cm['target'], str(cf['native_total']): cf['target']},
             'read_construction': 'prefix (read_complete_01/vectors/%s shapes %s, %s)'
                                  % (two_read.shapes_source().name, cm['shape'], cf['shape'])})
+    actual_relay = getattr(a, 'relay_sbo', False)
+    if actual_relay:
+        required.add('relay_sbo')
+        if getattr(a, 'relay_ts', False):
+            required.add('relay_ts')
+        runnable = required.issubset(set(applied))
+        profile['endpoint_profile'] = 'sel751'
+        profile['ports'] = dict(profile['ports'], master_dev=9, relay_dev=64,
+                                note='physical SEL-751: master dev9, relay dev64')
+        profile['encoding'].update(native_input_octets={'READ': [91, 134], 'SELECT': 49, 'OPERATE': 49},
+                                   control_request_octets=45, output_octets=60,
+                                   control_application_partition=[15, 17], control_frames=[28, 32],
+                                   control_partition_note='all32 original application octets, transport15+17; whole49 TCP input')
+        profile['not_admitted_reads'] = ['range_g10v2_23', 'analog', 'class0']
+        profile['_note'] = 'SEL-751 guarded two-CROB45/49 profile; READ91->141 and134->158; SBO49->60; one TCP child; whole input only'
+        scope = profile['_note']
+    if getattr(a, 'relay_ts', False):
+        profile['tcp_profile'] = 'sel751_ts'
+        profile['encoding'].update(tcp_header_octets=32, syn_tcp_header_octets=40, synack_tcp_header_octets=44,
+            ipv4_ihl=5, timestamp_option_prefix='0101080a', master_window_scale=7, relay_window_scale=0,
+            native_ipv4_octets={'mixed': 143, 'integrity': 186, 'SELECT': 101, 'OPERATE': 101},
+            image_ipv4_octets={'mixed': 193, 'integrity': 210, 'SELECT': 112, 'OPERATE': 112},
+            control_request_ipv4_octets=97)
+    ctl_native, ctl_output, ctl_growth = (49, 60, 11) if actual_relay else (37, 61, 24)
     gen_files = generator_files()
     shapes2 = two_read.two_read_shapes() if a.two_read else None
     (out / 'response_only.inputs.json').write_text(json.dumps({
@@ -191,22 +225,22 @@ def write_outputs(out, a, src, applied):
         'source_sha256': sha, 'segment_sha256': segs, 'supported_profile': profile,
         't_time': {'unit_ns': 256, 'grid_ns': 512, 'source': 'global_tstamp[39:8] & ~1'},
         't_lifetime_encoding': 'sealed_low31',
-        'native_lengths': {'READ': read_native, 'SELECT_OPERATE': 37},
+        'native_lengths': {'READ': read_native, 'SELECT_OPERATE': ctl_native},
         'read_boundary': 'cimg' if a.c3 == 'cimg' else 'max_image_ladder',
         **({'passthrough_reads': {n: {'request_octets': v[0], 'request_dl_len': v[1], 'response_octets': v[2],
                                       'response_dl_len': v[3], 'output_octets': v[2]}
                                   for n, v in read_policy.PASSTHROUGH_READS.items()}}
            if a.shapes == 'passthrough' and not a.two_read else {}),
         # two-READ build: no READ class passes through -- integrity 247 is PADDED (271), analog/class0 are not admitted
-        **({'passthrough_reads': {}, 'not_admitted_reads': ['analog', 'class0']} if a.two_read else {}),
+        **({'passthrough_reads': {}, 'not_admitted_reads': (['range_g10v2_23', 'analog', 'class0'] if actual_relay else ['analog', 'class0'])} if a.two_read else {}),
         **({'read_images': {str(s['native_total']): s['target'] for s in shapes2},
-            'read_shapes': {name: {k: s[k] for k in ('native_total', 'native_link_len', 'native_ip_len', 'target',
+            'read_shapes': {name: {k: (s[k] + 12 if getattr(a, 'relay_ts', False) and k in ('native_ip_len', 'request_ip_len') else s[k]) for k in ('native_total', 'native_link_len', 'native_ip_len', 'target',
                                                      'frames_out', 'added', 'padding_points', 'padding_indices',
                                                      'prefix_link_len', 'request_len', 'request_link_len',
                                                      'request_ip_len', 'request_objects')}
                             for name, s in zip(('mixed', 'full'), shapes2)}} if a.two_read else {}),
         'output_lengths': ({'READ': {'mixed': shapes2[0]['target'], 'full': shapes2[1]['target']},
-                            'SELECT_OPERATE': 61} if a.two_read else {'READ': read_out, 'SELECT_OPERATE': 61}),
+                            'SELECT_OPERATE': ctl_output} if a.two_read else {'READ': read_out, 'SELECT_OPERATE': 61}),
         'policy': (dict(constants_file='read_complete_01/vectors/' + two_read.shapes_source().name,
                         constants_sha256=hashlib.sha256(two_read.shapes_source().read_bytes()).hexdigest(),
                         policy_targets=json.loads(two_read.shapes_source().read_text())['policy_targets'],
@@ -217,8 +251,8 @@ def write_outputs(out, a, src, applied):
         # generator identity: a digest over every generator file (make_m12.py and the m12gen package), listed below
         'generator_sha256': hashlib.sha256(json.dumps(gen_files, sort_keys=True).encode()).hexdigest(),
         'generator_files': gen_files,
-        'read_growth': read_out - read_native, 'control_growth': 24,
-        'port_map': {'relay_port': 9, 'n_ack_return': 48, 't_in': 180, 'hb_return': 181, 'held_return': 182},
+        'read_growth': read_out - read_native, 'control_growth': ctl_growth,
+        'port_map': {'relay_port': 64 if actual_relay else 9, 'n_ack_return': 48, 't_in': 180, 'hb_return': 181, 'held_return': 182},
         'successor_of': {'build': 'm11_09', 'source_sha256': M11_09_SHA}}, indent=2) + '\n')
     (out / 'supported_profile.json').write_text(json.dumps(profile, indent=2) + '\n')
     return sha

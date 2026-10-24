@@ -79,10 +79,10 @@ class BoundaryGate(fr.FullReadGate):
                       self.v.packet(24, cseq, nsq, payload=req))
         native = mp.control_response(seq=seq, app=seq & 0xf, fc=3, index=1, code=1, count=1, on=0x1000, off=0x2000)
         image = mp.encode61.ctl61(native)
-        self.exchange(tag + '_response61', self.v.packet(24, nsq, cseq + 35, reverse=True, payload=native),
-                      self.v.packet(24, wsq, cseq + 35, reverse=True, payload=image), reverse=True)
+        self.exchange(tag + '_response61', self.v.packet(24, nsq, cseq + mp.CONTROL_REQUEST, reverse=True, payload=native),
+                      self.v.packet(24, wsq, cseq + mp.CONTROL_REQUEST, reverse=True, payload=image), reverse=True)
         img_start = wsq
-        return cseq + 35, nsq + mp.CONTROL_NATIVE, wsq + mp.IMAGE_LEN, img_start, mp.IMAGE_LEN
+        return cseq + mp.CONTROL_REQUEST, nsq + mp.CONTROL_NATIVE, wsq + mp.IMAGE_LEN, img_start, mp.IMAGE_LEN
 
     def _retire(self, cseq, we, tag):
         """Ack the full outstanding image (d=0 -> translate/forward), advancing the connection frontier so

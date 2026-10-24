@@ -1,0 +1,27 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS race_SYN                           expected=one exact frame observed=1
+PASS race_SYNACK                        expected=one exact frame observed=1
+PASS race_ACK                           expected=one exact frame observed=1
+PASS master_half_close_FIN              expected=one exact frame observed=1
+PASS busy_retry_rst_anchor_before_unlock expected=True       observed=True
+FAIL half_close_keeps_current_retry_epoch expected=1          observed=0
+FAIL same_epoch_retry_not_stale         expected=0          observed=2
+PASS retry_not_exhausted                expected=0          observed=0
+FAIL relay_FIN                          expected=1          observed=0
+FAIL last_ACK                           expected=one exact frame observed=0
+FAIL exception                          expected=none       observed=Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_fin_busy.py", line 68, in main
+    gate.exchange('last_ACK', v.packet(16, c + 1, w + 1), v.packet(16, c + 1, s + 1))
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py", line 281, in exchange
+    self.add(name, 'one exact frame', len(flat), ok=exact, sent=sent, received=got, expected_frame=expected)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_packets.py", line 268, in add
+    raise AssertionError(name)
+AssertionError: last_ACK
+
+SUMMARY {'total': 11, 'passed': 6, 'failed': ['half_close_keeps_current_retry_epoch', 'same_epoch_retry_not_stale', 'relay_FIN', 'last_ACK', 'exception']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

@@ -110,6 +110,12 @@ def prove(name, sample):
     return c
 
 
+def require_live_samples(live):
+    """Reject vacuous capture proofs before writing derived constants."""
+    assert set(live) == {'mixed', 'integrity'} and all(len(live[k]) == 3 for k in live), \
+        'expected three successful raw captures per READ class: %s' % {k: len(v) for k, v in live.items()}
+
+
 def main():
     rng = random.Random(SEED)
     shapes = {
@@ -131,6 +137,7 @@ def main():
             assert derive.construct(native, c) == r.output, (cls, 'construct != captured pad_read')
             assert len(r.output) == c['target'], (cls, 'target')
             live.setdefault('%s' % cls, []).append(hashlib.sha256(native).hexdigest())
+    require_live_samples(live)
     doc = dict(profile='relay two-READ-target (mixed 91 -> 141, integrity 134 -> 158); SEL-751 outstation',
                policy_targets=TARGETS, reserved_range=[PAD_START, PAD_STOP], seed=SEED,
                encoder_sha256=hashlib.sha256((derive.ROOT / 'software/source/full_read_01/general_read_padding.py')

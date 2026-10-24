@@ -192,6 +192,24 @@ def test_v2_passes_with_verified_provenance(tmp_path):
     assert ms.summarize_v2(build)['qualification'] == 'model_gate_passed'
 
 
+@pytest.mark.parametrize('physical_offsets', (True, False))
+def test_v2_relay_abort_boundaries_follow_candidate_profile(tmp_path, physical_offsets):
+    build, sha = make_build(tmp_path)
+    (build / 'response_only.inputs.json').write_text(json.dumps(
+        {'supported_profile': {'endpoint_profile': 'sel751'}}))
+    points = [dict(row) for row in NEG]
+    if physical_offsets:
+        for row in points:
+            if '_READ_' in row['tag']:
+                row['offset'] += 42
+                row['tag'] = 'abort_held_READ_plus%d' % row['offset']
+    all_pass_v2(tmp_path, build, sha, points=points)
+    for driver in set(ms.RELAY_REQUIRED) - set(ms.REQUIRED):
+        attempt_v2(tmp_path, build, driver, 1, sha, driver + ' driver\n')
+    summary = ms.summarize_v2(build)
+    assert (summary['qualification'] == 'model_gate_passed') == physical_offsets
+
+
 def test_v2_blocks_missing_driver_hashes_where_v1_passed(tmp_path):
     """Review counterexample: every launch record's driver hash removed; v1 still passed."""
     build, sha = make_build(tmp_path)

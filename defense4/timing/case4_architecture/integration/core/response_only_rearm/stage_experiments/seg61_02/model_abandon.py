@@ -45,10 +45,11 @@ import encode61  # noqa: E402
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))  # read_policy_expect is beside this file
 import read_policy_expect as rp  # noqa: E402
 rp.install(encode61)
-IMAGE_LEN = 61
+rp.configure_helpers(helpers)
+IMAGE_LEN = rp.CONTROL_IMAGE_LEN
 # selection cancellation by a READ exists from ctl_timing m4 on (select_lifecycle); m1-m3 drop the READ instead
 CANCELS = os.environ.get('MILESTONE', 'm1') not in ('m1', 'm2', 'm3')
-READ_NATIVE, CONTROL_NATIVE = 49, 37
+READ_NATIVE, CONTROL_NATIVE = rp.READ_NATIVE_LEN, rp.CONTROL_NATIVE_LEN
 PM, MASTER, RELAY = helpers.PM, helpers.MASTER, helpers.OUTSTATION
 # Link headers exactly as the retained model vectors use them (codec.build_frame rewrites LEN and the CRC):
 # READ from read_support.request_frame/response_frame, SELECT/OPERATE from vectors.native_select/native_response37.
@@ -90,6 +91,11 @@ def crob(on_ms):
 
 
 READ_OBJECTS = bytes.fromhex('0a02000016')
+READ_BODY = bytes((0x80, 0x00)) + READ_OBJECTS + bytes(range(23))
+if rp.SEL751:
+    import model_repeat as repeat_builders
+    Sequences, crob = repeat_builders.Sequences, repeat_builders.crob
+    READ_OBJECTS, READ_BODY = repeat_builders.READ_OBJECTS, repeat_builders.READ_BODY
 
 
 def main():
@@ -98,6 +104,7 @@ def main():
                     scope='E61 compiled: SELECT not followed by OPERATE (abandoned select), T enabled=%d; what N drops, '
                           'whether it clears with time, RST or a new connection' % timed,
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+    rp.report_endpoint(report)
     try:
         m = Model(ports=[], enable=False)
         ports = sorted({MASTER.dev_port, RELAY.dev_port})
@@ -138,6 +145,8 @@ def main():
             return {k.rsplit('.', 1)[-1]: v for k, v in cell.items()}
 
         def send(name, sent, expected, master=True, record=True):
+            expected = rp.preserve_options(sent, expected)
+            rp.advance_timestamp()
             got = m.exchange(MASTER.dev_port if master else RELAY.dev_port, sent, ports, timeout=3, quiet=.15)
             flat = [frame for frames in got.values() for frame in frames]
             good = len(flat) == (0 if expected is None else 1) and (expected is None or same_frame(flat[0], expected, sent))
@@ -153,7 +162,7 @@ def main():
         c, s = c + 1, s + 1
         send('final_ACK', vectors.packet(16, c, s), vectors.packet(16, c, s))
         seqs = Sequences()
-        read_body = bytes((0x80, 0x00)) + READ_OBJECTS + bytes(range(23))
+        read_body = READ_BODY
         # READ, then SELECT (answered, 61), then a READ instead of the OPERATE
         for kind, fc, objects, body in (('READ', 1, READ_OBJECTS, read_body), ('SELECT', 3, crob(100), bytes(2) + crob(100))):
             request, app = seqs.request(fc, objects)

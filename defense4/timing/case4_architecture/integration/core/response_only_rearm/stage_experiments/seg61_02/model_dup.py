@@ -25,6 +25,9 @@ import encode61
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))  # read_policy_expect is beside this file
 import read_policy_expect as rp  # noqa: E402
 rp.install(encode61)
+CTL_IMAGE = rp.CONTROL_IMAGE_LEN
+READ_NATIVE, CTL_NATIVE = rp.READ_NATIVE_LEN, rp.CONTROL_NATIVE_LEN
+READ_REQ, CTL_REQ = (25 if rp.SEL751 else 20), rp.CONTROL_REQUEST_LEN
 READ_IMAGE = rp.read_image_len(READ_IMAGE)   # the policy READ image (141) on a policy build
 
 
@@ -37,6 +40,7 @@ def load(name, path):
 
 
 helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+rp.configure_helpers(helpers)
 cp = load('_protected_model_cp', CANDIDATE / 'cp.py')
 sealed_profile = load('_dup_model_profile', CANDIDATE / 'hw/sealed_profile.py')
 Model, Report, gc, same_frame = helpers.Model, helpers.Report, helpers.gc, helpers.same_frame
@@ -72,6 +76,7 @@ def main():
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                     params=PARAMS, deadline_tolerance=DEADLINE_TOL)
     results = report.record['meta'].setdefault('dup_cases', {})
+    rp.report_endpoint(report)
     try:
         child_regs = sealed_profile.child_registers(sealed_profile.describe(
             Path(os.environ['PORT_MAP']).parent / 'compile_local/out'))
@@ -122,6 +127,8 @@ def main():
             return scalar(m.register_read('p1.t_Ingress.outcomes', 16, pipe=1))
 
         def step(name, sent, expected, master=True):
+            expected = rp.preserve_options(sent, expected)
+            rp.advance_timestamp()
             got = m.exchange(MASTER.dev_port if master else RELAY.dev_port, sent, ports, timeout=3, quiet=.15)
             flat = [frame for frames in got.values() for frame in frames]
             good = len(flat) == (0 if expected is None else 1)
@@ -177,19 +184,19 @@ def main():
             ok = len(got) == 1 and same_frame(bytes.fromhex(got[0]['frame']), request, request)
             results[tag]['read_request_latency_T_off_s'] = got[0]['t'] if got else None
             report.add(tag + '_READ', 'one exact frame', '%d frames at %s' % (len(got), [e['t'] for e in got]), ok=ok)
-            ok &= step(tag + '_READ_server_ACK', rs.ack_packet(seq=s + 1, ack=c + 21),
-                       rs.ack_packet(seq=s + 1, ack=c + 21), master=False)
+            ok &= step(tag + '_READ_server_ACK', rs.ack_packet(seq=s + 1, ack=c + 1 + READ_REQ),
+                       rs.ack_packet(seq=s + 1, ack=c + 1 + READ_REQ), master=False)
             padded = encode61.read61(rs.response_frame())
-            ok &= step(tag + '_READ_padded_61', rs.response_packet(seq=s + 1, ack=c + 21),
-                       vectors.packet(24, s + 1, c + 21, reverse=True, payload=padded), master=False)
-            ok &= step(tag + '_READ_wire_ACK_commit', vectors.packet(16, c + 21, (s + 1 + READ_IMAGE)),
-                       vectors.packet(16, c + 21, s + 50))
-            ok &= step(tag + '_SELECT', vectors.packet(24, c + 21, (s + 1 + READ_IMAGE), payload=vectors.native_select(0, 3)),
-                       vectors.packet(24, c + 21, s + 50, payload=vectors.native_select(0, 3)))
+            ok &= step(tag + '_READ_padded_61', rs.response_packet(seq=s + 1, ack=c + 1 + READ_REQ),
+                       vectors.packet(24, s + 1, c + 1 + READ_REQ, reverse=True, payload=padded), master=False)
+            ok &= step(tag + '_READ_wire_ACK_commit', vectors.packet(16, c + 1 + READ_REQ, (s + 1 + READ_IMAGE)),
+                       vectors.packet(16, c + 1 + READ_REQ, s + 1 + READ_NATIVE))
+            ok &= step(tag + '_SELECT', vectors.packet(24, c + 1 + READ_REQ, (s + 1 + READ_IMAGE), payload=vectors.native_select(0, 3)),
+                       vectors.packet(24, c + 1 + READ_REQ, s + 1 + READ_NATIVE, payload=vectors.native_select(0, 3)))
             response = helpers.native_response37(0, 3)
             image = encode61.ctl61(response)
-            ok &= step(tag + '_SELECT_response_61', vectors.packet(24, s + 50, c + 56, reverse=True, payload=response),
-                       vectors.packet(24, (s + 1 + READ_IMAGE), c + 56, reverse=True, payload=image), master=False)
+            ok &= step(tag + '_SELECT_response_61', vectors.packet(24, s + 1 + READ_NATIVE, c + 1 + READ_REQ + CTL_REQ, reverse=True, payload=response),
+                       vectors.packet(24, (s + 1 + READ_IMAGE), c + 1 + READ_REQ + CTL_REQ, reverse=True, payload=image), master=False)
             return ok
 
         def summarize(log, want_fc, t_deadline):
@@ -205,9 +212,9 @@ def main():
                 report.add(tag + '_setup', True, False)
                 return
             set_t(enabled=t_enabled)
-            operate = vectors.packet(24, c + 56, (s + 1 + READ_IMAGE) + CTL_IMAGE, payload=vectors.native_select(1, 4))
+            operate = vectors.packet(24, c + 1 + READ_REQ + CTL_REQ, (s + 1 + READ_IMAGE) + CTL_IMAGE, payload=vectors.native_select(1, 4))
             rec['operate_frame'] = operate.hex()
-            operate_out = vectors.packet(24, c + 56, s + 87, payload=vectors.native_select(1, 4))
+            operate_out = vectors.packet(24, c + 1 + READ_REQ + CTL_REQ, s + 1 + READ_NATIVE + CTL_NATIVE, payload=vectors.native_select(1, 4))
             rel0, drop0 = released(), dup_dropped()
             m.drain(ports)
             send = lambda: m.send(MASTER.dev_port, operate)  # noqa: E731
@@ -291,9 +298,9 @@ def main():
             # finish the transaction and retire the connection so the next case is fresh
             response = helpers.native_response37(1, 4)
             image = encode61.ctl61(response)
-            step(tag + '_OPERATE_response_61', vectors.packet(24, s + 87, c + 91, reverse=True, payload=response),
-                 vectors.packet(24, (s + 1 + READ_IMAGE) + CTL_IMAGE, c + 91, reverse=True, payload=image), master=False)
-            step(tag + '_qualified_RST', vectors.packet(20, c + 91, (s + 1 + READ_IMAGE) + 2 * CTL_IMAGE), vectors.packet(20, c + 91, s + 124))
+            step(tag + '_OPERATE_response_61', vectors.packet(24, s + 1 + READ_NATIVE + CTL_NATIVE, c + 1 + READ_REQ + 2 * CTL_REQ, reverse=True, payload=response),
+                 vectors.packet(24, (s + 1 + READ_IMAGE) + CTL_IMAGE, c + 1 + READ_REQ + 2 * CTL_REQ, reverse=True, payload=image), master=False)
+            step(tag + '_qualified_RST', vectors.packet(20, c + 1 + READ_REQ + 2 * CTL_REQ, (s + 1 + READ_IMAGE) + 2 * CTL_IMAGE), vectors.packet(20, c + 1 + READ_REQ + 2 * CTL_REQ, s + 1 + READ_NATIVE + 2 * CTL_NATIVE))
             set_t(enabled=0)
 
         def snapshot():
@@ -362,9 +369,9 @@ def main():
                 return
             set_t(enabled=1, da=800_000_000, readiness=2_000_000_000, gap=250_000_000)
             request = rs.request_packet(seq=c + 1, ack=s + 1)
-            ack = rs.ack_packet(seq=s + 1, ack=c + 21)
-            response = rs.response_packet(seq=s + 1, ack=c + 21)
-            expected = vectors.packet(24, s + 1, c + 21, reverse=True,
+            ack = rs.ack_packet(seq=s + 1, ack=c + 1 + READ_REQ)
+            response = rs.response_packet(seq=s + 1, ack=c + 1 + READ_REQ)
+            expected = vectors.packet(24, s + 1, c + 1 + READ_REQ, reverse=True,
                                       payload=encode61.read61(rs.response_frame()))
             before = snapshot()
             counts = {i: outcome(i) for i in (1, 2, 3, 4, 5)}
@@ -416,8 +423,8 @@ def main():
                        scalar(after_release['T']['gen_alloc_reg']))
             report.add(tag + '_epoch_unchanged', before['N']['epoch'], after_release['N']['epoch'])
             # A real ACK commits the complete image before the post-release duplicate.
-            step(tag + '_mapped_data_ACK', vectors.packet(16, c + 21, s + 1 + READ_IMAGE),
-                 vectors.packet(16, c + 21, s + 1 + READ_NATIVE))
+            step(tag + '_mapped_data_ACK', vectors.packet(16, c + 1 + READ_REQ, s + 1 + READ_IMAGE),
+                 vectors.packet(16, c + 1 + READ_REQ, s + 1 + READ_NATIVE))
             state = snapshot()
             counts_after = {i: outcome(i) for i in counts}
             m.drain(ports)
@@ -427,7 +434,7 @@ def main():
             late_external = [e for e in late_log if e.get('dir') in ('to_outstation', 'to_master')]
             late_read = [e for e in late_external if e.get('dir') == 'to_outstation' and e.get('fc') == 1]
             expected_late_request = bytearray(request)
-            expected_late_request[48:50] = (4096 - (READ_IMAGE - READ_NATIVE)).to_bytes(2, 'big')
+            expected_late_request[48:50] = rp.reverse_window(4096, READ_IMAGE, READ_NATIVE).to_bytes(2, 'big')
             expected_late_request[50:52] = b'\0\0'
             pseudo = expected_late_request[26:34] + struct.pack('!BBH', 0, 6, len(expected_late_request) - 34)
             expected_late_request[50:52] = struct.pack('!H', vectors.checksum(pseudo + expected_late_request[34:]))
@@ -450,8 +457,8 @@ def main():
             rec.update(log=log, after_release_duplicate_log=late_log,
                        outcomes_delta={i: counts_after[i] - counts[i] for i in counts},
                        before=before, after_release=after_release, after_late_duplicate=late)
-            step(tag + '_qualified_RST', vectors.packet(20, c + 21, s + 1 + READ_IMAGE),
-                 vectors.packet(20, c + 21, s + 1 + READ_NATIVE))
+            step(tag + '_qualified_RST', vectors.packet(20, c + 1 + READ_REQ, s + 1 + READ_IMAGE),
+                 vectors.packet(20, c + 1 + READ_REQ, s + 1 + READ_NATIVE))
             set_t(enabled=0)
 
         operate_case('A10', 1000, 5000, dup_frac=0.10)
