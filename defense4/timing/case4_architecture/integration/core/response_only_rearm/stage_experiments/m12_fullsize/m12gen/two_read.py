@@ -2,18 +2,33 @@
 pipe-1 egress prefix padder, E mapping of the already-padded READ, and N admission of the mixed READ."""
 import json
 
-from .common import CONSTANTS_TWO, neg, once
-from .read_policy import PASSTHROUGH_READS, _neg_entry_rows, transform_read_prepadded_e
+from .common import CONSTANTS_TWO, CONSTANTS_TWO_RELAY, neg, once
+from .read_policy import _neg_entry_rows, transform_read_prepadded_e
 
 
 TWO_MIXED, TWO_FULL = 'mixed_g1v2_g30v1_91', 'integrity_247'
+RELAY_FULL = 'integrity_134'
+# Build-scoped shape source: software (default) or the relay profile (m12p_c30, SEL-751 outstation,
+# integrity 134 -> 158). build() sets this once per build; make_m12 --relay selects the relay source.
+_SOURCE = {'path': CONSTANTS_TWO, 'full': TWO_FULL}
+
+
+def use_relay_shapes(relay):
+    """Select the relay two-READ constants for this build (relay True) or the software ones (False)."""
+    _SOURCE['path'], _SOURCE['full'] = ((CONSTANTS_TWO_RELAY, RELAY_FULL) if relay
+                                        else (CONSTANTS_TWO, TWO_FULL))
+
+
+def shapes_source():
+    """The constants file the current build reads its two-READ shapes from."""
+    return _SOURCE['path']
 
 
 def two_read_shapes():
-    """The two-READ-target profile's per-shape constants (read_complete_01/vectors/derive_two_read.py: proved
-    construct == pad_read(targets=[141, 271]) on 512 varied natives per shape and on the live captures)."""
-    doc = json.loads(CONSTANTS_TWO.read_text())
-    return doc['shapes'][TWO_MIXED], doc['shapes'][TWO_FULL]
+    """The two-READ-target per-shape constants (derive_two_read[_relay].py: proved construct == pad_read
+    on 512 varied natives per shape and on the live captures). Source selected by use_relay_shapes()."""
+    doc = json.loads(_SOURCE['path'].read_text())
+    return doc['shapes'][TWO_MIXED], doc['shapes'][_SOURCE['full']]
 
 
 def _ones_fold(data, acc):
@@ -311,7 +326,10 @@ def transform_two_read_admit_n(src, _image=None):
     computing it). Sequence: native lengths 27/25 (requests), 247/91 (responses); every retransmission row keyed on
     the range lengths (-20 request, -49 response) is repeated for -27/-25 and -247/-91."""
     cm, cf = two_read_shapes()
-    full_req, mx_req = PASSTHROUGH_READS['integrity'], (cm['request_len'], cm['request_link_len'])
+    # full_req == PASSTHROUGH_READS['integrity'] for the software profile; derive from cf so the relay
+    # profile (integrity native 134) is correct without a software-specific constant.
+    full_req = (cf['request_len'], cf['request_link_len'], cf['native_total'], cf['native_link_len'])
+    mx_req = (cm['request_len'], cm['request_link_len'])
     objs = bytes.fromhex(cm['request_objects'])
     o1, o2 = int.from_bytes(objs[:5], 'big'), int.from_bytes(objs[5:], 'big')
     req = {'full': (full_req[0], full_req[1]), 'mx': mx_req}                       # name -> (octets, dl.len)

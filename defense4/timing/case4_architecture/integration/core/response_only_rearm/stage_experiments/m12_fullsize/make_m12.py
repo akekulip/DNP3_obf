@@ -6,6 +6,7 @@ missing or duplicated anchor fails loudly. Live builds:
   python3 make_m12.py OUT --policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry  # c27: c26 + F1
   python3 make_m12.py OUT ... --two-read --reduce --ack-retry --read-handshake                      # c28: c27 + READ completes handshake
   python3 make_m12.py OUT ... --read-handshake --headroom                                          # c29: c28 + pipe-0 headroom
+  python3 make_m12.py OUT ... --read-handshake --headroom --relay                                  # c30: c29 with relay shapes (integrity 134->158)
   python3 make_m12.py OUT --policy --c3 cimg --shapes passthrough --two-read --reduce  # c26: c25, resource-reduced
   python3 make_m12.py OUT --policy --c3 cimg --shapes passthrough --two-read        # c25 (hardware campaign 02)
   python3 make_m12.py OUT --policy --c3 cimg --shapes passthrough                   # c12 (range READ 49 -> 141)
@@ -48,6 +49,9 @@ def main():
                     help='m12p_c28: a READ that overtakes the final handshake ACK completes it (requires --ack-retry)')
     ap.add_argument('--headroom', action='store_true',
                     help='m12p_c29: pipe-0 headroom, N and E highest occupied index 10 (requires --read-handshake)')
+    ap.add_argument('--relay', action='store_true',
+                    help='m12p_c30: relay (SEL-751) two-READ shapes -- integrity 134->158 instead of the software '
+                         '247->271; requires --two-read (constants_two_read_relay.json)')
     a = ap.parse_args()
     if a.headroom and not a.read_handshake:
         ap.error('--headroom requires --read-handshake')
@@ -57,19 +61,22 @@ def main():
         ap.error('--ack-retry requires --reduce')
     if a.reduce and not a.two_read:
         ap.error('--reduce requires --two-read')
+    if a.relay and not a.two_read:
+        ap.error('--relay requires --two-read')
     if a.two_read and not (a.c3 == 'cimg' and a.shapes == 'passthrough'):
         ap.error('--two-read requires --policy --c3 cimg --shapes passthrough')
     if a.two_read and (a.segmented_pad or a.segmented_full):
         ap.error('--two-read excludes the segmented probes (the native 377 segment work is not in this profile)')
     if a.segmented_full and a.segmented_pad:
         ap.error('--segmented-full already includes the padder; do not combine with --segmented-pad')
+    two_read.use_relay_shapes(a.relay)
     image = two_read.two_read_shapes()[0]['target'] if a.two_read else read_policy.policy_shape()['target']
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     src, applied = build(a.only, c3=a.c3, shapes=a.shapes, segmented_pad=a.segmented_pad,
                          segmented_full=a.segmented_full, two_read_build=a.two_read, reduce=a.reduce,
                          ack_retry=a.ack_retry, read_handshake=a.read_handshake,
-                         headroom=a.headroom)
+                         headroom=a.headroom, relay=a.relay)
     sha = write_outputs(out, a, src, applied)
     print('wrote %s (image=%d, transforms=%s, sha=%s)' % (out / 'response_only.p4', image, applied, sha[:12]))
 

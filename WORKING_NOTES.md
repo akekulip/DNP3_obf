@@ -2641,3 +2641,18 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   on DEFENSE4_HW_AUTHORIZED=1). active_harness suite 69/69.
 - Classifier boundary unchanged: the SBO/OPERATE shape + four-arm execution remain blocked in-session;
   this is the READ-side keystone and is complete and verifiable.
+
+## 2026-10-24 — m12p_c30 generator mode: relay READ shapes (integrity 134->158), identity preserved
+- make_m12.py --relay (requires --two-read): c30 = c29 with the relay two-READ constants. The change is a
+  build-scoped shape source (two_read.use_relay_shapes/shapes_source/two_read_shapes read constants_two_read_relay
+  .json + full shape 'integrity_134') plus one cf-derivable line (full_req from cf, byte-identical to
+  PASSTHROUGH_READS['integrity'] for software, correct for relay); build.py already derives per_image from cm/cf so
+  {91:141, 134:158, 37:61, 61:61} falls out automatically.
+- check_generator_identity: 10/10 modes byte-identical (c25-c29 and the others unchanged). m12_fullsize tests
+  74 passed (+56 subtests) under $RESEARCH_PYTHON 3.12.
+- c30 builds; p4 differs from c29 ONLY in the integrity-shape constants: set_ina 271->158, acct native 247->134,
+  eligible dl.len 0xd6->0x73, pad_full ip 287->174, fwd_prep/seq_retx/out_reset neg(247)->neg(134), the reverse
+  withhold window regenerated for image 134, out_zero_img_271->158, and link crc delta 49249->18553. No structural
+  or logic change. Record shows read_images {91:141,134:158}, constants_file constants_two_read_relay.json.
+- Next: compile c30 once with local 9.13.2 and check placement (expect same as c29's pipe-0-headroom: N/E index 10,
+  T<=11, p1<=4, since only constants differ). SBO shape + four-arm execution remain classifier-blocked in-session.

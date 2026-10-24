@@ -29,7 +29,9 @@ def generator_files():
 
 
 def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False,
-          reduce=False, ack_retry=False, read_handshake=False, headroom=False):
+          reduce=False, ack_retry=False, read_handshake=False, headroom=False, relay=False):
+    # Select the two-READ shape source for this build (relay only applies to a two-READ build).
+    two_read.use_relay_shapes(relay and two_read_build)
     src = M11_09.read_text()
     if hashlib.sha256(src.encode()).hexdigest() != M11_09_SHA:
         raise SystemExit('m11_09 source changed')
@@ -176,8 +178,8 @@ def write_outputs(out, a, src, applied):
             'native_input_octets': {'READ': [cm['native_total'], cf['native_total']], 'SELECT': 37, 'OPERATE': 37},
             'read_output_octets': [cm['target'], cf['target']],
             'read_images': {str(cm['native_total']): cm['target'], str(cf['native_total']): cf['target']},
-            'read_construction': 'prefix (read_complete_01/vectors/constants_two_read.json shapes %s, %s)'
-                                 % (cm['shape'], cf['shape'])})
+            'read_construction': 'prefix (read_complete_01/vectors/%s shapes %s, %s)'
+                                 % (two_read.shapes_source().name, cm['shape'], cf['shape'])})
     gen_files = generator_files()
     shapes2 = two_read.two_read_shapes() if a.two_read else None
     (out / 'response_only.inputs.json').write_text(json.dumps({
@@ -205,9 +207,9 @@ def write_outputs(out, a, src, applied):
                             for name, s in zip(('mixed', 'full'), shapes2)}} if a.two_read else {}),
         'output_lengths': ({'READ': {'mixed': shapes2[0]['target'], 'full': shapes2[1]['target']},
                             'SELECT_OPERATE': 61} if a.two_read else {'READ': read_out, 'SELECT_OPERATE': 61}),
-        'policy': (dict(constants_file='read_complete_01/vectors/constants_two_read.json',
-                        constants_sha256=hashlib.sha256(CONSTANTS_TWO.read_bytes()).hexdigest(),
-                        policy_targets=json.loads(CONSTANTS_TWO.read_text())['policy_targets'],
+        'policy': (dict(constants_file='read_complete_01/vectors/' + two_read.shapes_source().name,
+                        constants_sha256=hashlib.sha256(two_read.shapes_source().read_bytes()).hexdigest(),
+                        policy_targets=json.loads(two_read.shapes_source().read_text())['policy_targets'],
                         p1_read_pad_conn_table='p1.x_Egress.p1_conn') if a.two_read else
                    dict(constants_sha256=hashlib.sha256(CONSTANTS.read_bytes()).hexdigest(),
                         policy_targets=json.loads(CONSTANTS.read_text())['policy_targets'],
