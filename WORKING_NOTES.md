@@ -1,5 +1,17 @@
 # Working notes
 
+## >>> CURRENT (2026-10-23, late) — read this first
+
+- Candidate `m12p_c29` (N/E highest stage index 10 on both SDKs; model gate passed). Hardware run 2026-10-23 against
+  the SOFTWARE outstation on Vision (192.168.10.62): sizing exact in all four arms; loss x2 pass; reset persistence,
+  reconnect, held OPERATE pass recovery and fail timing; graceful persistence lost one FIN at close (open defect).
+  Timing fails 100 us everywhere (p99 ~2-4 ms), cause unlocated. Pushed through 71732cb3c.
+- NEW DIRECTION (Philip): the physical SEL-751 relay is the outstation; READ and SBO (incl. OPERATE) run on it.
+  Measured: mixed READ 91 bytes (target 91->141 fits); integrity READ 134 bytes (247->271 does not fit).
+- Waiting on Philip: the padded size for the relay's 134-byte full READ.
+- Next: SBO size on the relay inside the gated run; relay-outstation harness path (the series tool currently
+  refuses 192.168.10.7); rebuild the full-READ shape for 134; model gate; freeze; hardware READ+SBO on the relay.
+
 ## >>> TRANSFER — read in this order (2026-10-15, m5 cycle)
 
 1. `CLAUDE.md` (repo rules: Philip-only commits, no trailer, no push without his word, frozen paths, barred tools).
@@ -25,7 +37,8 @@ Read `defense4/timing/case4_architecture/HANDOVER.md` section "START HERE" first
   real-relay READ; promotion. No hardware without his authorization in the current conversation.
 - Ready offline work: isolation harness for control-timed builds; endpoint response-delay control; splitting analysis;
   leakage note for Dr. Lin; optional T row move (needs recompile + model rerun).
-- This file is Philip's: keep it uncommitted; add dated notes, never delete history. Entries below are chronological history.
+- This file is Philip's: add dated notes, never delete history. Entries below are chronological history.
+  Since 2026-10-23 (Philip): it is tracked, kept current during work, and included in every push.
 
 
 ## Task (2026-10-05, evening): testbed re-verification, then READ response-ready offline gates
@@ -2463,3 +2476,50 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   unsafe_restoration with no hardware contact; reconcile refused; flag left set. HARDWARE BLOCKED pending Philip.
 - Record: read_complete_01/COMPLETION_RECORD.md (decision options in section 1). Next action after the decision:
   re-init the campaign under a new id (control m11_09 first, then b08 reference + 5 recovery), readout per block.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-22T05:34:12Z -->
+### Compaction handoff — 2026-10-22T05:34:12Z
+- Git: branch `main`, 2370 uncommitted file(s): DNP3_Implementation_Directive_492013014.md defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/sealed_profile.py defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c12/supported_profile.json defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c20/compile_local/compile.log defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c20/compile_local/manifest.json defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c20/compile_switch_9132/manifest.json defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c20/compile_switch_9132/orchestrator.py defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c20/compile_switch_9132/remote_command.json defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c20/generate.py defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c20/model_summary_v3.json defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c20/resource_review.json defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c20/response_only.inputs.json 
+- Last verification run recorded: 2026-10-22T05:34:12Z	cd /home/philip/Projects/DNP3 && S=defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experim
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-22T19:12:21Z -->
+### Compaction handoff — 2026-10-22T19:12:21Z
+- Git: branch `main`, 2267 uncommitted file(s): DNP3_Implementation_Directive_492013014.md WORKING_NOTES.md defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py defense4/timing/case4_architecture/protocol/hw_vepa/loss.py defense4/timing/case4_architecture/protocol/hw_vepa/read_classes.py defense4/timing/case4_architecture/protocol/hw_vepa/tests/test_loss_analysis.py defense4/timing/case4_architecture/protocol/hw_vepa/tests/test_loss_rules.py defense4/timing/case4_architecture/protocol/hw_vepa/tests/test_read_classes.py defense4/timing/case4_architecture/protocol/hw_vepa/tests/test_vision_run.py defense4/timing/case4_architecture/protocol/hw_vepa/vision_run.py .drawio-tmp/ 
+- Last verification run recorded: 2026-10-22T19:12:21Z	python3 - <<'PY' from pathlib import Path p = Path('campaign.py'); s = p.read_text() def rep(old, new): global s assert 
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+### Two-READ-target directive (Claude_Two_READ_Targets_Hardware_Directive.md) — 2026-10-22 evening
+- Task: one candidate padding mixed READ 91->141 and full READ 247->271 with SBO 37->61 and timing/J, on hardware.
+- Status: M1 (51d1d67c5) and M2 (b6b296be8) committed. c24 model gate run; driver issues fixed (rearm, robust X/Z);
+  c24's declared disposition of analog/class0 was wrong (they are WITHHELD, not forwarded) -> m12p_c25 = same P4,
+  corrected profile, recompiling; full gate re-runs on c25 (script scratchpad/gate_c25.sh). Harness generalized for
+  the two READs (pad-expect per arm, per-class checks, single-class loss blocks, reconnect, readout); series path
+  delegated to a builder. Records: read_complete_01/STATUS.md (2026-10-22 entries).
+- Next: c25 compiles -> pin artifacts -> gate -> review -> commit -> resource_review -> freeze -> M4 dry-run -> campaign.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-23T01:21:05Z -->
+### Compaction handoff — 2026-10-23T01:21:05Z
+- Git: branch `main`, 2484 uncommitted file(s): DNP3_Implementation_Directive_492013014.md WORKING_NOTES.md .drawio-tmp/ AUTONOMOUS_OVERNIGHT.md Claude_Two_READ_Targets_Hardware_Directive.md PlainObfus bf_drivers.log defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md defense4/ieee-standard-for-electric-power-systems-communicationsdistribut.pdf defense4/timing/audit_current/MEETING_20261005_DIRECTION.md defense4/timing/case4_architecture/FOUR_ARM_DESIGN_REVIEW.md defense4/timing/case4_architecture/integration/core/ordinary/transport_model_select.py 
+- Last verification run recorded: 2026-10-23T00:26:54Z	cd /home/philip/Projects/DNP3 && R=defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experim
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-23T22:40:47Z -->
+### Compaction handoff — 2026-10-23T22:40:47Z
+- Git: branch `main`, 2848 uncommitted file(s): DNP3_Implementation_Directive_492013014.md WORKING_NOTES.md .drawio-tmp/ .scratch_p4/ .scratch_repo/ AUTONOMOUS_OVERNIGHT.md Claude_C26_Headroom_Hardware_Directive.md Claude_Overnight_Hardware_Compliance_Refactor_Directive.md Claude_Two_READ_Targets_Hardware_Directive.md PlainObfus bf_drivers.log defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md 
+- Last verification run recorded: 2026-10-23T22:21:23Z	cd /home/philip/Projects/DNP3 && S=defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experim
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+## 2026-10-23 (late) — relay becomes the outstation; relay READ sizes measured
+
+- Philip: research environment; the physical SEL-751 is the outstation; READ and SBO (incl. OPERATE) are run on
+  it. CLAUDE.md "Current authorization" updated (old attended-only OPERATE rule replaced).
+- Verified: Vision kernel 6.8.0-147; Vision's 192.168.10.1 reaches the relay at 192.168.10.7:20000 through the
+  switch (production program loaded). Relay DNP3 address 0, master address 1 (from campaign_v2 captures; my first
+  probe had them swapped and got no reply).
+- Native probe (scratchpad relay_read_sizes.py, run from Vision root namespace, 3 rounds): mixed READ -> 91 bytes
+  every time; integrity READ (g60v2/3/4/1 q06) -> 134 bytes every time, one segment each.
+- Consequence: 91->141 fits the relay; 247->271 was the software database and does not. New full-READ target needed.
+- Withdrawn: my statements that relay OPERATE was not allowed (stale directive line) and the "older kernel" reboot
+  idea (unverified note).
+

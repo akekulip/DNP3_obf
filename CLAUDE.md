@@ -23,7 +23,7 @@ manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
   (`.../stage_experiments/m12_fullsize/make_m12.py` with `m12gen/`), builds and model gate
   (`.../ctl_timing_01`), the manuscript evaluation (`.../seg61_02`), the current run (`.../read_complete_01`),
   the hardware supervisor (`integration/evidence/rearm_01/hw`) and the endpoint library (`protocol/hw_vepa`).
-  Current candidate: `m12p_c25`, with the resource-reduced `m12p_c26` in progress.
+  Current candidate: `m12p_c29` (pipe-0 headroom; hardware-run 2026-10-23 against the software outstation).
 - `defense4/timing/` (outside `case4_architecture/`) — the timing-only record: the P4 that ran
   (`implementation/`), the campaigns (`evidence/campaign_v2/`, which corrects the acknowledgment-anchored
   `campaign_v1/`; `final_read_sbo/` is older), the anchor fix (`anchor_fix/FINDINGS.md`), audits, the delay
@@ -33,7 +33,8 @@ manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
 - `paper/rewrite/` — the one manuscript. Entry point `main.tex`, sections under `sections/`; build with
   `paper/rewrite/pipeline/build.sh`. Start at `paper/rewrite/README.md`. Dr. Lin's draft (`main.tex`) and
   `paper structure.pdf` at the repository root are untracked inputs.
-- Root: `README.md`, `REPOSITORY_MAP.md`, `HISTORY_MAP.md`, `WORKING_NOTES.md` (live session log; tracked),
+- Root: `README.md`, `REPOSITORY_MAP.md`, `HISTORY_MAP.md`, `WORKING_NOTES.md` (live session log; tracked;
+  update it as work proceeds and include it in every push, Philip 2026-10-23),
   `FINAL_TIMING_ALLOWLIST.txt` (how this tree was reduced from the full research repository).
 - `.ignore` keeps `rg`/`fd` out of evidence, captures, compiler output and `paper/`; use `--no-ignore` to
   search them. It does not affect git.
@@ -55,8 +56,15 @@ between measurements and later candidates.
   ownership, preflight, freeze, dry-run and restoration machinery (`evaluation_campaign.py`,
   `run_block_frozen.sh`, `restore_verify.py`). Each new live run needs its own recorded authorization and its
   admission and restoration gates; an earlier smoke or timer authorization is not blanket authority.
-- Not allowed: OPERATE on the physical relay (physical OPERATE is attended-only); any D/J or attacker
-  campaign; rebooting Vision; OS or firmware updates.
+- The physical SEL-751 relay (192.168.10.7:20000, DNP3 address 0; master 192.168.10.1, address 1) is the
+  outstation. READ and select-before-operate, including OPERATE, run against it (Philip, 2026-10-23: research
+  environment; this replaces the earlier attended-only OPERATE rule).
+  Measured on the relay 2026-10-23 (three requests each, from 192.168.10.1 through the switch): mixed READ
+  (g1v2 0..15 + g30v1 0..7) answers 91 bytes, matching the 91->141 target; the integrity READ answers 134
+  bytes, so the 247->271 full-READ target (the software outstation's database) does not apply to the relay and
+  needs a new target. SBO on the relay is not yet measured. The c25-c29 hardware runs used the software
+  outstation on Vision (192.168.10.62), not the relay.
+- Not allowed: any D/J or attacker campaign; rebooting Vision; OS or firmware updates.
 - Current run (2026-10-23, `Claude_C26_Headroom_Hardware_Directive.md`): pipe-0 headroom work on m12p_c26 and
   hardware timing, sizing and recovery validation of the selected image ARE in scope through the gates above; the
   gated candidate may be loaded and the authorized blocks run without asking again. The IEEE 1815 audit is
