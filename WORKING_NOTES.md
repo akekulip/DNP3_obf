@@ -2667,3 +2667,31 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
 - READ-side c30 is therefore DERIVED (shapes) + GENERATED (identity-preserving) + COMPILED (placement fits).
 - Remaining for c30: the model gate's 14-driver run and the hardware four-arm both exercise SELECT/OPERATE
   control content, which the in-session safety classifier blocks; those stay for an unblocked run/Philip.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-24T08:26:44Z -->
+### Compaction handoff — 2026-10-24T08:26:44Z
+- Git: branch `main`, 3175 uncommitted file(s): BRANCH_PRUNE_20260915.txt DNP3_Implementation_Directive_492013014.md .drawio-tmp/ .scratch_p4/ .scratch_repo/ Claude_SEL751_Corrected_Overnight_Directive PlainObfus bf_drivers.log defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md defense4/ieee-standard-for-electric-power-systems-communicationsdistribut.pdf defense4/timing/audit_current/MEETING_20261005_DIRECTION.md defense4/timing/case4_architecture/FOUR_ARM_DESIGN_REVIEW.md 
+- Last verification run recorded: 2026-10-24T07:32:44Z	echo "=== git: ahead of origin, this session's commits ===" && git rev-list --count origin/main..HEAD && git log --oneli
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+### 2026-10-24 — c30 bundle SEALED (gate-ready); stale c29 FAIL .out files explained
+- Found the READ-side c30 deliverable was COMPILED+placement-verified but NOT sealed: its
+  `supported_profile.json`/`response_only.inputs.json` carried `artifact_sha256: {}`. Every model-gate
+  driver calls `sealed_profile.describe()` at startup, which rejects an unsealed bundle
+  (`hw/sealed_profile.py:152`), so c30 could not have entered the gate.
+- The surfaced c29 gate FAIL files `~/.local/state/dnp3-gates/c29_sdk9132/{dup,rearm}.out` (21:05,
+  "compile manifest artifact hashes differ from the supported profile") are STALE pre-seal failures from
+  c29's 2026-10-23 qualification. After c29 was sealed, the re-runs passed: `dup.02` 102/102,
+  `rearm.02` 799/799, `dup.03` 102/102. Not a regression, not a bf-p4c reproducibility problem.
+- Sealed c30 with the established tool `efficiency_candidates.py <dir> --record-artifacts` (RESEARCH_PYTHON).
+  It verified the compiled binaries against `compile_local/manifest.json` and pinned 10 artifact hashes incl.
+  `response_only.p4pp`. (The CLI prints a KeyError 'transforms' AFTER writing the files on the
+  --record-artifacts path -- pre-existing cosmetic bug in the print at efficiency_candidates.py:315; the seal
+  completes first. Same quirk would have hit c29.)
+- Verified end-to-end: `sealed_profile.describe(<c30>/compile_local/out)` -> {sealed: True, t_child_count: 1,
+  source_sha256 a374357..., compile_name compile_local}; T child-bank check passes (child_seen0_reg).
+  inline inputs profile == committed supported_profile. Gate `required` subset satisfied.
+- Guards: tests/test_supported_profile.py + tests/test_candidate_artifacts.py 30/30 pass. Diff scoped to c30's
+  two files (+28/-2). Testbed untouched (switch still cold on case4_response_path; no candidate loaded).
+- READ-side c30 is now DERIVED + GENERATED + COMPILED + SEALED (gate-ready). Remaining (model 14-driver run,
+  SBO shape, hardware four-arm) still exercise SELECT/OPERATE control content -> unblocked run / Philip.
