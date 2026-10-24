@@ -26,15 +26,24 @@ reboot/kernel/firmware, keep-alive, D/J or attacker campaign, manual ownership e
 ## Completion criteria (relay deliverable)
 | # | deliverable | criterion | state |
 |---|---|---|---|
-| 1 | relay baseline | native mixed/integrity READ + SBO decoded from real SEL-751 captures through the switch | open |
-| 2 | shapes | two READ targets + SBO image derived from the relay natives (141/158 provisional; SBO try 60 first) | open |
-| 3 | candidate | m12p_c30: relay shapes replace the fixture shapes; FIN/ACK and checker fixes; headroom retained | open |
-| 4 | model gate | full v3 gate + relay-shape and FIN/ACK regressions on the one pinned 9.13.2 bundle | open |
+| 1 | relay baseline | native mixed/integrity READ + SBO decoded from real SEL-751 captures through the switch | READ DONE (mixed 91 / integrity 134 decoded, evidence/relay_native_20261024); SBO not measured (blocked) |
+| 2 | shapes | two READ targets + SBO image derived from the relay natives (141/158 provisional; SBO try 60 first) | READ DONE (141/158 derived from the real natives, no longer provisional, model-validated); SBO open |
+| 3 | candidate | m12p_c30: relay shapes replace the fixture shapes; FIN/ACK and checker fixes; headroom retained | READ DONE (m12p_c30 relay READ shapes; bf-p4c 9.13.2 exit 0; SEALED; placement p0 11/11 p1 11/4; sha b006752); SBO image unchanged (37->61 software) |
+| 4 | model gate | full v3 gate + relay-shape and FIN/ACK regressions on the one pinned 9.13.2 bundle | READ/size DONE (6 drivers 1332 checks on the sealed bundle: two_read_robust 163, packets 622, policy 281, policy_boundary 206, smoke 30, smoke_sizeoff 30); control-coupled drivers (dup/rearm/select_lifecycle/abort/contention/...) + SBO regressions open (blocked) |
 | 5 | hardware four-arm | off/timing/size/combined on the relay; readout proves real SEL-751 responses; restore verified | open |
 | 6 | hardware recovery | loss (mixed, full), persistence graceful/rst, reconnect, held OPERATE on the relay | open |
 | 7 | timing | 100 us precision on the relay measured; failures stay failures | open |
 | 8 | close | records, clean-worktree reproduction (c30), restoration verified | open |
 
 ## Work in progress
-Step 0 done: state verified, test_nic_repair repaired, authorization corrected. Next: reusable relay master
-(READ reassembly), then the native relay baseline capture and decode.
+READ side COMPLETE end-to-end: relay native READ baseline captured+decoded (tier 3); mixed 91->141 and integrity
+134->158 derived from the real natives and PROVEN on the executing model; m12p_c30 generated, compiled on local
+9.13.2, SEALED, and MODEL-VALIDATED (READ/size gate, 6 drivers / 1332 checks). A real relay-tier defect found and
+fixed along the way (model vectors were software-247; the padded integrity image carried a software 271-B IP length
+-- generator ip.len fold hardcoded 311 instead of native+added). Software tier unchanged (c29 two_read_robust
+163/163; generator identity 10/10 byte-identical).
+
+Remaining (all exercise SELECT/OPERATE control content, blocked by the in-session safety classifier -- for an
+unblocked run / Philip): the control-coupled model drivers (dup, rearm, select_lifecycle, abort, abandon,
+contention, repeat, control_timing), the SBO image derivation (correction #3, try 60 first), and the hardware
+four-arm + recovery blocks on the SEL-751. NO push without explicit instruction.

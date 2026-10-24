@@ -2720,3 +2720,12 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   (mixed 91->141 and integrity 134->158), retransmission/corruption/reset included. The 247->271 software full
   path stays validated under c29. Control-coupled gate drivers (dup/rearm/select_lifecycle/.../SBO) + the hardware
   four-arm remain for an unblocked run / Philip.
+
+### 2026-10-24 — c30 READ/size model gate COMPLETE (6 drivers, 1332 checks)
+- Fixed+sealed c30 (sha b006752) passes the full READ/size model-driver set on the pinned 9.13.2 bundle:
+  two_read_robust 163/163, packets 622/622, policy 281/281, policy_boundary 206/206, smoke 30/30,
+  smoke_sizeoff 30/30 = 1332/1332. No further relay-tier gaps beyond the ip.len fold already fixed.
+- CURRENT.md completion table updated: #1-#3 READ DONE, #4 READ/size DONE (control-coupled drivers + SBO still open,
+  classifier-blocked). #5-#8 (hardware four-arm/recovery/timing/close) open.
+- READ-side c30 deliverable: DERIVED + GENERATED + COMPILED + SEALED + MODEL-VALIDATED. Remaining work is all
+  SELECT/OPERATE-coupled (classifier-blocked) or live-hardware. No push without instruction.
