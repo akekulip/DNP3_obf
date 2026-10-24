@@ -80,7 +80,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('evidence', type=Path)
     parser.add_argument('output', type=Path)
-    parser.add_argument('--sde', type=Path, default=Path('/home/philip/bf-sde-9.13.1'))
+    parser.add_argument('--sde', type=Path, default=Path('/home/philip/bf-sde-9.13.2'))
     args = parser.parse_args()
     print(json.dumps(probe(args.evidence, args.output, args.sde), indent=2, sort_keys=True))
     raise SystemExit(2)  # A startup-only diagnostic cannot pass the packet/model gate.

@@ -9,6 +9,21 @@
 - NEW DIRECTION (Philip): the physical SEL-751 relay is the outstation; READ and SBO (incl. OPERATE) run on it.
   Measured: mixed READ 91 bytes (target 91->141 fits); integrity READ 134 bytes (247->271 does not fit).
 - Waiting on Philip: the padded size for the relay's 134-byte full READ.
+- In progress (Philip: "do that"): one SDK. SDK 9.13.2 copied from the switch to ~/bf-sde-9.13.2 (install tree +
+  run scripts). Verified: local 9.13.2 compile of c29 == switch compile (context.json differs only in run_id/date;
+  tofino.bin differs in 14 bytes, all inside the run_id; bfrt.json same 243 tables, only generated ids differ).
+  Local defaults now 9.13.2 (build.py, launch_model.sh, model_driver.py, model_probe.py). Full 14-driver gate running
+  on evidence/m12p_c29_sdk9132 (same source, 9.13.2 image, 9.13.2 model; running process confirmed
+  /home/philip/bf-sde-9.13.2/install/bin/tofino-model). First launch failed on a doubled path in my gate script
+  (nothing ran, nothing written); rerun started. A locally built out/ is loadable: bring-up regenerates the conf
+  from out/ (make_conf.py rewrites every path; the switch compile already carried /tmp paths). Next if counts
+  equal c29: config generators deploy compile_local (9.13.2) and the switch-side compile is retired, next build on.
+- DETACHED GATE (2026-10-23 ~21:05): systemd user unit `dnp3-gate-c29-sdk9132` (Linger=yes) runs the remaining
+  drivers of the 9.13.2 gate, then model_summary --v3 --write --enforce. Check: `systemctl --user status
+  dnp3-gate-c29-sdk9132`; log `~/.local/state/dnp3-gates/c29_sdk9132.log` (ends with GATE_DONE); per-driver output
+  in `~/.local/state/dnp3-gates/c29_sdk9132/`. Done before detaching: control_timing and policy (rc 0);
+  policy_boundary attempt 01 was interrupted by the detach (FAILURE_INTERRUPTED.md, RESOLVED) and reruns as 02.
+  Pass = model_gate_passed with every driver count equal to m12p_c29's gate.
 - Next: SBO size on the relay inside the gated run; relay-outstation harness path (the series tool currently
   refuses 192.168.10.7); rebuild the full-READ shape for 134; model gate; freeze; hardware READ+SBO on the relay.
 

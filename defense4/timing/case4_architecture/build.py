@@ -17,7 +17,7 @@ import signal
 import subprocess
 import time
 
-DEFAULT_COMPILER = Path('/home/philip/bf-sde-9.13.1/install/bin/bf-p4c')
+DEFAULT_COMPILER = Path('/home/philip/bf-sde-9.13.2/install/bin/bf-p4c')
 SWITCH_BUILD_HOST = 'decps@10.10.54.81'
 SWITCH_COMPILER = '/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c'
 

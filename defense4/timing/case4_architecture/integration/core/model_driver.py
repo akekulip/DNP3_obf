@@ -15,7 +15,7 @@ import socket
 import sys
 import time
 
-SDE = os.environ.get('SDE', '/home/philip/bf-sde-9.13.1')
+SDE = os.environ.get('SDE', '/home/philip/bf-sde-9.13.2')
 _P = SDE + '/install/lib/python3.8/site-packages'
 for _p in (_P, _P + '/tofino', _P + '/tofino/bfrt_grpc'):
     if _p not in sys.path:
