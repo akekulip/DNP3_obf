@@ -1,0 +1,2640 @@
+{
+ "cases": [
+  {
+   "expected": "ARMED",
+   "name": "snapshot_armed",
+   "observed": "['ARMED']",
+   "ok": true
+  },
+  {
+   "expected": 1,
+   "name": "READ_forwarded",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": "FULL",
+   "name": "snapshot_full",
+   "observed": "['FULL']",
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "snapshot_sees_first_read_request",
+   "names": [
+    "p0.n_Ingress.connection",
+    "p0.n_Ingress.ports",
+    "p0.n_Ingress.crc_t",
+    "p0.n_Ingress.read_connection",
+    "p0.n_Ingress.read_request_mx_profile",
+    "p0.n_Ingress.rd_request_two_crc_t",
+    "p0.n_Ingress.retry_valid_t",
+    "p0.n_Ingress.network",
+    "p0.n_Ingress.guard",
+    "p0.n_Ingress.next_seq_t",
+    "p0.n_Ingress.work.dispatch",
+    "p0.n_Ingress.read_input_t",
+    "p0.n_Ingress.epoch_t",
+    "p0.n_Ingress.owner_t",
+    "p0.n_Ingress.sequence_diff",
+    "p0.n_Ingress.sequence_guard",
+    "p0.n_Ingress.snapshot_t",
+    "p0.n_Ingress.first_event"
+   ],
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "snapshot_deleted",
+   "observed": true,
+   "ok": true
+  }
+ ],
+ "meta": {
+  "driver_sha256": "24b66f3d90cdb407627671fcb5e27dbd552fb9c6b18bdb732d81527a1e4633ff",
+  "endpoint_profile": {
+   "alternate_tcp_port_fixture": "Unconfigured-connection probes use master source port 59411",
+   "dnp_master": 1,
+   "dnp_relay": 0,
+   "master_dev": 9,
+   "master_ip": "192.168.10.1",
+   "master_mac": "3c:fd:fe:cc:5d:c0",
+   "master_tcp_port": 59410,
+   "master_window_scale": 7,
+   "name": "sel751",
+   "relay_dev": 64,
+   "relay_ip": "192.168.10.7",
+   "relay_mac": "00:30:a7:02:4c:a2",
+   "relay_tcp_port": 20000,
+   "relay_window_scale": 0,
+   "syn_tcp_header_octets": 40,
+   "synack_tcp_header_octets": 44,
+   "tcp_header_octets": 32,
+   "tcp_profile": "sel751_ts",
+   "timestamp_policy": "monotonic logical steps; exact options retained across seq/ack mapping"
+  },
+  "physical": false,
+  "qualification_driver": false,
+  "scope": "diagnostic: MAU snapshot tool proven on the model",
+  "snapshot": {
+   "deleted": true,
+   "stages": {
+    "0": {
+     "action_name": null,
+     "hdr.cstatus.$valid": 0,
+     "hdr.cstatus.status": 30,
+     "hdr.dl.$valid": 1,
+     "hdr.dl.crc": 53435,
+     "hdr.dl.ctrl": 196,
+     "hdr.dl.dst": 0,
+     "hdr.dl.len": 18,
+     "hdr.dl.magic": 1380,
+     "hdr.dl.src": 256,
+     "hdr.envelope.$valid": 1,
+     "hdr.envelope.epoch": 1,
+     "hdr.eth.$valid": 1,
+     "hdr.event.$valid": 1,
+     "hdr.event.event": 57600,
+     "hdr.event.reserved": 0,
+     "hdr.expected_cell.$valid": 1,
+     "hdr.expected_cell.expected_cell": 0,
+     "hdr.first.$valid": 0,
+     "hdr.first.w0": 3233808641,
+     "hdr.first.w1": 16777223,
+     "hdr.hs0.$valid": 0,
+     "hdr.hs1.$valid": 0,
+     "hdr.hs2.$valid": 0,
+     "hdr.ip.$valid": 1,
+     "hdr.ip.dst": 3232238087,
+     "hdr.ip.proto": 6,
+     "hdr.ip.src": 3232238081,
+     "hdr.ip.ttl": 64,
+     "hdr.mss.$valid": 0,
+     "hdr.oa.$valid": 0,
+     "hdr.ob.$valid": 0,
+     "hdr.origin.$valid": 0,
+     "hdr.origin.normalized_epoch": 0,
+     "hdr.origin.wire_ack": 0,
+     "hdr.rd_req_full.$valid": 0,
+     "hdr.rd_req_full.app": 192,
+     "hdr.rd_req_full.crc": 64348,
+     "hdr.rd_req_full.func": 192,
+     "hdr.rd_req_full.o1": 65794,
+     "hdr.rd_req_full.o2": 15,
+     "hdr.rd_req_full.o4": 7,
+     "hdr.rd_req_full.tp": 30,
+     "hdr.rd_req_mx.$valid": 1,
+     "hdr.rd_req_mx.app": 192,
+     "hdr.rd_req_mx.crc": 64348,
+     "hdr.rd_req_mx.func": 1,
+     "hdr.rd_req_mx.o1": 4328521743,
+     "hdr.rd_req_mx.o2": 128865796103,
+     "hdr.rd_req_mx.tp": 192,
+     "hdr.rtail.$valid": 0,
+     "hdr.rtail.code2": 0,
+     "hdr.rtail.count2": 15,
+     "hdr.rtail.index2": 0,
+     "hdr.rtail.status": 2,
+     "hdr.rts.$valid": 1,
+     "hdr.rts0.$valid": 1,
+     "hdr.rts1.$valid": 1,
+     "hdr.t0.$valid": 0,
+     "hdr.t0.t0q": 0,
+     "hdr.tail.$valid": 0,
+     "hdr.tail.code2": 0,
+     "hdr.tail.count2": 15,
+     "hdr.tail.index2": 0,
+     "hdr.tail.status": 2,
+     "hdr.tail.status2": 30,
+     "hdr.tcp.$valid": 1,
+     "hdr.tcp.ack": 372341288,
+     "hdr.tcp.dport": 20000,
+     "hdr.tcp.flags": 24,
+     "hdr.tcp.offset": 8,
+     "hdr.tcp.reserved": 0,
+     "hdr.tcp.seq": 56525016,
+     "hdr.tcp.sport": 60000,
+     "hdr.tcp.urgent": 0,
+     "hdr.tso.$valid": 0,
+     "hdr.work_generation.$valid": 1,
+     "hdr.work_generation.generation": 372341288,
+     "is_default_entry": false,
+     "local_stage_trigger": true,
+     "m.committed": 0,
+     "m.direction": 1,
+     "m.expected": 0,
+     "m.expected_work_phase": 0,
+     "m.kind": 0,
+     "m.lap": 1,
+     "m.normalized_epoch": 1,
+     "m.output_port": 64,
+     "m.owner_diff": 1,
+     "m.packet_kind": 9,
+     "m.parsed": 1,
+     "m.port_valid": 1,
+     "m.response": 0,
+     "m.retry": 0,
+     "m.same_syn": 0,
+     "m.shape_valid": 1,
+     "m.stage": 0,
+     "m.tcp_sum": 65515,
+     "m.wire_ack": 372341288,
+     "next_table_name": "p0.n_Ingress.crc_t",
+     "prev_stage_trigger": false,
+     "table_info": [
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.conn"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.prepare_open_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "leff_t_0_precompute"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.normalization_ack_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.shape_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.in_ct_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.status_crc_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.ctl_profile"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.in_cb0_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.retry_epoch_t"
+      },
+      {
+       "match_hit_handle": 2,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.connection"
+      },
+      {
+       "match_hit_handle": 5,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.ports"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_response_only521_0"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_response_only521"
+      }
+     ],
+     "timer_trigger": false
+    },
+    "1": {
+     "action_name": null,
+     "hdr.cstatus.$valid": 0,
+     "hdr.cstatus.status": 30,
+     "hdr.dl.$valid": 1,
+     "hdr.dl.crc": 53435,
+     "hdr.dl.ctrl": 196,
+     "hdr.dl.dst": 0,
+     "hdr.dl.len": 18,
+     "hdr.dl.magic": 1380,
+     "hdr.dl.src": 256,
+     "hdr.envelope.$valid": 1,
+     "hdr.envelope.epoch": 1,
+     "hdr.eth.$valid": 1,
+     "hdr.event.$valid": 1,
+     "hdr.event.event": 57600,
+     "hdr.event.reserved": 0,
+     "hdr.expected_cell.$valid": 1,
+     "hdr.expected_cell.expected_cell": 0,
+     "hdr.first.$valid": 0,
+     "hdr.first.w0": 3233808641,
+     "hdr.first.w1": 16777223,
+     "hdr.hs0.$valid": 0,
+     "hdr.hs1.$valid": 0,
+     "hdr.hs2.$valid": 0,
+     "hdr.ip.$valid": 1,
+     "hdr.ip.dst": 3232238087,
+     "hdr.ip.proto": 6,
+     "hdr.ip.src": 3232238081,
+     "hdr.ip.ttl": 64,
+     "hdr.mss.$valid": 0,
+     "hdr.oa.$valid": 0,
+     "hdr.ob.$valid": 0,
+     "hdr.origin.$valid": 0,
+     "hdr.origin.normalized_epoch": 0,
+     "hdr.origin.wire_ack": 0,
+     "hdr.rd_req_full.$valid": 0,
+     "hdr.rd_req_full.app": 192,
+     "hdr.rd_req_full.crc": 64348,
+     "hdr.rd_req_full.func": 192,
+     "hdr.rd_req_full.o1": 65794,
+     "hdr.rd_req_full.o2": 15,
+     "hdr.rd_req_full.o4": 7,
+     "hdr.rd_req_full.tp": 30,
+     "hdr.rd_req_mx.$valid": 1,
+     "hdr.rd_req_mx.app": 192,
+     "hdr.rd_req_mx.crc": 64348,
+     "hdr.rd_req_mx.func": 1,
+     "hdr.rd_req_mx.o1": 4328521743,
+     "hdr.rd_req_mx.o2": 128865796103,
+     "hdr.rd_req_mx.tp": 192,
+     "hdr.rtail.$valid": 0,
+     "hdr.rtail.code2": 0,
+     "hdr.rtail.count2": 15,
+     "hdr.rtail.index2": 0,
+     "hdr.rtail.status": 2,
+     "hdr.rts.$valid": 1,
+     "hdr.rts0.$valid": 1,
+     "hdr.rts1.$valid": 1,
+     "hdr.t0.$valid": 0,
+     "hdr.t0.t0q": 0,
+     "hdr.tail.$valid": 0,
+     "hdr.tail.code2": 0,
+     "hdr.tail.count2": 15,
+     "hdr.tail.index2": 0,
+     "hdr.tail.status": 2,
+     "hdr.tail.status2": 30,
+     "hdr.tcp.$valid": 1,
+     "hdr.tcp.ack": 372341288,
+     "hdr.tcp.dport": 20000,
+     "hdr.tcp.flags": 24,
+     "hdr.tcp.offset": 8,
+     "hdr.tcp.reserved": 0,
+     "hdr.tcp.seq": 56525016,
+     "hdr.tcp.sport": 60000,
+     "hdr.tcp.urgent": 0,
+     "hdr.tso.$valid": 0,
+     "hdr.work_generation.$valid": 1,
+     "hdr.work_generation.generation": 372341288,
+     "is_default_entry": false,
+     "local_stage_trigger": false,
+     "m.bcrc": 0,
+     "m.committed": 0,
+     "m.direction": 1,
+     "m.enabled": 1,
+     "m.expected": 0,
+     "m.expected_work_phase": 0,
+     "m.hcrc": 39226,
+     "m.kind": 0,
+     "m.lap": 1,
+     "m.link_dst": 0,
+     "m.link_src": 256,
+     "m.normalized_epoch": 1,
+     "m.output_port": 64,
+     "m.owner_diff": 1,
+     "m.packet_kind": 9,
+     "m.parsed": 1,
+     "m.port_valid": 1,
+     "m.profile": 0,
+     "m.response": 0,
+     "m.retry": 0,
+     "m.same_syn": 0,
+     "m.shape_valid": 1,
+     "m.stage": 0,
+     "m.tcp_sum": 65515,
+     "m.tcrc": 0,
+     "m.wire_ack": 372341288,
+     "next_table_name": "p0.n_Ingress.read_request_mx_profile",
+     "prev_stage_trigger": true,
+     "table_info": [
+      {
+       "match_hit_handle": 5,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.crc_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.crc_ctl_tail2_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.lifecycle_access"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.prep_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.leff_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.read_profile"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.in_dl_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": true,
+       "table_name": "p0.n_Ingress.data_connection"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.response_crct_t"
+      },
+      {
+       "match_hit_handle": 2,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.read_connection"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": true,
+       "table_name": "p0.n_Ingress.read_response_profile"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": true,
+       "table_name": "p0.n_Ingress.read_request_full_profile"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_drop_lifetime_0"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_drop_lifetime_1"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_strip_provenance"
+      }
+     ],
+     "timer_trigger": false
+    },
+    "2": {
+     "action_name": null,
+     "hdr.cstatus.$valid": 0,
+     "hdr.cstatus.status": 30,
+     "hdr.dl.$valid": 1,
+     "hdr.dl.crc": 53435,
+     "hdr.dl.ctrl": 196,
+     "hdr.dl.dst": 0,
+     "hdr.dl.len": 18,
+     "hdr.dl.magic": 1380,
+     "hdr.dl.src": 256,
+     "hdr.envelope.$valid": 1,
+     "hdr.envelope.epoch": 1,
+     "hdr.eth.$valid": 1,
+     "hdr.event.$valid": 1,
+     "hdr.event.event": 57600,
+     "hdr.event.reserved": 0,
+     "hdr.expected_cell.$valid": 1,
+     "hdr.expected_cell.expected_cell": 0,
+     "hdr.first.$valid": 0,
+     "hdr.first.w0": 3233808641,
+     "hdr.first.w1": 16777223,
+     "hdr.hs0.$valid": 0,
+     "hdr.hs1.$valid": 0,
+     "hdr.hs2.$valid": 0,
+     "hdr.ip.$valid": 1,
+     "hdr.ip.dst": 3232238087,
+     "hdr.ip.proto": 6,
+     "hdr.ip.src": 3232238081,
+     "hdr.ip.ttl": 64,
+     "hdr.mss.$valid": 0,
+     "hdr.oa.$valid": 0,
+     "hdr.ob.$valid": 0,
+     "hdr.origin.$valid": 0,
+     "hdr.origin.normalized_epoch": 0,
+     "hdr.origin.wire_ack": 0,
+     "hdr.rd_req_full.$valid": 0,
+     "hdr.rd_req_full.app": 192,
+     "hdr.rd_req_full.crc": 64348,
+     "hdr.rd_req_full.func": 192,
+     "hdr.rd_req_full.o1": 65794,
+     "hdr.rd_req_full.o2": 15,
+     "hdr.rd_req_full.o4": 7,
+     "hdr.rd_req_full.tp": 30,
+     "hdr.rd_req_mx.$valid": 1,
+     "hdr.rd_req_mx.app": 192,
+     "hdr.rd_req_mx.crc": 64348,
+     "hdr.rd_req_mx.func": 1,
+     "hdr.rd_req_mx.o1": 4328521743,
+     "hdr.rd_req_mx.o2": 128865796103,
+     "hdr.rd_req_mx.tp": 192,
+     "hdr.rtail.$valid": 0,
+     "hdr.rtail.code2": 0,
+     "hdr.rtail.count2": 15,
+     "hdr.rtail.index2": 0,
+     "hdr.rtail.status": 2,
+     "hdr.rts.$valid": 1,
+     "hdr.rts0.$valid": 1,
+     "hdr.rts1.$valid": 1,
+     "hdr.t0.$valid": 0,
+     "hdr.t0.t0q": 0,
+     "hdr.tail.$valid": 0,
+     "hdr.tail.code2": 0,
+     "hdr.tail.count2": 15,
+     "hdr.tail.index2": 0,
+     "hdr.tail.status": 2,
+     "hdr.tail.status2": 30,
+     "hdr.tcp.$valid": 1,
+     "hdr.tcp.ack": 372341288,
+     "hdr.tcp.dport": 20000,
+     "hdr.tcp.flags": 24,
+     "hdr.tcp.offset": 8,
+     "hdr.tcp.reserved": 0,
+     "hdr.tcp.seq": 56525016,
+     "hdr.tcp.sport": 60000,
+     "hdr.tcp.urgent": 0,
+     "hdr.tso.$valid": 0,
+     "hdr.work_generation.$valid": 1,
+     "hdr.work_generation.generation": 372341288,
+     "is_default_entry": false,
+     "local_stage_trigger": false,
+     "m.badh": 0,
+     "m.bcrc": 39226,
+     "m.committed": 0,
+     "m.crc1": 0,
+     "m.direction": 1,
+     "m.enabled": 1,
+     "m.expected": 0,
+     "m.expected_work_phase": 0,
+     "m.hcrc": 39226,
+     "m.kind": 0,
+     "m.lap": 1,
+     "m.link_dst": 0,
+     "m.link_src": 256,
+     "m.network_valid": 1,
+     "m.normalized_epoch": 1,
+     "m.output_port": 64,
+     "m.owner_diff": 1,
+     "m.packet_kind": 9,
+     "m.port_valid": 1,
+     "m.profile": 1,
+     "m.response": 0,
+     "m.retry": 0,
+     "m.same_syn": 0,
+     "m.shape_valid": 1,
+     "m.stage": 0,
+     "m.tcrc": 0,
+     "m.wire_ack": 372341288,
+     "next_table_name": "p0.n_Ingress.committed_t",
+     "prev_stage_trigger": true,
+     "table_info": [
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.input_tail_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_response_only1238"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_response_only1238_1"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_response_only1238_0"
+      },
+      {
+       "match_hit_handle": 2,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.read_request_mx_profile"
+      },
+      {
+       "match_hit_handle": 3,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.rd_request_two_crc_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.read_shallow_admit_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.response_status_crc_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.front_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.response_profile"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.profile"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": true,
+       "table_name": "tbl_response_only529"
+      },
+      {
+       "match_hit_handle": 2,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.retry_valid_t"
+      },
+      {
+       "match_hit_handle": 2,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.network"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_response_only1237"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.ina_img_t"
+      }
+     ],
+     "timer_trigger": false
+    },
+    "3": {
+     "action_name": null,
+     "hdr.cstatus.$valid": 0,
+     "hdr.cstatus.status": 30,
+     "hdr.dl.$valid": 1,
+     "hdr.dl.crc": 53435,
+     "hdr.dl.ctrl": 196,
+     "hdr.dl.dst": 0,
+     "hdr.dl.len": 18,
+     "hdr.dl.magic": 1380,
+     "hdr.dl.src": 256,
+     "hdr.envelope.$valid": 1,
+     "hdr.envelope.epoch": 1,
+     "hdr.eth.$valid": 1,
+     "hdr.event.$valid": 1,
+     "hdr.event.event": 57600,
+     "hdr.event.reserved": 0,
+     "hdr.expected_cell.$valid": 1,
+     "hdr.expected_cell.expected_cell": 0,
+     "hdr.first.$valid": 0,
+     "hdr.first.w0": 3233808641,
+     "hdr.first.w1": 16777223,
+     "hdr.hs0.$valid": 0,
+     "hdr.hs1.$valid": 0,
+     "hdr.hs2.$valid": 0,
+     "hdr.ip.$valid": 1,
+     "hdr.ip.dst": 3232238087,
+     "hdr.ip.proto": 6,
+     "hdr.ip.src": 3232238081,
+     "hdr.ip.ttl": 64,
+     "hdr.mss.$valid": 0,
+     "hdr.oa.$valid": 0,
+     "hdr.ob.$valid": 0,
+     "hdr.origin.$valid": 0,
+     "hdr.origin.normalized_epoch": 0,
+     "hdr.origin.wire_ack": 0,
+     "hdr.rd_req.app": 0,
+     "hdr.rd_req_full.$valid": 0,
+     "hdr.rd_req_full.app": 192,
+     "hdr.rd_req_full.crc": 64348,
+     "hdr.rd_req_full.func": 192,
+     "hdr.rd_req_full.o1": 65794,
+     "hdr.rd_req_full.o2": 15,
+     "hdr.rd_req_full.o4": 7,
+     "hdr.rd_req_full.tp": 30,
+     "hdr.rd_req_mx.$valid": 1,
+     "hdr.rd_req_mx.app": 192,
+     "hdr.rd_req_mx.crc": 64348,
+     "hdr.rd_req_mx.func": 1,
+     "hdr.rd_req_mx.o1": 4328521743,
+     "hdr.rd_req_mx.o2": 128865796103,
+     "hdr.rd_req_mx.tp": 192,
+     "hdr.rtail.$valid": 0,
+     "hdr.rtail.code2": 0,
+     "hdr.rtail.count2": 15,
+     "hdr.rtail.index2": 0,
+     "hdr.rtail.status": 2,
+     "hdr.rts.$valid": 1,
+     "hdr.rts0.$valid": 1,
+     "hdr.rts1.$valid": 1,
+     "hdr.t0.$valid": 0,
+     "hdr.t0.t0q": 0,
+     "hdr.tail.$valid": 0,
+     "hdr.tail.code2": 0,
+     "hdr.tail.count2": 15,
+     "hdr.tail.index2": 0,
+     "hdr.tail.status": 2,
+     "hdr.tail.status2": 30,
+     "hdr.tcp.$valid": 1,
+     "hdr.tcp.ack": 372341288,
+     "hdr.tcp.dport": 20000,
+     "hdr.tcp.flags": 24,
+     "hdr.tcp.offset": 8,
+     "hdr.tcp.reserved": 0,
+     "hdr.tcp.seq": 56525016,
+     "hdr.tcp.sport": 60000,
+     "hdr.tcp.urgent": 0,
+     "hdr.tso.$valid": 0,
+     "hdr.work_generation.$valid": 1,
+     "hdr.work_generation.generation": 372341288,
+     "is_default_entry": false,
+     "local_stage_trigger": false,
+     "m.badh": 0,
+     "m.crc1": 0,
+     "m.direction": 1,
+     "m.expected": 0,
+     "m.expected_work_phase": 0,
+     "m.generation": 4,
+     "m.go": 1,
+     "m.kind": 9,
+     "m.lap": 1,
+     "m.link_dst": 0,
+     "m.link_src": 256,
+     "m.network_valid": 1,
+     "m.normalized_epoch": 1,
+     "m.output_port": 64,
+     "m.owner_diff": 1,
+     "m.packet_kind": 9,
+     "m.response": 0,
+     "m.retry": 0,
+     "m.return_abort": 0,
+     "m.same_syn": 0,
+     "m.shape_valid": 1,
+     "m.stage": 0,
+     "m.wire_ack": 372341288,
+     "m.work_op": 1,
+     "next_table_name": "p0.n_Ingress.next_seq_t",
+     "prev_stage_trigger": true,
+     "table_info": [
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_response_only1238_2"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_response_only1236"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.derive_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": true,
+       "table_name": "p0.n_Ingress.committed_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": true,
+       "table_name": "tbl_deny"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": true,
+       "table_name": "tbl_deny_0"
+      },
+      {
+       "match_hit_handle": 30,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.guard"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.mode_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.isn_access"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_deny_4"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_drop_lifetime"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_unbound_normalization"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.odd_ip_t"
+      }
+     ],
+     "timer_trigger": false
+    },
+    "4": {
+     "action_name": null,
+     "hdr.cstatus.$valid": 0,
+     "hdr.cstatus.status": 30,
+     "hdr.dl.$valid": 1,
+     "hdr.dl.crc": 53435,
+     "hdr.dl.ctrl": 196,
+     "hdr.dl.dst": 0,
+     "hdr.dl.len": 18,
+     "hdr.dl.magic": 1380,
+     "hdr.dl.src": 256,
+     "hdr.envelope.$valid": 1,
+     "hdr.envelope.epoch": 1,
+     "hdr.eth.$valid": 1,
+     "hdr.event.$valid": 1,
+     "hdr.event.event": 57600,
+     "hdr.event.reserved": 0,
+     "hdr.expected_cell.$valid": 1,
+     "hdr.expected_cell.expected_cell": 0,
+     "hdr.first.$valid": 0,
+     "hdr.first.w0": 3233808641,
+     "hdr.first.w1": 16777223,
+     "hdr.hs0.$valid": 0,
+     "hdr.hs1.$valid": 0,
+     "hdr.hs2.$valid": 0,
+     "hdr.ip.$valid": 1,
+     "hdr.ip.dst": 3232238087,
+     "hdr.ip.proto": 6,
+     "hdr.ip.src": 3232238081,
+     "hdr.ip.ttl": 64,
+     "hdr.mss.$valid": 0,
+     "hdr.oa.$valid": 0,
+     "hdr.ob.$valid": 0,
+     "hdr.origin.$valid": 0,
+     "hdr.origin.normalized_epoch": 0,
+     "hdr.origin.wire_ack": 0,
+     "hdr.rd_req.app": 0,
+     "hdr.rd_req_full.$valid": 0,
+     "hdr.rd_req_full.app": 192,
+     "hdr.rd_req_full.crc": 64348,
+     "hdr.rd_req_full.func": 192,
+     "hdr.rd_req_full.o1": 65794,
+     "hdr.rd_req_full.o2": 15,
+     "hdr.rd_req_full.o4": 7,
+     "hdr.rd_req_full.tp": 30,
+     "hdr.rd_req_mx.$valid": 1,
+     "hdr.rd_req_mx.app": 192,
+     "hdr.rd_req_mx.crc": 64348,
+     "hdr.rd_req_mx.func": 1,
+     "hdr.rd_req_mx.o1": 4328521743,
+     "hdr.rd_req_mx.o2": 128865796103,
+     "hdr.rd_req_mx.tp": 192,
+     "hdr.rtail.$valid": 0,
+     "hdr.rtail.code2": 0,
+     "hdr.rtail.count2": 15,
+     "hdr.rtail.index2": 0,
+     "hdr.rtail.status": 2,
+     "hdr.rts.$valid": 1,
+     "hdr.rts0.$valid": 1,
+     "hdr.rts1.$valid": 1,
+     "hdr.t0.$valid": 0,
+     "hdr.t0.t0q": 0,
+     "hdr.tail.$valid": 0,
+     "hdr.tail.code2": 0,
+     "hdr.tail.count2": 15,
+     "hdr.tail.index2": 0,
+     "hdr.tail.status": 2,
+     "hdr.tail.status2": 30,
+     "hdr.tcp.$valid": 1,
+     "hdr.tcp.ack": 372341288,
+     "hdr.tcp.dport": 20000,
+     "hdr.tcp.flags": 24,
+     "hdr.tcp.offset": 8,
+     "hdr.tcp.reserved": 0,
+     "hdr.tcp.seq": 56525016,
+     "hdr.tcp.sport": 60000,
+     "hdr.tcp.urgent": 0,
+     "hdr.tso.$valid": 0,
+     "hdr.work_generation.$valid": 1,
+     "hdr.work_generation.generation": 372341288,
+     "is_default_entry": false,
+     "local_stage_trigger": false,
+     "m.ack_native": 372341288,
+     "m.badh": 0,
+     "m.compare_read_app": 0,
+     "m.crc1": 0,
+     "m.direction": 1,
+     "m.expected": 0,
+     "m.generation": 4,
+     "m.go": 1,
+     "m.kind": 9,
+     "m.lap": 1,
+     "m.link_dst": 0,
+     "m.link_src": 256,
+     "m.network_valid": 1,
+     "m.new_seq": 56525041,
+     "m.next_owner_gen": 0,
+     "m.normalized_epoch": 1,
+     "m.output_port": 64,
+     "m.owner_diff": 1,
+     "m.packet_kind": 9,
+     "m.response": 0,
+     "m.retry": 0,
+     "m.return_abort": 0,
+     "m.same_syn": 0,
+     "m.shape_valid": 1,
+     "m.stage": 0,
+     "m.wire_ack": 372341288,
+     "m.work_op": 1,
+     "m.work_phase": 4,
+     "next_table_name": "p0.n_Ingress.epoch_t",
+     "prev_stage_trigger": true,
+     "table_info": [
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.acct_t"
+      },
+      {
+       "match_hit_handle": 6,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.next_seq_t"
+      },
+      {
+       "match_hit_handle": 2,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.work.dispatch"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.settle_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.ack_native_t"
+      },
+      {
+       "match_hit_handle": 4,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.read_input_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.envelope_result"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.normalization_result"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_deny_3"
+      }
+     ],
+     "timer_trigger": false
+    },
+    "5": {
+     "action_name": null,
+     "hdr.cstatus.$valid": 0,
+     "hdr.cstatus.status": 30,
+     "hdr.dl.$valid": 1,
+     "hdr.dl.crc": 53435,
+     "hdr.dl.ctrl": 196,
+     "hdr.dl.dst": 0,
+     "hdr.dl.len": 18,
+     "hdr.dl.magic": 1380,
+     "hdr.dl.src": 256,
+     "hdr.envelope.$valid": 1,
+     "hdr.envelope.epoch": 1,
+     "hdr.eth.$valid": 1,
+     "hdr.event.$valid": 1,
+     "hdr.event.event": 57600,
+     "hdr.event.reserved": 0,
+     "hdr.expected_cell.$valid": 1,
+     "hdr.expected_cell.expected_cell": 0,
+     "hdr.first.$valid": 0,
+     "hdr.first.w0": 3233808641,
+     "hdr.first.w1": 16777223,
+     "hdr.hs0.$valid": 0,
+     "hdr.hs1.$valid": 0,
+     "hdr.hs2.$valid": 0,
+     "hdr.ip.$valid": 1,
+     "hdr.ip.dst": 3232238087,
+     "hdr.ip.proto": 6,
+     "hdr.ip.src": 3232238081,
+     "hdr.ip.ttl": 64,
+     "hdr.mss.$valid": 0,
+     "hdr.oa.$valid": 0,
+     "hdr.ob.$valid": 0,
+     "hdr.origin.$valid": 0,
+     "hdr.origin.normalized_epoch": 0,
+     "hdr.origin.wire_ack": 0,
+     "hdr.rd_req.app": 0,
+     "hdr.rd_req_full.$valid": 0,
+     "hdr.rd_req_full.app": 192,
+     "hdr.rd_req_full.crc": 64348,
+     "hdr.rd_req_full.func": 192,
+     "hdr.rd_req_full.o1": 65794,
+     "hdr.rd_req_full.o2": 15,
+     "hdr.rd_req_full.o4": 7,
+     "hdr.rd_req_full.tp": 30,
+     "hdr.rd_req_mx.$valid": 1,
+     "hdr.rd_req_mx.app": 192,
+     "hdr.rd_req_mx.crc": 64348,
+     "hdr.rd_req_mx.func": 1,
+     "hdr.rd_req_mx.o1": 4328521743,
+     "hdr.rd_req_mx.o2": 128865796103,
+     "hdr.rd_req_mx.tp": 192,
+     "hdr.rtail.$valid": 0,
+     "hdr.rtail.code2": 0,
+     "hdr.rtail.count2": 15,
+     "hdr.rtail.index2": 0,
+     "hdr.rtail.status": 2,
+     "hdr.rts.$valid": 1,
+     "hdr.rts0.$valid": 1,
+     "hdr.rts1.$valid": 1,
+     "hdr.t0.$valid": 0,
+     "hdr.t0.t0q": 0,
+     "hdr.tail.$valid": 0,
+     "hdr.tail.code2": 0,
+     "hdr.tail.count2": 15,
+     "hdr.tail.index2": 0,
+     "hdr.tail.status": 2,
+     "hdr.tail.status2": 30,
+     "hdr.tcp.$valid": 1,
+     "hdr.tcp.ack": 372341288,
+     "hdr.tcp.dport": 20000,
+     "hdr.tcp.flags": 24,
+     "hdr.tcp.offset": 8,
+     "hdr.tcp.reserved": 0,
+     "hdr.tcp.seq": 56525016,
+     "hdr.tcp.sport": 60000,
+     "hdr.tcp.urgent": 0,
+     "hdr.tso.$valid": 0,
+     "hdr.work_generation.$valid": 1,
+     "hdr.work_generation.generation": 372341288,
+     "is_default_entry": false,
+     "local_stage_trigger": false,
+     "m.ack_native": 372341288,
+     "m.badh": 0,
+     "m.compare_application": 1536,
+     "m.compare_native_end": 0,
+     "m.compare_native_start": 0,
+     "m.compare_read_app": 0,
+     "m.compare_real_links": 16777216,
+     "m.compare_real_tcp_dst": 0,
+     "m.compare_real_tcp_ports": 3145728,
+     "m.compare_real_tcp_src": 0,
+     "m.compare_server_start": 0,
+     "m.crc1": 0,
+     "m.direction": 1,
+     "m.epoch": 1,
+     "m.epoch_diff": 0,
+     "m.expected": 0,
+     "m.generation": 4,
+     "m.go": 1,
+     "m.kind": 9,
+     "m.lap": 1,
+     "m.link_dst": 0,
+     "m.link_src": 256,
+     "m.network_valid": 1,
+     "m.new_seq": 56525041,
+     "m.next_owner_gen": 0,
+     "m.normalized_epoch": 1,
+     "m.output_port": 64,
+     "m.owner_diff": 1,
+     "m.packet_kind": 9,
+     "m.response": 0,
+     "m.retry": 0,
+     "m.return_abort": 0,
+     "m.same_syn": 0,
+     "m.shape_valid": 1,
+     "m.stage": 0,
+     "m.wire_ack": 372341288,
+     "m.work_op": 1,
+     "m.work_phase": 4,
+     "next_table_name": "p0.n_Ingress.owner_command",
+     "prev_stage_trigger": true,
+     "table_info": [
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.img_start_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.img_end_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.compare_response_inputs_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.compare_select_inputs_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.compare_operate_inputs_t"
+      },
+      {
+       "match_hit_handle": 3,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.epoch_t"
+      }
+     ],
+     "timer_trigger": false
+    },
+    "6": {
+     "action_name": null,
+     "hdr.cstatus.$valid": 0,
+     "hdr.cstatus.status": 30,
+     "hdr.dl.$valid": 1,
+     "hdr.dl.crc": 53435,
+     "hdr.dl.ctrl": 196,
+     "hdr.dl.dst": 0,
+     "hdr.dl.len": 18,
+     "hdr.dl.magic": 1380,
+     "hdr.dl.src": 256,
+     "hdr.envelope.$valid": 1,
+     "hdr.envelope.epoch": 1,
+     "hdr.eth.$valid": 1,
+     "hdr.event.$valid": 1,
+     "hdr.event.event": 57600,
+     "hdr.event.reserved": 0,
+     "hdr.expected_cell.$valid": 1,
+     "hdr.expected_cell.expected_cell": 0,
+     "hdr.first.$valid": 0,
+     "hdr.first.w0": 3233808641,
+     "hdr.first.w1": 16777223,
+     "hdr.hs0.$valid": 0,
+     "hdr.hs1.$valid": 0,
+     "hdr.hs2.$valid": 0,
+     "hdr.ip.$valid": 1,
+     "hdr.ip.dst": 3232238087,
+     "hdr.ip.proto": 6,
+     "hdr.ip.src": 3232238081,
+     "hdr.ip.ttl": 64,
+     "hdr.mss.$valid": 0,
+     "hdr.oa.$valid": 0,
+     "hdr.ob.$valid": 0,
+     "hdr.origin.$valid": 0,
+     "hdr.origin.normalized_epoch": 0,
+     "hdr.origin.wire_ack": 0,
+     "hdr.rd_req.app": 0,
+     "hdr.rd_req_full.$valid": 0,
+     "hdr.rd_req_full.app": 192,
+     "hdr.rd_req_full.crc": 64348,
+     "hdr.rd_req_full.func": 192,
+     "hdr.rd_req_full.o1": 65794,
+     "hdr.rd_req_full.o2": 15,
+     "hdr.rd_req_full.o4": 7,
+     "hdr.rd_req_full.tp": 30,
+     "hdr.rd_req_mx.$valid": 1,
+     "hdr.rd_req_mx.app": 192,
+     "hdr.rd_req_mx.crc": 64348,
+     "hdr.rd_req_mx.func": 1,
+     "hdr.rd_req_mx.o1": 4328521743,
+     "hdr.rd_req_mx.o2": 128865796103,
+     "hdr.rd_req_mx.tp": 192,
+     "hdr.rtail.$valid": 0,
+     "hdr.rtail.code2": 0,
+     "hdr.rtail.count2": 15,
+     "hdr.rtail.index2": 0,
+     "hdr.rtail.status": 2,
+     "hdr.rts.$valid": 1,
+     "hdr.rts0.$valid": 1,
+     "hdr.rts1.$valid": 1,
+     "hdr.t0.$valid": 0,
+     "hdr.t0.t0q": 0,
+     "hdr.tail.$valid": 0,
+     "hdr.tail.code2": 0,
+     "hdr.tail.count2": 15,
+     "hdr.tail.index2": 0,
+     "hdr.tail.status": 2,
+     "hdr.tail.status2": 30,
+     "hdr.tcp.$valid": 1,
+     "hdr.tcp.ack": 372341288,
+     "hdr.tcp.dport": 20000,
+     "hdr.tcp.flags": 24,
+     "hdr.tcp.offset": 8,
+     "hdr.tcp.reserved": 0,
+     "hdr.tcp.seq": 56525016,
+     "hdr.tcp.sport": 60000,
+     "hdr.tcp.urgent": 0,
+     "hdr.tso.$valid": 0,
+     "hdr.work_generation.$valid": 1,
+     "hdr.work_generation.generation": 372341288,
+     "is_default_entry": false,
+     "local_stage_trigger": false,
+     "m.ack_native": 372341288,
+     "m.badh": 0,
+     "m.client": 56525016,
+     "m.compare_application": 1536,
+     "m.compare_native_end": 0,
+     "m.compare_native_start": 0,
+     "m.compare_read_app": 0,
+     "m.compare_real_links": 16777216,
+     "m.compare_real_tcp_dst": 0,
+     "m.compare_real_tcp_ports": 3145728,
+     "m.compare_real_tcp_src": 0,
+     "m.compare_server_start": 0,
+     "m.crc1": 0,
+     "m.desired": 0,
+     "m.diff_application": 0,
+     "m.diff_native_end": 1,
+     "m.direction": 1,
+     "m.epoch": 1,
+     "m.epoch_diff": 0,
+     "m.expected": 0,
+     "m.generation": 4,
+     "m.go": 1,
+     "m.kind": 9,
+     "m.lap": 1,
+     "m.link_dst": 0,
+     "m.link_src": 256,
+     "m.network_valid": 1,
+     "m.new_seq": 56525041,
+     "m.normalized_epoch": 1,
+     "m.output_port": 64,
+     "m.owner_diff": 1,
+     "m.owner_op": 0,
+     "m.packet_kind": 9,
+     "m.response": 0,
+     "m.retry": 0,
+     "m.same_syn": 0,
+     "m.server": 372341288,
+     "m.shape_valid": 1,
+     "m.stage": 0,
+     "m.wire_ack": 372341288,
+     "m.work_op": 1,
+     "m.work_phase": 4,
+     "next_table_name": "p0.n_Ingress.owner_t",
+     "prev_stage_trigger": true,
+     "table_info": [
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.fwd_prep_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.owner_command"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.server_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.client_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": true,
+       "table_name": "p0.n_Ingress.application_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.native_end_t"
+      }
+     ],
+     "timer_trigger": false
+    },
+    "7": {
+     "action_name": null,
+     "hdr.cstatus.$valid": 0,
+     "hdr.cstatus.status": 30,
+     "hdr.dl.$valid": 1,
+     "hdr.dl.crc": 53435,
+     "hdr.dl.ctrl": 196,
+     "hdr.dl.dst": 0,
+     "hdr.dl.len": 18,
+     "hdr.dl.magic": 1380,
+     "hdr.dl.src": 256,
+     "hdr.envelope.$valid": 1,
+     "hdr.envelope.epoch": 1,
+     "hdr.eth.$valid": 1,
+     "hdr.event.$valid": 1,
+     "hdr.event.event": 57600,
+     "hdr.event.reserved": 0,
+     "hdr.expected_cell.$valid": 1,
+     "hdr.expected_cell.expected_cell": 0,
+     "hdr.first.$valid": 0,
+     "hdr.first.w0": 3233808641,
+     "hdr.first.w1": 16777223,
+     "hdr.hs0.$valid": 0,
+     "hdr.hs1.$valid": 0,
+     "hdr.hs2.$valid": 0,
+     "hdr.ip.$valid": 1,
+     "hdr.ip.dst": 3232238087,
+     "hdr.ip.proto": 6,
+     "hdr.ip.src": 3232238081,
+     "hdr.ip.ttl": 64,
+     "hdr.mss.$valid": 0,
+     "hdr.oa.$valid": 0,
+     "hdr.ob.$valid": 0,
+     "hdr.origin.$valid": 0,
+     "hdr.origin.normalized_epoch": 0,
+     "hdr.origin.wire_ack": 0,
+     "hdr.rd_req.app": 0,
+     "hdr.rd_req_full.$valid": 0,
+     "hdr.rd_req_full.app": 192,
+     "hdr.rd_req_full.crc": 64348,
+     "hdr.rd_req_full.func": 192,
+     "hdr.rd_req_full.o1": 65794,
+     "hdr.rd_req_full.o2": 15,
+     "hdr.rd_req_full.o4": 7,
+     "hdr.rd_req_full.tp": 30,
+     "hdr.rd_req_mx.$valid": 1,
+     "hdr.rd_req_mx.app": 192,
+     "hdr.rd_req_mx.crc": 64348,
+     "hdr.rd_req_mx.func": 1,
+     "hdr.rd_req_mx.o1": 4328521743,
+     "hdr.rd_req_mx.o2": 128865796103,
+     "hdr.rd_req_mx.tp": 192,
+     "hdr.rtail.$valid": 0,
+     "hdr.rtail.code2": 0,
+     "hdr.rtail.count2": 15,
+     "hdr.rtail.index2": 0,
+     "hdr.rtail.status": 2,
+     "hdr.rts.$valid": 1,
+     "hdr.rts0.$valid": 1,
+     "hdr.rts1.$valid": 1,
+     "hdr.t0.$valid": 0,
+     "hdr.t0.t0q": 0,
+     "hdr.tail.$valid": 0,
+     "hdr.tail.code2": 0,
+     "hdr.tail.count2": 15,
+     "hdr.tail.index2": 0,
+     "hdr.tail.status": 2,
+     "hdr.tail.status2": 30,
+     "hdr.tcp.$valid": 1,
+     "hdr.tcp.ack": 372341288,
+     "hdr.tcp.dport": 20000,
+     "hdr.tcp.flags": 24,
+     "hdr.tcp.offset": 8,
+     "hdr.tcp.reserved": 0,
+     "hdr.tcp.seq": 56525016,
+     "hdr.tcp.sport": 60000,
+     "hdr.tcp.urgent": 0,
+     "hdr.tso.$valid": 0,
+     "hdr.work_generation.$valid": 1,
+     "hdr.work_generation.generation": 372341288,
+     "is_default_entry": false,
+     "local_stage_trigger": false,
+     "m.badh": 0,
+     "m.client": 56525016,
+     "m.client_diff": 0,
+     "m.compare_application": 1536,
+     "m.compare_native_end": 0,
+     "m.compare_read_app": 0,
+     "m.compare_server_start": 0,
+     "m.crc1": 0,
+     "m.desired": 0,
+     "m.diff_application": 0,
+     "m.diff_native_end": 1,
+     "m.diff_real_links": 39226,
+     "m.diff_real_off": 0,
+     "m.diff_real_tcp_dst": 10027008,
+     "m.direction": 1,
+     "m.epoch": 1,
+     "m.epoch_diff": 0,
+     "m.generation": 4,
+     "m.go": 1,
+     "m.kind": 9,
+     "m.lap": 1,
+     "m.link_dst": 0,
+     "m.link_src": 256,
+     "m.network_valid": 1,
+     "m.new_seq": 56525041,
+     "m.normalized_epoch": 1,
+     "m.observed": 327681,
+     "m.output_port": 64,
+     "m.owner_diff": 1,
+     "m.owner_op": 0,
+     "m.packet_kind": 9,
+     "m.response": 0,
+     "m.retry": 0,
+     "m.same_syn": 0,
+     "m.server": 372341288,
+     "m.server_diff": 0,
+     "m.shape_valid": 1,
+     "m.stage": 0,
+     "m.wire_ack": 372341288,
+     "m.work_op": 1,
+     "m.work_phase": 4,
+     "next_table_name": "p0.n_Ingress.read_app_t",
+     "prev_stage_trigger": true,
+     "table_info": [
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.classify_fwd"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.reverse_gap_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.real_off_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.real_tcp_dst_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.real_links_t"
+      },
+      {
+       "match_hit_handle": 3,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.owner_t"
+      },
+      {
+       "match_hit_handle": 5,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.sequence_diff"
+      }
+     ],
+     "timer_trigger": false
+    },
+    "8": {
+     "action_name": null,
+     "hdr.cstatus.$valid": 0,
+     "hdr.cstatus.status": 30,
+     "hdr.dl.$valid": 1,
+     "hdr.dl.crc": 53435,
+     "hdr.dl.ctrl": 196,
+     "hdr.dl.dst": 0,
+     "hdr.dl.len": 18,
+     "hdr.dl.magic": 1380,
+     "hdr.dl.src": 256,
+     "hdr.envelope.$valid": 1,
+     "hdr.envelope.epoch": 1,
+     "hdr.eth.$valid": 1,
+     "hdr.event.$valid": 1,
+     "hdr.event.event": 57600,
+     "hdr.event.reserved": 0,
+     "hdr.expected_cell.$valid": 1,
+     "hdr.expected_cell.expected_cell": 0,
+     "hdr.first.$valid": 0,
+     "hdr.first.w0": 3233808641,
+     "hdr.first.w1": 16777223,
+     "hdr.hs0.$valid": 0,
+     "hdr.hs1.$valid": 0,
+     "hdr.hs2.$valid": 0,
+     "hdr.ip.$valid": 1,
+     "hdr.ip.dst": 3232238087,
+     "hdr.ip.proto": 6,
+     "hdr.ip.src": 3232238081,
+     "hdr.ip.ttl": 64,
+     "hdr.mss.$valid": 0,
+     "hdr.oa.$valid": 0,
+     "hdr.ob.$valid": 0,
+     "hdr.origin.$valid": 0,
+     "hdr.origin.normalized_epoch": 0,
+     "hdr.origin.wire_ack": 0,
+     "hdr.rd_req.app": 0,
+     "hdr.rd_req_full.$valid": 0,
+     "hdr.rd_req_full.app": 192,
+     "hdr.rd_req_full.crc": 64348,
+     "hdr.rd_req_full.func": 192,
+     "hdr.rd_req_full.o1": 65794,
+     "hdr.rd_req_full.o2": 15,
+     "hdr.rd_req_full.o4": 7,
+     "hdr.rd_req_full.tp": 30,
+     "hdr.rd_req_mx.$valid": 1,
+     "hdr.rd_req_mx.app": 192,
+     "hdr.rd_req_mx.crc": 64348,
+     "hdr.rd_req_mx.func": 1,
+     "hdr.rd_req_mx.o1": 4328521743,
+     "hdr.rd_req_mx.o2": 128865796103,
+     "hdr.rd_req_mx.tp": 192,
+     "hdr.rtail.$valid": 0,
+     "hdr.rtail.code2": 0,
+     "hdr.rtail.count2": 15,
+     "hdr.rtail.index2": 0,
+     "hdr.rtail.status": 2,
+     "hdr.rts.$valid": 1,
+     "hdr.rts0.$valid": 1,
+     "hdr.rts1.$valid": 1,
+     "hdr.t0.$valid": 0,
+     "hdr.t0.t0q": 0,
+     "hdr.tail.$valid": 0,
+     "hdr.tail.code2": 0,
+     "hdr.tail.count2": 15,
+     "hdr.tail.index2": 0,
+     "hdr.tail.status": 2,
+     "hdr.tail.status2": 30,
+     "hdr.tcp.$valid": 1,
+     "hdr.tcp.ack": 372341288,
+     "hdr.tcp.dport": 20000,
+     "hdr.tcp.flags": 24,
+     "hdr.tcp.offset": 8,
+     "hdr.tcp.reserved": 0,
+     "hdr.tcp.seq": 56525016,
+     "hdr.tcp.sport": 60000,
+     "hdr.tcp.urgent": 0,
+     "hdr.tso.$valid": 0,
+     "hdr.work_generation.$valid": 1,
+     "hdr.work_generation.generation": 372341288,
+     "is_default_entry": false,
+     "local_stage_trigger": false,
+     "m.badh": 0,
+     "m.client": 56525016,
+     "m.client_diff": 0,
+     "m.compare_application": 1536,
+     "m.compare_native_end": 0,
+     "m.compare_server_start": 0,
+     "m.crc1": 0,
+     "m.desired": 0,
+     "m.diff_application": 0,
+     "m.diff_native_end": 1,
+     "m.diff_real_links": 39226,
+     "m.diff_real_off": 0,
+     "m.diff_real_tcp_dst": 10027008,
+     "m.direction": 1,
+     "m.epoch": 1,
+     "m.epoch_diff": 0,
+     "m.generation": 4,
+     "m.go": 1,
+     "m.kind": 9,
+     "m.lap": 1,
+     "m.link_dst": 0,
+     "m.link_src": 256,
+     "m.matched": 0,
+     "m.network_valid": 1,
+     "m.new_seq": 56525041,
+     "m.normalized_epoch": 1,
+     "m.observed": 327681,
+     "m.output_port": 64,
+     "m.owner_diff": 1,
+     "m.owner_op": 0,
+     "m.packet_kind": 9,
+     "m.response": 0,
+     "m.retry": 0,
+     "m.same_syn": 0,
+     "m.sequence_valid": 1,
+     "m.server": 372341288,
+     "m.server_diff": 0,
+     "m.shape_valid": 1,
+     "m.stage": 0,
+     "m.wire_ack": 372341288,
+     "m.work_op": 1,
+     "m.work_phase": 4,
+     "next_table_name": "p0.n_Ingress.object_match",
+     "prev_stage_trigger": true,
+     "table_info": [
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.reverse_window_base_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.read_app_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.img_wend_t"
+      },
+      {
+       "match_hit_handle": 2,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.sequence_guard"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.ctl_pad_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.read_pad_t"
+      }
+     ],
+     "timer_trigger": false
+    },
+    "9": {
+     "action_name": null,
+     "hdr.cstatus.$valid": 0,
+     "hdr.cstatus.status": 30,
+     "hdr.dl.$valid": 1,
+     "hdr.dl.crc": 53435,
+     "hdr.dl.ctrl": 196,
+     "hdr.dl.dst": 0,
+     "hdr.dl.len": 18,
+     "hdr.dl.magic": 1380,
+     "hdr.dl.src": 256,
+     "hdr.envelope.$valid": 1,
+     "hdr.envelope.epoch": 1,
+     "hdr.eth.$valid": 1,
+     "hdr.event.$valid": 1,
+     "hdr.event.event": 511,
+     "hdr.event.reserved": 0,
+     "hdr.expected_cell.$valid": 1,
+     "hdr.expected_cell.expected_cell": 327681,
+     "hdr.first.$valid": 0,
+     "hdr.first.w0": 3233808641,
+     "hdr.first.w1": 16777223,
+     "hdr.hs0.$valid": 0,
+     "hdr.hs1.$valid": 0,
+     "hdr.hs2.$valid": 0,
+     "hdr.ip.$valid": 1,
+     "hdr.ip.dst": 3232238087,
+     "hdr.ip.proto": 6,
+     "hdr.ip.src": 3232238081,
+     "hdr.ip.ttl": 64,
+     "hdr.mss.$valid": 0,
+     "hdr.oa.$valid": 0,
+     "hdr.ob.$valid": 0,
+     "hdr.origin.$valid": 1,
+     "hdr.origin.normalized_epoch": 1,
+     "hdr.origin.wire_ack": 372341288,
+     "hdr.rd_req.app": 0,
+     "hdr.rd_req_full.$valid": 0,
+     "hdr.rd_req_full.app": 192,
+     "hdr.rd_req_full.crc": 64348,
+     "hdr.rd_req_full.func": 192,
+     "hdr.rd_req_full.o1": 65794,
+     "hdr.rd_req_full.o2": 15,
+     "hdr.rd_req_full.o4": 7,
+     "hdr.rd_req_full.tp": 30,
+     "hdr.rd_req_mx.$valid": 1,
+     "hdr.rd_req_mx.app": 192,
+     "hdr.rd_req_mx.crc": 64348,
+     "hdr.rd_req_mx.func": 1,
+     "hdr.rd_req_mx.o1": 4328521743,
+     "hdr.rd_req_mx.o2": 128865796103,
+     "hdr.rd_req_mx.tp": 192,
+     "hdr.rtail.$valid": 0,
+     "hdr.rtail.code2": 0,
+     "hdr.rtail.count2": 15,
+     "hdr.rtail.index2": 0,
+     "hdr.rtail.status": 2,
+     "hdr.rts.$valid": 1,
+     "hdr.rts0.$valid": 1,
+     "hdr.rts1.$valid": 1,
+     "hdr.t0.$valid": 0,
+     "hdr.t0.t0q": 0,
+     "hdr.tail.$valid": 0,
+     "hdr.tail.code2": 0,
+     "hdr.tail.count2": 15,
+     "hdr.tail.index2": 0,
+     "hdr.tail.status": 2,
+     "hdr.tail.status2": 30,
+     "hdr.tcp.$valid": 1,
+     "hdr.tcp.ack": 372341288,
+     "hdr.tcp.dport": 20000,
+     "hdr.tcp.flags": 24,
+     "hdr.tcp.offset": 8,
+     "hdr.tcp.reserved": 0,
+     "hdr.tcp.seq": 56525016,
+     "hdr.tcp.sport": 60000,
+     "hdr.tcp.urgent": 0,
+     "hdr.tso.$valid": 0,
+     "hdr.work_generation.$valid": 1,
+     "hdr.work_generation.generation": 4,
+     "is_default_entry": false,
+     "local_stage_trigger": false,
+     "m.badh": 0,
+     "m.client": 56525016,
+     "m.client_diff": 0,
+     "m.compare_application": 1536,
+     "m.compare_native_end": 0,
+     "m.compare_server_start": 0,
+     "m.crc1": 0,
+     "m.desired": 0,
+     "m.direction": 1,
+     "m.generation": 4,
+     "m.go": 1,
+     "m.kind": 9,
+     "m.link_dst": 0,
+     "m.link_src": 256,
+     "m.matched": 0,
+     "m.network_valid": 1,
+     "m.new_seq": 56525041,
+     "m.observed": 327681,
+     "m.output_port": 64,
+     "m.owner_diff": 1,
+     "m.owner_op": 0,
+     "m.retry": 0,
+     "m.same_syn": 0,
+     "m.sequence_valid": 1,
+     "m.server": 372341288,
+     "m.server_diff": 0,
+     "next_table_name": "p0.n_Ingress.first_event",
+     "prev_stage_trigger": true,
+     "table_info": [
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": true,
+       "table_name": "p0.n_Ingress.object_match"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.reset_boundary"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.next_stage_t"
+      },
+      {
+       "match_hit_handle": 2,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.snapshot_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": true,
+       "table_name": "p0.n_Ingress.close_phase_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.classify_rev"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": true,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.retry_dup_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.busy_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_deny_1"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.read_terminal_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "tbl_deny_2"
+      }
+     ],
+     "timer_trigger": false
+    },
+    "10": {
+     "action_name": null,
+     "hdr.cstatus.$valid": 0,
+     "hdr.cstatus.status": 30,
+     "hdr.dl.$valid": 1,
+     "hdr.dl.crc": 53435,
+     "hdr.dl.ctrl": 196,
+     "hdr.dl.dst": 0,
+     "hdr.dl.len": 18,
+     "hdr.dl.magic": 1380,
+     "hdr.dl.src": 256,
+     "hdr.envelope.$valid": 1,
+     "hdr.envelope.epoch": 1,
+     "hdr.eth.$valid": 1,
+     "hdr.event.event": 265,
+     "hdr.event.reserved": 0,
+     "hdr.expected_cell.$valid": 1,
+     "hdr.expected_cell.expected_cell": 327681,
+     "hdr.first.$valid": 0,
+     "hdr.first.w0": 3233808641,
+     "hdr.first.w1": 16777223,
+     "hdr.hs0.$valid": 0,
+     "hdr.hs1.$valid": 0,
+     "hdr.hs2.$valid": 0,
+     "hdr.ip.$valid": 1,
+     "hdr.ip.dst": 3232238087,
+     "hdr.ip.proto": 6,
+     "hdr.ip.src": 3232238081,
+     "hdr.ip.ttl": 64,
+     "hdr.mss.$valid": 0,
+     "hdr.oa.$valid": 0,
+     "hdr.ob.$valid": 0,
+     "hdr.origin.$valid": 1,
+     "hdr.origin.normalized_epoch": 1,
+     "hdr.origin.wire_ack": 372341288,
+     "hdr.rd_req.app": 0,
+     "hdr.rd_req_full.$valid": 0,
+     "hdr.rd_req_full.app": 192,
+     "hdr.rd_req_full.crc": 64348,
+     "hdr.rd_req_full.func": 192,
+     "hdr.rd_req_full.o1": 65794,
+     "hdr.rd_req_full.o2": 15,
+     "hdr.rd_req_full.o4": 7,
+     "hdr.rd_req_full.tp": 30,
+     "hdr.rd_req_mx.$valid": 1,
+     "hdr.rd_req_mx.app": 192,
+     "hdr.rd_req_mx.crc": 64348,
+     "hdr.rd_req_mx.func": 1,
+     "hdr.rd_req_mx.o1": 4328521743,
+     "hdr.rd_req_mx.o2": 128865796103,
+     "hdr.rd_req_mx.tp": 192,
+     "hdr.rtail.$valid": 0,
+     "hdr.rtail.code2": 0,
+     "hdr.rtail.count2": 15,
+     "hdr.rtail.index2": 0,
+     "hdr.rtail.status": 2,
+     "hdr.rts.$valid": 1,
+     "hdr.rts0.$valid": 1,
+     "hdr.rts1.$valid": 1,
+     "hdr.t0.$valid": 1,
+     "hdr.t0.t0q": 0,
+     "hdr.tail.$valid": 0,
+     "hdr.tail.code2": 0,
+     "hdr.tail.count2": 15,
+     "hdr.tail.index2": 0,
+     "hdr.tail.status": 2,
+     "hdr.tail.status2": 30,
+     "hdr.tcp.$valid": 1,
+     "hdr.tcp.ack": 372341288,
+     "hdr.tcp.dport": 20000,
+     "hdr.tcp.flags": 24,
+     "hdr.tcp.offset": 8,
+     "hdr.tcp.reserved": 0,
+     "hdr.tcp.seq": 56525016,
+     "hdr.tcp.sport": 60000,
+     "hdr.tcp.urgent": 0,
+     "hdr.tso.$valid": 0,
+     "hdr.work_generation.$valid": 1,
+     "hdr.work_generation.generation": 4,
+     "is_default_entry": false,
+     "local_stage_trigger": false,
+     "m.badh": 0,
+     "m.client": 56525016,
+     "m.compare_application": 1536,
+     "m.compare_native_end": 0,
+     "m.compare_server_start": 0,
+     "m.crc1": 0,
+     "m.go": 1,
+     "m.link_dst": 0,
+     "m.link_src": 256,
+     "m.network_valid": 1,
+     "m.server": 372341288,
+     "next_table_name": "NO_NEXT_TABLE",
+     "prev_stage_trigger": true,
+     "table_info": [
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.window_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "egress_reset_invalidated_checksum_fields_1"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "egress_reset_invalidated_checksum_fields_0"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.r_Egress.count_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "egresshdr_ip_checksum_encode_update_condition_4_egress"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "egresshdr_tcp_checksum_encode_update_condition_5_egress"
+      },
+      {
+       "match_hit_handle": 142,
+       "table_executed": true,
+       "table_hit": true,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.first_event"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.carry_t"
+      },
+      {
+       "match_hit_handle": 0,
+       "table_executed": false,
+       "table_hit": false,
+       "table_inhibited": false,
+       "table_name": "p0.n_Ingress.abort_t"
+      }
+     ],
+     "timer_trigger": false
+    }
+   },
+   "state": [
+    "FULL"
+   ]
+  },
+  "spec": "start=0,end=10,m.packet_kind=9/0xff,m.lap=1/1,m.stage=0/3",
+  "stage_tables": {
+   "0": [
+    [
+     "p0.r_Egress.conn",
+     false
+    ],
+    [
+     "p0.r_Egress.prepare_open_t",
+     false
+    ],
+    [
+     "leff_t_0_precompute",
+     false
+    ],
+    [
+     "p0.r_Egress.normalization_ack_t",
+     false
+    ],
+    [
+     "p0.r_Egress.shape_t",
+     false
+    ],
+    [
+     "p0.r_Egress.in_ct_t",
+     false
+    ],
+    [
+     "p0.r_Egress.status_crc_t",
+     false
+    ],
+    [
+     "p0.r_Egress.ctl_profile",
+     false
+    ],
+    [
+     "p0.r_Egress.in_cb0_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.retry_epoch_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.connection",
+     true
+    ],
+    [
+     "p0.n_Ingress.ports",
+     true
+    ],
+    [
+     "tbl_response_only521_0",
+     false
+    ],
+    [
+     "tbl_response_only521",
+     false
+    ]
+   ],
+   "1": [
+    [
+     "p0.n_Ingress.crc_t",
+     true
+    ],
+    [
+     "p0.r_Egress.crc_ctl_tail2_t",
+     false
+    ],
+    [
+     "p0.r_Egress.lifecycle_access",
+     false
+    ],
+    [
+     "p0.r_Egress.prep_t",
+     false
+    ],
+    [
+     "p0.r_Egress.leff_t",
+     false
+    ],
+    [
+     "p0.r_Egress.read_profile",
+     false
+    ],
+    [
+     "p0.r_Egress.in_dl_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.data_connection",
+     false
+    ],
+    [
+     "p0.n_Ingress.response_crct_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.read_connection",
+     true
+    ],
+    [
+     "p0.n_Ingress.read_response_profile",
+     false
+    ],
+    [
+     "p0.n_Ingress.read_request_full_profile",
+     false
+    ],
+    [
+     "tbl_drop_lifetime_0",
+     false
+    ],
+    [
+     "tbl_drop_lifetime_1",
+     false
+    ],
+    [
+     "tbl_strip_provenance",
+     false
+    ]
+   ],
+   "2": [
+    [
+     "p0.n_Ingress.input_tail_t",
+     false
+    ],
+    [
+     "tbl_response_only1238",
+     false
+    ],
+    [
+     "tbl_response_only1238_1",
+     false
+    ],
+    [
+     "tbl_response_only1238_0",
+     false
+    ],
+    [
+     "p0.n_Ingress.read_request_mx_profile",
+     true
+    ],
+    [
+     "p0.n_Ingress.rd_request_two_crc_t",
+     true
+    ],
+    [
+     "p0.n_Ingress.read_shallow_admit_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.response_status_crc_t",
+     false
+    ],
+    [
+     "p0.r_Egress.front_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.response_profile",
+     false
+    ],
+    [
+     "p0.n_Ingress.profile",
+     false
+    ],
+    [
+     "tbl_response_only529",
+     false
+    ],
+    [
+     "p0.n_Ingress.retry_valid_t",
+     true
+    ],
+    [
+     "p0.n_Ingress.network",
+     true
+    ],
+    [
+     "tbl_response_only1237",
+     false
+    ],
+    [
+     "p0.r_Egress.ina_img_t",
+     false
+    ]
+   ],
+   "3": [
+    [
+     "tbl_response_only1238_2",
+     false
+    ],
+    [
+     "tbl_response_only1236",
+     false
+    ],
+    [
+     "p0.r_Egress.derive_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.committed_t",
+     false
+    ],
+    [
+     "tbl_deny",
+     false
+    ],
+    [
+     "tbl_deny_0",
+     false
+    ],
+    [
+     "p0.n_Ingress.guard",
+     true
+    ],
+    [
+     "p0.r_Egress.mode_t",
+     false
+    ],
+    [
+     "p0.r_Egress.isn_access",
+     false
+    ],
+    [
+     "tbl_deny_4",
+     false
+    ],
+    [
+     "tbl_drop_lifetime",
+     false
+    ],
+    [
+     "tbl_unbound_normalization",
+     false
+    ],
+    [
+     "p0.r_Egress.odd_ip_t",
+     false
+    ]
+   ],
+   "4": [
+    [
+     "p0.r_Egress.acct_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.next_seq_t",
+     true
+    ],
+    [
+     "p0.n_Ingress.work.dispatch",
+     true
+    ],
+    [
+     "p0.r_Egress.settle_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.ack_native_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.read_input_t",
+     true
+    ],
+    [
+     "p0.r_Egress.envelope_result",
+     false
+    ],
+    [
+     "p0.r_Egress.normalization_result",
+     false
+    ],
+    [
+     "tbl_deny_3",
+     false
+    ]
+   ],
+   "5": [
+    [
+     "p0.r_Egress.img_start_t",
+     false
+    ],
+    [
+     "p0.r_Egress.img_end_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.compare_response_inputs_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.compare_select_inputs_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.compare_operate_inputs_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.epoch_t",
+     true
+    ]
+   ],
+   "6": [
+    [
+     "p0.r_Egress.fwd_prep_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.owner_command",
+     false
+    ],
+    [
+     "p0.n_Ingress.server_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.client_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.application_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.native_end_t",
+     false
+    ]
+   ],
+   "7": [
+    [
+     "p0.r_Egress.classify_fwd",
+     false
+    ],
+    [
+     "p0.r_Egress.reverse_gap_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.real_off_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.real_tcp_dst_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.real_links_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.owner_t",
+     true
+    ],
+    [
+     "p0.n_Ingress.sequence_diff",
+     true
+    ]
+   ],
+   "8": [
+    [
+     "p0.r_Egress.reverse_window_base_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.read_app_t",
+     false
+    ],
+    [
+     "p0.r_Egress.img_wend_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.sequence_guard",
+     true
+    ],
+    [
+     "p0.r_Egress.ctl_pad_t",
+     false
+    ],
+    [
+     "p0.r_Egress.read_pad_t",
+     false
+    ]
+   ],
+   "9": [
+    [
+     "p0.n_Ingress.object_match",
+     false
+    ],
+    [
+     "p0.n_Ingress.reset_boundary",
+     false
+    ],
+    [
+     "p0.n_Ingress.next_stage_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.snapshot_t",
+     true
+    ],
+    [
+     "p0.n_Ingress.close_phase_t",
+     false
+    ],
+    [
+     "p0.r_Egress.classify_rev",
+     false
+    ],
+    [
+     "p0.n_Ingress.retry_dup_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.busy_t",
+     false
+    ],
+    [
+     "tbl_deny_1",
+     false
+    ],
+    [
+     "p0.n_Ingress.read_terminal_t",
+     false
+    ],
+    [
+     "tbl_deny_2",
+     false
+    ]
+   ],
+   "10": [
+    [
+     "p0.r_Egress.window_t",
+     false
+    ],
+    [
+     "egress_reset_invalidated_checksum_fields_1",
+     false
+    ],
+    [
+     "egress_reset_invalidated_checksum_fields_0",
+     false
+    ],
+    [
+     "p0.r_Egress.count_t",
+     false
+    ],
+    [
+     "egresshdr_ip_checksum_encode_update_condition_4_egress",
+     false
+    ],
+    [
+     "egresshdr_tcp_checksum_encode_update_condition_5_egress",
+     false
+    ],
+    [
+     "p0.n_Ingress.first_event",
+     true
+    ],
+    [
+     "p0.n_Ingress.carry_t",
+     false
+    ],
+    [
+     "p0.n_Ingress.abort_t",
+     false
+    ]
+   ]
+  }
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [],
+  "passed": 5,
+  "total": 5
+ }
+}

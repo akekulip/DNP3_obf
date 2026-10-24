@@ -1,0 +1,333 @@
+{
+ "cases": [
+  {
+   "expected": 1,
+   "name": "replay_SYN_forwarded",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003ce4c440004006c09ec0a80a01c0a80a07ea604e20035e80d700000000a002faf0b1fd0000020405b40402080a3bfb0d070000000001030307"
+    ],
+    "9": []
+   },
+   "sent": "0030a7024ca23cfdfecc5dc008004500003ce4c440004006c09ec0a80a01c0a80a07ea604e20035e80d700000000a002faf0b1fd0000020405b40402080a3bfb0d070000000001030307"
+  },
+  {
+   "expected": 1,
+   "name": "replay_SYNACK_forwarded",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040095d00004006dc02c0a80a07c0a80a014e20ea6016317a27035e80d8b01221f090de0000020405b401030300010104020101080a4e3709803bfb0d07"
+    ]
+   },
+   "sent": "3cfdfecc5dc00030a7024ca2080045000040095d00004006dc02c0a80a07c0a80a014e20ea6016317a27035e80d8b01221f090de0000020405b401030300010104020101080a4e3709803bfb0d07"
+  },
+  {
+   "busy": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "expected": "recorded",
+   "forwarded_to_relay": 1,
+   "name": "tight_ACK_then_READ_observed",
+   "observed": "recorded",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034e4c540004006c0a5c0a80a01c0a80a07ea604e20035e80d816317a28801001f6f19800000101080a3bfb0d124e370980"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": 1,
+   "name": "tight_READ_retransmission_1_forwarded",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500004de4c740004006c08ac0a80a01c0a80a07ea604e20035e80d816317a28801801f6c0ed00000101080a3bfb0deb4e370980056412c400000100d0bbc0c001010200000f1e01000007fb5c"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": 1,
+   "name": "tight_READ_retransmission_2_forwarded",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500004de4c840004006c089c0a80a01c0a80a07ea604e20035e80d816317a28801801f6c01500000101080a3bfb0ec34e370980056412c400000100d0bbc0c001010200000f1e01000007fb5c"
+    ],
+    "9": []
+   }
+  }
+ ],
+ "meta": {
+  "checksum_restored": {
+   "SYN": true,
+   "SYNACK": false
+  },
+  "driver_sha256": "832cfa0d7b9ebf0c892ae91fa0b6f50323e3d537d1e6e67801d51fa5e73bb6e9",
+  "endpoint_profile": {
+   "alternate_tcp_port_fixture": "Unconfigured-connection probes use master source port 59411",
+   "dnp_master": 1,
+   "dnp_relay": 0,
+   "master_dev": 9,
+   "master_ip": "192.168.10.1",
+   "master_mac": "3c:fd:fe:cc:5d:c0",
+   "master_tcp_port": 59410,
+   "master_window_scale": 7,
+   "name": "sel751",
+   "relay_dev": 64,
+   "relay_ip": "192.168.10.7",
+   "relay_mac": "00:30:a7:02:4c:a2",
+   "relay_tcp_port": 20000,
+   "relay_window_scale": 0,
+   "syn_tcp_header_octets": 40,
+   "synack_tcp_header_octets": 44,
+   "tcp_header_octets": 32,
+   "tcp_profile": "sel751_ts",
+   "timestamp_policy": "monotonic logical steps; exact options retained across seq/ack mapping"
+  },
+  "n_state": {
+   "SYN": {
+    "busy": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.epoch.f1": [
+      1
+     ]
+    },
+    "owner": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.owner.f1": [
+      131073
+     ]
+    },
+    "retry_epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.retry_epoch.f1": [
+      1
+     ]
+    },
+    "work.work": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.work.work.generation": [
+      1
+     ],
+     "n_Ingress.work.work.phase": [
+      4
+     ]
+    }
+   },
+   "SYNACK": {
+    "busy": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.epoch.f1": [
+      1
+     ]
+    },
+    "owner": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.owner.f1": [
+      262145
+     ]
+    },
+    "retry_epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.retry_epoch.f1": [
+      1
+     ]
+    },
+    "work.work": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.work.work.generation": [
+      2
+     ],
+     "n_Ingress.work.work.phase": [
+      4
+     ]
+    }
+   },
+   "tight_ACK_READ": {
+    "busy": [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.epoch.f1": [
+      1
+     ]
+    },
+    "owner": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.owner.f1": [
+      327681
+     ]
+    },
+    "retry_epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.retry_epoch.f1": [
+      1
+     ]
+    },
+    "work.work": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.work.work.generation": [
+      3
+     ],
+     "n_Ingress.work.work.phase": [
+      4
+     ]
+    }
+   },
+   "tight_READ_retransmission_1": {
+    "busy": [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.epoch.f1": [
+      1
+     ]
+    },
+    "owner": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.owner.f1": [
+      917505
+     ]
+    },
+    "retry_epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.retry_epoch.f1": [
+      1
+     ]
+    },
+    "work.work": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.work.work.generation": [
+      5
+     ],
+     "n_Ingress.work.work.phase": [
+      4
+     ]
+    }
+   },
+   "tight_READ_retransmission_2": {
+    "busy": [
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.epoch.f1": [
+      1
+     ]
+    },
+    "owner": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.owner.f1": [
+      917505
+     ]
+    },
+    "retry_epoch": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.retry_epoch.f1": [
+      1
+     ]
+    },
+    "work.work": {
+     "action_name": null,
+     "is_default_entry": false,
+     "n_Ingress.work.work.generation": [
+      6
+     ],
+     "n_Ingress.work.work.phase": [
+      4
+     ]
+    }
+   }
+  },
+  "physical": false,
+  "qualification_driver": false,
+  "scope": "diagnostic: exact silicon smoke frames replayed on the model",
+  "source_trial": "read_complete_01/evidence/hw_blocks/rc01_hw_c51_20261024_09_smoke/physical_relay/size_only/rc01_hw_c51_20261024_09_smoke_physical_relay_size_only_t0",
+  "tight": true
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [],
+  "passed": 5,
+  "total": 5
+ }
+}

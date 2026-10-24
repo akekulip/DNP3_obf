@@ -271,6 +271,14 @@ def validate_profile(cfg):
     spec = cfg.get('diagnostic_mau_snapshot')
     if spec is not None and not (isinstance(spec, str) and MAU_SNAPSHOT_SPEC.fullmatch(spec)):
         raise ValueError('diagnostic_mau_snapshot must be start=S,end=E,field=value/mask[,...]')
+    if spec is not None:
+        # the switch-side parser's rules (rearm hw/mau_snapshot.parse), so a bad spec never spends a hardware slot
+        parts = dict(part.split('=', 1) for part in spec.split(',')[:2])
+        names = [part.split('=', 1)[0] for part in spec.split(',')[2:]]
+        values = [tuple(int(v, 0) for v in part.split('=', 1)[1].split('/')) for part in spec.split(',')[2:]]
+        if not 0 <= int(parts['start']) <= int(parts['end']) <= 11 or {'start', 'end'} & set(names) or \
+                len(set(names)) != len(names) or any(value & ~mask for value, mask in values):
+            raise ValueError('diagnostic_mau_snapshot needs start<=end<=11, distinct trigger fields and value within mask')
     quality = cfg.get('evaluation', {})
     if quality.get('purpose', 'qualification') not in ('qualification', 'stale_source_characterization',
                                                       'timing_precision_characterization'):

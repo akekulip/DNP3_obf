@@ -45,7 +45,9 @@ class MauSnapshotOption(unittest.TestCase):
     def test_malformed_or_unsafe_specs_are_refused(self):
         base = json.loads(SMOKE_MAU.read_text())
         for spec in ('', 'start=0,end=10', 'start=0,end=10,m.packet_kind=9', 'start=0,end=10,m.x=1/1;reboot',
-                     "start=0,end=10,m.x=1/1 'q'", 'start=0,end=100,m.x=1/1', ['start=0']):
+                     "start=0,end=10,m.x=1/1 'q'", 'start=0,end=100,m.x=1/1', ['start=0'],
+                     'start=0,end=12,m.x=1/1', 'start=5,end=2,m.x=1/1', 'start=0,end=10,start=5/5',
+                     'start=0,end=10,m.x=1/1,m.x=0/1', 'start=0,end=10,m.x=2/1'):
             cfg = copy.deepcopy(base)
             cfg['diagnostic_mau_snapshot'] = spec
             with self.assertRaises(ValueError, msg=spec):

@@ -79,9 +79,11 @@ def read(sw, spec):
             out['stages'][stage] = sw.get(DATA, 0, [('stage', stage, None)])
     finally:
         trigger, cfg = sw.table(TRIGGER), sw.table(CFG)
-        trigger.entry_mod(sw.target(0), [sw.key(trigger, [('stage', spec['start'], None)])],
-                          [sw.data(trigger, [('enable', False)])])
-        cfg.entry_del(sw.target(0xffff), [sw.key(cfg, [('start_stage', spec['start'], None),
-                                                       ('end_stage', spec['end'], None)])])
-        out['deleted'] = True
+        try:
+            trigger.entry_mod(sw.target(0), [sw.key(trigger, [('stage', spec['start'], None)])],
+                              [sw.data(trigger, [('enable', False)])])
+        finally:
+            cfg.entry_del(sw.target(0xffff), [sw.key(cfg, [('start_stage', spec['start'], None),
+                                                           ('end_stage', spec['end'], None)])])
+            out['deleted'] = True
     return out
