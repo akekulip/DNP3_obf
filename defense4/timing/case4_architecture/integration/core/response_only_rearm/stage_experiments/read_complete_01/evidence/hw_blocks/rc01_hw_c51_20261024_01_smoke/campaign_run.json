@@ -1,0 +1,276 @@
+{
+ "run_id": "rc01_hw_c51_20261024_01_smoke",
+ "ok": false,
+ "failure": "rc01_hw_c51_20261024_01_smoke_physical_relay_size_only_t0: composite install dry-run (hash check, name check, ports it will loop) failed (rc 1) on switch: python3 /home/decps/Philip_repo/dnp3-defense4/response_only_composite/src/integration/core/response_only_rearm/hw/bringup_composite.py --build-out /home/decps/Philip_repo/dnp3-defense4/response_only_composite/out_m12p_c51_sdk9132 --expect bfrt.json=b8038d82f847c86319c88a0677aa0300440b1b7c09ba9dd9b0e | c8a56276d8d4d2f84ee3eb33572): PASS\n    select 0: session $tmp4 from H2\n    select 1: session md.clone_ses from H1\n    unconditional mirror_type=1: tbl_response_only2344\nPORTS FROM THE BUILD (response_only.p4pp): unreadable\n    front-panel ports this bring-up puts in MAC loopback: none\nREFUSED: 1 error(s):\n    candidate E must dispatch exactly two ports through reserved-zero provenance to Ethernet",
+ "arms": [
+  {
+   "fixture": "physical_relay",
+   "arm": "size_only",
+   "T": 0,
+   "padding": 1,
+   "build": "m12p_c51_sdk9132",
+   "trials": [
+    {
+     "fixture": "physical_relay",
+     "label": "rc01_hw_c51_20261024_01_smoke_physical_relay_size_only_t0",
+     "master_port": 60000,
+     "reads": 2,
+     "ok": false,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 0,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 57101
+     }
+    }
+   ],
+   "achieved_shaping": null
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [],
+ "collections": [
+  {
+   "unit": "rc01_hw_c51_20261024_01_smoke_physical_relay_size_only_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "74ce4da95f438dae5500fa055fcf939868cba9afd5d4ccb7e53f9363d233d75c",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "2ae2738a4b97f4e360e12d43a52624b7d0a3762bd5150a827675e26746dd0c78",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "886bc05f64fdf22945c5e48407705991defc8de2c2adfcb5946e9bd6bacc3f26",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "bd477af250c6476f5f993043e5d1334e4322b0a2cbdd0ca8b52a5392d3057d62",
+  "integration/core/response_only_rearm/hw/generation_headroom.py": "e2ef66698dce9a1c6ae2a9eace37bca1ac5fa5056e61afee23f7c62ae1fb8c2c"
+ },
+ "endpoint_observed": {
+  "endpoint_profile": "sel751",
+  "source_hashes": {
+   "vision_run.py": "8082e7233246402a93c6719c1579304f4c14932289ab81fee9a0f41a7f8dedea",
+   "endpoint_profiles.py": "b8219c7eb9f86fab8d67ca6aac0963b75130d928d9ff787c534a9e0999019eff",
+   "relay_master.py": "73ace8265227d92a9389b1ad8fdc298936435ec15a2c8049108de830eb4cabfa",
+   "loss.py": "536dd9a6c52b82813e3b5f8cad2f1c41f81d8db0685e13425b5a38e29035b0d4",
+   "capture_observation.py": "339e07eba34ef257f8e803fade535f54583b5e3ce0b083057cee2dc2194dd4de",
+   "wire_check.py": "742eded14f7dca1cb30c6d7ff41006e685cd93197ef6e5ead1d60a3a9335c953",
+   "relay_check.py": "2e3d366638f2cf67dfef3df619d26df0a069daacce5ca19a55b8eea4ca384531",
+   "relay_loss.py": "55131a8dc181b5e7bdd3d00035f9e06aba9b276be8b8c2313ff6c9b23bbe39cd",
+   "active_harness/read_requests.py": "b0bed2bad9b1e6be2a0b628e5c0d991d92096ad30dacbc9e18c3b819dd628a43",
+   "active_harness/sbo_driver.py": "161950e99b711d38ae4aefb49a43e2cab2b2201b1488cce93498d63f11c41ee2",
+   "active_harness/frozen_builders.py": "12dd425d08c7c86eb4e1f1af4420adc538033af7a506d90d93f061c378d0a079",
+   "active_harness/read_driver.py": "4a3c56ab68332221b913b1d81f3df0007f960f00a0cd913f5202a63dc638adb8",
+   "active_harness/relay_native_baseline.py": "897c170042793dd5aac010a07084548e6630249ebff5e0481149b097cd2b89d9",
+   "active_harness/dnp3_codec.py": "a70da36cbdd7fe0865f51926fac46c51db3511d46ed3d3f35340fb57da44bce8",
+   "active_harness/session.py": "652700dc50daf4cdd52ffa4ecf2d3ca8c70e8ee1a1288c11d19f0ac17a38fa48",
+   "implementation/harness/relay_operate_guarded.py": "39642db9049f65bd15d960f9b10d268fc059b3dd52dc9a45a33478172cdd0597",
+   "implementation/harness/relay_read_g10_23.py": "feeb6c5cac66900a6e4d7daad1edec66ed57a02be411ebd3ee2d4b48dc8ddfe4",
+   "implementation/harness/dnp3_wire.py": "1b3488b2bb2b5e0e6d8ebe697b5fbb15cfa4890a10d97e67c9a44859c294ea6d"
+  },
+  "master_ip": "192.168.10.1",
+  "relay_ip": "192.168.10.7"
+ },
+ "relay_helper_preflight": {
+  "command": "sudo -n /usr/bin/python3 /home/decps/sel751_guarded_20261024/relay_master.py --preflight",
+  "rc": 0,
+  "stdout": "{\"ok\": true, \"endpoint_profile\": \"sel751\", \"control_request_lengths\": [45, 45], \"socket_opened\": false}\n",
+  "stderr": ""
+ },
+ "candidate_profile_identity": {
+  "m12p_c51_sdk9132": {
+   "profile/response_only.p4": "3fe7087971f165942f8af1c94cceab5d0bef163d5d83708957d03fc270065598",
+   "profile/response_only.inputs.json": "9d81343d4e8c9ecf8e5a6baf1840224919f9910e3f67fff8551ba695322ea2cd",
+   "profile/supported_profile.json": "8fbf981b1848c3bba69855c454765d909cdd80d7267af618376dc442161b9d3c",
+   "profile/compile_local/manifest.json": "47f3ba1f1243b2ee127e647d48ef3f408d4344308d9db41a652f39ad286e469b"
+  }
+ },
+ "pre_run_program": "case4_response_path",
+ "vision_offload_baseline_sha256": "9fd5c7a1f62b6a97e93bc3be1090e64b8e58d5e86770148d7f5cf632e984b9d4",
+ "fixture": {
+  "mode": "physical_relay",
+  "emulated": false
+ },
+ "state_touched": {
+  "switch": true,
+  "vision": true
+ },
+ "effective": {
+  "timing_params_ns": {
+   "cap": 40000000,
+   "da": 2000000,
+   "gap": 950000,
+   "op_j": 2400000,
+   "pb": 4000000,
+   "readiness": 30000000
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "op": 59570,
+    "resp": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "op": 59570,
+    "resp": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "delay_ms": 0,
+   "jitter_ms": 0,
+   "modes": [
+    "physical_relay"
+   ]
+  },
+  "trials": {
+   "reads_per_trial": 2,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "close_grace_ms": 0,
+   "expected_reads_per_class": {
+    "integrity": 1,
+    "mixed": 1
+   },
+   "gap_ms": 0,
+   "master_port_note": "One bounded padded mixed/full READ acceptance connection.",
+   "master_port_range": {
+    "first": 60000,
+    "last": 60003
+   },
+   "range": 8,
+   "read_pause_ms": 25,
+   "read_schedule": "mixed_full",
+   "read_schedule_note": "Physical relay mixed_full schedule; complete READ application validation.",
+   "run_sbo": false,
+   "start_delay_ms": 0,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately."
+  },
+  "ports_map": {
+   "hb_return": 181,
+   "held_return": 182,
+   "master_dev": 9,
+   "n_ack_return": 48,
+   "recirc": 68,
+   "relay_dev": 64,
+   "stat_ports": "9,64",
+   "t_in": 180
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.1",
+   "outstation_ip": "192.168.10.7",
+   "outstation_port": 20000,
+   "read_dst": 0,
+   "read_src": 1
+  },
+  "evaluation": {
+   "purpose": "qualification",
+   "read_precision": true,
+   "arm_order": [
+    "size_only"
+   ],
+   "block": 1,
+   "campaign_block": {
+    "arguments": [
+     "--arms",
+     "size_only",
+     "--fixtures",
+     "physical_relay"
+    ],
+    "arms": [
+     "size_only"
+    ],
+    "collection_index": 5,
+    "expected_exchanges": 2,
+    "id": "rc01_m12p_c51_sdk9132_sel751_smoke",
+    "phase": "smoke",
+    "template": "eval_m11_09_20261018_01_reference.json",
+    "tool": "candidate_campaign"
+   },
+   "candidate61_label": "m11_09_part2_ref_r30",
+   "collection_order_sha256": "b91d208078dda7b5053747cce4e3d913259846a1fdbd4370ef7736e86fea36f7"
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "m12p_c51_sdk9132": 0
+  },
+  "endpoint_identity": {
+   "code": 1,
+   "count": 1,
+   "master": "active_harness",
+   "off_ms": 0,
+   "on_ms": 200,
+   "points": [
+    1,
+    3
+   ]
+  },
+  "vision_run_dir": "/home/decps/sel751_guarded_20261024"
+ },
+ "config_sha256": "eac4707cf20951cee5d5685cb5d975cecfb882acc634f6fb705e2efbf5876db1",
+ "config_file_sha256": "7e7b364f02af3d0a67562e897a7c39bb9a4c8b3f7f5953669ef262d6e58b3571",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "d73831a46cd6e5609b3fc696b1eeda3274ef9c08b4c0f8b0088c7fabc10d05c1",
+   "checks.py": "333708e14644c295492c5e98b849955bb54320bb110a45b0a4ebed97dad0984d",
+   "vision_run.py": "8082e7233246402a93c6719c1579304f4c14932289ab81fee9a0f41a7f8dedea",
+   "clrt_check.py": "11e19ec874f18bea47c425c59006a2b1da81c90dc7c4a1697184c20a6b29732f",
+   "wire_check.py": "742eded14f7dca1cb30c6d7ff41006e685cd93197ef6e5ead1d60a3a9335c953",
+   "hold_check.py": "5f27d05ae9bfe7a25a0fe9e65cc04906e46247856d4e759613c0db8e05267303",
+   "read_classes.py": "b62c4798fe35bd3115d8727e2b734f8233d23e0069138c5e39998e2e039cef31"
+  },
+  "build_sources": {
+   "m12p_c51_sdk9132": {
+    "source_sha256": "3fe7087971f165942f8af1c94cceab5d0bef163d5d83708957d03fc270065598",
+    "source_files": {
+     "response_only.p4": "3fe7087971f165942f8af1c94cceab5d0bef163d5d83708957d03fc270065598"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "m12p_c51_sdk9132": {
+   "bfrt.json": "b8038d82f847c86319c88a0677aa0300440b1b7c09ba9dd9b0e7f2498f18d7b8",
+   "p0/tofino.bin": "59d3b6ed54f4008a252afc55a377b7c7a61db078d9cc6ff8ffddc56fd361515f",
+   "p1/tofino.bin": "7d111ff25511c49232edff62f38288cd39ed494c696368a2f8283bb3170b82e2",
+   "p1/response_only.bfa": "f4535e9aa482712b2375a702acce292e52c77c8a56276d8d4d2f84ee3eb33572"
+  }
+ },
+ "paired_block": null,
+ "time": 1792877250.4305062,
+ "gate_ok": false
+}

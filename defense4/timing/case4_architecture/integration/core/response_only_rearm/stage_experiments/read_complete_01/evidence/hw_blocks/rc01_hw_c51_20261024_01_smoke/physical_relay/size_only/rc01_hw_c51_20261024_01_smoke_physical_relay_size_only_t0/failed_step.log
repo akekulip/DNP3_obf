@@ -1,0 +1,13 @@
+BUILD IDENTITY (/home/decps/Philip_repo/dnp3-defense4/response_only_composite/out_m12p_c51_sdk9132):
+    OK       b8038d82f847c86319c88a0677aa0300440b1b7c09ba9dd9b0e7f2498f18d7b8  bfrt.json
+    OK       59d3b6ed54f4008a252afc55a377b7c7a61db078d9cc6ff8ffddc56fd361515f  p0/tofino.bin
+    OK       f4535e9aa482712b2375a702acce292e52c77c8a56276d8d4d2f84ee3eb33572  p1/response_only.bfa
+    OK       7d111ff25511c49232edff62f38288cd39ed494c696368a2f8283bb3170b82e2  p1/tofino.bin
+MIRROR GUARD (check_mirror_select on /home/decps/Philip_repo/dnp3-defense4/response_only_composite/out_m12p_c51_sdk9132/p1/response_only.bfa, sha256 f4535e9aa482712b2375a702acce292e52c77c8a56276d8d4d2f84ee3eb33572): PASS
+    select 0: session $tmp4 from H2
+    select 1: session md.clone_ses from H1
+    unconditional mirror_type=1: tbl_response_only2344
+PORTS FROM THE BUILD (response_only.p4pp): unreadable
+    front-panel ports this bring-up puts in MAC loopback: none
+REFUSED: 1 error(s):
+    candidate E must dispatch exactly two ports through reserved-zero provenance to Ethernet

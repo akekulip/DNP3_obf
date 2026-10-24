@@ -36,6 +36,16 @@ def candidate_ports(build_out):
     if not path.is_file():
         return {}, ['compiled candidate source is missing: ' + str(path)]
     text = path.read_text(errors='replace')
+    # relay_sbo (c48+) also strips provenance on the physical relay departure. Accept that one extra
+    # entry only when it is this build's compiled t_RELAY_PORT, and remove it before the baseline reader.
+    relay = re.findall(r'const PortId_t t_RELAY_PORT\s*=\s*9w(\d+)', text)
+    departure = None
+    if len(relay) == 1:
+        entry = r'(transition\s+select\(eg\.egress_port\)\s*\{\s*9w\d+\s*:\s*provenance;)(\s*9w%s\s*:\s*provenance;)' % relay[0]
+        found = list(re.finditer(entry + r'(\s*9w\d+\s*:\s*provenance;\s*default:\s*accept;\s*\})', text))
+        if len(found) == 1:
+            departure = int(relay[0])
+            text = text[:found[0].start()] + found[0].group(1) + found[0].group(3) + text[found[0].end():]
     dispatch = (r'transition\s+select\(eg\.egress_port\)\s*\{\s*'
                 r'9w\d+\s*:\s*provenance;\s*9w\d+\s*:\s*provenance;\s*default:\s*accept;\s*\}')
     provenance = (r'state\s+provenance\s*\{\s*pkt\.extract\(hdr\.prov\);\s*'
@@ -50,7 +60,10 @@ def candidate_ports(build_out):
     normalized = text[:match.start()] + match.group().replace('provenance;', 'eth;') + text[match.end():]
     with tempfile.TemporaryDirectory(prefix='rearm_port_check_') as temporary:
         (Path(temporary) / path.name).write_text(normalized)
-        return baseline_ports.read(temporary)
+        ports, errors = baseline_ports.read(temporary)
+    if departure is not None and not errors:
+        ports['e_relay_departure'] = departure
+    return ports, errors
 
 
 installer.build_ports = SimpleNamespace(read=candidate_ports,
