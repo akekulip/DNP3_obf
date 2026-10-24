@@ -69,10 +69,13 @@ class BuildEvidence(unittest.TestCase):
     def test_event_logger_is_opt_in_and_recorded_on_failed_build(self):
         ordinary = self.module.compile_candidate(self.source, self.root / 'ordinary', self.compiler)
         diagnostic = self.module.compile_candidate(self.source, self.root / 'diagnostic', self.compiler,
-                                                    event_logger=True)
+                                                    event_logger=True, parser_debug=True)
         flag = '-Xp4c=--enable-event-logger'
         self.assertNotIn(flag, ordinary['command'])
         self.assertEqual(diagnostic['command'].count(flag), 1)
+        parser_flag = '-Xp4c=-Tlower_parser:5'
+        self.assertNotIn(parser_flag, ordinary['command'])
+        self.assertEqual(diagnostic['command'].count(parser_flag), 1)
         self.assertEqual(diagnostic['source_sha256'], ordinary['source_sha256'])
         self.assertEqual(diagnostic['exit_code'], 3)
         self.assertFalse(self.module.verify_evidence(self.root / 'diagnostic')['compiled_artifacts_verified'])

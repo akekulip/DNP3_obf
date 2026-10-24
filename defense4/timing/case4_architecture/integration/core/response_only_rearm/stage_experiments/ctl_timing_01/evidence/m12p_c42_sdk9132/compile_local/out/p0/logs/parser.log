@@ -1,0 +1,90 @@
+ingress::native_dl is split into 3 states:
+  ingress::native_dl
+  ingress::native_dl.$split_0
+  ingress::native_dl.$split_1
+ingress::native_tcp is split into 2 states:
+  ingress::native_tcp
+  ingress::native_tcp.$split_0
+ingress::read_tcp is split into 2 states:
+  ingress::read_tcp
+  ingress::read_tcp.$split_0
+ingress::rx_tcp is split into 2 states:
+  ingress::rx_tcp
+  ingress::rx_tcp.$split_0
+ingress::rx_response_tcp is split into 2 states:
+  ingress::rx_response_tcp
+  ingress::rx_response_tcp.$split_0
+ingress::replay_tcp is split into 2 states:
+  ingress::replay_tcp
+  ingress::replay_tcp.$split_0
+ingress::ts_tcp is split into 2 states:
+  ingress::ts_tcp
+  ingress::ts_tcp.$split_0
+ingress::ts_synack is split into 2 states:
+  ingress::ts_synack
+  ingress::ts_synack.$split_0
+ingress::ts_synack_tcp is split into 2 states:
+  ingress::ts_synack_tcp
+  ingress::ts_synack_tcp.$split_0
+ingress::rtail37 is split into 2 states:
+  ingress::rtail37
+  ingress::rtail37.$split_0
+ingress::ts_read_response_tcp is split into 2 states:
+  ingress::ts_read_response_tcp
+  ingress::ts_read_response_tcp.$split_0
+ingress::eth is split into 2 states:
+  ingress::eth
+  ingress::eth.$split_0
+egress::ctl_b0 is split into 3 states:
+  egress::ctl_b0
+  egress::ctl_b0.$split_0
+  egress::ctl_b0.$split_1
+egress::synack_ts is split into 2 states:
+  egress::synack_ts
+  egress::synack_ts.$split_0
+egress::tcp is split into 2 states:
+  egress::tcp
+  egress::tcp.$split_0
+egress::ip is split into 2 states:
+  egress::ip
+  egress::ip.$split_0
+egress::min_parse_depth_accept_loop.$it3 is split into 2 states:
+  egress::min_parse_depth_accept_loop.$it3
+  egress::min_parse_depth_accept_loop.$it3.$split_0
+egress::min_parse_depth_accept_loop.$it2 is split into 2 states:
+  egress::min_parse_depth_accept_loop.$it2
+  egress::min_parse_depth_accept_loop.$it2.$split_0
+egress::min_parse_depth_accept_loop.$it1 is split into 2 states:
+  egress::min_parse_depth_accept_loop.$it1
+  egress::min_parse_depth_accept_loop.$it1.$split_0
+egress::min_parse_depth_accept_loop is split into 2 states:
+  egress::min_parse_depth_accept_loop
+  egress::min_parse_depth_accept_loop.$split_0
+egress::min_parse_depth_reject_loop is split into 2 states:
+  egress::min_parse_depth_reject_loop
+  egress::min_parse_depth_reject_loop.$split_0
+egress::provenance is split into 2 states:
+  egress::provenance
+  egress::provenance.$split_0
+FindNegativeDeposits: State ingress::finish tagged to be updated as it does negative deposit.
+FindZeroShiftDeposits: State ingress::select_finish tagged to be updated since we can get to a negative deposit via 0 shift.
+FindZeroShiftDeposits: State ingress::operate_finish tagged to be updated since we can get to a negative deposit via 0 shift.
+FindZeroShiftDeposits: State ingress::native_command_reject tagged to be updated since we can get to a negative deposit via 0 shift.
+FindZeroShiftDeposits: State ingress::mss_check tagged to be updated since we can get to a negative deposit via 0 shift.
+FindZeroShiftDeposits: State ingress::ts_syn_ws tagged to be updated since we can get to a negative deposit via 0 shift.
+FindZeroShiftDeposits: State ingress::ts_syn_echo tagged to be updated since we can get to a negative deposit via 0 shift.
+FindZeroShiftDeposits: State ingress::ack tagged to be updated since we can get to a negative deposit via 0 shift.
+FindZeroShiftDeposits: State ingress::close tagged to be updated since we can get to a negative deposit via 0 shift.
+FindZeroShiftDeposits: State ingress::ts_synack_ts tagged to be updated since we can get to a negative deposit via 0 shift.
+FindZeroShiftDeposits: State ingress::ts_synack_sack tagged to be updated since we can get to a negative deposit via 0 shift.
+RemoveNegativeDeposits: Transition from ingress::native_dl.$split_1 to ingress::select_finish changed shift: 2->1
+RemoveNegativeDeposits: Shifting every PacketRVal in state ingress::select_finish by one byte.
+RemoveNegativeDeposits: Shifting every PacketRVal in state ingress::finish by one byte.
+RemoveNegativeDeposits: Transition from ingress::finish to --END-- changed: 0->1
+RemoveNegativeDeposits: Transition from ingress::native_dl.$split_1 to ingress::operate_finish changed shift: 2->1
+RemoveNegativeDeposits: Shifting every PacketRVal in state ingress::operate_finish by one byte.
+RemoveNegativeDeposits: Transition from ingress::native_tcp.$split_0 to ingress::native_command_reject changed shift: 4->3
+RemoveNegativeDeposits: Shifting every PacketRVal in state ingress::native_command_reject by one byte.
+RemoveNegativeDeposits: Transition from ingress::native_tcp.$split_0 to ingress::native_command_reject changed shift: 4->3
+RemoveNegativeDeposits: Transition from ingress::ts_syn to ingress::ts_syn_echo changed shift: 20->19
+RemoveNegativeDeposits: Shifting every PacketRVal in state ingress::ts_syn_echo by one byte.

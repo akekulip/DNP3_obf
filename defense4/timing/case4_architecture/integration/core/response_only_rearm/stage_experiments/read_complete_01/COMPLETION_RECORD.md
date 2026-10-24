@@ -13,7 +13,7 @@ machinery is being added. Current TCP is SYN40/SYNACK44/DATA32 with timestamps a
 restoration are under `evidence/relay_native_capture_20261024/relay_native_20261024_02/`; supervisor COMPLETE rc0.
 All89 frozen source entries are retained byte-exact beside that run. Native01 failure and restoration remain separate.
 
-The old c29 exact busy-FIN probe fails6/11 with stale retries and missing relay FIN/final ACK. FIN remains OPEN until
+The old c29 exact busy-FIN probe passes6/11 and fails5checks, with stale retries and missing relay FIN/final ACK. FIN remains OPEN until
 the successor passes the exact model regression and physical recovery. c31–c34 failed compiler lowering/PHV/stage fit;
 c35 was rejected by static parser preflight; c36 failed two RegisterAction type signatures. Every attempt is retained.
 The timestamp successor and physical recovery helpers are under implementation/review. No padded relay candidate has
@@ -266,8 +266,7 @@ regeneration to `1e94c31d80e6…`, model gate, freeze) and `bash reproduce.sh --
 
 ## 9. SEL-751 relay READ-side deliverable (m12p_c30), 2026-10-24
 
-The relay is the outstation (SEL-751, 192.168.10.7:20000, DNP3 addr 0; master addr 1). READ side complete
-end-to-end; SBO and the hardware blocks remain (they exercise SELECT/OPERATE control content).
+The relay is the outstation (SEL-751, 192.168.10.7:20000, DNP3 addr 0; master addr 1). READ construction and compiled-model checks are demonstrated; padded physical relay READ/SBO delivery remains pending.
 
 - **Baseline (tier 3):** `relay_native_baseline.py` drove READ-only mixed+integrity polls .1->.7 through the
   switch; `evidence/relay_native_20261024/` holds the decoded natives. Mixed answers 91 B (G1V2 0..15 + G30V1
@@ -293,7 +292,6 @@ end-to-end; SBO and the hardware blocks remain (they exercise SELECT/OPERATE con
   281/281, policy_boundary 206/206, smoke 30/30, smoke_sizeoff 30/30 = 1332/1332. Software regression: c29
   two_read_robust 163/163; generator identity 10/10 byte-identical; m12_fullsize 74 + 56 subtests.
 - **Reproducible:** relay vectors regenerate byte-identically; c30 source regenerates to b006752236a7.
-- **Open (SELECT/OPERATE-coupled -> blocked in-session / for Philip):** control-coupled model drivers
+- **Open at the c30 milestone; now in progress under the approved SEL-751 task:** control-coupled model drivers
   (dup, rearm, select_lifecycle, abort, abandon, contention, repeat, control_timing), the SBO image derivation
-  (correction #3, try 60 first), and the hardware four-arm + recovery + timing blocks on the SEL-751. c30 is not
-  yet frozen, so it is deliberately not added to reproduce.sh (added at hardware qualification, as c27-c29 were).
+  (correction #3, try 60 first), and the hardware four-arm + recovery + timing blocks on the SEL-751. c30 remains the READ-shaped reference. The active reproduce.sh now recognizes c30_sdk9132 with its exact flags/hash; current dependency changes must not be represented as historical v3 qualification. Integrated relay qualification remains pending.

@@ -2874,3 +2874,34 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
   checksums andretains6IP/TCPflagseparationpairs; stripping6hintlines givesbyteidenticalc38.108offlinetests and10
   legacyidentitiespass; independentidentity/sourceapproval. SDK9.13.2compilationwithevents running; no successor
   compilation/model/physicalqualificationclaim. Sourcecheckpoint includesreviewedmodel/campaignchanges andfailedattempts.
+- c41 compileexit4/79.512s. SixPHVhints work: partialallocationN/E indices0..10; no finalartifactfitclaim because
+  backendstillcrashesbeforeBFA/bin/p1reports. SDKeventtrace2101JSONLrecords endsafterFindNegativeDeposits; local
+  upstreamcompiler source shows eventsrecordafterpasses, so nextRemoveNegativeDeposits islikelyfailurepoint.
+  TherearenoCompilationError events/core dumps; 862GBdiskfree rulesoutdiskexhaustion. Sharedzero-extractNfinish
+  depositschecksum; parseralsoassignsshallowconstanttosamefield andSDKexplicitlywarns unsupportedclear-onwrite.
+  c42willisolate movingonlythatinheritedshallowconstant toexistingadmitaction, preservingchecksandthedeclared
+  shallowlimit. Causalityremainsahypothesisuntilnewcompile. Nextdiagnostics useSDKlower_parserlevel5trace.
+- c42 compilerexit4/101.355s; unsupportedparserconstant-writewarning removedbutloweringstillcrashed. PartialN/E
+  placementhighest11 because read_shallow_admit2→network3→guard4. Debugtrace is in p0/logs/parser.log, notcompile.log:
+  RemoveNegativeDeposits shifts zero-extract finish backward through ts_syn_echo lookback and fails. SDKlocalupstream
+  confirms negativePacketRValrangeassertion. c43depositsfullSYN/SYNACKchecksumafterlast20/24optionbytes, before
+  unchangedexactoptionchecks;286cases/113tests/legacy10identitiesandindependentreviewpass.
+- c43 compilerexit3/102.876s nowgets pastthepreviousICEand reportsconcreteparsermatch-register exhaustion atlate
+  mss_check (32MSSbits keptliveacross32bitTSwordchecks). Nextc44validatesMSSfirst andmovesonlypacket_kind11shallow
+  constant toexistingstage1crc_taction, addressingboth identifiedconstraintswithoutweakeningchecks/limits.
+- c44 source10e1b0e3fd97660bd10ac0ea00e49d1e29c6880e9a93f49bf953034b18dd6ed7 passes118offline tests,
+  legacy10identity andindependentreview. PartialN/Eplacementreturns0..10 viaearlyrow11constant, andMSSregister
+  errorisresolved. Compileexit3/79.874s exposesnextspecificparserlifetime: rx_tcp_ts32bitprefix plusIP.len16held
+  untilREADIP/DLcorrelation requires48matchbits, hardwarehas32. c45willconsume/checkfixedprefix2+2bytes then
+  preserveopaque8byteTSbody onONLYtwoNREADbranches. IP/DLcorrelationandallprefixchecksremainmandatory.
+- c45 and c46 isolated parser lifetime and final checksum-deposit bounds. c47 streams handshake option checks
+  and isolates the pipe1 input CRC container; source SHA2191c15b94f4f83fcd78650b0bdc8f66f3029eda66253d8df85abfb48e1711fe.
+  Compilation succeeds (97.919s, SDK9.13.2); all ten artifact/source pins verify. Independent raw-context review
+  confirms N/E/T stages0–10 and pipe1 egress0–3, valid residual deposit bounds, mirror guards and no added SALUs/traversals.
+  P0 totals: SRAM182, TCAM102, crossbar866, SALU24; P1: SRAM61, TCAM63, crossbar403, SALU13.
+  The reporter does not attribute x_Egress individually: its costs are included in shared/unattributed and pipeline totals,
+  so an attributed zero must not be presented as zero physical cost.
+- c47 smoke01 fails its first SYN: one packet reaches dev64 with16 extra internal bytes
+  0000000100000000000000000e000000 before the otherwise exact expected Ethernet frame. Raw captures, driver,
+  closure and logs remain retained. Root-cause investigation is active; all downstream qualification remains blocked.
+  FIN stays OPEN. No padded candidate hardware load has occurred.

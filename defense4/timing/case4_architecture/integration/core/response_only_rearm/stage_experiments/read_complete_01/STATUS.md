@@ -13,7 +13,7 @@ machinery is being added. Current TCP is SYN40/SYNACK44/DATA32 with timestamps a
 restoration are under `evidence/relay_native_capture_20261024/relay_native_20261024_02/`; supervisor COMPLETE rc0.
 All89 frozen source entries are retained byte-exact beside that run. Native01 failure and restoration remain separate.
 
-The old c29 exact busy-FIN probe fails6/11 with stale retries and missing relay FIN/final ACK. FIN remains OPEN until
+The old c29 exact busy-FIN probe passes6/11 and fails5checks, with stale retries and missing relay FIN/final ACK. FIN remains OPEN until
 the successor passes the exact model regression and physical recovery. c31–c34 failed compiler lowering/PHV/stage fit;
 c35 was rejected by static parser preflight; c36 failed two RegisterAction type signatures. Every attempt is retained.
 The timestamp successor and physical recovery helpers are under implementation/review. No padded relay candidate has

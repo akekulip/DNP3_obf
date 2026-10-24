@@ -36,7 +36,7 @@ master MAC3c:fd:fe:cc:5d:c0, relay MAC00:30:a7:02:4c:a2.
 | Native baseline READ/SBO | Physical02 block PASS; all4 planned exchanges; full capture and independent restoration retained |
 | READ construction | Preserve c30 source b006752 and its original READ model evidence;91→141 and134→158 targets fixed |
 | Actual SBO encoding | Whole49→60/15+17app offline reference and generated-byte tests pass; ASIC/model qualification pending |
-| Integrated candidate | c31–c40 failed compile/static attempts retained; c41 compiling; no successor loaded or qualified |
+| Integrated candidate | c47 compiles on SDK9.13.2 within all stage limits; independent artifact review passes. First model smoke fails with an extra internal header; no successor loaded on hardware |
 | Exact model gate | Corrected c30 control_timing04 passes415/415; successor requires14 existing drivers+relay_sbo+fin_busy on one sealed bundle |
 | FIN race | OPEN: c29 fin_busy01 reproduces half-close retry_epoch invalidation, stale retries and missing FIN; successor repair unqualified |
 | Relay padded/four-arm/recovery/timing/J | NOT RUN; requires current timestamp-capable image, placement, review and complete model gate |
@@ -44,9 +44,12 @@ master MAC3c:fd:fe:cc:5d:c0, relay MAC00:30:a7:02:4c:a2.
 
 ## Active work
 
-- P4/resource lane: add observed TS profile without host changes; reduce verified critical-path/resource cost.
-  c31 failed action lowering; c32 PHV allocation; c33/c34 use14 p0 stages and fail assembler. c37/c38 hit an internal compiler error; c38 placement reaches N10/E11. c39 still failed with an original checksum flag sharing a container. c40 hit an unsupported deparser else-if form; c41 restores sequential checksum branches and separates all six flag pairs. All sources/logs kept.
-  N/E highest occupied physical index must remain≤10; T≤11 occupied; pipe1 egress≤4. No check/traversal waiver.
+- P4/resource lane: c47 source `2191c15b94f4f83fcd78650b0bdc8f66f3029eda66253d8df85abfb48e1711fe`
+  compiles successfully on pinned SDK9.13.2. Raw contexts confirm N/E/T stages0–10 and pipe1 egress0–3;
+  independent review verifies parser deposit bounds, mirror guards and all ten artifact/source pins.
+  The first smoke observes one SYN with an extra16-byte internal header before the exact Ethernet frame.
+  This runtime failure blocks downstream qualification while its dataplane path is diagnosed. Failed attempts remain retained.
+  No stage-limit, checksum, traversal or packet assertion waiver.
 - Model lane: all14 gates retargeted and reviewed for actual45/49→60, physical IP/MAC and TS options; runtime execution pending. Strengthen actual-SBO one-commit/growth/retransmission and partial-ACK observations.
   Keep old fixtures only as offline historical regressions. Gate fails closed for missing relay/FIN evidence.
 - Campaign lane: explicit sel751 profile, permitted privileged Python application with explicit --apply,
