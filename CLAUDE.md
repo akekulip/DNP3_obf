@@ -11,7 +11,7 @@ manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
 ## Agent start
 
 0. Current SEL-751 continuation (2026-10-24): read root `CLAUDE_HANDOVER_20261024.md` and `plan.md` first.
-   c50 compiled/model FIN193/193; c51 RST repair is proposal only. Final model gate and physical qualification remain.
+   c51 selected: model_gate_passed; physical reference 772/772; persistence/reconnect/held-OPERATE pending (Vision outage).
 1. Read `defense4/timing/case4_architecture/ACTIVE_CODE_MAP.md`: the active code path with commands.
 2. Read the run's status file `.../stage_experiments/read_complete_01/CURRENT.md` (history in `STATUS.md`,
    full record in `COMPLETION_RECORD.md`).
@@ -25,7 +25,7 @@ manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
   (`.../stage_experiments/m12_fullsize/make_m12.py` with `m12gen/`), builds and model gate
   (`.../ctl_timing_01`), the manuscript evaluation (`.../seg61_02`), the current run (`.../read_complete_01`),
   the hardware supervisor (`integration/evidence/rearm_01/hw`) and the endpoint library (`protocol/hw_vepa`).
-  Current verified checkpoint: `m12p_c50_sdk9132` (actual relay profile, compiled/model only; no padded hardware run).
+  Current checkpoint: `m12p_c51_sdk9132` (model gate passed; padded physical smoke and 772-exchange reference ran).
 - `defense4/timing/` (outside `case4_architecture/`) — the timing-only record: the P4 that ran
   (`implementation/`), the campaigns (`evidence/campaign_v2/`, which corrects the acknowledgment-anchored
   `campaign_v1/`; `final_read_sbo/` is older), the anchor fix (`anchor_fix/FINDINGS.md`), audits, the delay

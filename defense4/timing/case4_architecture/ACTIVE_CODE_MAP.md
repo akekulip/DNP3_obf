@@ -1,7 +1,7 @@
 # Active code map: the two-READ size and timing candidate
 
 Claude continuation: repository-root [plan.md](../../../plan.md) and
-[CLAUDE_HANDOVER_20261024.md](../../../CLAUDE_HANDOVER_20261024.md). Handover stopped at c50; c51 RST fix is proposal only.
+[CLAUDE_HANDOVER_20261024.md](../../../CLAUDE_HANDOVER_20261024.md). c51 is the selected candidate (model gate passed; physical reference 772/772; recovery blocks incomplete).
 
 One page for finding the code that is in use now. Status as of 2026-10-24. The single
 status file for the current run is `STAGE/read_complete_01/CURRENT.md`; the dated history is `STATUS.md` in
@@ -20,6 +20,7 @@ PY312=${RESEARCH_PYTHON:-$HOME/.venvs/research/bin/python}   # Python 3.12; syst
 
 | build | what it is | state |
 |---|---|---|
+| `m12p_c51_sdk9132` | c50 plus 8 qualified half-closed RST first_event rows | model_gate_passed (16 drivers); physical smoke rc0, reference 772/772 rc0, loss_full rc0, loss_mixed 4/7, persistence aborted (Vision outage); timing fails 100 us |
 | `m12p_c50_sdk9132` | c49 plus guarded bounded FIN owner-phase restart | compiled/reviewed within limits; exact fin_busy193/193 across3connections; final16-driver gate and all padded physical runs pending |
 | `m12p_c49_sdk9132` | timestamp relay45/49 control profile with canonical constant keys | installed-row readback exact; diagnostic30/30; relay_sbo1085/1085; busy-FIN62/70 failure retained |
 | `m12p_c51_sdk9132` | proposed qualified half-closed RST admission | DOES NOT EXIST; root plan.md gives counterexample, eight-row proposal, alternatives and tests |

@@ -1,5 +1,18 @@
 # read_complete_01 — status (newest first)
 
+
+## 2026-10-24 (evening) — c51 model gate passed; physical SEL-751 reference 772/772; hardware stopped (Vision unreachable)
+
+c51 (source 3fe70879; c50 + 8 qualified half-closed RST first_event rows) passed the enforced 16-driver model gate
+(model_gate_passed) and ran on the physical SEL-751 through the frozen wrapper: smoke rc0 (91->141, 134->158);
+four-arm reference rc0 772/772 exchanges with exact native/padded sizes; timing arms FAIL the 100 us criterion
+(p99 complete CLRT ~2.6-4.5 ms) and OPERATE J is unproven; loss_full rc0 7/7; loss_mixed rc1 with 4/7 presets
+(dropped SELECT response -> relay SBO TIMEOUT, safe); persistence_graceful rc2 because Vision 10.10.54.166 became
+unreachable mid-block -> unsafe_restoration=true, all hardware stopped; persistence_rst, reconnect and held OPERATE
+not run. FIN/RST physical recovery remains OPEN. Two hardware-path defects were fixed on the way (installer E
+provenance check; logical vs wire-order READ link addresses, located with a new opt-in MAU snapshot). Details:
+repository-root WORKING_NOTES.md (top) and the commits from 76888456a to the latest.
+
 ## 2026-10-24 — Claude handover at verified c50
 
 The current authority is `CURRENT.md` and `OVERNIGHT_PLAN_20261024.md`. Older completion claims below are historical.

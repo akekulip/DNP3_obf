@@ -1,6 +1,39 @@
 # Working notes
 
-## >>> CURRENT HANDOVER (2026-10-24) — read this first
+## >>> CURRENT (2026-10-24 evening, Claude continuation from 9dbed5297) — read this first
+
+Candidate **c51** (`ctl_timing_01/evidence/m12p_c51_sdk9132`, source 3fe70879…, SDK 9.13.2, resources identical to
+c50) is the selected physical SEL-751 image. Plan: ~/.claude/plans/pasted-content-id-2b95-ontinue-the-sharded-ripple.md.
+
+- Half-closed RST repair: 8 first_event rows (relay_sbo.half_closed_rst). Offline 13 tests (60-case matrix, whole-table
+  overlap, stale epoch/generation, CAS restart) + 143 existing + 10 identities. c50 runtime counterexample fails as
+  predicted (attempts 01/02); c51 25/25. Independent review: no blocker; W1 (seq_ok also admitted) accepted per spec.
+- Model gate: model_summary --v3 --enforce = model_gate_passed (16 drivers; packets 744 incl. half_rst, relay_sbo 1085,
+  fin_busy 193, contention 453, rearm 799). Driver retargets for sel751_ts found and fixed: contention payload test
+  (66-byte TS pure ACK), reset_application_check (TS-order case required), rearm private snapshot (no
+  pair_real_object_real_on on relay_sbo builds). Attempt-01 packets/rearm failures were model capture lag.
+- Hardware path defects found and fixed on the way to silicon (each failed block retained, restoration verified):
+  c01 installer refused E's 3-entry provenance dispatch (relay 64 added in c48) -> candidate_ports accepts the
+  compiled t_RELAY_PORT; c09/c10/c11 every READ refused in N: sel751 configs hold LOGICAL DNP3 addresses but the
+  installer/N compare WIRE-order hdr.dl octets -> campaign.installer_read_addresses (src 1 -> 0x0100). Found with a
+  new opt-in BF-RT MAU snapshot (diagnostic_mau_snapshot; hw/mau_snapshot.py), proven on the model first.
+- **Physical SEL-751 results (c51):**
+  smoke 12: rc0, mixed 91->141, integrity 134->158.
+  reference 02: rc0, **772/772** exchanges, sizes exact all four arms (native 91/134/49/49; padded 141/158/60/60);
+  timing arms FAIL the 100 us criterion (p99 complete CLRT ~2.6-4.5 ms vs off 9-17 ms); OPERATE J unproven.
+  loss_full 04: rc0 7/7 trials (timing fails; two trials T counters 21 vs 22).
+  loss_mixed 03: rc1, 4/7 presets ran; dropped padded SELECT response -> relay retransmits ~1 s later, SBO arm window
+  expired, relay answers OPERATE TIMEOUT on both points (safe). operate_req, operate_resp_padded,
+  master_ack_of_padded_data NOT executed.
+  persistence_graceful 05: rc2 — **Vision 10.10.54.166 became unreachable (No route to host, ARP FAILED)** during
+  traffic; switch restored to production (399 tables compared clean) but Vision restore/ping impossible ->
+  unsafe_restoration=true. **ALL HARDWARE STOPPED.** persistence_rst, reconnect, held_operate (06-08) NOT run.
+- FIN/RST recovery remains OPEN on silicon (persistence/reconnect not executed). Timing/J: not qualified.
+- Next: Vision must be brought back by Philip (no reboot by Claude). Then reconcile through
+  `evaluation_campaign.py reconcile <campaign dir> rc01_hw_c51_20261024_05_persistence_graceful_950` (reviewed path),
+  rerun 05 under a new ID, then 06-08, and the missing loss presets.
+
+## >>> PREVIOUS HANDOVER (2026-10-24, before this continuation)
 
 Philip requested handover to Claude, updated all notes/plans, and commit/push. All agents stopped cleanly.
 Read repository-root `CLAUDE_HANDOVER_20261024.md` and `plan.md`; they supersede stale checkpoints below.
