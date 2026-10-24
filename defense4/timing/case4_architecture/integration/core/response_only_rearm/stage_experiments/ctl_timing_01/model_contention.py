@@ -35,6 +35,13 @@ Model, Report, gc, same_frame = rb.Model, rb.Report, rb.gc, rb.same_frame
 PM, MASTER, RELAY, IMAGE_LEN = rb.PM, rb.MASTER, rb.RELAY, rb.IMAGE_LEN
 
 
+def tcp_payload_len(frame):
+    """TCP payload octets of an IPv4 frame from its IP total length (ignores Ethernet padding)."""
+    ip_len = int.from_bytes(frame[16:18], 'big')
+    ihl = (frame[14] & 15) * 4
+    return ip_len - ihl - (frame[14 + ihl + 12] >> 4) * 4
+
+
 def img_len(kind):
     """Wire image of a response kind on this build (READ image differs from the control image on policy builds)."""
     return rb.rp.read_image_len(IMAGE_LEN) if kind == 'READ' else IMAGE_LEN
@@ -477,9 +484,12 @@ def main():
             fwd_rst = vectors.packet(20, c, s)
             # the relay-bound RST copy that also leaves the master port in every m3/m4 run is exempt
             # (model_control_timing.py reset case); no ACK image or response may reach the master
-            payload_to_master = [f for _t, p, f in got if p == MASTER.dev_port and len(f) > 60
+            # TCP payload from the IP total length: frame length alone misclassifies a timestamp-bearing
+            # pure ACK (sel751_ts: 66 bytes) as payload.
+            payload_to_master = [f for _t, p, f in got if p == MASTER.dev_port and tcp_payload_len(f) > 0
                                  and not same_frame(f, fwd_rst, fwd_rst)]
             row = dict(tag=tag, kind=kind, frames_to_master=sum(1 for _t, p, _f in got if p == MASTER.dev_port),
+                       master_frames=[f.hex() for _t, p, f in got if p == MASTER.dev_port],
                        payload_frames_to_master=len(payload_to_master),
                        lane={k: after[k] - before[k] for k in LANE},
                        count_busy_delta=[b - a for a, b in zip(busy0, busy1)])

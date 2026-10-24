@@ -7,6 +7,7 @@ timing observed here is model behavior, not host timing or ASIC evidence.
 import copy
 import hashlib
 import importlib.util
+import json
 import os
 import struct
 import sys
@@ -129,12 +130,15 @@ def main():
             return {role: {name: m.register_read(prefix[role] + name, 0, pipe=1 if role == 'T' else 0) for name in names}
                     for role, names in registers.items()}
 
+        # relay_sbo replaces the object/on-time pair register with the guarded fixed command constants.
+        inputs = json.loads(Path(os.environ['PORT_MAP']).read_text())
+        pairs = ('pair_real_links_real_tcp_src', 'pair_real_tcp_dst_real_tcp_ports') + (
+            () if 'relay_sbo' in inputs.get('transforms_applied', []) else ('pair_real_object_real_on',)) + (
+            'pair_real_off_native_start', 'pair_native_end_server_start')
+
         def private_snapshot():
             state = snapshot()
-            for name in ('work.work', 'counter', 'application', 'read_app',
-                         'pair_real_links_real_tcp_src', 'pair_real_tcp_dst_real_tcp_ports',
-                         'pair_real_object_real_on', 'pair_real_off_native_start',
-                         'pair_native_end_server_start'):
+            for name in ('work.work', 'counter', 'application', 'read_app') + pairs:
                 state['N'][name] = m.register_read('p0.n_Ingress.' + name, 0, pipe=0)
             return state
 

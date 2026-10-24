@@ -204,6 +204,9 @@ def coverage_problems(results, reports):
     required = ('SYN', 'SYNACK', 'final_ACK', 'first_RST_relayed_once', 'response_at_most_once',
                 'new_SYN', 'new_SYNACK', 'new_final_ACK', 'new_READ_request_relayed',
                 'new_READ_delivered_once_committed', 'new_RST_relayed')
+    # The timestamp-bearing relay profile adds an option-order check to each restart's new READ; it is required.
+    if (meta.get('endpoint_profile') or {}).get('tcp_profile') == 'sel751_ts':
+        required += ('new_READ_timestamp_options_delivery_order',)
     expected_cases = {'restart_targeted_%s_path_exercised' % k for k in ('READ', 'SELECT')}
     for tag in tags:
         point = by_point[tag]

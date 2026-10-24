@@ -1,0 +1,33 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS half_rst_SYN                       expected=one exact frame observed=1
+PASS half_rst_SYNACK                    expected=one exact frame observed=1
+PASS half_rst_ACK                       expected=one exact frame observed=1
+PASS half_rst_read_request              expected=one exact frame observed=1
+PASS half_rst_read_server_ack           expected=one exact frame observed=1
+PASS half_rst_read_response61           expected=one exact frame observed=1
+PASS half_rst_read_payload_len          expected=141        observed=141
+PASS half_rst_read_mapped_ack           expected=one exact frame observed=1
+PASS half_rst_master_FIN                expected=one exact frame observed=1
+PASS half_rst_relay_ACK                 expected=one exact frame observed=1
+PASS half_rst_owner_half_closed_0109    expected=265        observed=265
+PASS half_rst_busy_retry_rst_anchor_before_unlock expected=True       observed=True
+PASS half_rst_RSTACK_forwarded_exactly_once expected=1          observed=1
+PASS half_rst_no_stale                  expected=0          observed=0
+PASS half_rst_not_exhausted             expected=0          observed=0
+PASS half_rst_retired_0200              expected=512        observed=512
+PASS half_rst_fresh_SYN                 expected=one exact frame observed=1
+PASS half_rst_fresh_SYNACK              expected=one exact frame observed=1
+PASS half_rst_fresh_ACK                 expected=one exact frame observed=1
+PASS half_rst_fresh_handshake           expected=completed  observed=completed
+PASS half_rst_fresh_read_request        expected=one exact frame observed=1
+PASS half_rst_fresh_read_server_ack     expected=one exact frame observed=1
+PASS half_rst_fresh_read_response61     expected=one exact frame observed=1
+PASS half_rst_fresh_read_payload_len    expected=141        observed=141
+PASS half_rst_fresh_read_mapped_ack     expected=one exact frame observed=1
+SUMMARY {'total': 25, 'passed': 25, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196
