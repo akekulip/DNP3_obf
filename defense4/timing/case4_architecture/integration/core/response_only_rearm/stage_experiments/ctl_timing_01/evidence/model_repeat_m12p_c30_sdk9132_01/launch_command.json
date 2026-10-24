@@ -1,0 +1,35 @@
+{
+  "command": [
+    "bash",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/launch_model.sh",
+    "-p",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c30_sdk9132/compile_local/out",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_repeat_m12p_c30_sdk9132_01",
+    "-P",
+    "9 48 68 180 181 182 196",
+    "-d",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/record_closure.py"
+  ],
+  "PORT_MAP": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c30_sdk9132/response_only.inputs.json",
+  "PAD_ENABLE": "1",
+  "MILESTONE": "m12",
+  "pb_injected": null,
+  "timeline": false,
+  "hardware": false,
+  "source_sha256": "b006752236a7d1cccab461a010b2b68a3ea7b5629b1097c926ebacd348126de2",
+  "driver_sha256": "e1e04a7e7f04e710c58cfa6aed29ee0edbda6f2c138152fcc0a4215680a380ba",
+  "library_sha256": {
+    "model_driver.py": "ca74b8ca849e7c8550750da8ca06bbfec49fe1ef25f890ad2f910c321a180763",
+    "../core/response_only/hw/t_config.py": "bdfe3635736d7534e3bd90898ee5b3a3d3ba280c642cfff31091790febd41c3c"
+  },
+  "dependency_sha256": {
+    "response_only_rearm/stage_experiments/seg61_02/model_repeat.py": "e1e04a7e7f04e710c58cfa6aed29ee0edbda6f2c138152fcc0a4215680a380ba",
+    "response_only/model_drive_composite.py": "8940ae8486d235d1ee2cec72daff01a57716ef299846f5e88558b5151fc3d836"
+  },
+  "closure_target": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py",
+  "dependency_closure_sha256": "e6f7af211c59ee7e3ddb5d88d9d327de01c7a586a53521fa212f9203f1c3c864",
+  "reset_restart_required": true,
+  "supported_profile_sha256": "333691bb2b595f2afb3768c9c4f3c89b6dcdda9ab6567ed076545c10918be267",
+  "exit_code": 0
+}

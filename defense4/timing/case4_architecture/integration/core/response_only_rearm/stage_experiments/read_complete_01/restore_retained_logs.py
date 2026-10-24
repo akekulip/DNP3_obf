@@ -1,4 +1,4 @@
-"""Restore the compressed model logs a fresh checkout needs before the m12p_b08 model gate can be recomputed.
+"""Restore byte-exact compressed model logs needed to recompute retained evidence.
 
 The reset postcheck binds each contention run's model log by sha256 (dependency_closure.json
 postchecks.reset_application.input_sha256). The logs are ~300 MB each, so the repository keeps byte-exact xz copies
@@ -15,6 +15,8 @@ import sys
 from pathlib import Path
 
 EVIDENCE = Path(__file__).resolve().parents[1] / 'ctl_timing_01/evidence'
+REPO = Path(__file__).resolve().parents[8]
+RETENTION = Path(__file__).resolve().parent / 'evidence/c30_dependency_retention_20261024/manifest.json'
 
 
 def sha(data):
@@ -22,7 +24,9 @@ def sha(data):
 
 
 def main():
-    archives = sorted(EVIDENCE.glob('model_*_m12p_*/model_*.log.xz'))   # b08 and c12 (and later) retained logs
+    retained = json.loads(RETENTION.read_text()).get('logs', {}) if RETENTION.exists() else {}
+    archives = sorted(set(EVIDENCE.glob('model_*_m12p_*/model_*.log.xz')) |
+                      set(EVIDENCE.glob('model_*_m12p_*/model.out.xz')))
     if not archives:
         print('no retained log archives found under %s' % EVIDENCE)
         return 1
@@ -30,7 +34,16 @@ def main():
     for archive in archives:
         log = archive.with_suffix('')
         closure = json.loads((archive.parent / 'dependency_closure.json').read_text())
-        pinned = closure['postchecks']['reset_application']['input_sha256'].get(log.name)
+        pinned = closure.get('postchecks', {}).get('reset_application', {}).get('input_sha256', {}).get(log.name)
+        record = retained.get(str(log.relative_to(REPO)))
+        if record is not None:
+            if (record['archive'] != str(archive.relative_to(REPO))
+                    or sha(archive.read_bytes()) != record['archive_sha256']
+                    or (pinned is not None and pinned != record['sha256'])):
+                print('FAIL %s: retained archive pin mismatch' % log)
+                failures += 1
+                continue
+            pinned = record['sha256']
         if pinned is None:
             print('FAIL %s: not pinned by its run closure' % log)
             failures += 1

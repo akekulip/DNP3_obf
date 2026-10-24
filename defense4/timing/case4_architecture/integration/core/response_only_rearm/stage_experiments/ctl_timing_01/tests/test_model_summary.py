@@ -46,6 +46,59 @@ def test_all_required_latest_pass_is_not_blocked(tmp_path):
     assert len(s['runs']) == len(ms.REQUIRED)
 
 
+def test_physical_relay_cannot_pass_with_only_the_nine_historical_drivers(tmp_path):
+    build, sha = make_build(tmp_path)
+    (build / 'response_only.inputs.json').write_text(json.dumps(
+        {'supported_profile': {'endpoint_profile': 'sel751'}}))
+    all_pass(tmp_path, build, sha)
+    summary = ms.summarize(build)
+    assert summary['qualification'] == 'blocked'
+    for driver in ('policy', 'policy_boundary', 'two_read_robust', 'smoke_sizeoff',
+                   'abandon', 'relay_sbo', 'fin_busy'):
+        assert '%s: no attempt' % driver in summary['blocked_reasons']
+
+
+def test_physical_relay_requires_all_sixteen_gates(tmp_path):
+    build, sha = make_build(tmp_path)
+    (build / 'response_only.inputs.json').write_text(json.dumps(
+        {'supported_profile': {'endpoint_profile': 'sel751'}}))
+    drivers = tuple(ms.REQUIRED) + ('policy', 'policy_boundary', 'two_read_robust',
+                                  'smoke_sizeoff', 'abandon', 'relay_sbo', 'fin_busy')
+    for driver in drivers:
+        attempt(tmp_path, build, driver, 1, sha, 10, 10)
+    summary = ms.summarize(build)
+    assert summary['qualification'] == 'model_gate_passed'
+    assert set(summary['required_drivers']) == set(drivers)
+
+
+def test_malformed_qualification_profile_does_not_fall_back_to_historical_gate(tmp_path):
+    build, sha = make_build(tmp_path)
+    (build / 'response_only.inputs.json').write_text('{broken')
+    all_pass(tmp_path, build, sha)
+    summary = ms.summarize(build)
+    assert summary['qualification'] == 'blocked'
+    assert any('qualification profile' in reason for reason in summary['blocked_reasons'])
+
+
+@pytest.mark.parametrize('selector', (None, 'software'))
+@pytest.mark.parametrize('marker', (
+    {'transforms_applied': ['relay_sbo', 'relay_ts']},
+    {'supported_profile': {'tcp_profile': 'sel751_ts'}},
+    {'supported_profile': {'encoding': {
+        'native_input_octets': {'SELECT': 49, 'OPERATE': 49}, 'output_octets': 60}}},
+))
+def test_relay_semantics_cannot_downgrade_to_historical_gate(tmp_path, selector, marker):
+    build, sha = make_build(tmp_path)
+    doc = dict(marker)
+    if selector is not None:
+        doc['endpoint_profile'] = selector
+    (build / 'response_only.inputs.json').write_text(json.dumps(doc))
+    all_pass(tmp_path, build, sha)
+    summary = ms.summarize(build)
+    assert summary['qualification'] == 'blocked'
+    assert any('qualification profile' in reason for reason in summary['blocked_reasons'])
+
+
 def test_a_later_failure_blocks_although_an_earlier_attempt_passed(tmp_path):
     build, sha = make_build(tmp_path)
     all_pass(tmp_path, build, sha)

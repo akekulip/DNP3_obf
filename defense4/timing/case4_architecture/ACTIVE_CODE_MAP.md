@@ -1,6 +1,6 @@
 # Active code map: the two-READ size and timing candidate
 
-One page for finding the code that is in use now. Status as of 2026-10-23. The single
+One page for finding the code that is in use now. Status as of 2026-10-24. The single
 status file for the current run is `STAGE/read_complete_01/CURRENT.md`; the dated history is `STATUS.md` in
 the same directory and the full record is `COMPLETION_RECORD.md`.
 
@@ -17,6 +17,8 @@ PY312=${RESEARCH_PYTHON:-$HOME/.venvs/research/bin/python}   # Python 3.12; syst
 
 | build | what it is | state |
 |---|---|---|
+| `m12p_c30_sdk9132` | relay READ91/134→141/158; legacy software SBO37→61 | READ compiled-model1332/1332; corrected control_timing415/415; no padded physical relay qualification |
+| `m12p_c31_sdk9132` through `m12p_c36_sdk9132` | integrated whole49→60 relay SBO, timestamp successor attempts | failed compilation/static preflight; retained; no selected qualified successor |
 | `m12p_c25` | two-READ build: mixed READ 91 -> 141, full integrity READ 247 -> 271, SELECT/OPERATE 37 -> 61 | model gate passed; on hardware the padding was byte-exact (campaign 02) and timing precision FAILED; recovery blocks not run |
 | `m12p_c26` | c25 plus a behavior-preserving resource reduction (`--reduce`; pipe-1 egress 7 -> 4 stages; N/E/T 12/12/11; both SDKs) | model gate passed (counts equal to c25's); not frozen; no hardware. See COMPLETION_RECORD section 0a |
 | `m11_09` | the four-arm build behind the manuscript evaluation `eval_m11_09_20261018_02` | frozen; the paper's evidence |
@@ -34,8 +36,8 @@ audited in this run.
 | 2. P4 source and profile | `STAGE/ctl_timing_01/evidence/m12p_<id>/{response_only.p4, response_only.inputs.json, supported_profile.json}` | constants from `STAGE/read_complete_01/vectors/` (`derive.py`, `derive_two_read.py`, `make_two_read_templates.py`) |
 | 3. compile | `$ARCH/build.py` (local SDK 9.13.2 at `~/bf-sde-9.13.2`, a copy of the switch's install; one compile since 2026-10-23) | output `compile_local/`: the model tests it and the switch loads it (`freeze_gate.loaded_compile`). Builds before m12p_c29_sdk9132 used local 9.13.1 plus `compile_switch_orchestrator.py` (`compile_switch_9132/`, the loaded one) |
 | 4. model gate | `STAGE/ctl_timing_01/run_model.py` (drivers in `ctl_timing_01/model_*.py` and `STAGE/seg61_02/model_*.py`), verdict `ctl_timing_01/model_summary.py --v3` | dependency closure recorded by `ctl_timing_01/record_closure.py` |
-| 5. block configs and freeze | `STAGE/read_complete_01/hw/make_two_read_configs.py` -> `hw/config/rc01_m12p_*.json`; `$HW/freeze_gate.py` -> `freeze_v3.json`; `read_complete_01/hw/make_hw_manifest.py` -> campaign manifest | a block runs only through `$HW/run_block_frozen.sh`, which checks the freeze first |
-| 6. hardware supervisor | `$HW/evaluation_campaign.py` (init/start/status/resume/stop-after-current/reconcile); per block `run_block_frozen.sh` -> `run_block.sh`; restore check `restore_verify.py` | endpoints: `$ARCH/integration/evidence/rearm_01/repeat_sbo_endpoint`; library: `$ARCH/protocol/hw_vepa` (`campaign.py`, `wire_check.py`, `clrt_check.py`, `standards.py`); live testbed ownership state in `~/.local/state/dnp3-evaluation/tofino1-testbed/ownership.json` (never hand-edited) |
+| 5. block configs and freeze | `STAGE/read_complete_01/hw/make_sel751_configs.py` (physical relay) / `make_two_read_configs.py` (historical software) -> `hw/config/rc01_m12p_*.json`; `$HW/freeze_gate.py` -> `freeze_v3.json`; `read_complete_01/hw/make_hw_manifest.py` -> campaign manifest | a block runs only through `$HW/run_block_frozen.sh`, which checks the freeze first |
+| 6. hardware supervisor | `$HW/evaluation_campaign.py` (init/start/status/resume/stop-after-current/reconcile); per block `run_block_frozen.sh` -> `run_block.sh`; restore check `restore_verify.py` | physical endpoint: SEL-751 `.7:20000`; guarded master: `$ARCH/protocol/hw_vepa/relay_master.py` and `active_harness`; historical software endpoints: `$ARCH/integration/evidence/rearm_01/repeat_sbo_endpoint`; library: `$ARCH/protocol/hw_vepa` (`campaign.py`, `wire_check.py`, `clrt_check.py`, `standards.py`); live testbed ownership state in `~/.local/state/dnp3-evaluation/tofino1-testbed/ownership.json` (never hand-edited) |
 | 7. readout | `STAGE/read_complete_01/analysis/hw_read_readout.py` | independent, fail-closed, built from the frozen config rather than the run's own records |
 | 8. reproduce | `STAGE/read_complete_01/reproduce.sh` | offline only; never loads the switch |
 
@@ -45,8 +47,7 @@ Software endpoint and policy code: `STAGE/read_complete_01/{software,policy}`. E
 ## Commands
 
 Every command below is taken from the script's own argparse or usage text. None of them touch the switch
-except the hardware supervisor, which needs Philip's recorded authorization for each campaign. No hardware
-runs are authorized for the 2026-10-22/23 overnight run.
+except the hardware supervisor, which needs Philip's recorded authorization for each campaign. The current assessment and “Implement the plan” authorize guarded physical SEL-751 runs after the same-artifact gates. No software outstation is permitted in this execution.
 
 Generate a candidate into a scratch directory (created if missing):
 

@@ -1,5 +1,25 @@
 # read_complete_01 — status (newest first)
 
+## 2026-10-24 — approved SEL-751 execution in progress
+
+The current authority is `CURRENT.md` and `OVERNIGHT_PLAN_20261024.md`. Older completion claims below are historical.
+c30 establishes relay READ construction and compiled-model behavior; it does not establish padded physical relay
+READ/SBO delivery. Corrected c30 control_timing04 passes415/415 on the original bundle; earlier213/415 used the
+unsupported software integrity247 fixture. The six READ runs remain1332/1332.
+
+Physical native02 accepted mixed91, integrity134 and SELECT/OPERATE49 with both guarded CROBs SUCCESS. Each response
+was one TCP payload on the verified production forwarding path. Historical28+21 was switch PRE carving; no split-input
+machinery is being added. Current TCP is SYN40/SYNACK44/DATA32 with timestamps and master scale7. Evidence and independent
+restoration are under `evidence/relay_native_capture_20261024/relay_native_20261024_02/`; supervisor COMPLETE rc0.
+All89 frozen source entries are retained byte-exact beside that run. Native01 failure and restoration remain separate.
+
+The old c29 exact busy-FIN probe fails6/11 with stale retries and missing relay FIN/final ACK. FIN remains OPEN until
+the successor passes the exact model regression and physical recovery. c31–c34 failed compiler lowering/PHV/stage fit;
+c35 was rejected by static parser preflight; c36 failed two RegisterAction type signatures. Every attempt is retained.
+The timestamp successor and physical recovery helpers are under implementation/review. No padded relay candidate has
+been loaded. No final model/resource/timing/recovery qualification is claimed. Timing remains100us; timing failure
+will not suppress safe recovery runs. No software outstation is used. No push is authorized.
+
 Plan: ~/.claude/plans/pasted-content-id-463c-execute-this-quiet-pascal.md (approved 2026-10-20).
 Production implementation stays m12_fullsize/make_m12.py + its consumers; this directory holds evidence,
 policy, reproduction and the completion record only.

@@ -88,3 +88,10 @@ verdicts and restoration records required. Commit coherent reviewed milestones w
 - Ruling: fixed guarded command semantics are not expanded solely to preserve a variable-on-time legacy model
   fixture. Lifecycle tests use new/stale request identity plus out-of-profile command negatives. Cost if wrong:
   qualification is bounded to the selected guarded command; it makes no arbitrary-command replacement claim.
+- Task2 native02: physical baseline COMPLETE rc0, READ91/134 and SBO49/49 accepted; both statuses SUCCESS,
+  independent restore true and ownership safe. Native01 failure/restore retained separately. Current actual
+  packetization is whole responses, with SYN40/SYNACK44/DATA32 timestamp-bearing TCP headers. No split code.
+- Task3 c32 fails PHV; c33/c34 fit PHV but fail14stage assembly. Next work is timestamp support and justified
+  resource/dependency repair. No candidate/model gate or padded hardware claim yet. All attempts immutable.
+- Task4 summary gate now requires16drivers forsel751;61unit tests pass. Independent model-retarget review fixes
+  are implemented; scoped re-review pending. Final review and real packet gates remain required.

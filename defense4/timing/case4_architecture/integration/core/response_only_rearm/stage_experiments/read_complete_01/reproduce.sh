@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # read_complete_01: one entry point that re-derives every offline result and re-checks the recorded evidence.
 #
-#   bash reproduce.sh                                # offline, the two-READ-target candidate (CANDIDATE=c25 default)
+#   bash reproduce.sh                                # offline relay READ reference (CANDIDATE=c30 default)
+#   bash reproduce.sh --candidate-info                # selected directory, exact flags/hash and evidence tier only
 #   CANDIDATE=c26 bash reproduce.sh                  # c25 + behavior-preserving resource reduction (--reduce)
 #   CANDIDATE=c24 bash reproduce.sh                  # c25's P4 with the uncorrected disposition text (historical)
 #   CANDIDATE=c12 bash reproduce.sh                  # the preserved rotate4 checkpoint
@@ -19,13 +20,20 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 STAGE="$(dirname "$HERE")"
 HW="$(cd "$STAGE/../../../evidence/rearm_01/hw" && pwd)"
 PY312="${RESEARCH_PYTHON:-$HOME/.venvs/research/bin/python}"
-CANDIDATE="${CANDIDATE:-c25}"
+CANDIDATE="${CANDIDATE:-c30}"
 # GATE_PIN: the commit whose driver tree recomputes this candidate's model gate. The shared driver module
 # seg61_02/read_policy_expect.py gained the per-native SHAPES map for the two-READ builds, and model_profile.py changed
 # with c20 (33e21fd07), so c12 recomputes at the last commit before c20 (83498d4c1) and c20 at c432d195e.
 GATE_PIN=""
 TWO_READ=0
+RELAY_READ=0
+EVIDENCE_TIER="historical software endpoint profile (offline only)"
+BUILD_SUFFIX="$CANDIDATE"
 case "$CANDIDATE" in
+  c30) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay"
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c30_sdk9132
+       SOURCE_SHA=b006752236a7d1cccab461a010b2b68a3ea7b5629b1097c926ebacd348126de2
+       EVIDENCE_TIER="relay READ reference; legacy software SBO" ;;
   c26) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce"; TWO_READ=1
        SOURCE_SHA=21b98f5182edb08725b92c5d8875f75abc9da22f673f2710579b9b5ab5124fd1 ;;
   c25|c24) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read"; TWO_READ=1
@@ -36,10 +44,23 @@ case "$CANDIDATE" in
        SOURCE_SHA=1e94c31d80e6708ab31ca117f066d15f5ec23244fc6f7bf7b9ca68dc81a2a27b ;;
   b08) GEN_ARGS="--policy"
        SOURCE_SHA=7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f ;;
-  *) echo "unknown CANDIDATE $CANDIDATE (c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
+  *) echo "unknown CANDIDATE $CANDIDATE (c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
 esac
-BUILD="$STAGE/ctl_timing_01/evidence/m12p_$CANDIDATE"
+BUILD="$STAGE/ctl_timing_01/evidence/m12p_$BUILD_SUFFIX"
 FREEZE="$BUILD/freeze_v3.json"
+if [ "${1:-}" = --candidate-info ]; then
+  [ $# = 1 ] || { echo "--candidate-info takes no other arguments" >&2; exit 2; }
+  python3 - "$CANDIDATE" "$BUILD" "$SOURCE_SHA" "$GEN_ARGS" "$EVIDENCE_TIER" <<'EOF'
+import json, shlex, sys
+print(json.dumps(dict(candidate=sys.argv[1], build=sys.argv[2], source_sha256=sys.argv[3],
+                     generator_args=shlex.split(sys.argv[4]), evidence_tier=sys.argv[5]), indent=2))
+EOF
+  exit 0
+fi
+if [ $# -gt 0 ] && [ "$1" != --readout ]; then
+  echo "unknown argument $1 (use --candidate-info or --readout BLOCK_DIR CONFIG [ARMS])" >&2
+  exit 2
+fi
 SCRATCH="$(mktemp -d)"
 REPO="$(git -C "$HERE" rev-parse --show-toplevel)"
 cleanup() {
@@ -53,18 +74,32 @@ step() { printf '\n== %s\n' "$*"; }
 step "1. software encoder: handoff tests + policy coverage (Python $("$PY312" -V 2>&1))"
 (cd "$HERE/software" && "$PY312" -m pytest -q test_general.py test_coverage.py test_policy_coverage.py)
 
-step "2. target policy: select_policy.py reproduces policy.json"
-(cd "$HERE/policy" && "$PY312" select_policy.py >/dev/null)
-git -C "$HERE" diff --exit-code -- policy/policy.json
+if [ "$RELAY_READ" = 1 ]; then
+  step "2. preserved relay READ targets: 141/158 (no new target selection)"
+  "$PY312" - "$HERE/vectors/constants_two_read_relay.json" <<'EOF'
+import json, sys
+assert json.load(open(sys.argv[1]))['policy_targets'] == [141, 158], 'relay targets changed'
+EOF
+else
+  step "2. target policy: select_policy.py reproduces policy.json"
+  (cd "$HERE/policy" && "$PY312" select_policy.py >/dev/null)
+  git -C "$HERE" diff --exit-code -- policy/policy.json
+fi
 
 step "3. switch constants: derive.py reproduces constants.json (byte-exact proof vs pad_read inside)"
 (cd "$HERE/vectors" && "$PY312" derive.py >/dev/null)
 git -C "$HERE" diff --exit-code -- vectors/constants.json vectors/constants_segmented.json
 
 if [ "$TWO_READ" = 1 ]; then
-  step "3b. two-READ constants and templates: derive_two_read.py / make_two_read_templates.py reproduce them"
-  (cd "$HERE/vectors" && "$PY312" make_two_read_templates.py >/dev/null && "$PY312" derive_two_read.py >/dev/null)
-  git -C "$HERE" diff --exit-code -- vectors/two_read_templates.json vectors/constants_two_read.json
+  if [ "$RELAY_READ" = 1 ]; then
+    step "3b. relay constants/templates: retained native samples, exact encoding and nonempty coverage"
+    (cd "$HERE/vectors" && "$PY312" make_two_read_templates_relay.py >/dev/null && "$PY312" derive_two_read_relay.py >/dev/null)
+    git -C "$HERE" diff --exit-code -- vectors/two_read_templates_relay.json vectors/constants_two_read_relay.json
+  else
+    step "3b. two-READ constants and templates: derive_two_read.py / make_two_read_templates.py reproduce them"
+    (cd "$HERE/vectors" && "$PY312" make_two_read_templates.py >/dev/null && "$PY312" derive_two_read.py >/dev/null)
+    git -C "$HERE" diff --exit-code -- vectors/two_read_templates.json vectors/constants_two_read.json
+  fi
   step "3c. two-READ generator tests (interpreter: byte-exact construction, N/E admission and mapping)"
   (cd "$STAGE/m12_fullsize" && "$PY312" -m pytest -q tests/test_two_read_pad.py tests/test_two_read_ne.py | tail -1)
 fi
@@ -124,7 +159,7 @@ if [ -n "$GATE_PIN" ]; then
   (cd "$PIN_STAGE/ctl_timing_01" && python3 model_summary.py "evidence/m12p_$CANDIDATE" --v3 --enforce | tail -1)
 else
   python3 "$HERE/restore_retained_logs.py"
-  (cd "$STAGE/ctl_timing_01" && python3 model_summary.py "evidence/m12p_$CANDIDATE" --v3 --enforce | tail -1)
+  (cd "$STAGE/ctl_timing_01" && python3 model_summary.py "evidence/m12p_$BUILD_SUFFIX" --v3 --enforce | tail -1)
 fi
 
 step "6. freeze: every block config belongs to the frozen candidate"

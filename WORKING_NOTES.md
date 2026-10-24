@@ -2803,3 +2803,38 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
 - First immutable integrated source c31 d0db701cd82efa1beb5603de173d9517e3b32bc3c42cf36666f1c56d915e18c4
   compiled once on9.13.2 and failed target lowering of two new action predicates (48.947s, exit3). c32 moves those
   decisions into table keys and removes inactive third-frame checksum fields; its separate compile is running.
+- Fresh native physical block02 PASSES: two READs91/134 and SELECT/OPERATE49 each, both points1/3 SUCCESS,
+  IIN0x0080; repaired master complete acceptance, relay_wire true, supervisor COMPLETE/rc0, independent restore true
+  (SHA854833ee5788468b411532b6f37ffe37e3a2ada517d13c2f08f121c902d2f2c9), ownership inactive/safe. Native01
+  failed before evidence collection; restoration verified. Its original traffic stderr was not retained by the
+  first driver version; later read-only probes demonstrated sudo env requires a password and preserve-env is
+  disallowed. The reviewed permitted Python application now receives explicit --apply intent and sets the same
+  process-local guard after fixed-profile/preflight checks; errors are retained before collection. No privileges,
+  credentials or host TCP settings were changed.
+- Native02 proves response TCP payloads[91],[134],[49],[49] at the master under verified forwarding-only state.
+  Split-input machinery is therefore unnecessary for this observed path. Capture also establishes SYN TCP40,
+  SYNACK44 and all DATA/ACK32-byte TCP headers with timestamps. New candidate and model must support this actual
+  wire profile; a clean TCP20 pass is insufficient. No physical padded candidate has been loaded.
+- c32 failed PHV packing (17wide mapper fields/16available containers); c33 removes ack_inv via parser old-ACK
+  subtraction, with algebra tests. c33/c34 then fail assembler using14p0 stages; stage/resource fit remains OPEN.
+  c34 keeps all CRC checks using exhaustive one-byte-status lookup proofs; failed attempts are immutable.
+- Model-summary regressions reproduce nine-driver false qualification of sel751; gate now requires all14 existing
+  drivers plus relay_sbo and fin_busy (16total), malformed qualification metadata fails closed.61summary tests pass.
+- In progress after native02: P4 timestamp/resource lane; model actualIP/MAC/TS-vector lane; physical four-arm,
+  series/reconnect/loss helper lane. Task3 model review found/fixed wrong10.0 IP/syntheticMAC identity and a c30
+  boundary KeyError247; scoped re-review remains before final gates. No active compiler/model/hardware at this
+  checkpoint; native02 restoration and ownership were freshly checked. Agent response authentication failed once;
+  permitted offline work resumed on retry, with no rejected hardware action bypassed.
+- c36 failedtypechecking (exit3,1.361s), retainedsource0947fe4f… . Independent review caught incompatible scalar
+  RegisterAction inout declarations, new absent-header checksum operands lacking overlay protection, and contradictory
+  timestamp IP metadata. Allthree repaired in newc37 source5f3bb9e4883e10eef2c788a1c6a4ff969a21803902f442b9f8a5f66e80afd05a.
+  c37 compile9.13.2 exit4 after125.378s: internalcompilererror at summary logging after failedplacement. Its final
+  allocation still reachesN/E index12, violating the unchanged≤10constraint. No model or padded hardware load.
+- Independent model-summary review reproduced semantic downgrade to historical9gates when the endpoint selector was
+  removed/relabeledsoftware despite relay_sbo/relay_ts/49→60 semantics. Sixnew regressions failed, then passed after
+  failclosed semantic-selector checking;67/67summary tests pass; scoped independent re-review approves.
+- c30 retention now preserves19executed closures,59unique exact source contents and38rawmodel/console logs ashashverifiedxz
+  (4GBraw/276MBcompressed). RetentionmanifestSHA6ed365857b50af5d37a41b102caa35cae5bf79ca7731b56eaf915d243526b6eb.
+  Sourcebytes recoveredonlywhenoriginalclosurehashmatched; failedattempts/recordsunchanged. Existingrestore utility
+  extendedtohonor thesepins fornon-resetlogs;4focusedtests covertrace/console reconstruction andtamper rejection. Thisdoesnot
+  qualifychangedcurrentmodelhelpers; historicaldependencies andcurrentqualification remain distinct.

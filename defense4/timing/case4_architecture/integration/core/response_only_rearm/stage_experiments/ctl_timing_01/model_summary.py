@@ -22,6 +22,47 @@ HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))         # run_model and record_closure, imported by name below
 REQUIRED = ('smoke', 'packets', 'rearm', 'dup', 'repeat', 'select_lifecycle', 'control_timing', 'contention', 'abort')
+RELAY_REQUIRED = REQUIRED + ('policy', 'policy_boundary', 'two_read_robust', 'smoke_sizeoff',
+                             'abandon', 'relay_sbo', 'fin_busy')
+
+
+def required_drivers(build):
+    """The physical relay gate includes every existing driver and its new SBO/close proofs."""
+    declared = set()
+    documents = []
+    inputs = Path(build) / 'response_only.inputs.json'
+    if inputs.is_file():
+        doc = json.loads(inputs.read_text())
+        if not isinstance(doc, dict) or not isinstance(doc.get('supported_profile', {}), dict):
+            raise ValueError('inputs must contain an object supported_profile')
+        documents.extend((doc, doc.get('supported_profile', {})))
+        declared.update(value for value in (doc.get('endpoint_profile'),
+                        doc.get('supported_profile', {}).get('endpoint_profile')) if value is not None)
+    profile = Path(build) / 'supported_profile.json'
+    if profile.is_file():
+        doc = json.loads(profile.read_text())
+        if not isinstance(doc, dict):
+            raise ValueError('supported profile must be an object')
+        documents.append(doc)
+        if doc.get('endpoint_profile') is not None:
+            declared.add(doc['endpoint_profile'])
+    if len(declared) > 1 or declared - {'software', 'sel751'}:
+        raise ValueError('inconsistent or unsupported endpoint_profile: %r' % sorted(declared))
+    for doc in documents:
+        transforms = doc.get('transforms_applied', [])
+        encoding = doc.get('encoding', {})
+        if not isinstance(transforms, list) or not isinstance(encoding, dict):
+            raise ValueError('qualification transforms/encoding have invalid types')
+        native = encoding.get('native_input_octets', {})
+        if not isinstance(native, dict):
+            raise ValueError('qualification native_input_octets must be an object')
+        relay = (bool({'relay_sbo', 'relay_ts'}.intersection(transforms))
+                 or doc.get('tcp_profile') == 'sel751_ts'
+                 or (native.get('SELECT') == 49 and native.get('OPERATE') == 49
+                     and encoding.get('output_octets') == 60))
+        if relay and declared != {'sel751'}:
+            raise ValueError('relay semantics require endpoint_profile=sel751')
+    return RELAY_REQUIRED if declared == {'sel751'} else REQUIRED
 
 
 def _driver_names():
@@ -58,10 +99,15 @@ def summarize(build):
     source = hashlib.sha256((build / 'response_only.p4').read_bytes()).hexdigest()
     runs = list(attempts(build))
     latest, reasons = {}, []
+    try:
+        required = required_drivers(build)
+    except (OSError, ValueError, TypeError) as error:
+        required = REQUIRED
+        reasons.append('invalid qualification profile: %s' % error)
     for r in runs:
         if r['driver'] not in latest or r['attempt'] > latest[r['driver']]['attempt']:
             latest[r['driver']] = r
-    for driver in REQUIRED:
+    for driver in required:
         if driver not in latest:
             reasons.append('%s: no attempt' % driver)
     for driver, r in sorted(latest.items()):
@@ -74,6 +120,7 @@ def summarize(build):
         for note in r['unresolved_failure_notes']:
             reasons.append('%s: unresolved %s' % (r['run'], note))
     return dict(build=build.name, source_sha256=source, generated_by='ctl_timing_01/model_summary.py',
+                required_drivers=list(required),
                 qualification='blocked' if reasons else 'model_gate_passed', blocked_reasons=reasons,
                 latest_by_driver={d: r['run'] for d, r in sorted(latest.items())}, runs=runs,
                 note='every attempt listed; a driver is judged by its latest attempt; an earlier pass never '
