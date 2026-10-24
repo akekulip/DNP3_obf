@@ -585,3 +585,15 @@ cause not located. Next measurements (NIC hardware timestamps; kernel A/B/A) nee
 - m12p_c29 (f1b61b5c... = c28 + pipe-0 headroom): both SDKs N 11/10, E 11/10, T 11/10, p1 4/3 (pipe 0's last stage
   free); review: behavior-equivalent; model gate running.
 - NIC hardware timestamps: capability present but no stampable return path through the DNP3 path (a181e09a1).
+
+## 2026-10-23 (night) — c29 on hardware (final candidate this run)
+
+m12p_c29 (f1b61b5c...; pipe-0 headroom N/E highest index 10; c28 behavior), corrected harness, seven campaigns
+rc01_hw_c29_20261023_01..07, restoration verified after every block, ownership clean at the end:
+- reference (four arms): readout OK (4/4 trials, 0 failures); every arm 65 READs (33 mixed + 32 full) + 64 SELECT + 64
+  OPERATE exact; padded 141/271/61, native 91/247/37. Timing precision FAILED (p99 2.0-3.8 ms vs 100 us).
+- persistence_rst: timing precision only.  loss_mixed, loss_full: PASS.  reconnect, held_operate: timing precision only.
+- persistence_graceful: c2 lost the outstation's FIN-ACK once at close (sent 0.1 ms behind its pure ACK; N work cell
+  busy -> retry -> retry_stale: count_busy[2]=1, [4]=1); the outstation retransmitted the FIN 232 ms later and the close
+  completed; c3 did not run (the series stops at a failed connection). A third manifestation of the single-work-cell
+  race (F1 retries pure ACKs only). Open; to be reproduced and fixed on the model before a graceful rerun.

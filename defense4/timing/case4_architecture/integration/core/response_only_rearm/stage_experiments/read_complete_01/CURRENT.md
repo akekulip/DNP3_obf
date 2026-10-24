@@ -18,11 +18,11 @@ traffic, relaxed thresholds or manual ownership edits.
 ## Completion criteria
 | # | deliverable | criterion | state |
 |---|---|---|---|
-| 1 | headroom | both SDKs: N and E highest occupied index <= 10, T <= 11, p1 egress <= 4; per-stage evidence | NOT MET: best E 11/11 (h1c2), N 12/11; held by N SALU saturation stages 7-8; see headroom_probes_20261023 |
-| 2 | model | new model run: full v3 gate on the selected source; c26 control_timing_01 failure traced | open |
-| 3 | hardware four-arm | new hardware run: off/timing/size/combined on the selected image, readout, restore verified | c26 _03: sizing byte-exact all arms, readout OK, restore verified; _01 lost forwarding (base-pipeline intermittent, open) |
-| 4 | hardware recovery | new hardware run: loss (mixed, full), persistence graceful/rst, reconnect, held OPERATE | BLOCKED: _04 preflight failure (endpoint not deployed to series run dir) set unsafe_restoration; reconcile refused; needs Philip |
-| 5 | timing | unchanged 100 us precision criterion measured; failures stay failures | MEASURED, FAILED on c26 (p99 ~2.0-9.7 ms) |
+| 1 | headroom | both SDKs: N and E highest occupied index <= 10, T <= 11, p1 egress <= 4; per-stage evidence | MET by m12p_c29 (N 11/10, E 11/10, T 11/10, p1 4/3, both SDKs; reviewed equivalent) |
+| 2 | model | new model run: full v3 gate on the selected source; c26 control_timing_01 failure traced | c29 model_gate_passed (first attempt); c26 failure traced (host-clock stall) |
+| 3 | hardware four-arm | new hardware run: off/timing/size/combined on the selected image, readout, restore verified | c29: sizing byte-exact all arms, readout OK, restore verified |
+| 4 | hardware recovery | loss (mixed, full), persistence graceful/rst, reconnect, held OPERATE | c29: loss x2 PASS; persistence_rst, reconnect, held_operate pass recovery (fail timing only); persistence_graceful lost one FIN at close (open defect) |
+| 5 | timing | unchanged 100 us precision criterion measured; failures stay failures | FAILED on every timed block (p99 ~1.7-3.8 ms); NIC timestamps cannot see the path; reboot A/B/A needs Philip |
 | 6 | close | records, fresh-checkout reproduction, restoration verified | open |
 
 ## Work in progress
@@ -30,5 +30,5 @@ P4 placement experiments (Philip's three: calculations into the padding branch; 
 fields; unreachable READ declarations, checking compiler elimination first) in .scratch_p4; c26 control_timing_01 trace.
 
 ## Next action
-Hardware stopped (unsafe_restoration flag, reconcile refused): Philip to decide how to clear it. Offline: P4 headroom
-experiments, then the selected candidate's gates.
+Reproduce and fix the close-sequence FIN loss on the model, then one graceful-persistence rerun; timing needs Philip's
+decision on the kernel A/B/A reboot.
