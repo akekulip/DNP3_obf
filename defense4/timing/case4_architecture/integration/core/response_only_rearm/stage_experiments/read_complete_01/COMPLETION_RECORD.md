@@ -243,3 +243,37 @@ regeneration to `1e94c31d80e6…`, model gate, freeze) and `bash reproduce.sh --
 `bash reproduce.sh` with no override still regenerates and gates **c12** (the preserved checkpoint, source
 `742089cbe762…`). The c20 model gate is recomputed on a fresh worktree via `restore_retained_logs.py` then
 `model_summary.py evidence/m12p_c20 --v3 --enforce`.
+
+## 9. SEL-751 relay READ-side deliverable (m12p_c30), 2026-10-24
+
+The relay is the outstation (SEL-751, 192.168.10.7:20000, DNP3 addr 0; master addr 1). READ side complete
+end-to-end; SBO and the hardware blocks remain (they exercise SELECT/OPERATE control content).
+
+- **Baseline (tier 3):** `relay_native_baseline.py` drove READ-only mixed+integrity polls .1->.7 through the
+  switch; `evidence/relay_native_20261024/` holds the decoded natives. Mixed answers 91 B (G1V2 0..15 + G30V1
+  0..7), integrity 134 B (G1V2 0..15 + G10V2 0..31 + G30V4 0..20). The software 247 B integrity database does
+  not apply to the relay.
+- **Shapes:** `vectors/derive_two_read_relay.py` -> `constants_two_read_relay.json`. mixed 91->141 (+50, 26
+  points), integrity 134->158 (+24, 4 points; 158 is the prefix floor 134+24). construct == pad_read proven on
+  512 varied samples/shape AND the 3 real captures; every constant invariant. 141/158 no longer provisional.
+- **Candidate m12p_c30:** `make_m12.py --policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry
+  --read-handshake --headroom --relay` (source sha b006752236a7). bf-p4c 9.13.2 exit 0; placement p0 11/11,
+  p1 11/4 (identical to c29). Sealed via `efficiency_candidates.py <bundle> --record-artifacts`
+  (sealed_profile.describe -> sealed True).
+- **Two defects found by the executing model (not visible at compile/seal time):**
+  1. Model vectors were the software tier: `two_read_templates.json` integrity native is 247 B (mixed 91 B is
+     identical across tiers, so it masked the gap). Added `make_two_read_templates_relay.py` +
+     `two_read_templates_relay.json` from the real captures; `seg61_02/model_policy.py::_two_templates()` selects
+     the set matching the build's `read_policy_expect.SHAPES` and fails loudly on a tier mismatch.
+  2. Generator `two_read.py::transform_two_read_reduce` folded the padded-image IP total length to a hardcoded
+     `16w311` (= software native 287+24); relay needs 174+24 = 198. The model emitted a correct 158-B payload
+     under a software 271-B IP length (4 bytes off: ip.len + checksum). Fixed to `native_ip_len + added` per
+     shape (mixed 181 unchanged, full 311 software / 198 relay).
+- **Model gate (READ/size, the pinned sealed bundle):** two_read_robust 163/163, packets 622/622, policy
+  281/281, policy_boundary 206/206, smoke 30/30, smoke_sizeoff 30/30 = 1332/1332. Software regression: c29
+  two_read_robust 163/163; generator identity 10/10 byte-identical; m12_fullsize 74 + 56 subtests.
+- **Reproducible:** relay vectors regenerate byte-identically; c30 source regenerates to b006752236a7.
+- **Open (SELECT/OPERATE-coupled -> blocked in-session / for Philip):** control-coupled model drivers
+  (dup, rearm, select_lifecycle, abort, abandon, contention, repeat, control_timing), the SBO image derivation
+  (correction #3, try 60 first), and the hardware four-arm + recovery + timing blocks on the SEL-751. c30 is not
+  yet frozen, so it is deliberately not added to reproduce.sh (added at hardware qualification, as c27-c29 were).
