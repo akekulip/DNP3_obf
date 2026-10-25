@@ -87,6 +87,10 @@ def main(argv=None):
     parser.add_argument('--reference-arms', nargs='+', metavar='ARM',
                         help='write only reference_rest: the reference block limited to these arms, for completing a '
                         'reference block that stopped early (rc01_hw_c52_20261024_24 ran only off and timing_only)')
+    parser.add_argument('--loss-identity', action='store_true',
+                        help='write only the loss_full block with every preset targeted by transaction identity '
+                        '(LOSS_TARGETING.md) and a one-preset t0_repeat (request_full n=3): c52 block 26 t0 dropped '
+                        'the wrong READ after a retransmission shifted the occurrence count')
     args = parser.parse_args(argv)
     build = args.build.resolve()
     profile = json.loads((build / 'supported_profile.json').read_text())
@@ -124,7 +128,8 @@ def main(argv=None):
             not manifest.get('compiler', '').startswith('p4c 9.13.2'):
         raise ValueError('selected SDK compile is not bound to the source')
     args.output.mkdir(parents=True, exist_ok=True)
-    blocks = ('smoke',) if args.diagnostic_mau_snapshot else ('reference',) if args.reference_arms else BLOCKS
+    blocks = ('smoke',) if args.diagnostic_mau_snapshot else ('reference',) if args.reference_arms else \
+        ('loss_full_950',) if args.loss_identity else BLOCKS
     for block in blocks:
         template = HERE / 'config' / ('rc01_%s_%s.json' % (args.template_build, 'reference' if block == 'smoke' else block))
         cfg = relay_config(json.loads(template.read_text()), *read_link_addresses(native))
@@ -176,14 +181,25 @@ def main(argv=None):
             cfg['diagnostic_mau_snapshot'] = MAU_SNAPSHOT
             cfg['_notes'].append('Diagnostic: N-ingress MAU snapshot of the first READ post-lap pass; traffic unchanged.')
             cfg['evaluation']['campaign_block']['phase'] = name
-        block_identity = cfg.get('evaluation', {}).get('campaign_block')
-        if isinstance(block_identity, dict):
-            block_identity['id'] = 'rc01_%s_sel751_%s' % (build.name, name)
-        path = args.output / ('rc01_%s_sel751_%s.json' % (build.name, name))
-        with path.open('x') as stream:
-            json.dump(cfg, stream, indent=2, sort_keys=True)
-            stream.write('\n')
-        print(path)
+        outputs = [(name, cfg)]
+        if args.loss_identity:
+            full = copy.deepcopy(cfg)
+            full['loss']['presets'] = {key: [dict(e, target='identity') for e in entries]
+                                       for key, entries in cfg['loss']['presets'].items()}
+            repeat = copy.deepcopy(full)
+            repeat['loss']['presets'] = {'t0_repeat': [{'class': 'request_full', 'n': 3, 'target': 'identity'}]}
+            args_ = repeat['evaluation']['campaign_block']['arguments']
+            args_[args_.index('--loss') + 1] = 't0_repeat'
+            outputs = [(name, full), (name.replace('loss_full_950', 'loss_t0_repeat_950'), repeat)]
+        for name, cfg in outputs:
+            block_identity = cfg.get('evaluation', {}).get('campaign_block')
+            if isinstance(block_identity, dict):
+                block_identity['id'] = 'rc01_%s_sel751_%s' % (build.name, name)
+            path = args.output / ('rc01_%s_sel751_%s.json' % (build.name, name))
+            with path.open('x') as stream:
+                json.dump(cfg, stream, indent=2, sort_keys=True)
+                stream.write('\n')
+            print(path)
     return 0
 
 

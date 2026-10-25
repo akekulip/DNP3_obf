@@ -1,0 +1,31 @@
+{
+  "campaign_id": "rc01_hw_c52_20261025_33",
+  "evidence_kind": "hardware",
+  "authorization": {
+    "author": "Philip",
+    "source": "/home/philip/Projects/DNP3/Claude_dd7741152_Verified_Assessment_and_Overnight_Command.md",
+    "scope": "Guarded padded READ/SBO on physical SEL-751 via candidate m12p_c52_sdk9132 (model_gate_passed); frozen wrappers, guarded command points {1,3}, independent restoration required; Vision management at 10.10.54.19 (Philip, 2026-10-24); c52 timing diagnosis (Philip, 2026-10-25): full 7-preset core_full on unchanged c52 with transaction-identity targeting (denominator 7 unchanged)",
+    "confirmation": "Implement the plan; 2026-10-24 continuation: execute physical SEL-751 qualification without asking again"
+  },
+  "steps": [
+    {
+      "id": "rc01_hw_c52_20261025_33_idt_loss_full_950",
+      "kind": "block",
+      "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c52_20261025_33_idt_loss_full_950",
+      "argv": [
+        "/bin/bash",
+        "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh",
+        "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/freeze_diag/freeze_v3_c52_idt.json",
+        "candidate_campaign",
+        "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_c52_sdk9132_sel751_idt_loss_full_950.json",
+        "rc01_hw_c52_20261025_33_idt_loss_full_950",
+        "--arms",
+        "combined",
+        "--fixtures",
+        "physical_relay",
+        "--loss",
+        "core_full"
+      ]
+    }
+  ]
+}
