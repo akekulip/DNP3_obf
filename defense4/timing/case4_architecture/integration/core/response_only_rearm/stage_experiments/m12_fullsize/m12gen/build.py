@@ -2,7 +2,7 @@
 import hashlib
 import json
 
-from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp
+from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp, diag_anchor
 from .common import (CONSTANTS, CONSTANTS_TWO, HERE, M11_09, M11_09_PROFILE, M11_09_SHA, combined)
 
 TRANSFORM = {
@@ -21,6 +21,7 @@ TRANSFORM = {
     'pipe0_headroom': two_read.transform_pipe0_headroom,
     'relay_sbo': relay_control.transform,
     'relay_ts': relay_timestamp.transform,
+    'diag_anchor': diag_anchor.transform,
 }
 
 
@@ -31,7 +32,8 @@ def generator_files():
 
 
 def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False,
-          reduce=False, ack_retry=False, read_handshake=False, headroom=False, relay=False, relay_sbo=False, relay_ts=False):
+          reduce=False, ack_retry=False, read_handshake=False, headroom=False, relay=False, relay_sbo=False, relay_ts=False,
+          diag_anchors=False):
     # Select the two-READ shape source for this build (relay only applies to a two-READ build).
     two_read.use_relay_shapes(relay and two_read_build)
     src = M11_09.read_text()
@@ -79,6 +81,10 @@ def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_
         if not relay_sbo:
             raise ValueError('relay timestamps require relay SBO')
         transforms.append('relay_ts')
+    if diag_anchors:   # m12p_c52d: switch-clock transaction anchors, a separate diagnostic evidence tier
+        if not relay_ts:
+            raise ValueError('diagnostic anchors require the relay timestamp profile')
+        transforms.append('diag_anchor')
     applied = []
     for name in transforms:
         if name == 'mapper_var':
@@ -213,6 +219,13 @@ def write_outputs(out, a, src, applied):
             native_ipv4_octets={'mixed': 143, 'integrity': 186, 'SELECT': 101, 'OPERATE': 101},
             image_ipv4_octets={'mixed': 193, 'integrity': 210, 'SELECT': 112, 'OPERATE': 112},
             control_request_ipv4_octets=97)
+    if getattr(a, 'diag_anchors', False):
+        required.add('diag_anchor')
+        profile['evidence_tier'] = 'diagnostic: switch-clock transaction anchors (not the measured baseline)'
+        profile['diagnostic_anchors'] = dict(ring=diag_anchor.RING, points=list(diag_anchor.POINTS),
+            slot='lo = global_tstamp[39:8] & ~1 (256 ns units, 512 ns grid); hi = bit31 collided | bit30 flag '
+                 '| epoch[13:0] << 16 | generation[15:0]; lo bit0 = duplicate',
+            note='release points are T decision passes, not wire departure; no TCP SEQ in the tag')
     ctl_native, ctl_output, ctl_growth = (49, 60, 11) if actual_relay else (37, 61, 24)
     gen_files = generator_files()
     shapes2 = two_read.two_read_shapes() if a.two_read else None

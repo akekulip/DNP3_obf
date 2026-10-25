@@ -1,0 +1,126 @@
+{
+  "candidate": {
+    "build": "../ctl_timing_01/evidence/m12p_c52d_sdk9132",
+    "milestone": "m12",
+    "source_sha256": "89ac8c0da76f85ac968d4d2a3fbb613b4c15fb563d8a0d8918138fdc18a4e759",
+    "segment_sha256": {
+      "N": "62df1f3b5877cf82d6b4d9845c309d43c3a76990fcc5a21f4c9bcbaa0d88780d",
+      "E": "ad0c1f4dce496b1c3ea850293ba3fb6a4844bed20750c6c502ef898e04eefe4d",
+      "T": "bc7276d67304ac9148cae9f5ed4bd42d7d9f69d42f6e610c2f03a1d42a238dc6"
+    },
+    "artifact_sha256": {}
+  },
+  "reset_restart_required": true,
+  "t_child_count": 1,
+  "profile_version": "supported-profile-v1-20261017",
+  "clock": {
+    "t_unit_ns": 256,
+    "t_grid_ns": 512,
+    "t_source": "global_tstamp[39:8] & ~1",
+    "rounding": "durations in ns are converted to T units by t_config.t_units (one shared writer)"
+  },
+  "timing_ns": {
+    "D_release_budget": 950000,
+    "J_operate_hold": 2400000,
+    "pb_piggyback_bound": 4000000,
+    "readiness": 30000000,
+    "da": 2000000,
+    "cap": 40000000,
+    "held_operate_overrides": {
+      "D_release_budget": 800000,
+      "J_operate_hold": 350000000,
+      "pb_piggyback_bound": 360000000,
+      "readiness": 380000000,
+      "cap": 400000000
+    },
+    "note": "qualification values of the ctl_m10_* configs; the held-OPERATE block uses held_operate_overrides"
+  },
+  "n": {
+    "retry_budget_laps": 32,
+    "restart_counter": "count_busy[5]"
+  },
+  "ports": {
+    "master_dev": 9,
+    "relay_dev": 64,
+    "n_ack_return": 48,
+    "t_in": 180,
+    "hb_return": 181,
+    "held_return": 182,
+    "recirc": 68,
+    "stat_ports": "9,64",
+    "note": "physical SEL-751: master dev9, relay dev64"
+  },
+  "encoding": {
+    "native_input_octets": {
+      "READ": [
+        91,
+        134
+      ],
+      "SELECT": 49,
+      "OPERATE": 49
+    },
+    "output_octets": 60,
+    "output_octets_note": "SELECT/OPERATE image (the control-timing contract field); the READ image is read_output_octets",
+    "read_output_octets": [
+      141,
+      158
+    ],
+    "read_construction": "prefix (read_complete_01/vectors/constants_two_read_relay.json shapes mixed_g1v2_g30v1_91, integrity_134)",
+    "control_application_partition": [
+      15,
+      17
+    ],
+    "control_partition_note": "all32 original application octets, transport15+17; whole49 TCP input",
+    "read_images": {
+      "91": 141,
+      "134": 158
+    },
+    "control_request_octets": 45,
+    "control_frames": [
+      28,
+      32
+    ],
+    "tcp_header_octets": 32,
+    "syn_tcp_header_octets": 40,
+    "synack_tcp_header_octets": 44,
+    "ipv4_ihl": 5,
+    "timestamp_option_prefix": "0101080a",
+    "master_window_scale": 7,
+    "relay_window_scale": 0,
+    "native_ipv4_octets": {
+      "mixed": 143,
+      "integrity": 186,
+      "SELECT": 101,
+      "OPERATE": 101
+    },
+    "image_ipv4_octets": {
+      "mixed": 193,
+      "integrity": 210,
+      "SELECT": 112,
+      "OPERATE": 112
+    },
+    "control_request_ipv4_octets": 97
+  },
+  "_note": "SEL-751 guarded two-CROB45/49 profile; READ91->141 and134->158; SBO49->60; one TCP child; whole input only",
+  "endpoint_profile": "sel751",
+  "not_admitted_reads": [
+    "range_g10v2_23",
+    "analog",
+    "class0"
+  ],
+  "tcp_profile": "sel751_ts",
+  "evidence_tier": "diagnostic: switch-clock transaction anchors (not the measured baseline)",
+  "diagnostic_anchors": {
+    "ring": 256,
+    "points": [
+      "d_p1",
+      "d_p2",
+      "d_p3",
+      "d_p4",
+      "d_p5",
+      "d_p6"
+    ],
+    "slot": "lo = global_tstamp[39:8] & ~1 (256 ns units, 512 ns grid); hi = bit31 collided | bit30 flag | epoch[13:0] << 16 | generation[15:0]; lo bit0 = duplicate",
+    "note": "release points are T decision passes, not wire departure; no TCP SEQ in the tag"
+  }
+}
