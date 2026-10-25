@@ -19,7 +19,7 @@ enforced 16-driver model gate and ran the full guarded physical SEL-751 set (cam
   - RST persistence (28) and reconnect (29) pass the application on every connection but fail the switch gate
     on 2 and 1 ACK/RESP fallbacks.
 - **Open fallback class:** every switch-gate failure is the designed fallback when the relay's first response on a
-  fresh connection arrives after the readiness bound (about 33 ms). Those responses took 38-98 ms, against
+  fresh connection arrives after the readiness bound (30 ms, configured from T's t0; the master sees it later by forwarding and recirculation time that master-side captures cannot separate). Those responses took 38-98 ms, against
   about 30 ms on c51, and c51 block 04 shows the same counters. Rows c52 changed cannot match READ data (flags
   0x18). The cause is unobserved, because nothing captures the relay side. No threshold was relaxed.
 - **FIN recovery: OPEN.** The reconnect block did not pass as a block.

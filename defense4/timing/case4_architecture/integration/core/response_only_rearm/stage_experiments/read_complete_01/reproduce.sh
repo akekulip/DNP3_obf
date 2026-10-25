@@ -30,13 +30,17 @@ CANDIDATE="${CANDIDATE:-c30}"
 # seg61_02/read_policy_expect.py gained the per-native SHAPES map for the two-READ builds, and model_profile.py changed
 # with c20 (33e21fd07), so c12 recomputes at the last commit before c20 (83498d4c1) and c20 at c432d195e.
 GATE_PIN=""
+# FREEZE_PIN: the commit whose harness tree the candidate's freeze was checked against when its blocks ran. Later
+# edits to frozen harness files (protocol/hw_vepa, rearm_01/hw) would otherwise fail the freeze check of a measured
+# baseline; step 6 then checks the configs in a detached worktree at FREEZE_PIN.
+FREEZE_PIN=""
 TWO_READ=0
 RELAY_READ=0
 EVIDENCE_TIER="historical software endpoint profile (offline only)"
 BUILD_SUFFIX="$CANDIDATE"
 case "$CANDIDATE" in
   c52) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts"
-       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c52_sdk9132
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c52_sdk9132; FREEZE_PIN=ee7b7f47f
        SOURCE_SHA=8f37f70240ffa03daf887349e5e52a6abf7e32eb4b43ec559e35077902e3dce4
        EVIDENCE_TIER="integrated SEL-751 timestamp profile; qualification requires recorded gates" ;;
   c51) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts"
@@ -75,10 +79,11 @@ BUILD="$STAGE/ctl_timing_01/evidence/m12p_$BUILD_SUFFIX"
 FREEZE="$BUILD/freeze_v3.json"
 if [ "${1:-}" = --candidate-info ]; then
   [ $# = 1 ] || { echo "--candidate-info takes no other arguments" >&2; exit 2; }
-  python3 - "$CANDIDATE" "$BUILD" "$SOURCE_SHA" "$GEN_ARGS" "$EVIDENCE_TIER" <<'EOF'
+  python3 - "$CANDIDATE" "$BUILD" "$SOURCE_SHA" "$GEN_ARGS" "$EVIDENCE_TIER" "$FREEZE_PIN" <<'EOF'
 import json, shlex, sys
 print(json.dumps(dict(candidate=sys.argv[1], build=sys.argv[2], source_sha256=sys.argv[3],
-                     generator_args=shlex.split(sys.argv[4]), evidence_tier=sys.argv[5]), indent=2))
+                     generator_args=shlex.split(sys.argv[4]), evidence_tier=sys.argv[5],
+                     freeze_pin=sys.argv[6] or None), indent=2))
 EOF
   exit 0
 fi
@@ -89,7 +94,9 @@ fi
 SCRATCH="$(mktemp -d)"
 REPO="$(git -C "$HERE" rev-parse --show-toplevel)"
 cleanup() {
-  if [ -d "$SCRATCH/pin" ]; then git -C "$REPO" worktree remove --force "$SCRATCH/pin" >/dev/null 2>&1 || true; fi
+  for w in pin fpin; do
+    if [ -d "$SCRATCH/$w" ]; then git -C "$REPO" worktree remove --force "$SCRATCH/$w" >/dev/null 2>&1 || true; fi
+  done
   rm -rf "$SCRATCH"
 }
 trap cleanup EXIT
@@ -204,19 +211,27 @@ else
 fi
 
 step "6. freeze: every block config belongs to the frozen candidate"
-if [ -f "$FREEZE" ] && ls "$HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json >/dev/null 2>&1; then
+F_HERE="$HERE"; F_HW="$HW"; F_BUILD="$BUILD"; F_FREEZE="$FREEZE"
+if [ -n "$FREEZE_PIN" ]; then
+  git -C "$REPO" worktree prune
+  git -C "$REPO" worktree add --detach "$SCRATCH/fpin" "$FREEZE_PIN" >/dev/null
+  F_HERE="$SCRATCH/fpin/${HERE#$REPO/}"; F_HW="$SCRATCH/fpin/${HW#$REPO/}"; F_BUILD="$SCRATCH/fpin/${BUILD#$REPO/}"
+  F_FREEZE="$F_BUILD/freeze_v3.json"
+  echo "checking the measured baseline's freeze at $FREEZE_PIN (detached worktree, removed on exit)"
+fi
+if [ -f "$F_FREEZE" ] && ls "$F_HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json >/dev/null 2>&1; then
   # Compiler artifacts (compile_*/out/) are git-ignored by design (case4_architecture/build.py). In a fresh checkout
   # they are absent, so the freeze binding of the artifact BYTES cannot be checked without recompiling; that case is
   # reported as NOT CHECKED (never as ok). Any changed file, or any missing file outside compile_*/out/, fails.
-  for c in "$HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json; do
+  for c in "$F_HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json; do
     # A later block set has its own freeze beside freeze_v3.json (c52: freeze_v3_ref2.json for reference_rest);
     # check each config against the live freeze that names it.
-    f="$FREEZE"
-    for g in "$BUILD"/freeze_v3_*.json; do
+    f="$F_FREEZE"
+    for g in "$F_BUILD"/freeze_v3_*.json; do
       case "$g" in *SUPERSEDED*|*UNUSED*) continue ;; esac
       [ -f "$g" ] && grep -q "/$(basename "$c")\"" "$g" && f="$g"
     done
-    if out="$(python3 "$HW/freeze_gate.py" check "$f" --config "$c" 2>&1)"; then
+    if out="$(python3 "$F_HW/freeze_gate.py" check "$f" --config "$c" 2>&1)"; then
       echo "ok $(basename "$c")"
     elif echo "$out" | grep -q '^freeze check: FAILED 0 changed' \
          && ! echo "$out" | grep '^  missing ' | grep -vq '/compile_[a-z0-9_]*/out/'; then
@@ -227,7 +242,7 @@ if [ -f "$FREEZE" ] && ls "$HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json >/dev/
     fi
   done
 else
-  echo "no freeze yet for m12p_$CANDIDATE (configs present: $(ls "$HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json 2>/dev/null | wc -l)); skipping"
+  echo "no freeze yet for m12p_$CANDIDATE (configs present: $(ls "$F_HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json 2>/dev/null | wc -l)); skipping"
 fi
 
 if [ "${1:-}" = "--readout" ]; then

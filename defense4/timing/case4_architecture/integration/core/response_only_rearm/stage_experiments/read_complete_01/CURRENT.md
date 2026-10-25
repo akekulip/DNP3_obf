@@ -1,5 +1,24 @@
 # Current status — c52 physical SEL-751 set (2026-10-24 night)
 
+## c52 measured baseline (immutable from 2026-10-25)
+
+c52 is the baseline for the timing diagnosis. Nothing under `ctl_timing_01/evidence/m12p_c52_sdk9132/`, the c52
+hw_blocks/hw_campaigns (23-31), the c52 configs, or the ledger may be edited again. Diagnostic work uses separate
+candidates (`m12p_c52d_sdk9132`), configs and freezes, and is labeled as a separate evidence tier.
+
+| artifact | sha256 |
+|---|---|
+| source `response_only.p4` | `8f37f70240ffa03daf887349e5e52a6abf7e32eb4b43ec559e35077902e3dce4` |
+| `freeze_v3.json` (blocks 23-30) | `aa0e06dd393c37becd1d64269242a602d9037b2270cb94efc30ea6ed738e2865` |
+| `freeze_v3_ref2.json` (block 31) | `c81b2b4baaf309bb6cf85fb37d7d2e11a26c8bdea46f8aa854882fb454dabbd4` |
+| `model_summary_v3.json` (model_gate_passed) | `81a9f8b422d1d70f28133defef660446bade21be7f2412b1b774363299bf9a00` |
+| `evidence/c52_reference_ledger_20261024.json` | `682cc26a38fabe90497ca4760e233682844b30da7696e1b0809db8f3ce7fc6e5` |
+
+Evidence commit: ee7b7f47f (pushed). Blocks: rc01_hw_c52_20261024_23 ... _31.
+
+FIN: overall FIN/reconnect qualification stays OPEN. FIN delivery and the application reconnect checks now pass
+on all three connections (blocks 27, 28 and 29); blocks 28 and 29 fail only their switch gate (fallbacks).
+
 c52 (`m12p_c52_sdk9132`, source 8f37f702; c51 plus acceptance of the relay's FIN+PSH+ACK as its FIN) passed the
 enforced 16-driver model gate and ran the full guarded physical SEL-751 set (campaigns 23-31, Vision at
 10.10.54.19). Every block restored with verification and ownership never became unsafe.
@@ -17,7 +36,7 @@ enforced 16-driver model gate and ran the full guarded physical SEL-751 set (cam
   - RST persistence (28) and reconnect (29) pass the application on every connection but fail the switch gate
     on 2 and 1 ACK/RESP fallbacks.
 - **Open fallback class:** every switch-gate failure is the designed fallback when the relay's first response on a
-  fresh connection arrives after the readiness bound (about 33 ms). Those responses took 38-98 ms, against
+  fresh connection arrives after the readiness bound (30 ms, configured from T's t0; the master sees it later by forwarding and recirculation time that master-side captures cannot separate). Those responses took 38-98 ms, against
   about 30 ms on c51, and c51 block 04 shows the same counters. Rows c52 changed cannot match READ data (flags
   0x18). The cause is unobserved, because nothing captures the relay side. No threshold was relaxed.
 - **FIN recovery: OPEN.** The reconnect block did not pass as a block.

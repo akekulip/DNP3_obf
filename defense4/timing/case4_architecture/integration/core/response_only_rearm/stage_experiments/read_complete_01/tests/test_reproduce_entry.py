@@ -62,6 +62,24 @@ class ReproduceEntry(unittest.TestCase):
                 self.assertEqual(info['source_sha256'], source)
                 self.assertEqual(info['generator_args'], json.loads(self.info('c48').stdout)['generator_args'])
 
+    def test_c52_freeze_check_is_pinned_to_its_evidence_commit(self):
+        """c52 is the measured baseline: its freeze check runs at the commit its blocks ran under, so later
+        edits to frozen harness files cannot fail it, and the pin holds the same freezes and source as today."""
+        info = json.loads(self.info('c52').stdout)
+        pin = info['freeze_pin']
+        self.assertEqual(pin, 'ee7b7f47f')
+        repo = subprocess.run(['git', '-C', str(HERE), 'rev-parse', '--show-toplevel'], stdout=subprocess.PIPE,
+                              universal_newlines=True, check=True).stdout.strip()
+        self.assertEqual(subprocess.run(['git', '-C', repo, 'merge-base', '--is-ancestor', pin, 'HEAD']).returncode, 0)
+        build = Path(info['build'])
+        for name in ('freeze_v3.json', 'freeze_v3_ref2.json', 'response_only.p4'):
+            path = str((build / name).relative_to(repo))
+            pinned = subprocess.run(['git', '-C', repo, 'show', '%s:%s' % (pin, path)], stdout=subprocess.PIPE,
+                                    check=True).stdout
+            self.assertEqual(pinned, (build / name).read_bytes(), name)
+        for candidate in ('c51', 'c50'):
+            self.assertIsNone(json.loads(self.info(candidate).stdout)['freeze_pin'])
+
     def test_unknown_candidate_fails_before_reproduction(self):
         result = self.info('not_a_candidate')
         self.assertEqual(result.returncode, 2)
