@@ -22,7 +22,7 @@ class ReadAddresses(unittest.TestCase):
 
     def test_every_c51_config_validates_and_reaches_the_installer_in_wire_order(self):
         paths = sorted((HERE / 'hw/config').glob('rc01_m12p_c51_sdk9132_sel751_*.json'))
-        self.assertEqual(len(paths), 9)
+        self.assertEqual(len(paths), 17)   # nine original (.166) + eight v19 (Vision at 10.10.54.19)
         for path in paths:
             cfg = json.loads(path.read_text())
             campaign.validate_profile(cfg)

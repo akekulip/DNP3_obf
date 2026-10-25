@@ -80,6 +80,8 @@ def main(argv=None):
     parser.add_argument('--template-build', default='m12p_c29_sdk9132')
     parser.add_argument('--output', type=Path, default=HERE / 'config')
     parser.add_argument('--native-observation', type=Path, default=NATIVE_OBSERVATION)
+    parser.add_argument('--tag', default='', help='name infix for a new config set (e.g. v19 after a host change); '
+                        'existing configs bound to retained blocks are never rewritten')
     parser.add_argument('--diagnostic-mau-snapshot', action='store_true',
                         help='write only smoke_mau: the smoke block plus an N-ingress MAU snapshot of the first READ')
     args = parser.parse_args(argv)
@@ -153,9 +155,9 @@ def main(argv=None):
                                          source_sha256=source, artifact_sha256=manifest['artifact_sha256'],
                                          compiler=manifest['compiler'], sdk='9.13.2')
         cfg['ctl_timing_identity'] = identity
-        name = block
+        name = (args.tag + '_' if args.tag else '') + block
         if args.diagnostic_mau_snapshot:
-            name = block + '_mau'
+            name = (args.tag + '_' if args.tag else '') + block + '_mau'
             cfg['diagnostic_mau_snapshot'] = MAU_SNAPSHOT
             cfg['_notes'].append('Diagnostic: N-ingress MAU snapshot of the first READ post-lap pass; traffic unchanged.')
             cfg['evaluation']['campaign_block']['phase'] = name
