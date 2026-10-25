@@ -3288,7 +3288,16 @@ recovery FAIL | physical J unproven. c67 has NOT passed hardware qualification. 
   Concrete lead T-d: exchange 162 of block 04 timing_only: ACK at 2.908 ms after the READ request, response at
   57.012 ms; counters normal (193 commit/193 release, no fallback). Either T released ~44 ms late, or the ACK left
   before the response was complete (relay late after an OPERATE). Not yet discriminated.
-- Next: commit + clean-checkout reproduction + push (authorized), then Part B.
+- Committed fa5c5d851 (akekulip; 1,105 files, ~1.19 GB: 1.04 GB model-log .xz, 78 MB other model-run files,
+  78 MB hardware block evidence). Clean-checkout reproduction in a detached worktree at fa5c5d851:
+  all 56 manifest-listed archives present; restore_retained_logs rc 0; all 56 manifest-listed raw logs restored and
+  sha256-verified (independent of the helper's scan); model_summary --v3 --enforce = model_gate_passed;
+  reproduce.sh --candidate-info and full reproduce.sh rc 0 ("all offline steps passed"), step 6 freeze check "ok"
+  for all 10 c67 configs against freeze_v3_02 (not NOT CHECKED); reference replay byte-identical to the committed
+  ledger; smoke/recovery observations re-derived from captures match the retained relay_wire.json (0 mismatches)
+  and recorded verdicts (01 refused pre-write, 02 PASS, 06 loss_mixed FAIL at t3 only, 07 loss_full/graceful/RST/
+  reconnect PASS). Working checkout: freeze_gate check freeze_v3_02 OK (0 changed, 0 missing) for all 10 configs.
+- Next: push (authorized), then Part B (B1 offline discrimination first).
 
 <!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-25T18:10:33Z -->
 ### Compaction handoff — 2026-10-25T18:10:33Z
