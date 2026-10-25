@@ -1,0 +1,69 @@
+{
+  "at": 1792889925.2413912,
+  "bound_sha256": {
+    "config": "b396bf5358a208e35ddbea130d57f01ad90295e46510ce95d0658d588b7e2557",
+    "original_restore_verify": "eccf9965e95c5f86d06904d0c8fff33c0059a3696c98b6ed1e8dbe08f71b40f2",
+    "ownership": "b4ac53aaf05d1383b67ac1615577167f5ae4510cc83c4a5b861a25d078857207",
+    "terminal": "e3c6f8c0bc1dd6a3d6982be3243d6cbfda15f470b91eabadf8ec8e2867da27b8",
+    "vision_identity": {
+      "data_mac": "3c:fd:fe:cc:5d:c0",
+      "hostname": "vision",
+      "rc": 0
+    }
+  },
+  "campaign_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/rc01_hw_c51_20261024_05",
+  "command": [
+    "/usr/bin/python3",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_verify.py",
+    "--config",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/reconcile_rc01_hw_c51_20261024_05_persistence_graceful_950_20261025T005844Z/config_vision_remap.json",
+    "--run-root",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/reconcile_rc01_hw_c51_20261024_05_persistence_graceful_950_20261025T005844Z"
+  ],
+  "config": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_c51_sdk9132_sel751_persistence_graceful_950.json",
+  "earlier_reverifies": {},
+  "fresh_restore_verify": "715e419e6cec5f11de66b2367acdf83571bbd6e68539e37163c240ab5d8e2cc6",
+  "original_failures": [],
+  "rc": 1,
+  "restore_verify_tool": {
+    "last_commit": "d3d2fe6349a8f33085176042dc76dd17fb606e05 2026-10-24T12:56:51-04:00 Add guarded physical SEL-751 campaigns and retain native observations",
+    "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_verify.py",
+    "rule_note": "comparison rules as committed; the original failed check may predate later rule commits (see last_commit)",
+    "sha256": "651a0e83b5d321577bfcc5022d8b29fd9170062600430b0f7501c25f158e8137",
+    "stripped_statistics": [
+      "$COUNTER_SPEC_BYTES",
+      "$COUNTER_SPEC_PKTS",
+      "drop_count_bytes",
+      "drop_count_packets",
+      "guaranteed_min_usage_cells",
+      "shared_pool_usage_cells",
+      "usage_cells",
+      "watermark_cells"
+    ],
+    "uncommitted_changes": false,
+    "volatile_tables": [
+      "$PORT_STAT",
+      "log_tbl_counter",
+      "tbl_dbg_counter",
+      "tf1.log_tbl_counter"
+    ]
+  },
+  "result": "restoration verified afresh; ownership update follows (the clear is proven by reconciliation_sha256 in ownership.json); the runner restore result remains FAILED as recorded -- the Vision restore and ping, which never reached Vision, were run by the bound vision_unreachable_repair record and verified afresh",
+  "step_id": "rc01_hw_c51_20261024_05_persistence_graceful_950",
+  "vision_remap": {
+    "derived": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/reconcile_rc01_hw_c51_20261024_05_persistence_graceful_950_20261025T005844Z/config_vision_remap.json",
+    "derived_sha256": "aff0114353caa01e0563d6363391c2ccd88455fcf327d20ef2f9cb2929b491a4",
+    "original": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_c51_sdk9132_sel751_persistence_graceful_950.json",
+    "original_sha256": "b396bf5358a208e35ddbea130d57f01ad90295e46510ce95d0658d588b7e2557",
+    "vision_from": "decps@10.10.54.166",
+    "vision_to": "decps@10.10.54.19"
+  },
+  "vision_unreachable_repair": {
+    "binding": {
+      "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/rc01_hw_c51_20261024_05/steps/rc01_hw_c51_20261024_05_persistence_graceful_950/vision_unreachable_repair_20261025T005657Z/repair.json",
+      "sha256": "330098636ae449dd64d11528292b1eead82fef1b341b086bae2ca80d4e56c331",
+      "vision_host": "decps@10.10.54.19"
+    },
+    "problems": []
+  }
+}
