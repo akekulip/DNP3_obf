@@ -3144,3 +3144,9 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
 - Git: branch `main`, 3394 uncommitted file(s): BRANCH_PRUNE_20260915.txt DNP3_Implementation_Directive_492013014.md .drawio-tmp/ .scratch_p4/ .scratch_repo/ PlainObfus bf_drivers.log defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md defense4/ieee-standard-for-electric-power-systems-communicationsdistribut.pdf defense4/timing/audit_current/MEETING_20261005_DIRECTION.md defense4/timing/case4_architecture/FOUR_ARM_DESIGN_REVIEW.md defense4/timing/case4_architecture/integration/core/ordinary/transport_model_select.py 
 - Last verification run recorded: 2026-10-25T02:45:38Z	cat /tmp/claude-1002/-home-philip-Projects-DNP3/3a7bcfe2-1832-436d-bcfe-39259e9151ca/scratchpad/campaigns.log; python3 -
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-25T06:58:49Z -->
+### Compaction handoff — 2026-10-25T06:58:49Z
+- Git: branch `main`, 3393 uncommitted file(s): BRANCH_PRUNE_20260915.txt DNP3_Implementation_Directive_492013014.md .drawio-tmp/ .scratch_p4/ .scratch_repo/ PlainObfus bf_drivers.log defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md defense4/ieee-standard-for-electric-power-systems-communicationsdistribut.pdf defense4/timing/audit_current/MEETING_20261005_DIRECTION.md defense4/timing/case4_architecture/FOUR_ARM_DESIGN_REVIEW.md defense4/timing/case4_architecture/integration/core/ordinary/transport_model_select.py 
+- Last verification run recorded: 2026-10-25T06:04:25Z	tail -4 /tmp/claude-1002/-home-philip-Projects-DNP3/3a7bcfe2-1832-436d-bcfe-39259e9151ca/scratchpad/campaigns.log; pytho
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
