@@ -55,9 +55,15 @@ def main():
     ap.add_argument('--relay-sbo', dest='relay_sbo', action='store_true',
                     help='actual guarded two-CROB relay45/49 exchange, faithful49->60 (requires --relay --headroom)')
     ap.add_argument('--relay-ts', dest='relay_ts', action='store_true', help='observed SEL-751 TCP timestamp profile (requires --relay-sbo)')
+    ap.add_argument('--response-ready-timing', action='store_true',
+                    help='genuine ACK waits for whole response; release response D after commit; requires --relay-ts')
     ap.add_argument('--diag-anchors', dest='diag_anchors', action='store_true',
                     help='diagnostic switch-clock transaction anchors in T (separate evidence tier; requires --relay-ts)')
     a = ap.parse_args()
+    if a.response_ready_timing and not a.relay_ts:
+        ap.error('--response-ready-timing requires --relay-ts')
+    if a.response_ready_timing and a.diag_anchors:
+        ap.error('--response-ready-timing excludes --diag-anchors')
     if a.diag_anchors and not a.relay_ts:
         ap.error('--diag-anchors requires --relay-ts')
     if a.relay_ts and not a.relay_sbo:
@@ -88,7 +94,7 @@ def main():
                          segmented_full=a.segmented_full, two_read_build=a.two_read, reduce=a.reduce,
                          ack_retry=a.ack_retry, read_handshake=a.read_handshake,
                          headroom=a.headroom, relay=a.relay, relay_sbo=a.relay_sbo, relay_ts=a.relay_ts,
-                         diag_anchors=a.diag_anchors)
+                         diag_anchors=a.diag_anchors, response_ready_timing=a.response_ready_timing)
     sha = write_outputs(out, a, src, applied)
     print('wrote %s (image=%d, transforms=%s, sha=%s)' % (out / 'response_only.p4', image, applied, sha[:12]))
 

@@ -2,7 +2,7 @@
 import hashlib
 import json
 
-from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp, diag_anchor
+from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp, diag_anchor, response_ready_timing as response_ready
 from .common import (CONSTANTS, CONSTANTS_TWO, HERE, M11_09, M11_09_PROFILE, M11_09_SHA, combined)
 
 TRANSFORM = {
@@ -22,6 +22,7 @@ TRANSFORM = {
     'relay_sbo': relay_control.transform,
     'relay_ts': relay_timestamp.transform,
     'diag_anchor': diag_anchor.transform,
+    'response_ready_timing': response_ready.transform,
 }
 
 
@@ -33,7 +34,7 @@ def generator_files():
 
 def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False,
           reduce=False, ack_retry=False, read_handshake=False, headroom=False, relay=False, relay_sbo=False, relay_ts=False,
-          diag_anchors=False):
+          diag_anchors=False, response_ready_timing=False):
     # Select the two-READ shape source for this build (relay only applies to a two-READ build).
     two_read.use_relay_shapes(relay and two_read_build)
     src = M11_09.read_text()
@@ -81,6 +82,12 @@ def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_
         if not relay_sbo:
             raise ValueError('relay timestamps require relay SBO')
         transforms.append('relay_ts')
+    if response_ready_timing:
+        if not relay_ts:
+            raise ValueError('response-ready timing requires relay timestamps')
+        if diag_anchors:
+            raise ValueError('response-ready timing excludes diagnostic anchors')
+        transforms.append('response_ready_timing')
     if diag_anchors:   # m12p_c52d: switch-clock transaction anchors, a separate diagnostic evidence tier
         if not relay_ts:
             raise ValueError('diagnostic anchors require the relay timestamp profile')
@@ -219,6 +226,12 @@ def write_outputs(out, a, src, applied):
             native_ipv4_octets={'mixed': 143, 'integrity': 186, 'SELECT': 101, 'OPERATE': 101},
             image_ipv4_octets={'mixed': 193, 'integrity': 210, 'SELECT': 112, 'OPERATE': 112},
             control_request_ipv4_octets=97)
+    if getattr(a, 'response_ready_timing', False):
+        required.add('response_ready_timing')
+        profile['timing_contract'] = 'response_ready_ack_d_v1'
+        profile['timing_ns'] = {'D_release_budget': 5000000, 'J_operate_hold': 2400000, 'response_wait_timeout': 500000000}
+        profile['_note'] += '; genuine ACK waits for whole child0; response follows ACK commit by D; WAITING expires at500ms'
+        scope = profile['_note']
     if getattr(a, 'diag_anchors', False):
         required.add('diag_anchor')
         profile['evidence_tier'] = 'diagnostic: switch-clock transaction anchors (not the measured baseline)'
@@ -226,6 +239,7 @@ def write_outputs(out, a, src, applied):
             slot='lo = global_tstamp[39:8] & ~1 (256 ns units, 512 ns grid); hi = bit31 collided | bit30 flag '
                  '| epoch[13:0] << 16 | generation[15:0]; lo bit0 = duplicate',
             note='release points are T decision passes, not wire departure; no TCP SEQ in the tag')
+    runnable = required.issubset(set(applied))
     ctl_native, ctl_output, ctl_growth = (49, 60, 11) if actual_relay else (37, 61, 24)
     gen_files = generator_files()
     shapes2 = two_read.two_read_shapes() if a.two_read else None

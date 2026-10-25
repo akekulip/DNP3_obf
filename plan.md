@@ -67,3 +67,13 @@ No attacker campaign,sizing redesign,paper work or IEEE audit. Record genuine bl
 ## Execution ledger
 
 2026-10-25: takeover preservation completed. Implementation/model/hardware pending.
+
+2026-10-25: c53 first source/interpreter tests green; SDK9.13.2 compile failed (source01e17381e8cf):
+register-value slice condition unsupported and atomic state action exceeds two comparison units. Failure
+source/manifest/log retained; successor will use whole-word comparisons and two PHV inputs. No hardware touched.
+
+2026-10-25: c60 source618724c6 compiles within all limits: N/E/T0..10,P1egress0..3. E matchesc52 exactly.
+Source18/full188 tests pass; independent source and harness reviews approved. Actual final P1 costs vs c52:
+SRAM61→58,TCAM63→61,SALU13→13,crossbar403→396,T PHVcapacity1344→1152bits. No whole-stage saving claimed.
+Strict compiled response_ready_01 retainedfail: driver log parsing delayed SELECT ACK to496ms and response576ms;
+T correctly expired500ms. Correcting model stimulus timing, not changing500ms. No hardware touched.

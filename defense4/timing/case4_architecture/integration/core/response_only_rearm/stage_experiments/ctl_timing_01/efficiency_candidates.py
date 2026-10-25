@@ -312,4 +312,6 @@ if __name__ == '__main__':
     if args.record_artifacts and args.probe:
         parser.error('--record-artifacts cannot be combined with --probe')
     result = record_artifacts(args.output) if args.record_artifacts else generate(args.output, args.probe)
+    # m12 records use transforms_applied; the efficiency-probe format uses transforms.
+    result.setdefault('transforms', result.get('transforms_applied', []))
     print(json.dumps({key: result[key] for key in ('source_sha256', 'segment_sha256', 'transforms')}))
