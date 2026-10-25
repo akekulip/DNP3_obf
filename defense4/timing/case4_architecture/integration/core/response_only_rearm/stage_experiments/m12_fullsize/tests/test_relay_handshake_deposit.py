@@ -20,6 +20,7 @@ class HandshakeChecksumDeposit(unittest.TestCase):
         with ExitStack() as patches:
             patches.enter_context(patch.object(relay_sbo, 'retry_fin_phase', side_effect=lambda src: src))
             patches.enter_context(patch.object(relay_sbo, 'half_closed_rst', side_effect=lambda src: src))
+            patches.enter_context(patch.object(relay_sbo, 'relay_fin_psh', side_effect=lambda src: src))
             patches.enter_context(patch.object(relay_sbo, 'canonical_profile_keys', side_effect=lambda src: src))
             patches.enter_context(patch.object(relay_sbo, 'relay_departure_provenance', side_effect=lambda src: src))
             for name in ('handshake_mss_first', 'early_shallow_checksum', 'stream_read_timestamp_prefix',

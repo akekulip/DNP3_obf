@@ -1,0 +1,189 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS R_mixed_SYN                        expected=one exact frame observed=1
+PASS R_mixed_SYNACK                     expected=one exact frame observed=1
+PASS R_mixed_ACK                        expected=one exact frame observed=1
+PASS R_mixed_request                    expected=one exact frame observed=1
+PASS R_mixed_server_ack                 expected=one exact frame observed=1
+PASS R_mixed_response                   expected=one exact frame observed=1
+PASS R_mixed_retransmission_safe        expected=>= 1 copy, every copy == the exact padded image at the wire start observed=copies 1, all exact True
+PASS R_mixed_new_timestamp_exact_retransmission expected=True       observed=True
+PASS R_mixed_mapped_ack                 expected=one exact frame observed=1
+PASS R_mixed_close_fin                  expected=one exact frame observed=1
+PASS R_mixed_close_fin_ack              expected=one exact frame observed=1
+PASS R_mixed_close_last_ack             expected=one exact frame observed=1
+PASS R_integrity_SYN                    expected=one exact frame observed=1
+PASS R_integrity_SYNACK                 expected=one exact frame observed=1
+PASS R_integrity_ACK                    expected=one exact frame observed=1
+PASS R_integrity_request                expected=one exact frame observed=1
+PASS R_integrity_server_ack             expected=one exact frame observed=1
+PASS R_integrity_response               expected=one exact frame observed=1
+PASS R_integrity_retransmission_safe    expected=>= 1 copy, every copy == the exact padded image at the wire start observed=copies 1, all exact True
+PASS R_integrity_new_timestamp_exact_retransmission expected=True       observed=True
+PASS R_integrity_mapped_ack             expected=one exact frame observed=1
+PASS R_integrity_close_fin              expected=one exact frame observed=1
+PASS R_integrity_close_fin_ack          expected=one exact frame observed=1
+PASS R_integrity_close_last_ack         expected=one exact frame observed=1
+PASS R_integrity_SYN                    expected=one exact frame observed=1
+PASS R_integrity_SYNACK                 expected=one exact frame observed=1
+PASS R_integrity_ACK                    expected=one exact frame observed=1
+PASS R_integrity_request                expected=one exact frame observed=1
+PASS R_integrity_server_ack             expected=one exact frame observed=1
+PASS R_integrity_response               expected=one exact frame observed=1
+PASS R_integrity_retransmission_safe    expected=>= 1 copy, every copy == the exact padded image at the wire start observed=copies 1, all exact True
+PASS R_integrity_new_timestamp_exact_retransmission expected=True       observed=True
+PASS R_integrity_mapped_ack             expected=one exact frame observed=1
+PASS R_integrity_close_fin              expected=one exact frame observed=1
+PASS R_integrity_close_fin_ack          expected=one exact frame observed=1
+PASS R_integrity_close_last_ack         expected=one exact frame observed=1
+PASS C_mixed_block0_point_SYN           expected=one exact frame observed=1
+PASS C_mixed_block0_point_SYNACK        expected=one exact frame observed=1
+PASS C_mixed_block0_point_ACK           expected=one exact frame observed=1
+PASS C_mixed_block0_point_request       expected=one exact frame observed=1
+PASS C_mixed_block0_point_server_ack    expected=one exact frame observed=1
+PASS C_mixed_block0_point_not_laundered expected=no copy whose DNP3 CRCs all verify (block-0 corruption is not laundered) observed=copies 0, laundered 0
+PASS C_mixed_block0_point_no_receiver_qualified_corrupt_response expected=0          observed=0
+PASS C_mixed_block0_point_good_after_delivered_exact expected=one exact padded image observed=copies 1
+PASS C_mixed_block0_point_valid_retransmission_new_timestamp expected=True       observed=True
+PASS C_mixed_block0_point_mapped_ack    expected=one exact frame observed=1
+PASS C_mixed_block0_point_close_fin     expected=one exact frame observed=1
+PASS C_mixed_block0_point_close_fin_ack expected=one exact frame observed=1
+PASS C_mixed_block0_point_close_last_ack expected=one exact frame observed=1
+PASS C_mixed_tcp_checksum_SYN           expected=one exact frame observed=1
+PASS C_mixed_tcp_checksum_SYNACK        expected=one exact frame observed=1
+PASS C_mixed_tcp_checksum_ACK           expected=one exact frame observed=1
+PASS C_mixed_tcp_checksum_request       expected=one exact frame observed=1
+PASS C_mixed_tcp_checksum_server_ack    expected=one exact frame observed=1
+PASS C_mixed_tcp_checksum_not_laundered expected=no copy with a VALID TCP checksum (the corruption is not laundered) observed=copies 1, laundered 0
+PASS C_mixed_tcp_checksum_no_receiver_qualified_corrupt_response expected=0          observed=0
+PASS C_mixed_tcp_checksum_good_after_delivered_exact expected=one exact padded image observed=copies 1
+PASS C_mixed_tcp_checksum_valid_retransmission_new_timestamp expected=True       observed=True
+PASS C_mixed_tcp_checksum_mapped_ack    expected=one exact frame observed=1
+PASS C_mixed_tcp_checksum_close_fin     expected=one exact frame observed=1
+PASS C_mixed_tcp_checksum_close_fin_ack expected=one exact frame observed=1
+PASS C_mixed_tcp_checksum_close_last_ack expected=one exact frame observed=1
+PASS C_mixed_tail_crc_SYN               expected=one exact frame observed=1
+PASS C_mixed_tail_crc_SYNACK            expected=one exact frame observed=1
+PASS C_mixed_tail_crc_ACK               expected=one exact frame observed=1
+PASS C_mixed_tail_crc_request           expected=one exact frame observed=1
+PASS C_mixed_tail_crc_server_ack        expected=one exact frame observed=1
+PASS C_mixed_tail_crc_not_laundered     expected=no copy whose tail DNP3 CRC verifies (the tail corruption is not laundered) observed=copies 1, laundered 0
+PASS C_mixed_tail_crc_no_receiver_qualified_corrupt_response expected=0          observed=0
+PASS C_mixed_tail_crc_good_after_delivered_exact expected=one exact padded image observed=copies 1
+PASS C_mixed_tail_crc_valid_retransmission_new_timestamp expected=True       observed=True
+PASS C_mixed_tail_crc_mapped_ack        expected=one exact frame observed=1
+PASS C_mixed_tail_crc_close_fin         expected=one exact frame observed=1
+PASS C_mixed_tail_crc_close_fin_ack     expected=one exact frame observed=1
+PASS C_mixed_tail_crc_close_last_ack    expected=one exact frame observed=1
+PASS C_integrity_block0_point_SYN       expected=one exact frame observed=1
+PASS C_integrity_block0_point_SYNACK    expected=one exact frame observed=1
+PASS C_integrity_block0_point_ACK       expected=one exact frame observed=1
+PASS C_integrity_block0_point_request   expected=one exact frame observed=1
+PASS C_integrity_block0_point_server_ack expected=one exact frame observed=1
+PASS C_integrity_block0_point_not_laundered expected=no copy whose DNP3 CRCs all verify (block-0 corruption is not laundered) observed=copies 0, laundered 0
+PASS C_integrity_block0_point_no_receiver_qualified_corrupt_response expected=0          observed=0
+PASS C_integrity_block0_point_good_after_delivered_exact expected=one exact padded image observed=copies 1
+PASS C_integrity_block0_point_valid_retransmission_new_timestamp expected=True       observed=True
+PASS C_integrity_block0_point_mapped_ack expected=one exact frame observed=1
+PASS C_integrity_block0_point_close_fin expected=one exact frame observed=1
+PASS C_integrity_block0_point_close_fin_ack expected=one exact frame observed=1
+PASS C_integrity_block0_point_close_last_ack expected=one exact frame observed=1
+PASS C_integrity_tcp_checksum_SYN       expected=one exact frame observed=1
+PASS C_integrity_tcp_checksum_SYNACK    expected=one exact frame observed=1
+PASS C_integrity_tcp_checksum_ACK       expected=one exact frame observed=1
+PASS C_integrity_tcp_checksum_request   expected=one exact frame observed=1
+PASS C_integrity_tcp_checksum_server_ack expected=one exact frame observed=1
+PASS C_integrity_tcp_checksum_not_laundered expected=no copy with a VALID TCP checksum (the corruption is not laundered) observed=copies 1, laundered 0
+PASS C_integrity_tcp_checksum_no_receiver_qualified_corrupt_response expected=0          observed=0
+PASS C_integrity_tcp_checksum_good_after_delivered_exact expected=one exact padded image observed=copies 1
+PASS C_integrity_tcp_checksum_valid_retransmission_new_timestamp expected=True       observed=True
+PASS C_integrity_tcp_checksum_mapped_ack expected=one exact frame observed=1
+PASS C_integrity_tcp_checksum_close_fin expected=one exact frame observed=1
+PASS C_integrity_tcp_checksum_close_fin_ack expected=one exact frame observed=1
+PASS C_integrity_tcp_checksum_close_last_ack expected=one exact frame observed=1
+PASS C_integrity_tail_crc_SYN           expected=one exact frame observed=1
+PASS C_integrity_tail_crc_SYNACK        expected=one exact frame observed=1
+PASS C_integrity_tail_crc_ACK           expected=one exact frame observed=1
+PASS C_integrity_tail_crc_request       expected=one exact frame observed=1
+PASS C_integrity_tail_crc_server_ack    expected=one exact frame observed=1
+PASS C_integrity_tail_crc_not_laundered expected=no copy whose tail DNP3 CRC verifies (the tail corruption is not laundered) observed=copies 1, laundered 0
+PASS C_integrity_tail_crc_no_receiver_qualified_corrupt_response expected=0          observed=0
+PASS C_integrity_tail_crc_good_after_delivered_exact expected=one exact padded image observed=copies 1
+PASS C_integrity_tail_crc_valid_retransmission_new_timestamp expected=True       observed=True
+PASS C_integrity_tail_crc_mapped_ack    expected=one exact frame observed=1
+PASS C_integrity_tail_crc_close_fin     expected=one exact frame observed=1
+PASS C_integrity_tail_crc_close_fin_ack expected=one exact frame observed=1
+PASS C_integrity_tail_crc_close_last_ack expected=one exact frame observed=1
+PASS X_SYN                              expected=one exact frame observed=1
+PASS X_SYNACK                           expected=one exact frame observed=1
+PASS X_ACK                              expected=one exact frame observed=1
+PASS X_mixed_before_request             expected=one exact frame observed=1
+PASS X_mixed_before_server_ack          expected=one exact frame observed=1
+PASS X_mixed_before_expected_image      expected=141        observed=141
+PASS X_mixed_before_response            expected=one exact frame observed=1
+PASS X_mixed_before_payload_len         expected=141        observed=141
+PASS X_mixed_before_independent_decode  expected=(141, 26)  observed=(141, 26)
+PASS X_mixed_before_mapped_ack          expected=one exact frame observed=1
+PASS X_range_request_withheld           expected=nothing forwarded either way observed=to_outstation 0, to_master 0
+PASS X_range_request_retransmitted_withheld expected=nothing forwarded either way observed=to_outstation 0, to_master 0
+PASS X_analog_request_withheld          expected=nothing forwarded either way observed=to_outstation 0, to_master 0
+PASS X_analog_request_retransmitted_withheld expected=nothing forwarded either way observed=to_outstation 0, to_master 0
+PASS X_class0_request_withheld          expected=nothing forwarded either way observed=to_outstation 0, to_master 0
+PASS X_class0_request_retransmitted_withheld expected=nothing forwarded either way observed=to_outstation 0, to_master 0
+PASS X_mixed_after_request              expected=one exact frame observed=1
+PASS X_mixed_after_server_ack           expected=one exact frame observed=1
+PASS X_mixed_after_expected_image       expected=141        observed=141
+PASS X_mixed_after_response             expected=one exact frame observed=1
+PASS X_mixed_after_payload_len          expected=141        observed=141
+PASS X_mixed_after_independent_decode   expected=(141, 26)  observed=(141, 26)
+PASS X_mixed_after_mapped_ack           expected=one exact frame observed=1
+PASS X_full_after_request               expected=one exact frame observed=1
+PASS X_full_after_server_ack            expected=one exact frame observed=1
+PASS X_full_after_expected_image        expected=158        observed=158
+PASS X_full_after_response              expected=one exact frame observed=1
+PASS X_full_after_payload_len           expected=158        observed=158
+PASS X_full_after_independent_decode    expected=(158, 4)   observed=(158, 4)
+PASS X_full_after_mapped_ack            expected=one exact frame observed=1
+PASS X_close_fin                        expected=one exact frame observed=1
+PASS X_close_fin_ack                    expected=one exact frame observed=1
+PASS X_close_last_ack                   expected=one exact frame observed=1
+PASS Z_SYN                              expected=one exact frame observed=1
+PASS Z_SYNACK                           expected=one exact frame observed=1
+PASS Z_ACK                              expected=one exact frame observed=1
+PASS Z_request                          expected=one exact frame observed=1
+PASS Z_server_ack                       expected=one exact frame observed=1
+PASS Z_response                         expected=one exact frame observed=1
+PASS Z_master_RST_ACK                   expected=one exact frame observed=1
+PASS Z_new_SYN                          expected=one exact frame observed=1
+PASS Z_new_SYNACK                       expected=one exact frame observed=1
+PASS Z_new_ACK                          expected=one exact frame observed=1
+PASS Z_new_mixed_request                expected=one exact frame observed=1
+PASS Z_new_mixed_server_ack             expected=one exact frame observed=1
+PASS Z_new_mixed_expected_image         expected=141        observed=141
+PASS Z_new_mixed_response               expected=one exact frame observed=1
+PASS Z_new_mixed_payload_len            expected=141        observed=141
+PASS Z_new_mixed_independent_decode     expected=(141, 26)  observed=(141, 26)
+PASS Z_new_mixed_mapped_ack             expected=one exact frame observed=1
+PASS Z_new_full_request                 expected=one exact frame observed=1
+PASS Z_new_full_server_ack              expected=one exact frame observed=1
+PASS Z_new_full_expected_image          expected=158        observed=158
+PASS Z_new_full_response                expected=one exact frame observed=1
+PASS Z_new_full_payload_len             expected=158        observed=158
+PASS Z_new_full_independent_decode      expected=(158, 4)   observed=(158, 4)
+PASS Z_new_full_mapped_ack              expected=one exact frame observed=1
+PASS Z_new_close_fin                    expected=one exact frame observed=1
+PASS Z_new_close_fin_ack                expected=one exact frame observed=1
+PASS Z_new_close_last_ack               expected=one exact frame observed=1
+PASS B_SYN                              expected=one exact frame observed=1
+PASS B_SYNACK                           expected=one exact frame observed=1
+PASS B_ACK                              expected=one exact frame observed=1
+PASS B_request                          expected=one exact frame observed=1
+PASS B_server_ack                       expected=one exact frame observed=1
+PASS B_response                         expected=one exact frame observed=1
+PASS B_bare_RST_characterization        expected=recorded (not asserted) observed={'rst_to_outstation': 1, 'new_syn_to_outstation': 1, 'new_synack_to_master': 1}
+SUMMARY {'total': 181, 'passed': 181, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

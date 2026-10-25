@@ -190,8 +190,50 @@ def transform(src):
     n = once(n, '(16w0x0564,8w38,8w0x44,8w0xc0&&&8w0xc0,8w0xc0&&&8w0xf0,8w0x81,8w10,8w2,8w0,8w0,8w22):eligible();', '')
     src = once(src, 'const PortId_t t_RELAY_PORT    = 9w9;', 'const PortId_t t_RELAY_PORT    = 9w64;')
     src = once(src, old_n, n)
-    return half_closed_rst(retry_fin_phase(canonical_profile_keys(relay_departure_provenance(separate_checksum_conditions(
-        transform_profile_crc(transform_status_lookup(transform_e(src))))))))
+    return relay_fin_psh(half_closed_rst(retry_fin_phase(canonical_profile_keys(relay_departure_provenance(
+        separate_checksum_conditions(transform_profile_crc(transform_status_lookup(transform_e(src)))))))))
+
+
+# N tables whose ternary hdr.tcp.flags column carries the FIN (17) close rows.
+FIN_FLAG_TABLES = ('network', 'sequence_diff', 'close_phase_t', 'first_event', 'reset_boundary')
+
+
+def relay_fin_psh(src):
+    """Treat a zero-payload FIN+PSH+ACK (0x19) exactly as FIN+ACK (0x11) in N.
+
+    The SEL-751 sends its FIN as FPA (native02; rc01_hw_c51_20261024_20's unmanaged connection). c51 matched close
+    rows on 0x11 only, so the relay FIN missed `network`, the half-close never completed and the next same-tuple
+    SYN stayed blocked (rc01_hw_c51_20261024_18/20/21). The ts_tcp parser state sends 0x19 to ts_close like 0x11
+    (it fell to default accept, unparsed). Each ternary FIN value 8w17 in the flags column becomes
+    8w17&&&8w0xf7 (exactly {0x11, 0x19}); exact-match short_shapes gains the 0x19 twin of each 0x11 row. A FIN
+    carrying payload is still classified as packet kind 13 and refused before these tables.
+    """
+    n = combined.segment(src, 'N')
+    old_n = n
+    # the timestamp-bearing close parser classified 0x19 as unparsed (default accept): give it the FIN's state
+    n = once(n, '(4w8,8w17):ts_close;', '(4w8,8w17):ts_close;(4w8,8w25):ts_close;')
+    for name in FIN_FLAG_TABLES:
+        start = n.index('table %s{' % name)
+        end = n.index('}}', start) + 2
+        table = n[start:end]
+        keys = [k.strip() for k in re.search(r'key=\{([^}]*)\}', table).group(1).split(';') if k.strip()]
+        column = next(i for i, k in enumerate(keys) if k.startswith('hdr.tcp.flags:ternary'))
+
+        def widen(match, column=column, width=len(keys)):
+            terms = match.group(1).split(',')
+            if len(terms) != width or terms[column] != '8w17':
+                return match.group(0)
+            terms[column] = '8w17&&&8w0xf7'
+            return '(' + ','.join(terms) + '):'
+        widened = re.sub(r'\(([^()]*)\):', widen, table)
+        assert widened != table, name
+        n = n[:start] + widened + n[end:]
+    start = n.index('table short_shapes{')
+    end = n.index('}}', start) + 2
+    table = once(n[start:end], 'size=7;', 'size=9;')
+    table = once(table, '(2w2,8w17):close_shape();', '(2w2,8w17):close_shape();(2w1,8w25):close_shape();(2w2,8w25):close_shape();')
+    n = n[:start] + table + n[end:]
+    return once(src, old_n, n)
 
 
 # Owner phases 0x101..0x10f as four disjoint ternary bands (low16 generation wildcard).

@@ -512,7 +512,11 @@ class PacketGate:
                                         ('iin_error', (0, 0), b'\x00\x01')):
                 state = self.failed_select_case('failed_SELECT_' + tag, *state, statuses=statuses, iin=iin)
         if rp.SEL751:
-            self.half_closed_rst(*state)
+            state = self.half_closed_rst(*state)
+            if state is None:
+                self.report.add('relay_fpa_close', 'run', 'not run: the half-closed RST case did not reconnect', ok=False)
+            else:
+                self.relay_fpa_close(*state)
         if rp.TCP_TIMESTAMPS:
             self.add('timestamp_options_receive_order', True,
                      rp.timestamp_order_ok([frame for _time, frame in self.captures['received']]))
@@ -578,9 +582,32 @@ class PacketGate:
             state = self.handshake(cseq + 3000, native_sseq + 3000, tag + '_fresh_')
         except AssertionError:
             add(tag + '_fresh_handshake', 'completed', 'failed', ok=False)
-            return
+            return None
         add(tag + '_fresh_handshake', 'completed', 'completed')
-        self.read_exchange(tag + '_fresh_read', *state, seq=6)
+        return self.read_exchange(tag + '_fresh_read', *state, seq=6)
+
+    def relay_fpa_close(self, cseq, native_sseq, wire_sseq, tag='relay_fpa'):
+        """Graceful close as the SEL-751 performs it: its FIN is FIN+PSH+ACK (0x19, no payload; native02 and
+        rc01_hw_c51_20261024_20). c51 dropped it and left the tuple half-closed; the FIN must reach the master
+        exactly once with mapped sequence, the master's last ACK must map back, and the same tuple must reconnect."""
+        v, add = self.v, self.report.add
+        cseq, native_sseq, wire_sseq = self.read_exchange(tag + '_read', cseq, native_sseq, wire_sseq, seq=7)
+        self.exchange(tag + '_master_FIN', v.packet(17, cseq, wire_sseq), v.packet(17, cseq, native_sseq))
+        self.exchange(tag + '_relay_ACK', v.packet(16, native_sseq, cseq + 1, reverse=True),
+                      v.packet(16, wire_sseq, cseq + 1, reverse=True), reverse=True)
+        self.exchange(tag + '_relay_FPA_FIN', v.packet(25, native_sseq, cseq + 1, reverse=True),
+                      v.packet(25, wire_sseq, cseq + 1, reverse=True), reverse=True)
+        self.exchange(tag + '_master_last_ACK', v.packet(16, cseq + 1, wire_sseq + 1),
+                      v.packet(16, cseq + 1, native_sseq + 1))
+        owner = self.h.scalar(self.n_state()['owner']) >> 16
+        add(tag + '_owner_closed', 'closed (0x10f or 0x200)', hex(owner), ok=owner in (0x10f, 0x200))
+        try:
+            state = self.handshake(cseq + 4000, native_sseq + 4000, tag + '_fresh_')
+        except AssertionError:
+            add(tag + '_fresh_handshake', 'completed', 'failed', ok=False)
+            return None
+        add(tag + '_fresh_handshake', 'completed', 'completed')
+        return self.read_exchange(tag + '_fresh_read', *state, seq=8)
 
 
 def model_main():

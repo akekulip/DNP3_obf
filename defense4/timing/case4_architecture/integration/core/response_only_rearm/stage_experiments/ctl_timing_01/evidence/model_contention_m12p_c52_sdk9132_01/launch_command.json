@@ -1,0 +1,35 @@
+{
+  "command": [
+    "bash",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/launch_model.sh",
+    "-p",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c52_sdk9132/compile_local/out",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_contention_m12p_c52_sdk9132_01",
+    "-P",
+    "9 48 64 68 180 181 182 196",
+    "-d",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/record_closure.py"
+  ],
+  "PORT_MAP": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c52_sdk9132/response_only.inputs.json",
+  "PAD_ENABLE": "1",
+  "MILESTONE": "m12",
+  "pb_injected": null,
+  "timeline": false,
+  "hardware": false,
+  "source_sha256": "8f37f70240ffa03daf887349e5e52a6abf7e32eb4b43ec559e35077902e3dce4",
+  "driver_sha256": "d9afc27f82bfb94ef3f277a12356fe60d8a92f54a01242e2bad46be866a30d44",
+  "library_sha256": {
+    "model_driver.py": "ca74b8ca849e7c8550750da8ca06bbfec49fe1ef25f890ad2f910c321a180763",
+    "../core/response_only/hw/t_config.py": "bdfe3635736d7534e3bd90898ee5b3a3d3ba280c642cfff31091790febd41c3c"
+  },
+  "dependency_sha256": {
+    "response_only_rearm/stage_experiments/seg61_02/model_repeat.py": "85c15aeb8299ad38ef6eff87e741b06f91e8fb52a512952f52ba05c536376667",
+    "response_only/model_drive_composite.py": "8940ae8486d235d1ee2cec72daff01a57716ef299846f5e88558b5151fc3d836"
+  },
+  "closure_target": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_contention.py",
+  "dependency_closure_sha256": "6e9f221fb6db4e314ea76780e62763813bc91309e7ff196d4edec7d0b90d7a9c",
+  "reset_restart_required": true,
+  "supported_profile_sha256": "ebd6e70c730edb3060030df1ea5eeadeb952ce2e2ffa9a943ffef063f4f6195e",
+  "exit_code": 0
+}

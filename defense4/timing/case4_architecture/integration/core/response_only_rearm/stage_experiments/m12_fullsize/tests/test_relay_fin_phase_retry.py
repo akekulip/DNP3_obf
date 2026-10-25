@@ -29,7 +29,7 @@ class RelayFINPhaseRetry(unittest.TestCase):
         cls.original = (shared.STAGE / 'ctl_timing_01/evidence/m12p_c49_sdk9132/response_only.p4').read_text()
         cls.selected, _ = build(**ts.FLAGS, relay_ts=True)
         # Source isolation of this layer excludes the later c51 half-closed RST rows.
-        with patch.object(relay_sbo, 'half_closed_rst', side_effect=lambda src: src):
+        with patch.object(relay_sbo, 'half_closed_rst', side_effect=lambda src: src), patch.object(relay_sbo, 'relay_fin_psh', side_effect=lambda src: src):
             cls.layer, _ = build(**ts.FLAGS, relay_ts=True)
 
     def test_exact_c49_fin_snapshot_loses_to_ack_then_recomputes_without_losing_flags(self):

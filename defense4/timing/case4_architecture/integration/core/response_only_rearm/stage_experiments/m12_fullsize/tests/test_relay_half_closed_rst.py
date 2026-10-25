@@ -19,6 +19,9 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from unittest.mock import patch
+
+from m12gen import relay_sbo
 from m12gen.build import build
 from m12gen.relay_sbo import HALF_CLOSED_BANDS, HALF_CLOSED_ROWS
 import test_n_read_shapes as shared
@@ -139,7 +142,9 @@ class HalfClosedRST(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.c50 = C50.read_text()
-        cls.selected, _ = build(**ts.FLAGS, relay_ts=True)
+        # this layer only: the later c52 relay FIN+PSH layer is patched out (test_relay_fin_psh covers it)
+        with patch.object(relay_sbo, 'relay_fin_psh', side_effect=lambda src: src):
+            cls.selected, _ = build(**ts.FLAGS, relay_ts=True)
 
     def test_c50_reproduces_ignored_reset_and_blocked_syn(self):
         self.assertEqual(hashlib.sha256(self.c50.encode()).hexdigest(), C50_SHA)
