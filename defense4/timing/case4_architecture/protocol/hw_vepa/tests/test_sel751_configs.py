@@ -21,7 +21,7 @@ def test_all_four_arm_and_recovery_templates_convert_without_software_endpoint()
         import campaign
         campaign.validate_profile(cfg)
         assert cfg['endpoint_profile'] == 'sel751'
-        assert cfg['hosts']['vision'] == 'decps@10.10.54.166'
+        assert cfg['hosts']['vision'] == 'decps@10.10.54.19'
         assert cfg['endpoints']['outstation_ip'] == '192.168.10.7'
         assert cfg['ports_map']['relay_dev'] == 64
         assert 'binary_sha256' not in cfg['endpoint']

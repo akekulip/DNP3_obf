@@ -1157,8 +1157,83 @@ def nic_repair_acceptance(records, terminal_sha, campaign_run_sha, fresh, indepe
                 already_at_baseline_before=repair.get('already_at_baseline_before')), problems
 
 
+PING_STEP = 'ping through the restored switch path'
+UNREACHABLE_ONLY_FAILURE = "runner restore step(s) failed: ['%s', '%s']" % (VISION_RESTORE_STEP, PING_STEP)
+# The sel751 master data NIC (Vision enp59s0f0np0); a remapped management address must lead to this host.
+VISION_DATA_MAC = '3c:fd:fe:cc:5d:c0'
+VISION_HOST = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]*@[A-Za-z0-9][A-Za-z0-9.-]*')   # user@host: never an ssh option
+
+
+def vision_identity(host):
+    """{'rc', 'hostname', 'data_mac'} read from host over ssh (read-only)."""
+    r = subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', host,
+                        'hostname; cat /sys/class/net/enp59s0f0np0/address'],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=60)
+    words = r.stdout.split()
+    return dict(rc=r.returncode, hostname=words[0] if words else None, data_mac=words[1] if len(words) > 1 else None)
+
+
+def vision_unreachable_acceptance(records, terminal_sha, campaign_run_sha, fresh, vision_host):
+    """Pure (reads files only). (binding or None, problems): the fresh restoration check may differ from a full pass
+    ONLY by the block's historical failed Vision restore and ping steps (both never reached Vision: ssh rc 255), and
+    only when a vision_unreachable_repair.py record (latest vision_unreachable_repair_*/repair.json) is ok, bound to
+    this terminal and runner record, verified the host's identity, ran the runner's own Vision restore and ping
+    there with rc 0, and names the same Vision host the fresh check used; the fresh check must have reached Vision
+    (vision_state and ping rc 0)."""
+    problems = []
+    if (fresh or {}).get('failures') != [UNREACHABLE_ONLY_FAILURE]:
+        problems.append('fresh check failures %r are not exactly the historical Vision restore and ping steps'
+                        % ((fresh or {}).get('failures'),))
+    checks = (fresh or {}).get('checks') or {}
+    for name in ('vision_state', 'ping'):
+        if (checks.get(name) or {}).get('rc') != 0:
+            problems.append('fresh check did not reach Vision (%s)' % name)
+    repairs = sorted(Path(records).glob('vision_unreachable_repair_*/repair.json'))
+    if not repairs:
+        return None, problems + ['no vision_unreachable_repair record for this step']
+    path = repairs[-1]                      # names sort chronologically: the latest decides
+    raw = path.read_bytes()
+    try:
+        repair = json.loads(raw)
+        if not isinstance(repair, dict):
+            raise ValueError('not an object')
+    except ValueError as error:
+        return dict(path=str(path), sha256=digest(raw)), problems + ['repair record unreadable: %s' % error]
+    bound = repair.get('bound_sha256') or {}
+    if repair.get('ok') is not True:
+        problems.append('latest vision_unreachable_repair record is not ok')
+    if bound.get('terminal') != terminal_sha or bound.get('campaign_run.json') != campaign_run_sha:
+        problems.append('repair record is bound to a different terminal or runner record')
+    steps = (repair.get('failed_restoration') or {}).get('steps') or [{}]
+    if [s.get('step') for s in steps] != [VISION_RESTORE_STEP, PING_STEP]:
+        problems.append('repair record does not name exactly the failed Vision restore and ping steps')
+    identity = repair.get('identity') or {}
+    if identity.get('hostname') != 'vision' or identity.get('data_mac') != VISION_DATA_MAC:
+        problems.append('repair record does not prove the host is Vision: %r' % identity)
+    if repair.get('vision_host') != vision_host:
+        problems.append('repair record names Vision host %r, reconcile uses %r' % (repair.get('vision_host'), vision_host))
+    for name in ('restore', 'ping'):
+        if (repair.get(name) or {}).get('rc') != 0:
+            problems.append('repair %s did not exit 0' % name)
+    return dict(path=str(path), sha256=digest(raw), vision_host=repair.get('vision_host')), problems
+
+
+def remap_vision_host(config, out, host):
+    """Write out/config_vision_remap.json: the block's config with ONLY hosts.vision replaced. (path, record)."""
+    if not VISION_HOST.fullmatch(host or ''):
+        raise Refused('vision host %r is not user@host' % (host,))
+    raw = Path(config).read_bytes()
+    cfg = json.loads(raw)
+    record = dict(original=str(config), original_sha256=digest(raw), vision_from=cfg['hosts']['vision'], vision_to=host)
+    cfg['hosts']['vision'] = host
+    derived = Path(out) / 'config_vision_remap.json'
+    atomic_json(derived, cfg, exclusive=True)
+    record.update(derived=str(derived), derived_sha256=digest(derived.read_bytes()))
+    return str(derived), record
+
+
 def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=None, now=None,
-              baseline_run_root=None, baseline_terminal=None):
+              baseline_run_root=None, baseline_terminal=None, vision_host=None, identity=vision_identity):
     """Clear an unverified-restoration refusal ONLY on a fresh, complete restoration check.
 
     Under the existing testbed lock: the ownership record must name exactly this failed block (terminal
@@ -1191,6 +1266,10 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
                                     preflight=True)
     if baseline_run_root is not None or baseline_terminal is not None:
         raise Refused('block has hardware-run evidence; reconcile it without --baseline-run-root/--baseline-terminal')
+    if vision_host is not None and not hardware:
+        raise Refused('--vision-host applies only to a hardware block')
+    if vision_host is not None and not VISION_HOST.fullmatch(vision_host):
+        raise Refused('vision host %r is not user@host' % (vision_host,))
     out = directory.parent / ('reconcile_%s_%s' % (step_id, stamp))
     with locked(root, 'active.lock', blocking=False):
         state_path = root / 'ownership.json'
@@ -1246,6 +1325,18 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
         busy = units()
         if busy:
             problems.append('evaluation units still running: %s' % ', '.join(busy))
+        records = directory / 'steps' / step_id
+        if vision_host is not None and not sorted(records.glob('vision_unreachable_repair_*/repair.json')):
+            problems.append('--vision-host needs a vision_unreachable_repair record for this step')
+        if vision_host is not None:
+            # re-prove, under the lock, that the remapped address still leads to Vision (review W2)
+            try:
+                seen = identity(vision_host)
+            except Exception as error:      # noqa: BLE001 - an unreachable host is a refusal, never a pass
+                seen = {'error': str(error)}
+            bound['vision_identity'] = seen
+            if seen.get('rc') != 0 or seen.get('hostname') != 'vision' or seen.get('data_mac') != VISION_DATA_MAC:
+                problems.append('vision host %s is not Vision now: %r' % (vision_host, seen))
         out.mkdir()
         tool_commit = subprocess.run(['git', 'log', '-1', '--format=%H %cI %s', '--', RESTORE_VERIFY.name], cwd=str(HERE),
                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.strip()
@@ -1269,6 +1360,9 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
             raise Refused('reconciliation refused: ' + '; '.join(problems))
         for path in inputs:
             (out / path.name).write_bytes(path.read_bytes())
+        if vision_host is not None:
+            # Vision's management address moved (Philip, 2026-10-24): only hosts.vision differs, recorded explicitly
+            config, record['vision_remap'] = remap_vision_host(config, out, vision_host)
         command = (verifier(config, out) if verifier is not None else
                    [sys.executable, str(RESTORE_VERIFY), '--config', config, '--run-root', str(out)])
         rc = command_to_log(command, out / 'restore_verify.log', out)
@@ -1279,7 +1373,15 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
             fresh = None
         ok = rc == 0 and isinstance(fresh, dict) and fresh.get('ok') is True and not fresh.get('failures')
         repair = None
-        if not ok and isinstance(fresh, dict) and rc == 1:
+        if not ok and isinstance(fresh, dict) and rc == 1 and sorted(records.glob('vision_unreachable_repair_*/repair.json')):
+            # the runner's Vision restore and ping never reached Vision (ssh rc 255) and were run afterwards by
+            # vision_unreachable_repair.py: the historical runner record stays failed; every fresh check must pass
+            repair, repair_problems = vision_unreachable_acceptance(
+                records, bound.get('terminal'), digest((run_root / 'campaign_run.json').read_bytes()), fresh,
+                vision_host or (json.loads(Path(config).read_text())['hosts']['vision'] if config else None))
+            record['vision_unreachable_repair'] = dict(binding=repair, problems=repair_problems)
+            ok = not repair_problems
+        elif not ok and isinstance(fresh, dict) and rc == 1:
             # the runner's own restore step failed and was repaired afterwards (nic_repair.py): the historical runner
             # record stays failed; every fresh switch, Vision and NIC check must pass and the repair must be bound
             try:
@@ -1300,7 +1402,10 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
         atomic_json(reconciliation, dict(record, result=(
             'restoration verified afresh; ownership update follows (the clear is proven by reconciliation_sha256 in '
             'ownership.json)' + ('' if repair is None else '; the runner restore result remains FAILED as recorded -- '
-                                 'the Vision NIC was repaired by the bound nic_repair record and verified afresh'))),
+                                 + ('the Vision restore and ping, which never reached Vision, were run by the bound '
+                                    'vision_unreachable_repair record and verified afresh'
+                                    if 'vision_unreachable_repair' in record else
+                                    'the Vision NIC was repaired by the bound nic_repair record and verified afresh')))),
                     exclusive=True)
         atomic_json(state_path, dict(active=False, unsafe_restoration=False, campaign_dir=str(directory),
                                      step_id=step_id, previous_terminal_sha256=ownership.get('terminal_sha256'),
@@ -1372,6 +1477,9 @@ def main(argv=None):
             child.add_argument('--baseline-run-root', default=None,
                                help='required for a block with no hardware-run evidence: run root of a prior block '
                                     'whose restore_verify.json passed; refused for a block that has evidence')
+            child.add_argument('--vision-host', default=None,
+                               help='Vision management ssh target if it moved since the block ran; needs a bound '
+                                    'vision_unreachable_repair record; only hosts.vision changes, recorded')
             child.add_argument('--baseline-terminal', default=None,
                                help='with --baseline-run-root: that block\'s campaign steps/<id>/terminal.json')
     args = parser.parse_args(argv)
@@ -1390,7 +1498,7 @@ def main(argv=None):
             return run_step(args.path, args.step_id)
         elif args.command == 'reconcile':
             print(reconcile(args.path, args.step_id, baseline_run_root=args.baseline_run_root,
-                            baseline_terminal=args.baseline_terminal))
+                            baseline_terminal=args.baseline_terminal, vision_host=args.vision_host))
         return 0
     except (Refused, OSError, ValueError, KeyError, TypeError) as error:
         sys.stderr.write('REFUSED: %s\n' % error)

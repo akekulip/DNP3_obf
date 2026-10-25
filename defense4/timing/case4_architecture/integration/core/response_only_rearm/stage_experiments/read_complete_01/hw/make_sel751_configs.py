@@ -44,7 +44,7 @@ def relay_config(template, read_dst=0, read_src=1):
     cfg['endpoints'] = dict(master_ip=endpoint_profiles.MASTER_IP, outstation_ip=endpoint_profiles.RELAY_IP,
                             outstation_port=20000, read_src=read_src, read_dst=read_dst)
     cfg['ports_map'].update(master_dev=9, relay_dev=64)
-    cfg['hosts'].update(vision='decps@10.10.54.166', vision_run_dir='/home/decps/sel751_guarded_20261024')
+    cfg['hosts'].update(vision='decps@10.10.54.19', vision_run_dir='/home/decps/sel751_guarded_20261024')
     cfg['fixture'] = dict(modes=['physical_relay'], delay_ms=0, jitter_ms=0)
     cfg['traffic'].pop('db', None)
     schedule = cfg['traffic']['read_schedule']
