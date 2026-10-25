@@ -3298,6 +3298,52 @@ recovery FAIL | physical J unproven. c67 has NOT passed hardware qualification. 
   and recorded verdicts (01 refused pre-write, 02 PASS, 06 loss_mixed FAIL at t3 only, 07 loss_full/graceful/RST/
   reconnect PASS). Working checkout: freeze_gate check freeze_v3_02 OK (0 changed, 0 missing) for all 10 configs.
 - Next: push (authorized), then Part B (B1 offline discrimination first).
+- PUSHED fa5c5d851+bc3bfee3e to origin/main (GitHub warned only: two 81 MB repeat01 .xz exceed its 50 MB advice).
+
+### Part B — B1 offline results (read_complete_01/evidence/c67_failure_diagnosis_20261025/b1_offline.{py,json})
+- Timing T-a: in every D x arm ~43-50% of timed exchanges land BELOW D-100 us (down to D-3.2 ms), ~10-17% within
+  100 us, rest above. The model proves release >= D after T's ACK anchor, so on those exchanges the ACK reached the
+  master late relative to the response; where (switch emission vs path vs host) is not located.
+- T-c: |err| bound sharp near 2.0 ms (>1.9 ms: 68, >2.0: 28, >2.1: 18 of 1,544); consecutive errors independent
+  (lag-1 r=0.02). Consistent with an independent 0..~2 ms delay per released packet; mechanism unproven.
+- Model limit: c67 model T-clock events sit on a ~4882-unit (~1.25 ms) grid; release-ACK in the model is 68k-122k
+  units vs gap 19.5k-78k. The model gate proves only release >= D and CANNOT evaluate sub-ms release precision.
+  T itself uses global_tstamp[39:8] (256 ns); c67 writes no ~2 ms timing parameter.
+- T-d (54.104 ms CLRT): READ RTT after OPERATE natively (D5 off/size_only, n=128) median ~6.2 ms, max 23.5 ms; the
+  outlier's ACK at 2.908 ms implies the response was at the switch then; counters normal. Late T release vs early
+  ACK not discriminated by any existing observation.
+- Relay TCP TSvals step in 10 ms units: too coarse for the 2 ms question.
+- M-a/M-b: loss is an iptables INPUT one-shot on the master host AFTER capture (first copy is in the capture). All
+  three t3 trials: relay retransmission spacing 1,020 TSval ticks (~1.02 s +/-10 ms); T counters identical (22
+  commit / 22 release, no dup/fallback). Master-side SELECT->OPERATE sent: c67 FAIL 1024.7 ms, c67 loss_full OK
+  1008.0 ms, c52 OK 1002.2 ms; second copy relative to first: 999.5 / 978.7 / 994.1 ms. The 17 ms difference
+  between the two c67 trials is NOT attributed (master-side bounds; not the relay select window).
+- Decision: no timing hardware rerun -- an existing-config rerun reproduces the same master-NIC observable and
+  cannot discriminate switch emission from path/host delay; that needs a switch-departure or relay-side timestamp
+  (instrumentation project, out of scope) -> reported as the blocker.
+
+### H-M1 PRE-REGISTRATION (campaign rc01_hw_c67_20261025_08, before launch)
+- Hypothesis tested: the c67 loss_mixed t3 OPERATE TIMEOUT is systematic for this loss pattern on c67.
+- Run: the existing frozen config d20_loss_mixed_950 (freeze_v3_02), identical argv to campaign 06's step except id.
+- Predictions: t3 OPERATE TIMEOUT again (and master-side SELECT->OPERATE >~1020 ms) => systematic; t3 OK => the
+  failure is intermittent, and the t3 timelines (SELECT->OPERATE, copy spacing) are compared across runs. At most 2
+  repeats. Failed evidence and verdict rules unchanged; this does not measure the relay select window.
+
+### H-M1 RESULT (campaign rc01_hw_c67_20261025_08, loss_mixed_950 rerun)
+- Block FAILED again (rc 1, restoration verified, ownership inactive, unsafe_restoration false). t0-t2 and t4-t6 OK;
+  t3 (select_resp_padded) SELECT 1025.7 ms, OPERATE CROB TIMEOUT points 1,3. Prediction "systematic" confirmed: 2/2.
+- t3 master-side timelines (ms from SELECT sent):
+  06 FAIL: ACK 4.36, copy1 24.15, copy2 1023.64 (gap 999.5), OPERATE sent 1024.7; relay TSval copy gap 1020.
+  08 FAIL: ACK 4.27, copy1 24.76, copy2 1025.16 (gap 1000.4), OPERATE sent 1026.2; TSval gap 1020.
+  07 loss_full OK: ACK 7.37, copy1 28.23, copy2 1006.95 (gap 978.7), OPERATE sent 1008.0; TSval gap 1020.
+- Same loss target, same relay retransmission spacing (1,020 ticks, 10 ms granularity); the failing (mixed-READ
+  history) trials deliver the retransmitted copy ~21 ms later relative to the first copy than the passing
+  (integrity-READ history) trial. Consistent with the retransmitted SELECT response being held ~D before delivery
+  in the mixed case and not in the integrity case -- NOT yet shown (switch counters identical: 22 commit/22
+  release; no per-packet switch observation). Still not a measurement of the relay select window.
+- Next (proposed): reproduce offline in the model -- a 20 ms re-hold is visible at the model's ~1.25 ms clock grid:
+  drop the first padded SELECT response after mixed vs integrity READ history and observe when T releases the
+  relay's retransmission. No second H-M1 repeat needed (2/2 consistent).
 
 <!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-25T18:10:33Z -->
 ### Compaction handoff — 2026-10-25T18:10:33Z

@@ -1,0 +1,529 @@
+{
+ "observation": "master NIC only (in.pcap/out.pcap); no relay-side or switch-departure timestamp",
+ "T_a_error_position": [
+  {
+   "D_ms": 5.0,
+   "arm": "timing_only",
+   "n": 193,
+   "below_D_minus_100us": 89,
+   "within_100us": 34,
+   "above_D_plus_100us": 70,
+   "median_error_us": -11.0,
+   "min_error_us": -2987.0,
+   "max_error_us": 1982.0
+  },
+  {
+   "D_ms": 5.0,
+   "arm": "combined",
+   "n": 193,
+   "below_D_minus_100us": 85,
+   "within_100us": 46,
+   "above_D_plus_100us": 62,
+   "median_error_us": -28.0,
+   "min_error_us": -2103.0,
+   "max_error_us": 2672.0
+  },
+  {
+   "D_ms": 10.0,
+   "arm": "timing_only",
+   "n": 193,
+   "below_D_minus_100us": 86,
+   "within_100us": 29,
+   "above_D_plus_100us": 78,
+   "median_error_us": 0.0,
+   "min_error_us": -2027.0,
+   "max_error_us": 44104.0
+  },
+  {
+   "D_ms": 10.0,
+   "arm": "combined",
+   "n": 193,
+   "below_D_minus_100us": 97,
+   "within_100us": 19,
+   "above_D_plus_100us": 77,
+   "median_error_us": -101.0,
+   "min_error_us": -3211.0,
+   "max_error_us": 1975.0
+  },
+  {
+   "D_ms": 15.0,
+   "arm": "timing_only",
+   "n": 193,
+   "below_D_minus_100us": 84,
+   "within_100us": 23,
+   "above_D_plus_100us": 86,
+   "median_error_us": 5.0,
+   "min_error_us": -1930.0,
+   "max_error_us": 4149.0
+  },
+  {
+   "D_ms": 15.0,
+   "arm": "combined",
+   "n": 193,
+   "below_D_minus_100us": 82,
+   "within_100us": 33,
+   "above_D_plus_100us": 78,
+   "median_error_us": -6.0,
+   "min_error_us": -1833.0,
+   "max_error_us": 3380.0
+  },
+  {
+   "D_ms": 20.0,
+   "arm": "timing_only",
+   "n": 193,
+   "below_D_minus_100us": 88,
+   "within_100us": 21,
+   "above_D_plus_100us": 84,
+   "median_error_us": 6.0,
+   "min_error_us": -1996.0,
+   "max_error_us": 1978.0
+  },
+  {
+   "D_ms": 20.0,
+   "arm": "combined",
+   "n": 193,
+   "below_D_minus_100us": 96,
+   "within_100us": 22,
+   "above_D_plus_100us": 75,
+   "median_error_us": -97.0,
+   "min_error_us": -3229.0,
+   "max_error_us": 2012.0
+  }
+ ],
+ "T_c_abs_error_tail_counts": {
+  "1500": 235,
+  "1900": 68,
+  "2000": 28,
+  "2100": 18,
+  "2500": 10
+ },
+ "T_c_lag1_error_correlation": {
+  "n": 1534,
+  "r": 0.021574169019509315
+ },
+ "T_d": {
+  "read_rtt_after_operate": {
+   "0261025_03_reference/off": {
+    "n": 64,
+    "median_ms": 6.287,
+    "max_ms": 23.492
+   },
+   "0261025_03_reference/size_only": {
+    "n": 64,
+    "median_ms": 6.243,
+    "max_ms": 14.913
+   },
+   "0261025_03_reference/timing_only": {
+    "n": 64,
+    "median_ms": 10.74,
+    "max_ms": 19.76
+   },
+   "0261025_03_reference/combined": {
+    "n": 64,
+    "median_ms": 11.426,
+    "max_ms": 21.263
+   },
+   "25_04_reference_rest/timing_only": {
+    "n": 64,
+    "median_ms": 16.269,
+    "max_ms": 57.012
+   },
+   "25_04_reference_rest/combined": {
+    "n": 64,
+    "median_ms": 16.242,
+    "max_ms": 24.682
+   }
+  },
+  "outlier": {
+   "block": "rc01_hw_c67_20261025_04_reference_rest",
+   "arm": "timing_only",
+   "exchange_index": 162,
+   "workload": "mixed",
+   "complete_clrt_us": 54104.0,
+   "request_to_ack_ms": 2.908,
+   "request_to_response_ms": 57.012
+  }
+ },
+ "model_T_clock": {
+  "unit_ns": 256,
+  "cases": 52,
+  "distinct_release_minus_ack_units": [
+   68358,
+   68360,
+   73242,
+   73244,
+   78124,
+   78126,
+   83008,
+   87892,
+   107422,
+   112304,
+   112306,
+   117186,
+   117188,
+   122070
+  ],
+  "min_excess_units": 4881,
+  "rows": [
+   {
+    "case": "single_child_live_READ_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 83008
+   },
+   {
+    "case": "single_child_live_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 78124
+   },
+   {
+    "case": "single_child_live_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 78124
+   },
+   {
+    "case": "D5_ack_first_mixed_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 78124
+   },
+   {
+    "case": "D5_ack_first_mixed_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 78124
+   },
+   {
+    "case": "D5_ack_first_mixed_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 73244
+   },
+   {
+    "case": "D5_ack_first_integrity_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 78124
+   },
+   {
+    "case": "D5_ack_first_integrity_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 78126
+   },
+   {
+    "case": "D5_ack_first_integrity_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 78124
+   },
+   {
+    "case": "D5_response_first_mixed_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D5_response_first_mixed_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D5_response_first_mixed_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 68360
+   },
+   {
+    "case": "D5_response_first_integrity_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D5_response_first_integrity_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 68360
+   },
+   {
+    "case": "D5_response_first_integrity_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D10_ack_first_mixed_T_clock_whole_response_ACK_full_D",
+    "gap_units": 39065,
+    "release_minus_ack_units": 83008
+   },
+   {
+    "case": "D10_ack_first_mixed_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 39065,
+    "release_minus_ack_units": 87892
+   },
+   {
+    "case": "D10_ack_first_mixed_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 39065,
+    "release_minus_ack_units": 78126
+   },
+   {
+    "case": "D10_ack_first_integrity_T_clock_whole_response_ACK_full_D",
+    "gap_units": 39065,
+    "release_minus_ack_units": 78126
+   },
+   {
+    "case": "D10_ack_first_integrity_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 39065,
+    "release_minus_ack_units": 78126
+   },
+   {
+    "case": "D10_ack_first_integrity_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 39065,
+    "release_minus_ack_units": 78124
+   },
+   {
+    "case": "D10_response_first_mixed_T_clock_whole_response_ACK_full_D",
+    "gap_units": 39065,
+    "release_minus_ack_units": 68358
+   },
+   {
+    "case": "D10_response_first_mixed_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 39065,
+    "release_minus_ack_units": 68360
+   },
+   {
+    "case": "D10_response_first_mixed_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 39065,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D10_response_first_integrity_T_clock_whole_response_ACK_full_D",
+    "gap_units": 39065,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D10_response_first_integrity_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 39065,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D10_response_first_integrity_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 39065,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D15_ack_first_mixed_T_clock_whole_response_ACK_full_D",
+    "gap_units": 58596,
+    "release_minus_ack_units": 83008
+   },
+   {
+    "case": "D15_ack_first_mixed_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 58596,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D15_ack_first_mixed_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 58596,
+    "release_minus_ack_units": 83008
+   },
+   {
+    "case": "D15_ack_first_integrity_T_clock_whole_response_ACK_full_D",
+    "gap_units": 58596,
+    "release_minus_ack_units": 78124
+   },
+   {
+    "case": "D15_ack_first_integrity_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 58596,
+    "release_minus_ack_units": 78126
+   },
+   {
+    "case": "D15_ack_first_integrity_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 58596,
+    "release_minus_ack_units": 78124
+   },
+   {
+    "case": "D15_response_first_mixed_T_clock_whole_response_ACK_full_D",
+    "gap_units": 58596,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D15_response_first_mixed_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 58596,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D15_response_first_mixed_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 58596,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D15_response_first_integrity_T_clock_whole_response_ACK_full_D",
+    "gap_units": 58596,
+    "release_minus_ack_units": 73242
+   },
+   {
+    "case": "D15_response_first_integrity_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 58596,
+    "release_minus_ack_units": 68358
+   },
+   {
+    "case": "D15_response_first_integrity_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 58596,
+    "release_minus_ack_units": 68360
+   },
+   {
+    "case": "D20_ack_first_mixed_T_clock_whole_response_ACK_full_D",
+    "gap_units": 78127,
+    "release_minus_ack_units": 117188
+   },
+   {
+    "case": "D20_ack_first_mixed_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 78127,
+    "release_minus_ack_units": 83008
+   },
+   {
+    "case": "D20_ack_first_mixed_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 78127,
+    "release_minus_ack_units": 83008
+   },
+   {
+    "case": "D20_ack_first_integrity_T_clock_whole_response_ACK_full_D",
+    "gap_units": 78127,
+    "release_minus_ack_units": 122070
+   },
+   {
+    "case": "D20_ack_first_integrity_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 78127,
+    "release_minus_ack_units": 117186
+   },
+   {
+    "case": "D20_ack_first_integrity_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 78127,
+    "release_minus_ack_units": 117188
+   },
+   {
+    "case": "D20_response_first_mixed_T_clock_whole_response_ACK_full_D",
+    "gap_units": 78127,
+    "release_minus_ack_units": 112304
+   },
+   {
+    "case": "D20_response_first_mixed_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 78127,
+    "release_minus_ack_units": 107422
+   },
+   {
+    "case": "D20_response_first_mixed_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 78127,
+    "release_minus_ack_units": 107422
+   },
+   {
+    "case": "D20_response_first_integrity_T_clock_whole_response_ACK_full_D",
+    "gap_units": 78127,
+    "release_minus_ack_units": 112306
+   },
+   {
+    "case": "D20_response_first_integrity_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 78127,
+    "release_minus_ack_units": 107422
+   },
+   {
+    "case": "D20_response_first_integrity_OPERATE_T_clock_whole_response_ACK_full_D",
+    "gap_units": 78127,
+    "release_minus_ack_units": 117188
+   },
+   {
+    "case": "exhaust_last_SELECT_T_clock_whole_response_ACK_full_D",
+    "gap_units": 19534,
+    "release_minus_ack_units": 73242
+   }
+  ]
+ },
+ "M_ab_select_response_loss": {
+  "c67_loss_mixed_t3": {
+   "ack_ms": 4.359,
+   "first_copy_ms": 24.153,
+   "second_copy_ms": 1023.645,
+   "copy_gap_ms": 999.492,
+   "select_to_operate_sent_ms": 1024.709,
+   "relay_tsval_copy_gap_ticks": 1020,
+   "operate_points": [
+    [
+     [
+      1,
+      "TIMEOUT"
+     ],
+     [
+      3,
+      "TIMEOUT"
+     ]
+    ]
+   ],
+   "switch_outcomes": {
+    "OUT_HELD_REWAIT": 31462,
+    "OUT_ACK_COMMIT": 22,
+    "OUT_RESP_RELEASE": 22,
+    "OUT_OP_RELEASE": 1
+   },
+   "loss_rule": {
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "cls": "select_resp_padded"
+   }
+  },
+  "c67_loss_full_t3": {
+   "ack_ms": 7.374,
+   "first_copy_ms": 28.234,
+   "second_copy_ms": 1006.948,
+   "copy_gap_ms": 978.7139999999999,
+   "select_to_operate_sent_ms": 1008.006,
+   "relay_tsval_copy_gap_ticks": 1020,
+   "operate_points": [
+    [
+     [
+      1,
+      "SUCCESS"
+     ],
+     [
+      3,
+      "SUCCESS"
+     ]
+    ]
+   ],
+   "switch_outcomes": {
+    "OUT_HELD_REWAIT": 32306,
+    "OUT_ACK_COMMIT": 22,
+    "OUT_RESP_RELEASE": 22,
+    "OUT_OP_RELEASE": 1
+   },
+   "loss_rule": {
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "cls": "select_resp_padded"
+   }
+  },
+  "c52_loss_mixed_t3": {
+   "ack_ms": 4.498,
+   "first_copy_ms": 7.017,
+   "second_copy_ms": 1001.162,
+   "copy_gap_ms": 994.145,
+   "select_to_operate_sent_ms": 1002.197,
+   "relay_tsval_copy_gap_ticks": 1020,
+   "operate_points": [
+    [
+     [
+      1,
+      "SUCCESS"
+     ],
+     [
+      3,
+      "SUCCESS"
+     ]
+    ]
+   ],
+   "switch_outcomes": {
+    "OUT_HELD_REWAIT": 7376,
+    "OUT_ACK_COMMIT": 22,
+    "OUT_RESP_RELEASE": 22,
+    "OUT_OP_RELEASE": 1
+   },
+   "loss_rule": {
+    "chain": "INPUT",
+    "mode": "limit-burst-1 chain (kernel-atomic)",
+    "cls": "select_resp_padded"
+   }
+  }
+ },
+ "notes": [
+  "master-side intervals are bounds, not the relay select window; relay TSval steps are 10 ms",
+  "model T-clock events fall on a ~4882-unit (~1.25 ms) grid; the model proves release >= D only"
+ ]
+}
