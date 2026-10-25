@@ -388,6 +388,29 @@ def timeline_md(r):
     return '\n'.join(lines)
 
 
+def cluster_lines(groups):
+    """Generated prose for the CLRT histogram: per candidate and parameter set, over the T-on arms, the shares of
+    complete CLRT below 100 us, in [1500,2500) us, and in the [900,1000) us bin that contains a 950 us gap."""
+    totals = {}
+    for g in groups:
+        cand, params, arm, _ = g['key']
+        if arm not in ('timing_only', 'combined'):
+            continue
+        t = totals.setdefault((cand, params), dict.fromkeys(('n', 'low', 'high', 'gap'), 0))
+        b = g['clrt_bins_us']
+        t['n'] += sum(b.values())
+        t['low'] += b.get('[0,100)', 0)
+        t['high'] += b.get('[1500,2500)', 0)
+        t['gap'] += b.get('[900,1000)', 0)
+    lines = []
+    for (cand, params), t in sorted(totals.items()):
+        if t['n']:
+            lines.append('- %s %s, T-on arms (n=%d): %.1f%% of complete CLRT below 100 us, %.1f%% in [1500,2500) us, '
+                         '%.1f%% in [900,1000) us (the bin of a 950 us gap).' % (cand, params, t['n'], 100.0 * t['low'] / t['n'],
+                                                        100.0 * t['high'] / t['n'], 100.0 * t['gap'] / t['n']))
+    return lines
+
+
 def render(diag):
     s = diag['summary']
     params = {b['block']: b['timing_params_ns'] for b in diag['blocks']}
@@ -451,6 +474,8 @@ def render(diag):
     bins = list(z['by_arm_operation'][0]['clrt_bins_us']) if z['by_arm_operation'] else []
     L += [table(['cand', 'params', 'arm', 'op'] + bins,
                 [g['key'] + [fmt(g['clrt_bins_us'][b]) for b in bins] for g in z['by_arm_operation']]), '',
+          'With T on, complete CLRT clusters away from the configured gap rather than at it (counts from the '
+          'table above):', ''] + cluster_lines(z['by_arm_operation']) + ['',
           '### By connection position (first transaction on the connection vs the rest)', '',
           table(['cand', 'params', 'arm', 'first', 'n', '|err| p50', 'p90', 'p99', 'max (us)',
                  'req->ACK p50', 'p90', 'p99', 'max (ms)'],

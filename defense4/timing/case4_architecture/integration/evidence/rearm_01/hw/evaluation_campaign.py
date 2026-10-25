@@ -861,7 +861,8 @@ def frozen_argv(step):
 def baseline_inputs(baseline_run_root, baseline_terminal, problems):
     """A prior block that passed restoration, bound three ways: its campaign terminal record (artifact manifest hash,
     restoration ok and hash), its hash-retained restore inputs, and the config from its campaign manifest argv
-    (matching the freeze check's config_sha256). Returns (run root, shas, config, inputs, run_id)."""
+    (matching the freeze check's config_sha256). Returns (run root, shas, config, inputs, run_id); inputs are its
+    runner record, pre-run snapshot and, for a physical-relay baseline, its vision_offload_baseline.json."""
     base = Path(baseline_run_root).resolve() if baseline_run_root is not None else None
     shas, config, run_id = {}, None, None
     try:
@@ -889,7 +890,11 @@ def baseline_inputs(baseline_run_root, baseline_terminal, problems):
         prerun = sorted(base.glob('*_prerun.json'))
         if len(prerun) != 1:
             raise ValueError('baseline needs exactly one pre-run snapshot, found %d' % len(prerun))
-        for path in [base / 'campaign_run.json', prerun[0], base / 'restore_verify.json', base / 'freeze_check.json']:
+        # a physical-relay baseline's receive-offload record is a restore input like the hardware-run path carries
+        # (rc01_hw_c52_20261025_32: without it the fresh restore_verify cannot verify Vision's offload restoration)
+        offload = [base / 'vision_offload_baseline.json'] if (base / 'vision_offload_baseline.json').is_file() else []
+        required = [base / 'campaign_run.json', prerun[0], base / 'restore_verify.json', base / 'freeze_check.json']
+        for path in required + offload:
             shas[path.name] = digest(path.read_bytes())
             if artifacts.get(path.name, {}).get('sha256') != shas[path.name]:
                 raise ValueError('baseline %s differs from its retained artifact hash' % path.name)
@@ -907,7 +912,7 @@ def baseline_inputs(baseline_run_root, baseline_terminal, problems):
     except (KeyError, TypeError, ValueError, OSError, StopIteration, Refused) as error:
         problems.append('baseline restoration unusable: %s' % error)
         return base, shas, config, [], run_id
-    return base, shas, config, [base / 'campaign_run.json', prerun[0]], run_id
+    return base, shas, config, [base / 'campaign_run.json', prerun[0]] + offload, run_id
 
 
 def baseline_is_latest(run_block_log, run_id, problems, preflight_run_id=None):
@@ -955,7 +960,8 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
     derives from the config (ARCH / evidence_dir / RUN_ID). No-contact proof comes from classify_step_evidence. The
     testbed is checked afresh against a named baseline: the last block that ran (run_block.log), bound to its
     campaign terminal record, whose config has the same hosts and production as this step's. Its restore record and
-    pre-run snapshot are copied in and restore_verify.py runs unchanged with its config. Only exit 0, ok and no
+    pre-run snapshot (and a physical-relay baseline's receive-offload record) are copied in and restore_verify.py
+    runs unchanged with its config. Only exit 0, ok and no
     failures, with units and ownership unchanged afterwards, clear the flag; anything else leaves a refusal.
     preflight=True: the run root exists, and the proof is classify_preflight_failure instead (a runner that failed in
     its pre-contact deploy steps); the baseline may then be followed in run_block.log only by this block's own START."""

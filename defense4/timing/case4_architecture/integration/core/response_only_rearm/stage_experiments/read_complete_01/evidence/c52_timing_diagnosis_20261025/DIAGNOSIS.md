@@ -245,6 +245,12 @@ Eligible transactions: 1826 (complete span, CLRT present, not piggybacked, no re
 | c52 | gap950us_ready30ms | size_only | READ | 8 | 4 | 2 | 0 | 1 | 16 | 24 | 12 | 0 |
 | c52 | gap950us_ready30ms | size_only | SELECT | 20 | 4 | 0 | 0 | 1 | 13 | 20 | 6 | 0 |
 
+With T on, complete CLRT clusters away from the configured gap rather than at it (counts from the table above):
+
+- c51 gap950us_ready30ms, T-on arms (n=494): 37.4% of complete CLRT below 100 us, 41.9% in [1500,2500) us, 2.6% in [900,1000) us (the bin of a 950 us gap).
+- c52 gap800us_ready380ms, T-on arms (n=63): 38.1% of complete CLRT below 100 us, 42.9% in [1500,2500) us, 0.0% in [900,1000) us (the bin of a 950 us gap).
+- c52 gap950us_ready30ms, T-on arms (n=495): 40.6% of complete CLRT below 100 us, 41.0% in [1500,2500) us, 1.6% in [900,1000) us (the bin of a 950 us gap).
+
 ### By connection position (first transaction on the connection vs the rest)
 
 | cand | params | arm | first | n | |err| p50 | p90 | p99 | max (us) | req->ACK p50 | p90 | p99 | max (ms) |

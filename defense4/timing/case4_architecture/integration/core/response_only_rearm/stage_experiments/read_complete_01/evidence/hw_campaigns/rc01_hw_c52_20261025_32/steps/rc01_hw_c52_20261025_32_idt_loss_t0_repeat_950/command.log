@@ -1,0 +1,11 @@
+freeze check: OK 0 changed, 0 missing
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_campaign.py", line 320, in <module>
+    sys.exit(base.main())
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py", line 2058, in main
+    selected = Campaign(cfg, DryRunner(), run_id, arms, fixtures=fixtures, paired=a.paired, loss=a.loss, scenario=a.scenario, reconnect_policy=a.reconnect_policy, config_path=a.config)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_campaign.py", line 75, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py", line 629, in __init__
+    raise ValueError('unknown loss preset %r; the config defines %s' % (loss, sorted(cfg['loss'].get('presets', {}))))
+ValueError: unknown loss preset 'core_full'; the config defines ['t0_repeat']

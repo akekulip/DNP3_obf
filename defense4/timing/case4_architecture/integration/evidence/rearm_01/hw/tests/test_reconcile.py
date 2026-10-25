@@ -428,6 +428,29 @@ class NoContactReconcileTests(unittest.TestCase):
         for path, raw in self.original.items():
             self.assertEqual(path.read_bytes(), raw)
 
+    def test_baseline_offload_record_is_carried_and_hash_bound(self):
+        """A physical-relay baseline's receive-offload record goes into the fresh check like the hardware-run path
+        (rc01_hw_c52_20261025_32: restore_verify could not verify Vision's offload restoration without it)."""
+        (self.baseline / 'vision_offload_baseline.json').write_text('{"interface": "x"}')
+        self.write_baseline_manifest()
+        record = Path(self.run_reconcile())
+        bound = json.loads(record.read_text())['bound_sha256']
+        self.assertEqual((record.parent / 'vision_offload_baseline.json').read_text(), '{"interface": "x"}')
+        self.assertEqual(bound['baseline']['vision_offload_baseline.json'],
+                         sha(self.baseline / 'vision_offload_baseline.json'))
+        self.assertEqual(bound['copied_inputs']['vision_offload_baseline.json'],
+                         sha(self.baseline / 'vision_offload_baseline.json'))
+
+    def test_offload_record_absent_from_the_baseline_manifest_refused(self):
+        (self.baseline / 'vision_offload_baseline.json').write_text('{"interface": "x"}')   # added after block end
+        self.assert_refused_with_record('vision_offload_baseline.json differs from its retained artifact hash')
+
+    def test_changed_baseline_offload_record_refused(self):
+        (self.baseline / 'vision_offload_baseline.json').write_text('{"interface": "x"}')
+        self.write_baseline_manifest()
+        (self.baseline / 'vision_offload_baseline.json').write_text('{"interface": "y"}')
+        self.assert_refused_with_record('vision_offload_baseline.json differs from its retained artifact hash')
+
     def test_docstring_names_record_location(self):
         self.assertIn('steps/<step>/reconcile_<ts>/', self.c.reconcile_no_contact.__doc__)
 

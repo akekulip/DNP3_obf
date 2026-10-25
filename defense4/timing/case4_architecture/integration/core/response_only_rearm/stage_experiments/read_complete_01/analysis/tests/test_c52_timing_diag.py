@@ -128,3 +128,12 @@ def test_cli_writes_json_and_markdown(tmp_path):
     md = (tmp_path / 'out' / 'DIAGNOSIS.md').read_text()
     assert 'Undecidable from master-only data' in md
     assert 'readiness' in md and "T's t0" in md
+
+
+def test_cluster_lines_are_computed_from_the_t_on_histograms():
+    groups = [{'key': ['c52', 'gap950us_ready30ms', 'combined', 'READ'],
+               'clrt_bins_us': {'[0,100)': 3, '[900,1000)': 1, '[1500,2500)': 4, '[2500,5000)': 2}},
+              {'key': ['c52', 'gap950us_ready30ms', 'off', 'READ'], 'clrt_bins_us': {'[0,100)': 99}}]
+    lines = load_tool().cluster_lines(groups)
+    assert lines == ['- c52 gap950us_ready30ms, T-on arms (n=10): 30.0% of complete CLRT below 100 us, 40.0% in '
+                     '[1500,2500) us, 10.0% in [900,1000) us (the bin of a 950 us gap).']
