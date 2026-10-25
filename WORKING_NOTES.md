@@ -1,6 +1,36 @@
 # Working notes
 
-## >>> CURRENT (2026-10-24 evening, Claude continuation from 9dbed5297) — read this first
+## >>> CURRENT (2026-10-24 late evening) — c52 is the candidate; its full physical set is running — read this first
+
+**Candidate c52** (`ctl_timing_01/evidence/m12p_c52_sdk9132`, source 8f37f702…; c51 + relay FIN+PSH layer; SDK 9.13.2
+compile 86.9 s; resources identical to c51/c50; ten pins). **model_gate_passed**, all 16 drivers first attempt
+(packets 763 incl. half_rst + relay_fpa_close, relay_sbo 1085, fin_busy 193, contention 453, rearm 799).
+
+- **Why c52:** c51's physical graceful closes (campaigns 18/20/21) stopped half-closed: the SEL-751 sends its FIN as
+  **FIN+PSH+ACK (0x19, zero payload)** (native02; the unmanaged reconnect connection). c51's ts_tcp parser sent 0x19 to
+  default accept and N's close rows matched 0x11 only, so the relay FIN was dropped and same-tuple SYNs stayed blocked.
+  Fix (relay_sbo.relay_fin_psh): parser row (4w8,8w25):ts_close; FIN flags term 8w17 -> 8w17&&&8w0xf7 in network,
+  sequence_diff, close_phase_t, first_event, reset_boundary; short_shapes 0x19 twins. E/T byte-identical.
+  Model fixtures used 0x11, which is why fin_busy 193/193 never saw it; PacketGate.relay_fpa_close now uses the real
+  close order (fails on c51 packets 03, passes on c52). Independent review: approve; test warnings applied.
+- **Vision outage resolved:** Vision's management address is now **10.10.54.19** (Philip; eno2/.166 dead, eno1 works;
+  Vision itself never rebooted). Block c51-05's unsafe flag was cleared through a NEW reviewed reconcile class
+  (Philip chose it): vision_unreachable_repair.py (identity proof hostname+data MAC, runner's own Vision restore and
+  ping, immutable record) + reconcile acceptance + --vision-host remap (only hosts.vision changes; identity re-proven
+  under the lock). Also fixed: reconcile now carries the block's hash-bound vision_offload_baseline.json.
+  Retained c51 configs (.166) restored byte-exact; .19 configs are the v19 set (make_sel751_configs --tag) and the c52 set.
+- **c51 physical recovery (campaigns 18-22, Vision .19):** persistence_rst 19 gate PASS (three same-tuple RST
+  close/reconnects); graceful 18 / reconnect 20 / held OPERATE 21 FAIL on the FIN+PSH defect above; loss_mixed 22 ran
+  all 7 presets (loss loop fix) — only t3 (dropped SELECT response -> relay SBO TIMEOUT, safe) fails application;
+  t1/t5 one T fallback release vs expected 0.
+- **c51 physical (earlier):** smoke 12 rc0; reference 02 rc0 772/772 exact sizes; loss_full 04 rc0. Timing arms fail
+  the unchanged 100 us criterion everywhere (p99 complete CLRT ~2.6-4.5 ms); OPERATE J unproven (no relay-side anchor).
+- **Running now:** c52 freeze (172 files) + campaigns rc01_hw_c52_20261024_23..30 = smoke, reference, loss_mixed,
+  loss_full, persistence_graceful, persistence_rst, reconnect, held_operate (all dry-run rc0; stop-on-unsafe runner).
+- Next after 23-30: read each verdict (separate timing / functional / J), commit evidence, update reproduce.sh
+  (CANDIDATE=c52, retention manifest) and the status docs, clean-worktree reproduction, push.
+
+## >>> EARLIER THIS EVENING (c51 continuation from 9dbed5297)
 
 Candidate **c51** (`ctl_timing_01/evidence/m12p_c51_sdk9132`, source 3fe70879…, SDK 9.13.2, resources identical to
 c50) is the selected physical SEL-751 image. Plan: ~/.claude/plans/pasted-content-id-2b95-ontinue-the-sharded-ripple.md.
