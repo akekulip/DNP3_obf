@@ -90,6 +90,12 @@ class PointInterrupted(Exception):
 def main():
     from model_profile import from_env
     profile = from_env()
+    ready = profile.get('timing_contract') == 'response_ready_ack_d_v2'
+    names = tuple('REQ_DUP_DROP' if i == 8 else 'REQ_DUP_FORWARD' if i == 9 else name
+                  for i, name in enumerate(NAMES)) if ready else NAMES
+    out_indices = {name: i for i, name in enumerate(names)}
+    lane_keys = ('ACK_COMMIT', 'RESP_RELEASE') if ready else LANE
+    committed = {name: COMMITTED[name] for name in lane_keys}
     milestone = profile['milestone']
     if milestone not in ('m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):          # an unknown milestone would silently take older expectations
         raise SystemExit('unknown MILESTONE %r' % milestone)
@@ -97,7 +103,8 @@ def main():
     retrying = milestone in ('m5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10')     # m5's retry form and counters; m6 changes N's reset/duplicate handling
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing_01 %s: ACK/response contention for N\'s work cell (spacing sweep, edges)'
-                    % milestone, driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+                    % milestone, driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                    timing_contract=profile.get('timing_contract'))
     points = report.record['meta'].setdefault('points', [])
     # CONTENTION_SECTIONS (comma list) runs only the named sections; model_abort.py sets it to 'abort'
     sections = [x for x in os.environ.get('CONTENTION_SECTIONS', '').split(',') if x]
@@ -144,7 +151,7 @@ def main():
                                             gc.DataTuple('$session_enable', bool_val=True)], '$normal')])
 
         def outcomes():
-            return {k: scalar(m.register_read('p1.t_Ingress.outcomes', i, pipe=1)) for k, i in OUT.items()}
+            return {k: scalar(m.register_read('p1.t_Ingress.outcomes', i, pipe=1)) for k, i in out_indices.items()}
 
         cells = 8 if retrying else 4          # m5 grows count_busy to 8 (2 retry, 3 exhaustion, 4 stale)
 
@@ -266,6 +273,7 @@ def main():
                 st['queued'] = capture(0.02, 0.01)
             else:
                 m.drain(ports)
+            st['response_log_offset'] = view.size(view.log_path())
             m.send(RELAY.dev_port, ack)
             st['t_ack_sent'] = time.monotonic()
             if d_ms:
@@ -294,7 +302,7 @@ def main():
                 end = time.monotonic() + WAIT_S
                 while time.monotonic() < end:
                     seen = outcomes()
-                    if seen['RESP_RELEASE'] + seen['RESP_FALLBACK'] > before['RESP_RELEASE'] + before['RESP_FALLBACK']:
+                    if seen['RESP_RELEASE'] + seen.get('RESP_FALLBACK', 0) > before['RESP_RELEASE'] + before.get('RESP_FALLBACK', 0):
                         got = got + capture(QUIET_S, QUIET_S)
                         break
                     got = got + capture(0.5, 0.5)
@@ -304,7 +312,7 @@ def main():
             if rb.rp.TCP_TIMESTAMPS:
                 report.add('%s_timestamp_options_delivery_order' % tag, True,
                            rb.rp.timestamp_order_ok([f for _t, f in to_master]))
-            lane = {k: after[k] - before[k] for k in LANE}
+            lane = {k: after[k] - before[k] for k in lane_keys}
             counts = [b - a for a, b in zip(busy0, busy1)]
             stimulus = (st['t_ack_sent'] - st['t_relayed']) if st.get('t_relayed') and st.get('t_ack_sent') else None
             delivered = (len(to_master) == 2 and same_frame(to_master[0][1], want_ack, ack)
@@ -316,10 +324,10 @@ def main():
                                   and same_frame(to_master[0][1], want_ack, ack)
                                   and all(same_frame(f, want_rsp, want_rsp) for _t, f in to_master[1:]))
             # a committed release found only by the extended capture is late: it must not pass (review W3)
-            ok = ((delivered or copy_after_release) and lane == COMMITTED and counts[0] == 0 and counts[3] == 0
+            ok = ((delivered or copy_after_release) and lane == committed and counts[0] == 0 and counts[3] == 0
                   and not extended)
             readiness_first, readiness_evidence = False, None
-            if lane == {'ACK_COMMIT': 1, 'RESP_RELEASE': 0, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 1}:
+            if not ready and lane == {'ACK_COMMIT': 1, 'RESP_RELEASE': 0, 'ACK_FALLBACK': 0, 'RESP_FALLBACK': 1}:
                 # the units T was actually given (model_driver records every set_params write)
                 units = json.loads((Path(os.environ['OUT']) / 't_params_written.json').read_text())[-1]['written']
                 t0_u = scalar(m.register_read('p1.t_Ingress.t0_reg', 0, pipe=1))
@@ -347,6 +355,24 @@ def main():
                 late = capture(WAIT_S, QUIET_S)
                 row['cleanup_retransmission_delivered'] = any(
                     p == MASTER.dev_port and same_frame(f, want_rsp, want_rsp) for _t, p, f in late)
+            if ready:
+                records = view.records_since(view.log_path(), st['response_log_offset'])
+                records = [r for r in records if r['pipe'] == 1 and ('%08x' % c) in r['frame']]
+                def stamp(action):
+                    record = next((r for r in records if any(a.split('.')[-1] == action for a in r['actions'])), None)
+                    return None if record is None or record['t_units'] is None else record['t_units'] & ~1
+                arrivals = {name: stamp(action) for name, action in
+                            (('held_ack_units', 'hold_ack'), ('response_arrival_units', 'admit_response'),
+                             ('ack_release_units', 'release_ack_commit'),
+                             ('response_release_units', 'release_response_counted'))}
+                written = json.loads((Path(os.environ['OUT']) / 't_params_written.json').read_text())[-1]['written']
+                def after(later, earlier):
+                    return later is not None and earlier is not None and ((later - earlier) & 0xffffffff) < 1 << 31
+                a, r = arrivals['ack_release_units'], arrivals['response_release_units']
+                valid = after(a, arrivals['held_ack_units']) and after(a, arrivals['response_arrival_units']) and \
+                    after(r, a) and ((r - a) & 0xffffffff) >= written['gap']
+                row['response_ready_clock_proof'] = dict(arrivals, gap_units=written['gap'], passed=valid)
+                report.add(tag + '_T_clock_response_ready_ACK_then_D', True, valid, **row['response_ready_clock_proof'])
             row['readiness_reached_before_release'] = readiness_first
             row['readiness_evidence'] = readiness_evidence
             points.append(row)
@@ -368,8 +394,8 @@ def main():
                            labels.count('response') == 1 and 'ack' in labels
                            and labels.index('ack') < labels.index('response')
                            and counts[0] == counts[3] == counts[4] == 0
-                           and lane['ACK_COMMIT'] + lane['ACK_FALLBACK'] == 1
-                           and lane['RESP_RELEASE'] + lane['RESP_FALLBACK'] == 1)
+                           and lane['ACK_COMMIT'] + lane.get('ACK_FALLBACK', 0) == 1
+                           and lane['RESP_RELEASE'] + lane.get('RESP_FALLBACK', 0) == 1)
             st['s'] += len(native)
             st['growth'] += rb.rp.growth(native, IMAGE_LEN)
             return ok
@@ -491,7 +517,7 @@ def main():
             row = dict(tag=tag, kind=kind, frames_to_master=sum(1 for _t, p, _f in got if p == MASTER.dev_port),
                        master_frames=[f.hex() for _t, p, f in got if p == MASTER.dev_port],
                        payload_frames_to_master=len(payload_to_master),
-                       lane={k: after[k] - before[k] for k in LANE},
+                       lane={k: after[k] - before[k] for k in lane_keys},
                        count_busy_delta=[b - a for a, b in zip(busy0, busy1)])
             # Two outcomes are correct and the model's slow laps decide which happens: the response claimed the cell
             # before the RST's close pass (it was admitted first, so it is released once, committed, and nothing is
@@ -499,21 +525,21 @@ def main():
             # master). Anything else -- a copy after a refusal, two copies, a fallback release -- fails.
             image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
             lane = row['lane']
-            admitted = (len(payload_to_master) == 1 and payload_to_master[0].endswith(image) and lane == COMMITTED
+            admitted = (len(payload_to_master) == 1 and payload_to_master[0].endswith(image) and lane == committed
                         and (not retrying or row['count_busy_delta'][4] == 0))
             counts = row['count_busy_delta']
             flushed = False
             if retrying:
                 # admitted: nothing exhausted or stale; refused: a counted stale drop, nothing busy-dropped or exhausted
                 admitted = admitted and counts[3] == 0
-                refused = (not payload_to_master and lane['RESP_RELEASE'] == 0 and lane['RESP_FALLBACK'] == 0
+                refused = (not payload_to_master and lane['RESP_RELEASE'] == 0 and lane.get('RESP_FALLBACK', 0) == 0
                            and counts[4] == 1 and counts[0] == 0 and counts[3] == 0)
                 # m6 only: the response was admitted and still held when the RST took effect; T flushes it, so
                 # nothing reaches the master and nothing is busy-dropped, exhausted or stale
                 flushed = (milestone in ('m6', 'm7', 'm8', 'm9', 'm9d', 'm10') and not payload_to_master and lane['RESP_RELEASE'] == 0
-                           and lane['RESP_FALLBACK'] == 0 and counts[0] == 0 and counts[3] == 0 and counts[4] == 0)
+                           and lane.get('RESP_FALLBACK', 0) == 0 and counts[0] == 0 and counts[3] == 0 and counts[4] == 0)
             else:
-                refused = not payload_to_master and lane['RESP_RELEASE'] == 0 and lane['RESP_FALLBACK'] == 0
+                refused = not payload_to_master and lane['RESP_RELEASE'] == 0 and lane.get('RESP_FALLBACK', 0) == 0
             row['outcome'] = ('admitted_before_reset' if admitted else 'refused_after_reset' if refused
                               else 'flushed_by_reset' if flushed else 'other')
             row['first_rst_relayed'] = first_rst.get('relayed')
@@ -582,7 +608,7 @@ def main():
             return vectors.checksum(f[14:14 + ihl]) == 0 and vectors.checksum(pseudo + seg) == 0
 
         E_RESET_FRONT = 16
-        RELEASED = ('RESP_RELEASE', 'RESP_FALLBACK')
+        RELEASED = ('RESP_RELEASE',) if ready else ('RESP_RELEASE', 'RESP_FALLBACK')
         FLUSHED = ('HELD_STALE_FLUSH', 'HELD_OFF_FLUSH')
 
         def abort_case(kind, branch, offset=None):
@@ -629,14 +655,14 @@ def main():
             rst = vectors.packet(20, s + ahead, c, reverse=True)
             # the order evidence, read immediately before the send (code review: a release seen only afterwards may
             # have escaped after T applied the reset, inside the N-to-T propagation window)
-            pre = {k: scalar(m.register_read('p1.t_Ingress.outcomes', OUT[k], pipe=1)) for k in RELEASED}
+            pre = {k: scalar(m.register_read('p1.t_Ingress.outcomes', out_indices[k], pipe=1)) for k in RELEASED}
             released_before_send = sum(pre[k] - t0[k] for k in RELEASED) > 0
             if branch != 'released':
                 # T still held the response when the RST went out: admitted to T (seen in its log; code review H2: a
                 # response reaching T only after the reset is dropped as old-epoch, which is not 'held, then
                 # flushed') and not released before the send
                 held_ok = admitted[0] is not None and not released_before_send
-                if admitted[0] is None and kind != 'OPERATE' and offset is None:
+                if admitted[0] is None and (ready or kind != 'OPERATE') and offset is None:
                     # the held construction was not established (no admission observed): unmeasured, not a dataplane
                     # verdict (code review); model_summary blocks it as incomplete
                     report.record['meta'].setdefault('abort_held_not_established', []).append(tag)
@@ -650,7 +676,7 @@ def main():
                          and int.from_bytes(f[36:38], 'big') == vectors.CLIENT_PORT]
             rst_frames = [f for f in to_master if f[47] & 0x04]
             responses = [f for f in to_master if f.endswith(image)]
-            dt = {k: t1[k] - t0[k] for k in NAMES if t1[k] != t0[k]}
+            dt = {k: t1[k] - t0[k] for k in names if t1[k] != t0[k]}
             row = dict(tag=tag, kind=kind, branch=branch, offset=offset, request_relayed=ok, held_before_rst=held_ok,
                        held_wait=(None if branch == 'released' else dict(admit_seen=admitted[0] is not None,
                                                                           waited_s=admitted[1])),
@@ -683,7 +709,7 @@ def main():
                     row['order_model_log'] = decision
                     order = rules.abort_log_order(decision)
                     row['order_decided'] = order
-                if branch == 'held' and kind != 'OPERATE' and order == 'released':
+                if branch == 'held' and (ready or kind != 'OPERATE') and order == 'released':
                     # T had released the response before the RST was sent, or (order_decided) before T applied the
                     # reset: the released-branch outcome is the contract one (contention_rules.abort_branch_outcome,
                     # abort_log_order)
@@ -692,13 +718,13 @@ def main():
                     # either way the held path (a held response flushed by the reset) was not measured: incomplete
                     report.record['meta'].setdefault('abort_released_before_reset' if row.get('order_decided')
                                                      else 'abort_released_before_send', []).append(tag)
-                elif branch == 'held' and kind != 'OPERATE' and order == 'released_after_reset':
+                elif branch == 'held' and (ready or kind != 'OPERATE') and order == 'released_after_reset':
                     exact = False                       # a release after T applied the reset: a dataplane defect
                     report.record['meta'].setdefault('abort_release_after_reset', []).append(tag)
-                elif branch == 'held' and kind != 'OPERATE' and order == 'inconclusive':
+                elif branch == 'held' and (ready or kind != 'OPERATE') and order == 'inconclusive':
                     exact = False                       # neither the register read nor T's passes decide: fails
                     report.record['meta'].setdefault('abort_order_inconclusive', []).append(tag)
-                elif branch == 'held' and kind != 'OPERATE':
+                elif branch == 'held' and (ready or kind != 'OPERATE'):
                     exact = (ok and held_ok and row['resets_seq'] == [s + g] and good_rst and not responses
                              and e1 - e0 == 1 and released == 0 and flushed + dt.get('OLD_EPOCH_DROP', 0) >= 1)
                 else:
@@ -854,7 +880,7 @@ def main():
             leaked = [f for _t, p, f in got if p == MASTER.dev_port and f.endswith(image)]
             restarts = busy()[5] - busy0[5]
             out1 = outcomes()
-            t_deltas = {k: out1[k] - out0[k] for k in NAMES if out1[k] != out0[k]}
+            t_deltas = {k: out1[k] - out0[k] for k in names if out1[k] != out0[k]}
             restart_by_kind[kind] = restarts
             report.add('%s_first_RST_relayed_once' % tag, True, len(new.get('resets', [])) == 1,
                        relayed=len(new.get('resets', [])))
@@ -948,7 +974,7 @@ def main():
                     leaked = [f for _t, p, f in seen if p == MASTER.dev_port and f.endswith(image)]
                     restarts = busy()[5] - busy0[5]
                     out1 = outcomes()
-                    t_deltas = {k: out1[k] - out0[k] for k in NAMES if out1[k] != out0[k]}
+                    t_deltas = {k: out1[k] - out0[k] for k in names if out1[k] != out0[k]}
                     report.add('%s_first_RST_relayed_once' % tag, True, len(resets) == 1, relayed=len(resets))
                     report.add('%s_response_at_most_once' % tag, True, len(leaked) <= 1, copies=len(leaked))
                     report.record['meta'].setdefault('original_contract_no_response', []).append(
@@ -997,7 +1023,7 @@ def main():
                 row = dict(tag=tag + '_resend', copies_to_master=len(copies),
                            frames_to_master=sum(1 for _t, p, _f in late if p == MASTER.dev_port),
                            generation_delta=scalar(m.register_read('p0.n_Ingress.counter', 0, pipe=0)) - gen0,
-                           lane={k: after2[k] - before2[k] for k in LANE},
+                           lane={k: after2[k] - before2[k] for k in lane_keys},
                            count_busy_delta=[b - a for a, b in zip(busy2, busy())])
                 points.append(row)
                 # N's go_new allocates an N generation for the copy's lifecycle, as m5's forward_original path did
@@ -1020,7 +1046,7 @@ def main():
                                                       vectors.packet(24, s + g, c, reverse=True, payload=image))]
             after = outcomes()
             row = dict(tag=tag, kind='READ', responses_to_master=len(rsp), frames_to_master=len(to_master),
-                       lane={k: after[k] - before[k] for k in LANE},
+                       lane={k: after[k] - before[k] for k in lane_keys},
                        count_busy_delta=[b - a for a, b in zip(busy0, busy())])
             points.append(row)
             report.add('%s_exactly_one_response' % tag, 1, len(rsp), **row)

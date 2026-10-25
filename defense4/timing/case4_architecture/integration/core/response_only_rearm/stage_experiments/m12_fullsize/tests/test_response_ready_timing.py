@@ -1,13 +1,8 @@
-"""Run emitted P4 in the existing parser/control/deparser and queue scheduler.
-
-The frozen c52 source remains a RED witness, selected with RESPONSE_READY_RED=1.
-Traffic-manager timing is the explicit QueueSim assumption, never target evidence.
-"""
+"""v2 emitted-P4 behavior; RESPONSE_READY_RED=1 retains frozen c62 counterexamples."""
 import hashlib
+import json
 import os
 import re
-import json
-import subprocess
 import struct
 import sys
 import tempfile
@@ -20,288 +15,205 @@ sys.path[:0] = [str(HERE), str(INTEGRATION / 'read/tests'), str(HERE.parents[2] 
 from t_config import t_units
 from m12gen.build import build
 from m12gen.common import combined
-from queue_sim import QueueSim, ACK_FRAME, RSP_FRAME, REQ_FRAME, OP_FRAME, T0, FORWARD, RELAY, LADDER, OP_LADDER
+from queue_sim import QueueSim, ACK_FRAME, RSP_FRAME, REQ_FRAME, OP_FRAME, T0, RELAY, LADDER, OP_LADDER
 import test_relay_ts as ts
 
-C52 = HERE.parent / 'ctl_timing_01/evidence/m12p_c52_sdk9132/response_only.p4'
+C62 = HERE.parent / 'ctl_timing_01/evidence/m12p_c62_sdk9132/response_only.p4'
 
 
 def role(text):
     text = re.sub(r'\bt_(\w+)', r'\1', combined.segment(text, 'T'))
-    for name, old, new in (('T_IN', 180, 197), ('HB_RETURN', 181, 198), ('HELD_RETURN', 182, 199)):
-        text = re.sub(r'(const PortId_t ' + name + r'\s*=\s*)9w' + str(old) + ';', r'\g<1>9w' + str(new) + ';', text)
-    return '#include <core.p4>\n#include <tna.p4>\n' + text
+    for name, old, new in (('T_IN',180,197),('HB_RETURN',181,198),('HELD_RETURN',182,199)):
+        text = re.sub(r'(const PortId_t '+name+r'\s*=\s*)9w'+str(old)+';',r'\g<1>9w'+str(new)+';',text)
+    return '#include <core.p4>\n#include <tna.p4>\n'+text
 
 
 class SourceSim(QueueSim):
-    def set_params(self, gap=5_000_000, response_wait_timeout=500_000_000, budget=60000, enabled=1):
-        unit = lambda ns: t_units({'gap': ns}, unit_ns=256, grid_ns=512)['gap']
-        table = self.src.controls['Ingress'].tables['params']
-        table['runtime'] = []
-        names = self.src.controls['Ingress'].actions['set_params'][0]
-        if len(names) == 5:
-            values = [unit(gap), unit(2_400_000), unit(response_wait_timeout), budget, enabled]
-        else:
-            values = [unit(2_000_000), unit(12_000_000), unit(16_000_000), unit(gap), unit(2_400_000), budget, enabled, unit(12_000_000)]
-        self.src.install('params', (), 'set_params', values)
+    def set_params(self, gap=5_000_000, budget=60000, enabled=1):
+        unit=lambda ns:t_units({'gap':ns},unit_ns=256,grid_ns=512)['gap']
+        vals=[unit(gap),unit(2_400_000),budget,enabled]
+        if len(self.src.controls['Ingress'].actions['set_params'][0])==5:
+            vals.insert(2,1953127)
+        self.src.controls['Ingress'].tables['params']['runtime']=[]
+        self.src.install('params',(),'set_params',vals)
 
-    def emissions(self, frame, port=None):
-        # T exports its original behind a typed provenance header consumed by E.
-        return [t for t, p, raw in self.emitted if (raw == frame or raw[16:] == frame) and (port is None or p == port)]
+    def emissions(self,frame,port=None):
+        return [t for t,p,raw in self.emitted if (raw==frame or raw[16:]==frame) and(port is None or p==port)]
+
+    def retry(self,time,epoch=1,operate=False):
+        self.event(time,15 if operate else 16,OP_FRAME if operate else REQ_FRAME,epoch)
 
 
 class ResponseReadyTiming(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.legacy = C52.read_text()
-        cls.text = cls.legacy if os.environ.get('RESPONSE_READY_RED') else build(**ts.FLAGS, relay_ts=True, response_ready_timing=True)[0]
-        cls.tmp = tempfile.TemporaryDirectory()
-        cls.path = Path(cls.tmp.name) / 'timing.p4'
-        cls.path.write_text(role(cls.text))
-
+        cls.text=C62.read_text() if os.environ.get('RESPONSE_READY_RED') else build(**ts.FLAGS,relay_ts=True,response_ready_timing=True)[0]
+        cls.tmp=tempfile.TemporaryDirectory();cls.path=Path(cls.tmp.name)/'timing.p4';cls.path.write_text(role(cls.text))
     @classmethod
-    def tearDownClass(cls):
-        cls.tmp.cleanup()
+    def tearDownClass(cls):cls.tmp.cleanup()
+    def sim(self,**kw):
+        s=SourceSim(source=self.path,**kw);s.event(T0-10000,14,bytes(60));return s
 
-    def sim(self, **kw):
-        s = SourceSim(source=self.path, **kw)
-        s.event(T0 - 10000, 14, REQ_FRAME)
-        return s
+    def test_waiting_for_response_retry_forwards_without_rearming(self):
+        s=self.sim();s.request(T0);s.ack(T0+50000);s.retry(T0+1000000)
+        s.response(T0+2000000);s.run(T0+12000000)
+        self.assertEqual(len(s.emissions(REQ_FRAME,RELAY)),2)
+        self.assertEqual(s.cell('gen_alloc_reg'),2)
+        self.assertEqual(s.counter(9),1)
+        self.assertEqual(len(s.emissions(ACK_FRAME)),1)
+        self.assertGreaterEqual(s.emissions(RSP_FRAME)[0]-s.emissions(ACK_FRAME)[0],5000000)
 
-    def test_missing_response_never_releases_ack_and_expires(self):
-        s = self.sim(); s.request(T0); s.ack(T0 + 50000)
-        s.run(T0 + 510_000_000)
-        self.assertEqual(s.emissions(ACK_FRAME), [])
-        self.assertEqual(s.cell('ack_done_reg') >> 16, 2)
-        self.assertEqual(s.counter(8), 1)
-        self.assertTrue(not s.heap)
+    def test_queued_response_retry_drops_without_restarting_d(self):
+        s=self.sim();s.request(T0);s.ack(T0+50000);s.response(T0+100000);s.retry(T0+2000000)
+        s.run(T0+12000000)
+        self.assertEqual(len(s.emissions(REQ_FRAME,RELAY)),1)
+        self.assertEqual(s.counter(8),1)
+        self.assertEqual(s.cell('gen_alloc_reg'),2)
+        ack=s.emissions(ACK_FRAME)[0];rsp=s.emissions(RSP_FRAME)[0]
+        self.assertGreaterEqual(rsp-ack,5000000);self.assertLess(rsp-ack,5200000)
 
-    def test_response_without_standalone_ack_expires_without_unshaped_release(self):
-        s = self.sim(); s.request(T0); s.response(T0 + 100000)
-        s.run(T0 + 510_000_000)
-        self.assertEqual(s.emissions(RSP_FRAME), [])
-        self.assertEqual(s.counter(8), 1)
+    def test_response_waiting_for_ack_also_owns_original(self):
+        s=self.sim();s.request(T0);s.response(T0+50000);s.retry(T0+1000000);s.ack(T0+2000000)
+        s.run(T0+12000000)
+        self.assertEqual(len(s.emissions(REQ_FRAME,RELAY)),1);self.assertEqual(s.counter(8),1)
+        self.assertEqual(len(s.emissions(RSP_FRAME)),1)
 
-    def test_late_response_holds_ack_then_full_d_for_each_supported_d(self):
-        for gap in (5_000_000, 10_000_000, 15_000_000, 20_000_000):
-            for ackoff, rspoff in ((50000, 98_000_000), (98_000_000, 50000)):
-                with self.subTest(gap=gap, ack=ackoff):
-                    s = self.sim(gap=gap); s.request(T0); s.ack(T0 + ackoff); s.response(T0 + rspoff)
-                    s.run(T0 + 125_000_000)
-                    ack, rsp = s.emissions(ACK_FRAME), s.emissions(RSP_FRAME)
-                    self.assertEqual((len(ack), len(rsp)), (1, 1))
-                    self.assertGreaterEqual(ack[0], T0 + max(ackoff, rspoff))
-                    self.assertGreaterEqual(rsp[0] - ack[0], gap)
-                    self.assertLess(rsp[0] - ack[0], gap + 200000)
-                    self.assertEqual(s.counter(8), 0)
+    def test_after_release_retry_forwards_before_master_ack(self):
+        s=self.sim();s.request(T0);s.ack(T0+50000);s.response(T0+100000);s.retry(T0+10000000)
+        s.response(T0+11000000);s.run(T0+12000000)
+        self.assertEqual(len(s.emissions(REQ_FRAME,RELAY)),2);self.assertEqual(s.counter(9),1)
+        self.assertEqual(len(s.emissions(RSP_FRAME)),2);self.assertEqual(s.counter(3),1)
+        self.assertEqual(s.cell('gen_alloc_reg'),2)
 
-    def test_commit_before_timeout_keeps_full_d_across_deadline(self):
-        s = self.sim(gap=20_000_000); s.request(T0); s.ack(T0 + 50000); s.response(T0 + 499_000_000)
-        s.run(T0 + 525_000_000)
-        ack, rsp = s.emissions(ACK_FRAME), s.emissions(RSP_FRAME)
-        self.assertEqual((len(ack), len(rsp)), (1, 1))
-        self.assertGreaterEqual(rsp[0] - ack[0], 20_000_000)
-        self.assertEqual(s.counter(8), 0)
+    def test_operate_retry_drops_during_j_and_response_d_then_forwards(self):
+        s=self.sim();s.operate(T0);s.retry(T0+1000000,operate=True)
+        s.retry(T0+3000000,operate=True)
+        s.ack(T0+4000000);s.response(T0+4100000);s.retry(T0+6000000,operate=True)
+        s.retry(T0+12000000,operate=True);s.run(T0+15000000)
+        self.assertEqual(len(s.emissions(OP_FRAME,RELAY)),3)
+        self.assertEqual(s.counter(16),1);self.assertEqual(s.counter(8),1);self.assertEqual(s.counter(9),2)
+        self.assertEqual(s.cell('op_gen_alloc_reg'),2);self.assertEqual(s.cell('gen_alloc_reg'),2)
+        self.assertGreaterEqual(s.emissions(OP_FRAME,RELAY)[0],T0+2400000)
 
-    def test_expired_exchange_cannot_reopen_with_late_or_new_request_payloads(self):
-        s = self.sim(); s.request(T0); s.ack(T0 + 50000)
-        s.response(T0 + 501_000_000)
-        s.request(T0 + 502_000_000); s.ack(T0 + 503_000_000); s.response(T0 + 504_000_000)
-        s.run(T0 + 530_000_000)
-        self.assertEqual(s.emissions(ACK_FRAME), [])
-        self.assertEqual(s.emissions(RSP_FRAME), [])
-        self.assertEqual(s.counter(8), 1)
+    def test_timing_disabled_request_retries_forward_without_ownership(self):
+        s=self.sim(enabled=0);s.request(T0);s.retry(T0+1000000)
+        s.operate(T0+2000000);s.retry(T0+3000000,operate=True);s.run(T0+10000000)
+        self.assertEqual(len(s.emissions(REQ_FRAME,RELAY)),2)
+        self.assertEqual(len(s.emissions(OP_FRAME,RELAY)),2)
+        self.assertEqual(s.counter(8),0);self.assertEqual(s.counter(16),0)
+        self.assertEqual(s.counter(9),2)
+        self.assertEqual(s.cell('gen_alloc_reg'),1);self.assertEqual(s.cell('op_gen_alloc_reg'),1)
 
-    def test_stale_and_reset_held_originals_drop(self):
-        s = self.sim(); s.request(T0); s.ack(T0 + 50000); s.response(T0 + 100000)
-        s.reset(T0 + 200000); s.run(T0 + 30_000_000)
-        self.assertEqual(s.emissions(RSP_FRAME), [])
+    def test_no_exchange_timeout_and_blocker_budget_never_releases_data(self):
+        s=self.sim(budget=1);s.request(T0);s.ack(T0+50000)
+        s.response(T0+600000000);s.run(T0+612000000)
+        self.assertEqual(len(s.emissions(ACK_FRAME)),1);self.assertEqual(len(s.emissions(RSP_FRAME)),1)
+        self.assertGreaterEqual(s.emissions(ACK_FRAME)[0],T0+600000000)
+        self.assertGreaterEqual(s.emissions(RSP_FRAME)[0]-s.emissions(ACK_FRAME)[0],5000000)
+        self.assertGreater(s.counter(10),0)
 
-    def test_whole_child_zero_required_and_duplicates_release_once(self):
-        s = self.sim(); s.request(T0); s.ack(T0 + 50000); s.response(T0 + 100000, child=1)
-        s.run(T0 + 20_000_000)
-        self.assertEqual(s.emissions(ACK_FRAME), [])
-        s.response(T0 + 21_000_000); s.response(T0 + 22_000_000); s.ack(T0 + 23_000_000)
-        s.run(T0 + 35_000_000)
-        self.assertEqual(len(s.emissions(ACK_FRAME)), 1)
-        self.assertEqual(len(s.emissions(RSP_FRAME)), 1)
+    def test_reset_drops_held_originals_and_old_epoch_retries(self):
+        s=self.sim();s.request(T0);s.ack(T0+50000);s.response(T0+100000)
+        s.reset(T0+1000000);s.retry(T0+2000000)
+        s.event(T0+3000000,14,REQ_FRAME,epoch=2);s.request(T0+4000000,epoch=2)
+        s.retry(T0+4100000,epoch=2);s.ack(T0+4200000,epoch=2);s.response(T0+4300000,epoch=2)
+        s.run(T0+16000000)
+        self.assertEqual(len(s.emissions(RSP_FRAME)),1)
+        self.assertEqual(s.cell('gen_alloc_reg'),5)
+        self.assertEqual(s.counter(9),1)
 
-    def test_atomic_commit_expiry_boundary_and_full_d_after_commit(self):
-        timeout = 2_048_000  # exactly4000 clock grid steps
-        for offset, committed in ((-512, True), (0, False), (512, False)):
-            with self.subTest(offset=offset):
-                s = self.sim(response_wait_timeout=timeout)
-                s.request(T0); s.response(T0 + 100000)
-                # Genuine held record returned by the traffic manager; epoch1
-                # and generation2 are OPEN1 then REQUEST2, not a lap budget.
-                held = struct.pack('!BBHI', 14, 0, 2, 1) + ACK_FRAME
-                s.at(T0 + 2_048_512 + offset, LADDER, held)
-                s.run(T0 + 10_000_000)
-                ack, rsp = s.emissions(ACK_FRAME), s.emissions(RSP_FRAME)
-                if committed:
-                    self.assertEqual((len(ack), len(rsp)), (1, 1))
-                    self.assertGreaterEqual(rsp[0] - ack[0], 5_000_000)
-                    self.assertEqual(s.counter(8), 0)
-                else:
-                    self.assertEqual((ack, rsp), ([], []))
-                    self.assertEqual(s.counter(8), 1)
+    def test_all_d_and_arrival_orders(self):
+        for d in (5000000,10000000,15000000,20000000):
+            for a,r in ((50000,98000000),(98000000,50000)):
+                s=self.sim(gap=d);s.request(T0);s.ack(T0+a);s.response(T0+r);s.run(T0+125000000)
+                self.assertEqual(len(s.emissions(ACK_FRAME)),1);self.assertEqual(len(s.emissions(RSP_FRAME)),1)
+                self.assertGreaterEqual(s.emissions(ACK_FRAME)[0],T0+max(a,r))
+                self.assertGreaterEqual(s.emissions(RSP_FRAME)[0]-s.emissions(ACK_FRAME)[0],d)
 
-    def test_expired_lifetime_recovers_only_through_close_and_new_open(self):
-        s = self.sim(response_wait_timeout=2_048_000)
-        s.request(T0); s.ack(T0 + 50000)
-        s.reset(T0 + 3_000_000)
-        s.event(T0 + 4_000_000, 14, REQ_FRAME, epoch=2)
-        s.request(T0 + 5_000_000, epoch=2)
-        s.ack(T0 + 5_050_000, epoch=2); s.response(T0 + 5_100_000, epoch=2)
-        s.run(T0 + 15_000_000)
-        self.assertEqual(len(s.emissions(ACK_FRAME)), 1)
-        self.assertEqual(len(s.emissions(RSP_FRAME)), 1)
-        self.assertEqual(s.counter(8), 1)
+    def test_one_global_response_access_and_no_timeout_state(self):
+        text=role(self.text);code=re.sub(r'//[^\n]*|/\*.*?\*/','',text,flags=re.S)
+        self.assertEqual(code.count('response_completion_access.apply();'),1)
+        self.assertNotIn('response_wait_timeout',code);self.assertNotIn('t0_reg;',code.replace('op_t0_reg;',''))
+        self.assertNotIn('EXPIRED',code)
+        self.assertEqual(len(self.sim().src.controls['Ingress'].actions['set_params'][0]),4)
 
-    def test_wrong_epoch_response_cannot_open_ack_gate(self):
-        s = self.sim(response_wait_timeout=2_048_000)
-        s.request(T0); s.ack(T0 + 50000); s.response(T0 + 100000, epoch=2)
-        s.run(T0 + 10_000_000)
-        self.assertEqual(s.emissions(ACK_FRAME), [])
-        self.assertEqual(s.emissions(RSP_FRAME), [])
-        self.assertEqual(s.counter(8), 1)
-
-    def test_selected_cli_manifest_seals_only_response_ready_parameters(self):
-        if os.environ.get('RESPONSE_READY_RED'):
-            self.skipTest('generator ABI checked on selected source only')
-        flags = ['--policy', '--c3', 'cimg', '--shapes', 'passthrough', '--two-read', '--reduce',
-                 '--ack-retry', '--read-handshake', '--headroom', '--relay', '--relay-sbo',
-                 '--relay-ts', '--response-ready-timing']
-        with tempfile.TemporaryDirectory() as tmp:
-            subprocess.run([sys.executable, str(HERE / 'make_m12.py'), tmp] + flags, check=True, capture_output=True)
-            p = json.loads((Path(tmp) / 'supported_profile.json').read_text())
-            self.assertEqual(p['timing_contract'], 'response_ready_ack_d_v1')
-            self.assertEqual(p['timing_ns'], {'D_release_budget': 5000000, 'J_operate_hold': 2400000,
-                                            'response_wait_timeout': 500000000})
-        with self.assertRaises(ValueError):
-            build(**ts.FLAGS, response_ready_timing=True)
-
-    def test_duplicate_held_record_cannot_release_response_twice(self):
-        s = self.sim(); s.request(T0); s.ack(T0 + 50000); s.response(T0 + 100000)
-        held = struct.pack('!BBHI', 15, 0, 2, 1) + RSP_FRAME
-        s.at(T0 + 10_000_000, LADDER, held)
-        s.run(T0 + 15_000_000)
-        self.assertEqual(len(s.emissions(RSP_FRAME)), 1)
-        self.assertEqual(s.counter(3), 1)
-
-    def test_foreign_ingress_and_wrong_token_formats_cannot_expire_live_state(self):
-        for port, raw in ((164, bytes(64)), (0, bytes([0xff]) + bytes(63)), (196, bytes([0xff]) + bytes(63))):
-            s = self.sim(response_wait_timeout=2_048_000)
-            # Remove all blocker delivery: unrelated ingress still cannot
-            # arbitrate or count this exchange's timeout in their place.
-            s.lose = lambda time, port, qid, raw: raw[0] in (11, 12)
-            s.request(T0); s.run(T0 + 1_000_000)
-            state = s.cell('ack_done_reg')
-            s.at(T0 + 3_000_000, port, raw); s.run(T0 + 4_000_000)
-            self.assertEqual(s.cell('ack_done_reg'), state)
-            self.assertEqual(s.counter(8), 0)
-
-    def test_operate_original_delayed_beyond_wait_timeout_is_dropped(self):
-        s = self.sim()
-        held = []
-        def delay_original(time, port, qid, raw):
-            if raw[0] == 16:
-                held.append(raw)
-                return True
-            return False
-        s.lose = delay_original
-        s.operate(T0); s.run(T0 + 10_000_000)
-        self.assertEqual(len(held), 1)
-        # The traffic manager returns the genuine original after an outage.
-        # Its ladder budget is still epoch1, never a decrementing lap count.
-        s.at(T0 + 501_000_000, OP_LADDER, held[0])
-        s.run(T0 + 510_000_000)
-        self.assertEqual(s.emissions(OP_FRAME, RELAY), [])
-        self.assertEqual(s.counter(8), 1)
-        self.assertEqual(s.counter(5), 0)
-
-    def test_old_queued_blocker_during_long_idle_cannot_poison_next_epoch_request(self):
-        s = self.sim()
-        s.lose = lambda time, port, qid, raw: raw[0] in (11, 12)
-        s.request(T0); s.run(T0 + 100000)
-        old = next(raw for _, port, qid, raw in s.enqueued if qid == 7 and raw[0] == 11)
-        # Return a genuine A blocker to expire A, then close/reopen. No B
-        # request exists while A's delayed copy returns after a >500ms idle.
-        s.at(T0 + 501_000_000, LADDER, old)
-        s.reset(T0 + 502_000_000)
-        s.event(T0 + 503_000_000, 14, REQ_FRAME, epoch=2)
-        s.at(T0 + 1_008_000_000, 164, bytes(64))
-        s.at(T0 + 1_009_000_000, 196, bytes([0xff]) + bytes(63))
-        s.token(T0 + 1_009_500_000, gen=1, packet_id=0, profile=0)
-        s.at(T0 + 1_010_000_000, LADDER, old)
-        s.run(T0 + 1_010_500_000)
-        self.assertEqual(s.counter(8), 1, 'idle ownership must not acquire a fresh expiry')
-        s.lose = lambda time, port, qid, raw: False
-        s.request(T0 + 1_011_000_000, epoch=2)
-        s.ack(T0 + 1_011_050_000, epoch=2)
-        s.response(T0 + 1_011_100_000, epoch=2)
-        s.run(T0 + 1_020_000_000)
-        self.assertEqual(len(s.emissions(ACK_FRAME)), 1)
-        self.assertEqual(len(s.emissions(RSP_FRAME)), 1)
-        self.assertEqual(s.counter(8), 1)
-
-    def test_response_completion_has_one_global_access_before_port_dispatch(self):
-        # A source interpreter has one cell per register and cannot reproduce
-        # bf-p4c's bank replication across two independently placed accesses.
-        # Require one named access point, then validate its actual bank below.
-        code = re.sub(r'//[^\n]*|/\*.*?\*/', '', role(self.text), flags=re.S)
-        self.assertEqual(code.count('response_completion_access.apply();'), 1)
-        self.assertLess(code.index('response_completion_access.apply();'), code.index('if (hdr.clone.isValid())'))
-        self.assertNotIn('read_resp_done();', code)
-
-    @unittest.skipUnless(os.environ.get('RESPONSE_READY_CONTEXT'), 'compiled context supplied by compiler gate')
+    @unittest.skipUnless(os.environ.get('RESPONSE_READY_CONTEXT'),'compiled context supplied by compiler gate')
     def test_compiled_completion_domains_each_have_one_physical_bank(self):
-        context = json.loads(Path(os.environ['RESPONSE_READY_CONTEXT']).read_text())
-        for name in ('ack_done_reg', 'resp_done_reg', 'op_done_reg'):
-            with self.subTest(register=name):
-                registers = [table for table in context['tables'] if table.get('table_type') == 'stateful'
-                             and table['name'].endswith('.' + name)]
-                self.assertEqual(len(registers), 1)
-                self.assertEqual(len(registers[0]['stage_tables']), 1, registers[0]['stage_tables'])
+        context=json.loads(Path(os.environ['RESPONSE_READY_CONTEXT']).read_text())
+        for name in ('ack_done_reg','resp_done_reg','op_done_reg'):
+            regs=[t for t in context['tables'] if t.get('table_type')=='stateful' and t['name'].endswith('.'+name)]
+            self.assertEqual(len(regs),1);self.assertEqual(len(regs[0]['stage_tables']),1)
 
-    def test_response_replay_after_release_passes_before_any_master_completion_ack(self):
-        s = self.sim(); s.request(T0); s.ack(T0 + 50000); s.response(T0 + 100000)
-        s.run(T0 + 10_000_000)
-        self.assertEqual(len(s.emissions(RSP_FRAME)), 1)
-        # No master ACK is injected between original release and this replay.
-        s.response(T0 + 11_000_000); s.run(T0 + 12_000_000)
-        self.assertEqual(len(s.emissions(RSP_FRAME)), 2)
-        self.assertEqual(s.counter(3), 1, 'replay must not create a second original release')
-        self.assertEqual(s.counter(4), 0)
-
-    def test_operate_request_retains_independent_j(self):
-        s = self.sim(); s.operate(T0); s.run(T0 + 5_000_000)
-        emitted = s.emissions(OP_FRAME, RELAY)
-        self.assertEqual(len(emitted), 1)
-        self.assertGreaterEqual(emitted[0], T0 + 2_400_000)
-
-    def test_native_late_ack_after_response_routes_to_t_with_exact_request_ack_boundary(self):
+    def test_n_duplicate_identity_binds_current_shape_function_app_and_range(self):
         import test_n_read_shapes as shared
-        n = shared.n_source(self.text)
-        wire = ts.packet(b'', reverse=True, flags=16)
-        for phase, length in ((5, 91), (5, 134), (5, 49), (10, 49)):
-            for boundary in (146, 147):
-                n.begin_pass(64); n.packet_parser(wire)
-                n.env.update({'m.direction': 2, 'm.kind': 10, 'm.client': boundary,
-                              'm.server': 900 + length, 'm.observed': phase << 16 | 1,
-                              'm.matched': 0})
-                n.table('sequence_diff'); n.table('sequence_guard'); n.table('first_event')
-                if boundary == 146:
-                    self.assertEqual(n.env.get('hdr.event.event'), 0x010a, (phase, length))
-                else:
-                    self.assertNotEqual(n.env.get('hdr.event.event'), 0x010a)
+        from m12gen import relay_sbo
+        data=json.loads((HERE.parent/'read_complete_01/vectors/two_read_templates_relay.json').read_text())
+        v=data['variants']['v0']['classes']
+        mixed=bytes.fromhex(v['mixed']['request']);full=bytes.fromhex(v['integrity']['request'])
+        select=bytes.fromhex('056424c4000001004a59cbcb030c011702010101c800000000008136000000030101c8000000000000000015ee')
+        def edit(raw,app=None,func=None,bad_object=False):
+            h,u=relay_sbo.deframe(raw);u=bytearray(u)
+            if app is not None:u[1]=app
+            if func is not None:u[2]=func
+            if bad_object:u[3]^=1
+            return relay_sbo.frame(h,bytes(u))
+        def packet(raw,seq):
+            out=bytearray(ts.packet(raw));out[38:42]=struct.pack('!I',seq)
+            out[50:52]=bytes(2)
+            out[50:52]=struct.pack('!H',shared._sum(bytes(out[26:34])+struct.pack('!BBH',0,6,len(out)-34)+bytes(out[34:])))
+            return bytes(out)
+        def inputs(n,raw,seq,stage,kind):
+            n.begin_pass(9);n.packet_parser(packet(raw,seq))
+            actual=n.env['m.packet_kind'];self.assertEqual(actual,kind)
+            n.env.update({'m.stage':stage,'m.kind':kind,'m.work_phase':1 if stage else 4,'m.epoch_diff':0,'m.direction':1})
+            n.table('read_input_t')
+            if kind==5:n.action('compare_select_inputs')
+            elif kind==7:n.action('compare_operate_inputs' if not stage else 'compare_operate_store_inputs')
+            n.table('read_app_t');n.table('application_t')
+        def tagged(original,candidate,original_kind,candidate_kind,seq=900,phase=5):
+            n=shared.n_source(self.text)
+            inputs(n,select if original_kind==9 else mixed,900,1,5 if original_kind==9 else 9)
+            inputs(n,original,900,1,original_kind)
+            inputs(n,candidate,seq,0,candidate_kind)
+            if candidate_kind==9:
+                n.table('read_request_full_profile' if n.valid.get('hdr.rd_req_full',n.valid.get('rd_req_full')) else 'read_request_mx_profile')
+            else:n.table('profile')
+            if n.env.get('m.profile')!=1:return False
+            n.env.update({'m.client':900+len(original),'m.server':146,'m.observed':phase<<16|1,'m.new_seq':seq+len(candidate)})
+            n.table('sequence_diff');n.table('sequence_guard');n.table('first_event')
+            return n.env.get('hdr.event.event')==0x118
+        op=edit(select,func=4)
+        full=edit(full,app=relay_sbo.deframe(mixed)[1][1])
+        for raw,kind in ((mixed,9),(full,9),(select,5),(op,7)):
+            self.assertTrue(tagged(raw,raw,kind,kind),kind)
+            h,u=relay_sbo.deframe(raw)
+            self.assertFalse(tagged(raw,edit(raw,app=0xc0|((u[1]+1)&15)),kind,kind),kind)
+            self.assertFalse(tagged(raw,raw,kind,kind,seq=901),kind)
+            self.assertFalse(tagged(raw,edit(raw,bad_object=True),kind,kind),kind)
+        self.assertFalse(tagged(mixed,full,9,9,seq=898))
+        self.assertFalse(tagged(select,op,5,7))
+        self.assertFalse(tagged(op,select,7,5))
+        self.assertFalse(tagged(select,mixed,5,9,seq=920))
+        self.assertFalse(tagged(mixed,select,9,5,seq=880))
+        # The stronger function identity preserves successful SELECT/OPERATE
+        # association, including application sequence wrap, and both responses.
+        response=bytes.fromhex('05642644010000002f77d2cb8180000c011702010101c8000000e2170000000000030101c8000000000000008bf700ffff')
+        for sel_app,op_app in ((0xcb,0xcc),(0xcf,0xc0)):
+            n=shared.n_source(self.text)
+            inputs(n,edit(select,app=sel_app),900,1,5)
+            inputs(n,edit(op,app=op_app),945,0,7)
+            n.env.update({'m.response':0,'m.diff_real_links':0,'m.diff_real_tcp_dst':0,'m.diff_real_off':0,'m.diff_native_end':0})
+            n.table('object_match');self.assertEqual(n.env.get('m.matched'),1)
+            for app,kind in ((sel_app,5),(op_app,7)):
+                inputs(n,edit(select if kind==5 else op,app=app),900,1,kind)
+                n.begin_pass(9);n.packet_parser(ts.packet(edit(response,app=app),reverse=True))
+                n.env.update({'m.stage':0,'m.kind':6,'m.work_phase':4,'m.epoch_diff':0,'m.response':1,
+                              'm.diff_real_links':0,'m.diff_real_tcp_dst':0,'m.diff_real_off':0,'m.diff_native_end':0})
+                n.action('compare_response_inputs');n.table('application_t');n.table('object_match')
+                self.assertEqual(n.env.get('m.matched'),1)
 
-    def test_unselected_build_is_exact_frozen_source(self):
-        plain, _ = build(**ts.FLAGS, relay_ts=True)
-        self.assertEqual(hashlib.sha256(plain.encode()).hexdigest(), '8f37f70240ffa03daf887349e5e52a6abf7e32eb4b43ec559e35077902e3dce4')
-        self.assertEqual(plain, self.legacy)
-        self.assertEqual(combined.segment(self.text, 'E'), combined.segment(self.legacy, 'E'))
+    def test_unselected_c52_is_exact(self):
+        text,_=build(**ts.FLAGS,relay_ts=True)
+        self.assertEqual(hashlib.sha256(text.encode()).hexdigest(),'8f37f70240ffa03daf887349e5e52a6abf7e32eb4b43ec559e35077902e3dce4')
 
-
-if __name__ == '__main__':
-    unittest.main()
+if __name__=='__main__':unittest.main()

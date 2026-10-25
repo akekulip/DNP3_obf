@@ -78,8 +78,8 @@ def response_ready_config(cfg, block, d_ms):
     """Apply only the explicit new timing profile; frozen legacy configs retain their path."""
     if block == 'held_operate_350':
         raise ValueError('the response-ready campaign excludes historical 350 ms stress')
-    cfg['timing_contract'] = 'response_ready_ack_d_v1'
-    cfg['timing_params_ns'] = dict(gap=d_ms * 1000000, op_j=2400000, response_wait_timeout=500000000,
+    cfg['timing_contract'] = 'response_ready_ack_d_v2'
+    cfg['timing_params_ns'] = dict(gap=d_ms * 1000000, op_j=2400000,
                                    budget=cfg['timing_params_ns'].get('budget', 240000), enabled=1)
     cfg['evaluation'].update(purpose='qualification', host_precision_gated=True)
     cfg['qualification_dimensions'] = dict(operate_j='unproven_by_user_choice')
@@ -136,8 +136,8 @@ def main(argv=None):
             profile['encoding'].get('syn_tcp_header_octets') != 40 or profile['encoding'].get('synack_tcp_header_octets') != 44 or \
             profile['encoding'].get('ipv4_ihl') != 5 or profile['encoding'].get('timestamp_option_prefix') != '0101080a':
         raise ValueError('selected build does not implement the observed physical timestamp profile')
-    ready = profile.get('timing_contract') == 'response_ready_ack_d_v1'
-    if ready and profile.get('timing_ns') != dict(D_release_budget=5000000, J_operate_hold=2400000, response_wait_timeout=500000000):
+    ready = profile.get('timing_contract') == 'response_ready_ack_d_v2'
+    if ready and profile.get('timing_ns') != dict(D_release_budget=5000000, J_operate_hold=2400000):
         raise ValueError('response-ready supported profile timing contract mismatch')
     if not ready and args.d_ms != 5:
         raise ValueError('--d-ms requires the response-ready timing profile')

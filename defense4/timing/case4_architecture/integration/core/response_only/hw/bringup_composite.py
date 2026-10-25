@@ -55,7 +55,6 @@ def parse(argv):
     ap.add_argument('--read-src', type=lambda s: int(s, 0), default=0x0100)
     for k, v in tc.T_PARAM_DEFAULTS.items():
         ap.add_argument('--t-' + k.replace('_', '-'), dest='t_' + k, type=int, default=v)
-    ap.add_argument('--t-response-wait-timeout', type=int, default=None)
     ap.add_argument('--t-pb', dest='t_pb', type=int, default=None,
                     help='piggyback response bound (ns); only for builds whose set_params takes pb')
     ap.add_argument('--pad-enable', type=int, choices=(0, 1), default=1,
@@ -150,8 +149,6 @@ def params(a):
         return {key: (getattr(a, 't_' + key, None) if '--t-' + key.replace('_', '-') in
                       getattr(a, 'explicit_t_params', set()) else value)
                 for key, value in tc.RESPONSE_READY_DEFAULTS.items()}
-    if getattr(a, 't_response_wait_timeout', None) is not None:
-        raise ValueError('response_wait_timeout requires response-ready compiled contract')
     values = {k: getattr(a, 't_' + k) for k in tc.T_PARAM_DEFAULTS}
     if getattr(a, 't_pb', None) is not None:
         values['pb'] = a.t_pb

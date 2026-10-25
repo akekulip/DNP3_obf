@@ -396,9 +396,9 @@ def piggyback_latency(timing, pb_ns, margin_us=PIGGYBACK_MARGIN_US):
 
 
 def _delta_outcomes(before, after, timing_contract=None, require_no_bypass=False):
-    expiry = ('OUT_WAIT_EXPIRED', 'OUT_EXPIRED_DROP') if timing_contract == 'response_ready_ack_d_v1' else \
+    recovery = ('OUT_REQ_DUP_DROP', 'OUT_REQ_DUP_FORWARD') if timing_contract == 'response_ready_ack_d_v2' else \
              ('OUT_ACK_FALLBACK', 'OUT_RESP_FALLBACK')
-    required = ('OUT_ACK_COMMIT', 'OUT_RESP_RELEASE', 'OUT_OP_RELEASE', 'OUT_TOKEN_STALE') + expiry
+    required = ('OUT_ACK_COMMIT', 'OUT_RESP_RELEASE', 'OUT_OP_RELEASE', 'OUT_TOKEN_STALE') + recovery
     if require_no_bypass:
         required += ('OUT_REQ_BYPASS',)
     for snap in (before, after):
@@ -577,7 +577,7 @@ def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=
         if not ev.get(key):
             fails.append('missing evidence: %s snapshot' % key)
     b, a = ev.get('before'), ev.get('after')
-    require_no_bypass = bool(timing_contract == 'response_ready_ack_d_v1' and arm['T'] and
+    require_no_bypass = bool(timing_contract == 'response_ready_ack_d_v2' and arm['T'] and
                              (reads > 0 or control_timed and sbo_count > 0))
     if a and b:
         try:
@@ -594,11 +594,12 @@ def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=
             except ValueError as err:
                 fails.append(str(err))
                 d['OUT_TOKEN_STALE'] = None
-            if timing_contract == 'response_ready_ack_d_v1':
-                obs.update(waiting_expired=d['OUT_WAIT_EXPIRED'], expired_drops=d['OUT_EXPIRED_DROP'])
-                for key in ('OUT_WAIT_EXPIRED', 'OUT_EXPIRED_DROP'):
-                    if d[key]:
-                        fails.append('response-ready failure: %s=%s' % (key, d[key]))
+            if timing_contract == 'response_ready_ack_d_v2':
+                obs.update(request_duplicates_dropped=d['OUT_REQ_DUP_DROP'],
+                           request_duplicates_forwarded=d['OUT_REQ_DUP_FORWARD'])
+                for key in ('OUT_REQ_DUP_DROP', 'OUT_REQ_DUP_FORWARD'):
+                    if d[key] < 0:
+                        fails.append('request duplicate counter decreased: %s=%s' % (key, d[key]))
             obs['outcomes'] = d
             obs['token_stale'] = d.get('OUT_TOKEN_STALE')      # unreadable evidence stays unknown
             # GEN_EXHAUSTED (T outcome 15 where the build declares it, build.gen_exhausted_outcome; snapshots name
@@ -630,10 +631,9 @@ def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=
                 wanted = {'OUT_ACK_COMMIT': complete - piggy + controls - piggy_ctl,
                           'OUT_RESP_RELEASE': complete - piggy + controls - piggy_ctl + (piggy_all if piggyback_bound else 0),
                           'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0 if piggyback_bound else piggy_all}
-                if timing_contract == 'response_ready_ack_d_v1':
+                if timing_contract == 'response_ready_ack_d_v2':
                     wanted.pop('OUT_ACK_FALLBACK')
                     wanted.pop('OUT_RESP_FALLBACK')
-                    wanted.update(OUT_WAIT_EXPIRED=0, OUT_EXPIRED_DROP=0)
                     if require_no_bypass:
                         wanted['OUT_REQ_BYPASS'] = 0
                 for k, count in wanted.items():

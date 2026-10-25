@@ -1,0 +1,112 @@
+{
+  "timing_contract": "response_ready_ack_d_v2",
+  "candidate": "m12p_c67_sdk9132",
+  "source_sha256": "e8565de7c317124b2c3377ce02fc2a932d4f86e1625ed224ec9fed550d6d2ec1",
+  "tests_sha256": "b7a74d350783d0ecd8342d5a5c46dcfce5aa020a4fd5c3116e38a914fa8be06d",
+  "green": {
+    "argv": [
+      "python3.12",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/m12_fullsize/tests",
+      "-p",
+      "test_response_ready_timing.py",
+      "-v"
+    ],
+    "env": {
+      "RESPONSE_READY_CONTEXT": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c67_sdk9132/compile_local/out/p1/context.json"
+    },
+    "exit_code": 0,
+    "tests": 13,
+    "skipped": 0,
+    "seconds": 11.841
+  },
+  "red": {
+    "argv": [
+      "python3.12",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/m12_fullsize/tests",
+      "-p",
+      "test_response_ready_timing.py",
+      "-v"
+    ],
+    "env": {
+      "RESPONSE_READY_RED": "1"
+    },
+    "exit_code": 1,
+    "tests": 13,
+    "failures": 10,
+    "skipped": 1,
+    "seconds": 12.276,
+    "frozen_source": "m12p_c62_sdk9132"
+  },
+  "context": {
+    "T_state_objects": 11,
+    "T_physical_banks": 11,
+    "ack_done_reg_stages": [
+      4
+    ],
+    "resp_done_reg_stages": [
+      6
+    ],
+    "op_done_reg_stages": [
+      7
+    ],
+    "N_occupied_nonnegative": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "E_occupied_nonnegative": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "T_occupied_nonnegative": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "pipe1_egress_occupied_nonnegative": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "logs": {
+    "source_unit_v2_c67_green.log": "541f312e1f8e6ecfbd88ddf84b0814c152dcf589603516fb6ee0da182b7ce391",
+    "source_unit_v2_c67_frozen_c62_red.log": "208ed2e6850987cf2486e0093063821a44dd989ad8435cffba1413233fc7b419",
+    "source_unit_v2_identity_red.log": "a5cca04299ef62a96744a6a4cf72c3d29422e2a1633821d8a94f26ea997c0b0d",
+    "source_unit_v2_identity_green.log": "ca7228fae57362cfa3ceaac9b1b5b81581e06744f2b1b503804b23f660167a53",
+    "source_unit_v2_disabled_red.log": "67329b85a0f42bbf161bb02c227247759ab0489365bf5f2b49d4e81c3eb959d5"
+  }
+}

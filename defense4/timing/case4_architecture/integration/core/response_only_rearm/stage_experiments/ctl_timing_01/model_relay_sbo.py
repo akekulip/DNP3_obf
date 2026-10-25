@@ -67,6 +67,8 @@ def verify_partial_ack(sent, normalized, native_start, wire_start):
 class RelayGate(mp.PacketGate):
     def configure(self):
         super().configure()
+        inputs = json.loads(Path(os.environ['PORT_MAP']).read_text())
+        self.response_ready_v2 = (inputs.get('supported_profile') or {}).get('timing_contract') == 'response_ready_ack_d_v2'
         self.templates, self.template_path = select_templates(HERE.parent / 'read_complete_01/vectors', mp.rp.SHAPES)
         self.seqs = dict(master=0, app=0, server=0)
         gc = self.h.gc
@@ -171,7 +173,7 @@ class RelayGate(mp.PacketGate):
             if mp.rp.TCP_TIMESTAMPS:
                 self.add(tag + '_timed_timestamp_delivery_order', True, mp.rp.timestamp_order_ok(frames))
             after = [self.h.scalar(self.m.register_read('p1.t_Ingress.outcomes', i, pipe=1)) for i in (2, 3, 8, 9)]
-            self.add(tag + '_committed_no_fallback', [1, 1, 0, 0], [a - b for a, b in zip(after, before)])
+            self.add(tag + ('_committed_no_request_retry' if self.response_ready_v2 else '_committed_no_fallback'), [1, 1, 0, 0], [a - b for a, b in zip(after, before)])
         else:
             self.exchange(tag + '_ACK', ack, wire_ack, reverse=True)
             received_response = self.exchange(tag + '_complete_response', response, expected, reverse=True)

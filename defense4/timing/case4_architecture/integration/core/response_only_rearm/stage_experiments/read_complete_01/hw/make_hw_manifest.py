@@ -55,7 +55,7 @@ def main(argv):
     reference_name = next((name for name in ('reference', 'reference_rest')
                            if (config_dir / ('rc01_%s_%s%s.json' % (prefix, config_tag, name))).is_file()), 'reference')
     reference = config_dir / ('rc01_%s_%s%s.json' % (prefix, config_tag, reference_name))
-    ready = reference.is_file() and json.loads(reference.read_text()).get('timing_contract') == 'response_ready_ack_d_v1'
+    ready = reference.is_file() and json.loads(reference.read_text()).get('timing_contract') == 'response_ready_ack_d_v2'
     if ready:
         order = ['smoke', reference_name] + [name for name in ORDER_TWO_READ
                                             if name not in ('reference', 'held_operate_350')]
@@ -68,7 +68,7 @@ def main(argv):
         cfg = json.loads(path.read_text())
         if cfg.get('endpoint_profile', 'software') != profile:
             raise ValueError('config endpoint profile differs from selected manifest profile')
-        if cfg.get('timing_contract') == 'response_ready_ack_d_v1' and 'held_operate_350' in name:
+        if cfg.get('timing_contract') == 'response_ready_ack_d_v2' and 'held_operate_350' in name:
             raise ValueError('response-ready campaign excludes historical 350 ms stress')
         cb = cfg['evaluation']['campaign_block']
         tool = cb['tool']

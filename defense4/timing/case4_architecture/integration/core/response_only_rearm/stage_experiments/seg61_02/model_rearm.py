@@ -77,10 +77,10 @@ PKTGEN_RETURN = helpers.PKTGEN_RETURN
 
 def timing_params_for_profile(profile):
     contract = profile.get('timing_contract')
-    if contract == 'response_ready_ack_d_v1':
+    if contract == 'response_ready_ack_d_v2':
         timing = profile['timing_ns']
         return dict(gap=timing['D_release_budget'], op_j=timing['J_operate_hold'],
-                    response_wait_timeout=timing['response_wait_timeout'], budget=240000, enabled=0)
+                    budget=240000, enabled=0)
     if contract is not None:
         raise ValueError('unknown rearm timing contract: %r' % contract)
     return dict(da=50_000_000, readiness=400_000_000, cap=16_000_000,
@@ -155,7 +155,7 @@ def main():
         if timing_profile.get('timing_contract') is not None:
             timing_profiles = load('_rearm_timing_contract', Path(__file__).resolve().parent.parent / 'ctl_timing_01/model_profile.py')
             timing_profile = timing_profiles.resolve(inputs, Path(os.environ['PORT_MAP']).with_name('response_only.p4'))
-        response_ready = timing_profile.get('timing_contract') == 'response_ready_ack_d_v1'
+        response_ready = timing_profile.get('timing_contract') == 'response_ready_ack_d_v2'
         params = timing_params_for_profile(timing_profile)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
         mirror = m.table('$mirror.cfg', raw=True)
@@ -171,6 +171,8 @@ def main():
                          'E': ('epoch', 'master_isn', 'mode', 'front', 'acct', 'img_end', 'img_start', 'img_wend'),
                          'T': ('cur_epoch_reg', 'gen_alloc_reg', 'op_gen_alloc_reg',
                                't0_reg', 'op_t0_reg', 'ack_done_reg', 'resp_done_reg', 'op_done_reg')}
+            if response_ready:
+                registers['T'] = tuple(name for name in registers['T'] if name != 't0_reg')
             registers['T'] += child_regs + ('ack_commit_at_reg', 'ack_commit_gen_reg')
             prefix = {'N': 'p0.n_Ingress.', 'E': 'p0.r_Egress.', 'T': 'p1.t_Ingress.'}
             return {role: {name: m.register_read(prefix[role] + name, 0, pipe=1 if role == 'T' else 0) for name in names}
@@ -378,7 +380,7 @@ def main():
             want_response = rp.preserve_options(native_packet, vectors.packet(24, 7001 + READ_IMAGE_LEN + IMAGE_LEN,
                 c + 2 * rp.CONTROL_REQUEST_LEN, reverse=True, payload=image))
             outcomes = lambda: {name: scalar(m.register_read('p1.t_Ingress.outcomes', index, pipe=1))
-                for name, index in (('ACK_COMMIT', 2), ('RESP_RELEASE', 3), ('OP_RELEASE', 5), ('WAIT_EXPIRED', 8), ('EXPIRED_DROP', 9))}
+                for name, index in (('ACK_COMMIT', 2), ('RESP_RELEASE', 3), ('OP_RELEASE', 5), ('REQ_DUP_DROP', 8), ('REQ_DUP_FORWARD', 9))}
             before_t = outcomes()
             receive = {m._listen(port): port for port in ports}
             fast = {}
@@ -430,17 +432,17 @@ def main():
             find = lambda action: next((record for record in trecs if 't_Ingress.' + action in record['actions']), None)
             stamp = lambda action: find(action)['t_units'] if find(action) else None
             ack_record, response_record = find('hold_ack'), find('admit_response')
-            point = dict(tag='new_OPERATE_response_ready', order='ack_first', t0_units=stamp('admit_t0'),
+            point = dict(tag='new_OPERATE_response_ready', order='ack_first', request_arrival_units=stamp('admit_request'),
                 held_ack_units=stamp('hold_ack'), response_arrival_units=stamp('admit_response'),
                 ack_release_units=stamp('release_ack_commit'), response_release_units=stamp('release_response_counted'),
                 ack_arrival_ordinal=ack_record['ordinal'] if ack_record else None,
                 response_arrival_ordinal=response_record['ordinal'] if response_record else None,
-                lane={name: after_t[name] - before_t[name] for name in ('ACK_COMMIT', 'RESP_RELEASE', 'WAIT_EXPIRED', 'EXPIRED_DROP')},
+                lane={name: after_t[name] - before_t[name] for name in ('ACK_COMMIT', 'RESP_RELEASE', 'REQ_DUP_DROP', 'REQ_DUP_FORWARD')},
                 master_frames=['ack' if same_frame(frame, want_ack, relay_ack) else
                                'response' if same_frame(frame, want_response, native_packet) else 'other' for frame in master_frames],
                 operate_anchor_units=stamp('arm_operate_anchor'), operate_release_units=stamp('release_operate_counted'),
                 written_units=written, native_octets=len(response), image_octets=len(image))
-            problems = timing_proof.committed_problems(point, written['gap'], written['response_wait_timeout'])
+            problems = timing_proof.committed_problems(point, written['gap'])
             hold = timing_proof.delta(point['operate_release_units'], point['operate_anchor_units'])
             if hold is None or hold < written['op_j'] or after_t['OP_RELEASE'] - before_t['OP_RELEASE'] != 1:
                 problems.append('independent OPERATE J hold/single release not proved on T clock')

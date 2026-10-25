@@ -13,17 +13,18 @@ sys.path.insert(0, str(BASE_HW))
 import t_config as tc
 
 
-def test_response_wait_timeout_has_exactly_one_units_conversion():
-    values = dict(gap=5_000_000, op_j=2_400_000, response_wait_timeout=500_000_000, budget=240000, enabled=1)
-    assert tc.t_units(values, unit_ns=256, grid_ns=512)['response_wait_timeout'] == 1953127
+def test_response_ready_d_has_exactly_one_units_conversion_and_no_wait_deadline():
+    values = dict(gap=5_000_000, op_j=2_400_000, budget=240000, enabled=1)
+    assert tc.t_units(values, unit_ns=256, grid_ns=512)['gap'] == 19534
+    assert 'response_wait_timeout' not in tc.RESPONSE_READY_KEYS
     op = tc.params_op(values)
     assert dict(op['data']) == values
     assert tc.check_params(values) == []
 
 
-@pytest.mark.parametrize('obsolete', ['da', 'readiness', 'cap', 'pb'])
+@pytest.mark.parametrize('obsolete', ['da', 'readiness', 'cap', 'pb', 'response_wait_timeout'])
 def test_response_ready_rejects_mixed_parameter_contract(obsolete):
-    values = dict(gap=5_000_000, op_j=2_400_000, response_wait_timeout=500_000_000, budget=240000, enabled=1)
+    values = dict(gap=5_000_000, op_j=2_400_000, budget=240000, enabled=1)
     values[obsolete] = 10_000_000
     assert tc.check_params(values)
     with pytest.raises(ValueError):
@@ -48,8 +49,8 @@ def test_response_ready_load_config_and_installer_command(tmp_path):
     import campaign
     path = ARCH / 'integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_c52_sdk9132_sel751_reference.json'
     cfg = json.loads(path.read_text())
-    cfg['timing_contract'] = 'response_ready_ack_d_v1'
-    cfg['timing_params_ns'] = dict(gap=5_000_000, op_j=2_400_000, response_wait_timeout=500_000_000,
+    cfg['timing_contract'] = 'response_ready_ack_d_v2'
+    cfg['timing_params_ns'] = dict(gap=5_000_000, op_j=2_400_000,
                                    budget=240000, enabled=1)
     for build in cfg['builds'].values():
         build['timing_contract'] = cfg['timing_contract']
@@ -61,7 +62,7 @@ def test_response_ready_load_config_and_installer_command(tmp_path):
     name = next(iter(cfg['builds']))
     runner.bound = {name: {}}
     command = runner.installer_cmd(name, 1, '/offline/out', 59410)
-    assert '--t-response-wait-timeout 500000000' in command
+    assert '--t-response-wait-timeout' not in command
     assert '--t-gap 5000000' in command
     assert all(flag not in command for flag in ('--t-da ', '--t-readiness ', '--t-cap ', '--t-pb '))
 
@@ -75,11 +76,11 @@ def load_installer():
 
 def test_installer_selects_compiled_contract_and_rejects_obsolete_explicit_args(tmp_path):
     installer = load_installer()
-    source = '// timing_contract: response_ready_ack_d_v1\n' \
-             'action set_params(bit<32> gap, bit<32> op_j, bit<32> response_wait_timeout, bit<32> budget, bit<8> enabled) {}\n' \
+    source = '// timing_contract: response_ready_ack_d_v2\n' \
+             'action set_params(bit<32> gap, bit<32> op_j, bit<32> budget, bit<8> enabled) {}\n' \
              'md.now = ig_prsr_md.global_tstamp[39:8] & 32w0xfffffffe;'
     (tmp_path / 'response_only.p4pp').write_text(source)
-    args = ['--build-out', str(tmp_path), '--master-port', '59410', '--t-response-wait-timeout', '500000000']
+    args = ['--build-out', str(tmp_path), '--master-port', '59410']
     a = installer.parse(args)
     op = installer.dataplane_params_op(a)
     assert op['values_ns'] == tc.RESPONSE_READY_DEFAULTS
@@ -87,9 +88,8 @@ def test_installer_selects_compiled_contract_and_rejects_obsolete_explicit_args(
     for flag in ('--t-da', '--t-readiness', '--t-cap', '--t-pb'):
         with pytest.raises(ValueError, match='obsolete'):
             installer.dataplane_params_op(installer.parse(args + [flag, '10000000']))
-    (tmp_path / 'response_only.p4pp').write_text('action set_params(bit<32> da) {}')
-    with pytest.raises(ValueError, match='contract'):
-        installer.dataplane_params_op(installer.parse(args))
+    with pytest.raises(SystemExit):
+        installer.parse(args + ['--t-response-wait-timeout', '500000000'])
 
 
 def test_response_ready_configs_preserve_references_smoke_and_identity_loss():
@@ -101,7 +101,7 @@ def test_response_ready_configs_preserve_references_smoke_and_identity_loss():
         template = 'reference' if block == 'smoke' else block
         cfg = mod.relay_config(json.loads((mod.HERE / ('config/rc01_m12p_c29_sdk9132_%s.json' % template)).read_text()))
         mod.response_ready_config(cfg, block, 20 if block != 'smoke' else 5)
-        assert cfg['timing_contract'] == 'response_ready_ack_d_v1'
+        assert cfg['timing_contract'] == 'response_ready_ack_d_v2'
         assert set(cfg['timing_params_ns']) == set(tc.RESPONSE_READY_KEYS)
         assert cfg['evaluation']['host_precision_gated'] is True
         assert cfg['qualification_dimensions']['operate_j'] == 'unproven_by_user_choice'
@@ -120,26 +120,24 @@ def test_response_ready_configs_preserve_references_smoke_and_identity_loss():
                 assert all(e['target'] == 'identity' for entries in cfg['loss']['presets'].values() for e in entries)
 
 
-def test_response_ready_snapshot_expiry_names_are_mandatory_and_fail_qualification():
-    import copy
+def test_response_ready_snapshot_duplicate_names_are_mandatory_and_allow_recovery():
     import checks
     from test_checks import EXP, evidence
     ev = evidence()
     for snapshot in (ev['before'], ev['after']):
-        snapshot['outcomes']['OUT_WAIT_EXPIRED'] = snapshot['outcomes'].pop('OUT_ACK_FALLBACK')
-        snapshot['outcomes']['OUT_EXPIRED_DROP'] = snapshot['outcomes'].pop('OUT_RESP_FALLBACK')
+        snapshot['outcomes']['OUT_REQ_DUP_DROP'] = snapshot['outcomes'].pop('OUT_ACK_FALLBACK')
+        snapshot['outcomes']['OUT_REQ_DUP_FORWARD'] = snapshot['outcomes'].pop('OUT_RESP_FALLBACK')
         snapshot['outcomes']['OUT_REQ_BYPASS'] = 0
+    ev['after']['outcomes']['OUT_REQ_DUP_DROP'] = 2
+    ev['after']['outcomes']['OUT_REQ_DUP_FORWARD'] = 1
     fails, observed = checks.evaluate_switch(EXP, dict(T=1, padding=1), 10, ev,
-                                             timing_contract='response_ready_ack_d_v1')
+                                             timing_contract='response_ready_ack_d_v2')
     assert not fails
-    assert observed['waiting_expired'] == 0
-    ev['after']['outcomes']['OUT_WAIT_EXPIRED'] = 1
-    fails, observed = checks.evaluate_switch(EXP, dict(T=1, padding=1), 10, ev,
-                                             timing_contract='response_ready_ack_d_v1')
-    assert any('OUT_WAIT_EXPIRED' in failure for failure in fails)
-    del ev['after']['outcomes']['OUT_EXPIRED_DROP']
+    assert observed['request_duplicates_dropped'] == 2
+    assert observed['request_duplicates_forwarded'] == 1
+    del ev['after']['outcomes']['OUT_REQ_DUP_FORWARD']
     fails, _ = checks.evaluate_switch(EXP, dict(T=1, padding=1), 10, ev,
-                                     timing_contract='response_ready_ack_d_v1')
+                                     timing_contract='response_ready_ack_d_v2')
     assert fails
 
 
@@ -153,7 +151,7 @@ def test_response_ready_manifest_defaults_exclude_superseded_stress(tmp_path, mo
     expected = ['smoke', 'reference', 'persistence_graceful_950', 'persistence_rst_950',
                 'loss_mixed_950', 'loss_full_950', 'reconnect_950']
     for name in expected:
-        cfg = dict(endpoint_profile='sel751', timing_contract='response_ready_ack_d_v1', evidence_dir=str(tmp_path),
+        cfg = dict(endpoint_profile='sel751', timing_contract='response_ready_ack_d_v2', evidence_dir=str(tmp_path),
                    evaluation=dict(arm_order=['combined'], campaign_block=dict(tool='candidate_campaign', arguments=[])))
         (configs / ('rc01_c53_sel751_d20_%s.json' % name)).write_text(json.dumps(cfg))
     frozen = tmp_path / 'freeze.json'
@@ -185,7 +183,7 @@ def test_physical_verdict_keeps_j_unproven_and_limits_sample_gate_to_reference(t
     import campaign
     import checks
     cfg = json.loads((ARCH / 'integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_c52_sdk9132_sel751_reference.json').read_text())
-    cfg['timing_contract'] = 'response_ready_ack_d_v1'
+    cfg['timing_contract'] = 'response_ready_ack_d_v2'
     cfg['qualification_dimensions'] = dict(operate_j='unproven_by_user_choice')
     cfg['evaluation']['campaign_block']['precision_reference'] = reference
     cfg['timing_params_ns'] = dict(tc.RESPONSE_READY_DEFAULTS)
@@ -228,15 +226,15 @@ def test_response_ready_installed_timing_requires_readable_zero_request_bypass(b
     from test_checks import EXP, evidence
     ev = evidence()
     for snapshot in (ev['before'], ev['after']):
-        snapshot['outcomes']['OUT_WAIT_EXPIRED'] = snapshot['outcomes'].pop('OUT_ACK_FALLBACK')
-        snapshot['outcomes']['OUT_EXPIRED_DROP'] = snapshot['outcomes'].pop('OUT_RESP_FALLBACK')
+        snapshot['outcomes']['OUT_REQ_DUP_DROP'] = snapshot['outcomes'].pop('OUT_ACK_FALLBACK')
+        snapshot['outcomes']['OUT_REQ_DUP_FORWARD'] = snapshot['outcomes'].pop('OUT_RESP_FALLBACK')
         snapshot['outcomes']['OUT_REQ_BYPASS'] = 7
     if bad_value == 'missing':
         del ev[bad_snapshot]['outcomes']['OUT_REQ_BYPASS']
     else:
         ev[bad_snapshot]['outcomes']['OUT_REQ_BYPASS'] = bad_value
     failures, _ = checks.evaluate_switch(EXP, dict(T=1, padding=1), 10, ev,
-                                         timing_contract='response_ready_ack_d_v1')
+                                         timing_contract='response_ready_ack_d_v2')
     assert any('OUT_REQ_BYPASS' in failure for failure in failures)
 
 
@@ -247,11 +245,11 @@ def test_response_ready_request_bypass_gate_preserves_off_and_native_only(timed,
     # An unknown-port-only connection contributes no installed READ/SBO timing events.
     ev = evidence(T=0)
     for snapshot in (ev['before'], ev['after']):
-        snapshot['outcomes']['OUT_WAIT_EXPIRED'] = snapshot['outcomes'].pop('OUT_ACK_FALLBACK')
-        snapshot['outcomes']['OUT_EXPIRED_DROP'] = snapshot['outcomes'].pop('OUT_RESP_FALLBACK')
+        snapshot['outcomes']['OUT_REQ_DUP_DROP'] = snapshot['outcomes'].pop('OUT_ACK_FALLBACK')
+        snapshot['outcomes']['OUT_REQ_DUP_FORWARD'] = snapshot['outcomes'].pop('OUT_RESP_FALLBACK')
     ev['after']['outcomes']['OUT_REQ_BYPASS'] = 1
     failures, _ = checks.evaluate_switch(EXP, dict(T=int(timed), padding=1), installed_reads, ev,
-                                         sbo_count=0 if timed else 1, timing_contract='response_ready_ack_d_v1')
+                                         sbo_count=0 if timed else 1, timing_contract='response_ready_ack_d_v2')
     assert not failures
 
 
@@ -273,7 +271,7 @@ def test_manifest_tagged_reference_defaults_resolve_relative_config_paths(tmp_pa
     configs = root / 'config'
     configs.mkdir(parents=True)
     for name in references:
-        cfg = dict(endpoint_profile='sel751', timing_contract='response_ready_ack_d_v1', evidence_dir=str(tmp_path),
+        cfg = dict(endpoint_profile='sel751', timing_contract='response_ready_ack_d_v2', evidence_dir=str(tmp_path),
                    evaluation=dict(arm_order=['timing_only', 'combined'],
                                    campaign_block=dict(tool='candidate_campaign', arguments=[])))
         (configs / ('rc01_selected_sel751_d10_%s.json' % name)).write_text(json.dumps(cfg))
@@ -289,3 +287,39 @@ def test_manifest_tagged_reference_defaults_resolve_relative_config_paths(tmp_pa
     assert Path(step['argv'][4]).is_absolute()
     assert Path(step['argv'][4]).is_file()
     assert step['argv'][-4:] == ['--arms', 'timing_only,combined', '--fixtures', 'physical_relay']
+
+
+def test_response_ready_profile_binds_four_field_source_and_no_deadline():
+    path = ARCH / 'integration/core/response_only_rearm/hw/sealed_profile.py'
+    spec = importlib.util.spec_from_file_location('ready_v2_sealed_profile', path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    source = ('action set_params(bit<32> gap, bit<32> op_j, bit<32> budget, bit<32> enabled) {}\n'
+              'md.now = ig_prsr_md.global_tstamp[39:8] & 32w0xfffffffe;')
+    profile = dict(timing_contract='response_ready_ack_d_v2',
+                   timing_ns=dict(D_release_budget=5000000, J_operate_hold=2400000))
+    assert mod.validate_timing_contract(profile, source) == 'response_ready_ack_d_v2'
+    assert tc.timing_contract_of_source(source) == 'response_ready_ack_d_v2'
+    profile['timing_ns']['response_wait_timeout'] = 500000000
+    with pytest.raises(ValueError, match='only D and J'):
+        mod.validate_timing_contract(profile, source)
+    profile['timing_ns'].pop('response_wait_timeout')
+    with pytest.raises(ValueError, match='ABI'):
+        mod.validate_timing_contract(profile, source.replace('bit<32> budget',
+                  'bit<32> response_wait_timeout, bit<32> budget'))
+
+
+@pytest.mark.parametrize('name', ['OUT_REQ_DUP_DROP', 'OUT_REQ_DUP_FORWARD'])
+@pytest.mark.parametrize('value', [None, True, -1, 'unreadable'])
+def test_response_ready_duplicate_counters_require_readable_integers(name, value):
+    import checks
+    from test_checks import EXP, evidence
+    ev = evidence()
+    for snapshot in (ev['before'], ev['after']):
+        snapshot['outcomes']['OUT_REQ_DUP_DROP'] = snapshot['outcomes'].pop('OUT_ACK_FALLBACK')
+        snapshot['outcomes']['OUT_REQ_DUP_FORWARD'] = snapshot['outcomes'].pop('OUT_RESP_FALLBACK')
+        snapshot['outcomes']['OUT_REQ_BYPASS'] = 0
+    ev['after']['outcomes'][name] = value
+    fails, _ = checks.evaluate_switch(EXP, dict(T=1, padding=1), 10, ev,
+                                     timing_contract='response_ready_ack_d_v2')
+    assert any(name in failure for failure in fails)

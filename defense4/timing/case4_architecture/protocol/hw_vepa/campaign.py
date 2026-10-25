@@ -121,17 +121,17 @@ def load_config(path):
     if missing:
         raise ValueError('config missing required sections: %s' % ', '.join(missing))
     t = cfg['timing_params_ns']
-    response_ready = cfg.get('timing_contract') == 'response_ready_ack_d_v1'
+    response_ready = cfg.get('timing_contract') == 'response_ready_ack_d_v2'
     if response_ready:
-        allowed = {'gap', 'op_j', 'response_wait_timeout', 'budget', 'enabled'}
+        allowed = {'gap', 'op_j', 'budget', 'enabled'}
         if set(t) != allowed or any(type(t[k]) is not int for k in allowed) or \
                 t['gap'] not in (5000000, 10000000, 15000000, 20000000) or t['op_j'] != 2400000 or \
-                t['response_wait_timeout'] != 500000000 or not 0 < t['budget'] < 1 << 31 or t['enabled'] not in (0, 1):
-            raise ValueError('invalid response_ready_ack_d_v1 timing parameters')
+                not 0 < t['budget'] < 1 << 31 or t['enabled'] not in (0, 1):
+            raise ValueError('invalid response_ready_ack_d_v2 timing parameters')
         if any(b.get('timing_contract') != cfg['timing_contract'] or b.get('piggyback_bound')
                for b in cfg['builds'].values()):
             raise ValueError('response-ready config/build timing contract mismatch')
-    elif 'response_wait_timeout' in t or any(b.get('timing_contract') == 'response_ready_ack_d_v1'
+    elif cfg.get('timing_contract') is not None or 'response_wait_timeout' in t or any(b.get('timing_contract') == 'response_ready_ack_d_v2'
                                            for b in cfg['builds'].values()):
         raise ValueError('response-ready parameters/build require explicit timing_contract')
     if 'pb' in t and not (isinstance(t['pb'], int) and not isinstance(t['pb'], bool) and t['op_j'] < t['pb'] < t['readiness']):
@@ -1522,7 +1522,7 @@ class Campaign:
                 reports[name] = report
                 application_failures += [name + ': ' + error for error in report['failures']]
                 planned = None
-                if self.cfg.get('timing_contract') == 'response_ready_ack_d_v1':
+                if self.cfg.get('timing_contract') == 'response_ready_ack_d_v2':
                     schedule = self.cfg['traffic']['read_schedule']
                     mixed = (trial['reads'] + 1) // 2 if schedule == 'mixed_full' else trial['reads'] if schedule == 'mixed' else 0
                     planned = {'READ mixed': mixed, 'READ integrity': trial['reads'] - mixed, 'SELECT': sbo, 'OPERATE': sbo}
@@ -1530,10 +1530,10 @@ class Campaign:
                                       master_acceptance=master.get('ok') is True and master.get('counts') ==
                                           dict(READ=trial['reads'], SELECT=sbo, OPERATE=sbo),
                                       timing_gated=bool(arm['T'] and not native_connection and
-                                          (self.cfg.get('timing_contract') != 'response_ready_ack_d_v1' or
+                                          (self.cfg.get('timing_contract') != 'response_ready_ack_d_v2' or
                                            self.cfg['evaluation']['campaign_block'].get('precision_reference') is True)),
                                       precision=relay_check.precision(report, self.cfg['timing_params_ns']['gap'],
-                                          split_reads=self.cfg.get('timing_contract') == 'response_ready_ack_d_v1', planned=planned),
+                                          split_reads=self.cfg.get('timing_contract') == 'response_ready_ack_d_v2', planned=planned),
                                       switch_residence='unproven: no relay-side observation',
                                       operate_j='unproven: no relay-side observation')
                 if observed[name]['timing_gated']:
@@ -1565,7 +1565,7 @@ class Campaign:
         if v is None or v.rc:
             failures.append('physical relay Vision workload failed')
         timing_dimension = not arm['T'] or not failures
-        if self.cfg.get('timing_contract') == 'response_ready_ack_d_v1':
+        if self.cfg.get('timing_contract') == 'response_ready_ack_d_v2':
             timing_dimension = not failures if any(c['timing_gated'] for c in observed.values()) else 'not_qualified_recovery_or_smoke'
         trial.update(ok=not failures, failures=failures, observed=dict(connections=observed, switch=switch_observed),
                      endpoint_profile='sel751', dimension_verdicts=dict(application=not application_failures,
@@ -1960,9 +1960,9 @@ class Campaign:
         flag = c.get('padding_installer_flag', '--pad-enable')
         if self.installer_has(flag):
             pad = ' %s %d' % (flag, padding)
-        if c.get('timing_contract') == 'response_ready_ack_d_v1':
-            timing = '--t-gap %d --t-op-j %d --t-response-wait-timeout %d --t-budget %d --t-enabled %d' % (
-                t['gap'], t['op_j'], t['response_wait_timeout'], t['budget'], t['enabled'])
+        if c.get('timing_contract') == 'response_ready_ack_d_v2':
+            timing = '--t-gap %d --t-op-j %d --t-budget %d --t-enabled %d' % (
+                t['gap'], t['op_j'], t['budget'], t['enabled'])
         else:
             timing = '--t-da %d --t-readiness %d --t-cap %d --t-gap %d --t-op-j %d' % (
                 t['da'], t['readiness'], t['cap'], t['gap'], t['op_j'])

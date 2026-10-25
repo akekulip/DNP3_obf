@@ -71,10 +71,14 @@ def classify(frame):
 
 
 def main():
+    profile_module = load('_dup_timing_profile', HERE.parent / 'ctl_timing_01/model_profile.py')
+    ready = profile_module.from_env().get('timing_contract') == 'response_ready_ack_d_v2'
+    view = load('_dup_log_view', HERE.parent / 'ctl_timing_01/model_log_view.py') if ready else None
+    log_path = view.log_path() if ready else None
     report = Report(os.environ['PROG'], physical=False,
                     scope='E61: OPERATE duplicate held in T; READ ACK/response duplicate contract; compiled model',
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-                    params=PARAMS, deadline_tolerance=DEADLINE_TOL)
+                    params=PARAMS, deadline_tolerance=DEADLINE_TOL, timing_contract=profile_module.from_env().get('timing_contract'))
     results = report.record['meta'].setdefault('dup_cases', {})
     rp.report_endpoint(report)
     try:
@@ -218,6 +222,7 @@ def main():
             rel0, drop0 = released(), dup_dropped()
             m.drain(ports)
             send = lambda: m.send(MASTER.dev_port, operate)  # noqa: E731
+            operate_log_offset = view.size(log_path) if ready else None
             t0 = time.monotonic()
             send()
             if after_release:
@@ -278,9 +283,22 @@ def main():
                 # (t = 0) and after the duplicate's send. model_clock_ratio = copy time / op_j (host seconds).
                 op_j_s = OP_J_NS / 1e9
                 rec['model_clock_ratio_host_per_model'] = round(times[0] / op_j_s, 4) if len(copies) == 1 else None
-                held = (len(copies) == 1 and len(dup_sent) == 1 and times[0] >= 0.8 * op_j_s
+                held = (len(copies) == 1 and len(dup_sent) == 1 and (ready or times[0] >= 0.8 * op_j_s)
                         and times[0] > dup_sent[0] and drop1 - drop0 == 1 and rel1 - rel0 == 1)
                 exp_h = '1 copy, >= 0.8*op_j after the original send and after the duplicate send; outcomes5 +1; outcomes16 +1'
+            if ready and t_enabled:
+                records = view.records_since(log_path, operate_log_offset)
+                def op_stamp(action):
+                    record = next((r for r in records if r['pipe'] == 1 and
+                                   any(a.split('.')[-1] == action for a in r['actions'])), None)
+                    return None if record is None or record['t_units'] is None else record['t_units'] & ~1
+                anchor, release = op_stamp('arm_operate_anchor'), op_stamp('release_operate_counted')
+                written = __import__('json').loads((Path(os.environ['OUT']) / 't_params_written.json').read_text())[-1]['written']
+                hold_ok = anchor is not None and release is not None and \
+                    written['op_j'] <= ((release - anchor) & 0xffffffff) < 1 << 31
+                report.add(tag + '_J_original_T_clock', True, hold_ok,
+                           anchor_units=anchor, release_units=release, op_j_units=written['op_j'])
+                held = held and hold_ok
             held = held and all(rec['copies_exact_wire_image']) and not rec['other_frames']
             rec['dup_hold_pass'] = held
             report.add(tag + '_dup_hold', exp_h, 'copies=%d at %s; dup sent at %s; outcomes5_delta=%d; outcomes16_delta=%d'
@@ -298,10 +316,48 @@ def main():
             # finish the transaction and retire the connection so the next case is fresh
             response = helpers.native_response37(1, 4)
             image = encode61.ctl61(response)
-            step(tag + '_OPERATE_response_61', vectors.packet(24, s + 1 + READ_NATIVE + CTL_NATIVE, c + 1 + READ_REQ + 2 * CTL_REQ, reverse=True, payload=response),
-                 vectors.packet(24, (s + 1 + READ_IMAGE) + CTL_IMAGE, c + 1 + READ_REQ + 2 * CTL_REQ, reverse=True, payload=image), master=False)
+            response_frame = vectors.packet(24, s + 1 + READ_NATIVE + CTL_NATIVE,
+                                            c + 1 + READ_REQ + 2 * CTL_REQ, reverse=True, payload=response)
+            expected_response = vectors.packet(24, (s + 1 + READ_IMAGE) + CTL_IMAGE,
+                                               c + 1 + READ_REQ + 2 * CTL_REQ, reverse=True, payload=image)
+            if ready and t_enabled:
+                ack = vectors.packet(16, s + 1 + READ_NATIVE + CTL_NATIVE,
+                                     c + 1 + READ_REQ + 2 * CTL_REQ, reverse=True)
+                expected_ack = rp.preserve_options(ack, vectors.packet(16, (s + 1 + READ_IMAGE) + CTL_IMAGE,
+                                                   c + 1 + READ_REQ + 2 * CTL_REQ, reverse=True))
+                expected_response = rp.preserve_options(response_frame, expected_response)
+                offset = view.size(log_path)
+                m.drain(ports)
+                m.send(RELAY.dev_port, ack)
+                m.send(RELAY.dev_port, response_frame)
+                captured = m.capture(ports, timeout=3, quiet=.3)
+                frames = [frame for values in captured.values() for frame in values]
+                report.add(tag + '_OPERATE_ACK_and_complete_response_once', 'ACK then exact response',
+                           len(frames), ok=len(frames) == 2 and
+                           same_frame(frames[0], expected_ack, ack) and
+                           same_frame(frames[1], expected_response, response_frame))
+                timing_proof(tag, offset)
+            else:
+                step(tag + '_OPERATE_response_61', response_frame, expected_response, master=False)
             step(tag + '_qualified_RST', vectors.packet(20, c + 1 + READ_REQ + 2 * CTL_REQ, (s + 1 + READ_IMAGE) + 2 * CTL_IMAGE), vectors.packet(20, c + 1 + READ_REQ + 2 * CTL_REQ, s + 1 + READ_NATIVE + 2 * CTL_NATIVE))
             set_t(enabled=0)
+
+        def timing_proof(tag, offset):
+            """Use actual T passes; host time cannot establish the revised ACK+D contract."""
+            records = view.records_since(log_path, offset)
+            def stamp(action):
+                record = next((r for r in records if r['pipe'] == 1 and
+                               any(a.split('.')[-1] == action for a in r['actions'])), None)
+                return None if record is None or record['t_units'] is None else record['t_units'] & ~1
+            arrival, ack_time, response_time = (stamp(action) for action in
+                ('admit_response', 'release_ack_commit', 'release_response_counted'))
+            units = __import__('json').loads((Path(os.environ['OUT']) / 't_params_written.json').read_text())[-1]['written']
+            valid = all(value is not None for value in (arrival, ack_time, response_time))
+            valid = valid and ((ack_time - arrival) & 0xffffffff) < 1 << 31 and \
+                units['gap'] <= ((response_time - ack_time) & 0xffffffff) < 1 << 31
+            report.add(tag + '_T_clock_response_ready_ACK_then_D', True, valid,
+                       response_arrival_units=arrival, ack_release_units=ack_time,
+                       response_release_units=response_time, gap_units=units['gap'])
 
         def snapshot():
             registers = {'N': ('owner', 'client', 'server', 'epoch'),
@@ -309,6 +365,8 @@ def main():
                          'T': ('cur_epoch_reg', 'gen_alloc_reg', 'op_gen_alloc_reg', 't0_reg', 'op_t0_reg',
                                'ack_done_reg', 'resp_done_reg', 'op_done_reg') + child_regs +
                               ('ack_commit_at_reg', 'ack_commit_gen_reg')}
+            if ready:
+                registers['T'] = tuple(name for name in registers['T'] if name != 't0_reg')
             prefix = {'N': 'p0.n_Ingress.', 'E': 'p0.r_Egress.', 'T': 'p1.t_Ingress.'}
             return {role: {name: m.register_read(prefix[role] + name, 0, pipe=1 if role == 'T' else 0)
                            for name in names} for role, names in registers.items()}
@@ -374,6 +432,7 @@ def main():
             expected = vectors.packet(24, s + 1, c + 1 + READ_REQ, reverse=True,
                                       payload=encode61.read61(rs.response_frame()))
             before = snapshot()
+            log_offset = view.size(log_path) if ready else None
             counts = {i: outcome(i) for i in (1, 2, 3, 4, 5)}
             m.drain(ports)
             t0 = time.monotonic()
@@ -410,12 +469,14 @@ def main():
             ack_send = next((e['t'] for e in log if e.get('event') == 'server_ACK_after_request'), None)
             rsp_send = next((e['t'] for e in log if e.get('event') == 'server_response_after_request'), None)
             report.add(tag + '_ACK_held_then_released_once', True,
-                       len(acks) == 1 and ack_send is not None and acks[0]['t'] > ack_send and acks[0]['t'] >= .65 and
+                       len(acks) == 1 and ack_send is not None and acks[0]['t'] > ack_send and (ready or acks[0]['t'] >= .65) and
                        same_frame(bytes.fromhex(acks[0]['frame']), ack, ack))
             report.add(tag + '_response_held_after_ACK_once', True,
                        len(responses) == 1 and len(acks) == 1 and rsp_send is not None and
-                       responses[0]['t'] > rsp_send and responses[0]['t'] - acks[0]['t'] >= .18 and
+                       responses[0]['t'] > rsp_send and (ready or responses[0]['t'] - acks[0]['t'] >= .18) and
                        same_frame(bytes.fromhex(responses[0]['frame']), expected, response))
+            if ready:
+                timing_proof(tag, log_offset)
             report.add(tag + '_no_OPERATE_allocation', before['T']['op_gen_alloc_reg'],
                        after_release['T']['op_gen_alloc_reg'])
             old_gen = scalar(before['T']['gen_alloc_reg'])

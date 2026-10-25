@@ -1,16 +1,10 @@
-## Active execution — 2026-10-25 response-ready timing
+## Active override — 2026-10-25, response-ready timing v2
 
-Philip approved root plan.md. Current successor c62, source
-569f6461d7f587e225513623dc953c26b568892300370d074de6b2f2ed341b27, compiles SDK9.13.2 withinN/E/T0..10
-andP1egress0..3. All12 T stateful objects have one physical bank. Source191tests pass withactualcontext.
-Timing contract response_ready_ack_d_v1: realACK waitsforwholematchingresponse; releaseACK thenresponse+D,
-D5/10/15/20ms; J2.4mskept;500msWAITINGexpiry drops/fails, neverunshapedrelease. Paddingunchanged.
-
-**NOT YET QUALIFIED:** strictcompiledmodelc62_01passed419/421 but failedto constructthe near500msboundary
-(the response was injectedat490msbeforetheNpathandarrivedatTafterexpiry). Earlier c60preACKreplaybank
-bug isfixedc62andthecompiledreplaynowpasses. Late-response expiry/RSTACK/fresh-handshake recoverypassed.
-All17 finalmodeldriversstillrequired; no successorhardwarecampaignhasrun. FINrecoveryremainsOPEN;
-physicalOPERATEJexplicitlyUNPROVENbyPhilip'schoice. SeeWORKING_NOTES/rootplanforliveexecution.
+Follow root plan.md and WORKING_NOTES.md. Philip removed the exchange deadline. ACK waits for matching
+whole response, ACK releases once, response follows after D=5/10/15/20 ms. J remains 2.4 ms. Drop validated
+request retries only while their original request or response is retained; otherwise allow TCP recovery
+without new admission/growth/J. FIN/RST/epoch cleanup; no timing fallback. Candidate c67 compiles within all resource bounds; its runtime gate is in progress.
+c62 v1 strict model passed 694/694; its 500 ms deadline is superseded. No successor hardware run yet.
 
 # Current status — c52 physical SEL-751 set (2026-10-24 night)
 

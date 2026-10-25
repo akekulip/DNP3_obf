@@ -91,14 +91,14 @@ def main():
     inputs = json.loads(inputs_path.read_text())
     from model_profile import resolve
     profile = resolve(inputs, build / 'response_only.p4', args.milestone)
-    if args.driver == 'response_ready' and profile.get('timing_contract') != 'response_ready_ack_d_v1':
-        raise SystemExit('response_ready requires a source-bound response_ready_ack_d_v1 profile')
-    if args.pb is not None and profile.get('timing_contract') == 'response_ready_ack_d_v1':
+    if args.driver == 'response_ready' and profile.get('timing_contract') != 'response_ready_ack_d_v2':
+        raise SystemExit('response_ready requires a source-bound response_ready_ack_d_v2 profile')
+    if args.pb is not None and profile.get('timing_contract') == 'response_ready_ack_d_v2':
         raise SystemExit('--pb is incompatible with response-ready timing')
     sha = hashlib.sha256((build / 'response_only.p4').read_bytes()).hexdigest()
     manifest = json.loads((build / 'compile_local/manifest.json').read_text())
     assert sha == inputs['source_sha256'] == manifest['source_sha256'] and manifest['exit_code'] == 0
-    if profile.get('timing_contract') == 'response_ready_ack_d_v1':
+    if profile.get('timing_contract') == 'response_ready_ack_d_v2':
         from model_profile import compiled_t_state_of_build
         audit = compiled_t_state_of_build(build)
         if audit['problems']:
@@ -149,10 +149,15 @@ def main():
             'closure_target': str(launched),
             'dependency_closure_sha256': (hashlib.sha256((out / 'dependency_closure.json').read_bytes()).hexdigest()
                                           if (out / 'dependency_closure.json').is_file() else None),
+            'timing_contract': profile.get('timing_contract'),
             'reset_restart_required': profile['reset_restart_required'],
             'supported_profile_sha256': hashlib.sha256(inputs_path.read_bytes()).hexdigest(),
             'exit_code': exit_code}, indent=2) + '\n')
-        if args.driver == 'contention':
+        if args.driver == 'contention' and profile.get('timing_contract') == 'response_ready_ack_d_v2':
+            (out / 'committed_precondition.json').write_text(json.dumps(dict(applicable=False,
+                timing_contract=profile['timing_contract'], reason='v2 has no request-age/readiness deadline or t0 register; '
+                'committed points require actual held-ACK/whole-response/ACK-commit/full-D model-clock proofs in results'), indent=1) + '\n')
+        if args.driver == 'contention' and profile.get('timing_contract') != 'response_ready_ack_d_v2':
             # classifies each committed-path point by its precondition (response at T before t0 + readiness); it
             # changes no verdict (committed_precondition_check.py)
             check = subprocess.run([sys.executable, str(HERE / 'committed_precondition_check.py'), str(out)],

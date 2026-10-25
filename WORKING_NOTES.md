@@ -1,38 +1,32 @@
 # Working notes
 
-## CURRENT — 2026-10-25 Codex takeover: response-ready ACK then D
+## CURRENT — 2026-10-25: response-ready timing v2
 
-Philip approved root `plan.md` and requested implementation. This supersedes the r150 proposal.
+Philip's latest instruction removes the 500 ms exchange deadline. The active contract is:
 
-- **Contract:** hold genuine relay ACK until matching whole response; release ACK once; response at ACK+D.
-  D=5/10/15/20 ms for mixed/integrity READ, SELECT and OPERATE. J remains2.4ms.
-- **Failure cleanup:** WAITING expires500ms after request admission; discard held packets/blockers and fail,
-  never release early/unshaped. Commit just before expiry retains its complete D interval.
-- **Preserved:** c52 and evidence, READ91→141/134→158, SBO49→60, FIN/RST repairs, identity loss targeting.
-  No software outstation, synthetic ACK, piggyback feature, TCP reassembly, newbuffer, tap/mirror/recorder.
-- **Candidate:** c62 source569f6461 compiles/pinsSDK9.13.2, N/E/T0..10/P1E0..3. All12Tstatefulobjects
-  haveonephysicalbank. Source191tests pass withactualcontext. No successorhardwarehasrun.
-- **Critical compiled replay repair:** c60physicallyduplicatedresp_done_reg acrossstages7/8; pre-master-ACK
-  replaydropped. c62unifiesallresponseaccessesstage7; actualcompiledreplaynowpasses. c60isREJECTED.
-- **Current model:** c62strictattempt01passed419/421; boundaryconstructioninjectedresponseat490msbeforeN,
-  so itarrivedTafter500andcorrectlyexpired. Fixingtestconstructionwithouttimerrelaxation. Thelate-response
-  expiry/RSTACK/fresh-handshake casealready passed; all4D/shapes/orders andpreACKreplaypassed.
-- **Gate:** c60sixlegacydriverspassedbutarenotborrowedforc62. Rearmlegacyfixture lackedseparateACKand
-  delayedresponsepast500; newprofilefixtureadaptationpreservescoverage. c62requiresall17freshdrivers.
-- **Review:** sourceandharnessreviewapproved; modelcoveragehas24invalidchild/fullregisterprobes,sixgeneration
-  isolationcases,andautomaticstage/singlebankpreconditions. No hardwaretouched.
-- **Implementation lanes:** generator/P4+source regressions; model/gate coverage; installer/hardware harness.
-  Root owns integration, compilation/resource review, gated physical runs, reproduction and close-out.
-- **Hardware plan:** combinedD5 smoke; baselineoff/sizeonce plus timing/combined at4D =1930 planned reference
-  exchanges; D20 combined loss/graceful/RST/3connection recovery. Everyblock frozen/restored independently.
-- **Acceptance:** exactpadding/appdelivery and completeCLRT p99absoluteerror≤100us per workload, planned=eligible,
-  n≥20. FIN remainsopen until whole recoveryblocks pass. PhysicalJ explicitlyUNPROVEN by Philip's choice.
-- **Takeover preservation:** pre-existing r150 diff + HEAD recorded under
-  read_complete_01/evidence/timing_response_ready_20261025/. Existing two deletions untouched.
-- **Read-only preflight:** ownership inactive/unsafe_restoration=false; switchufispace on production
-  case4_response_path, Vision reachable at10.10.54.19 with dataNIC/address192.168.10.1.
-- **Remaining:** implement/RED→GREEN,compileSDK9.13.2+resourcecompare,16original+newrequiredmodeldriver,
-  independentreview,freeze/dry-run,physicalqualification,reproduce,docs,commit/push.
+- Hold the real relay ACK until the matching whole response arrives. Release ACK once, then response after
+  D = 5, 10, 15 or 20 ms. OPERATE request J remains 2.4 ms. READ and SBO padding remain unchanged.
+- Drop a validated duplicate request only while its original OPERATE request or response is retained.
+  Otherwise forward the retry without another admission, growth commit or J hold. Do not restart D.
+- Held packets occupy existing queues; registers hold ownership/completion. FIN/RST/epoch clean up retained
+  originals. Finite blocker circulation remains a resource guard, with no early release fallback.
+- Active profile is `response_ready_ack_d_v2`, installer keys `gap, op_j, budget, enabled`.
+- Candidate c67 compiles after identity/disabled-retry repairs; N/E0..10, T0..9, P1E0..3, all T banks coherent. c62 v1 passed its strict compiled model, 694/694, and four legacy
+  drivers; those results remain historical and do not qualify v2. c60 was rejected for a physically split
+  response-completion bank. c62 repaired that defect; v2 must preserve the single-bank layout.
+- c67 compiles: a one-field PHV placement annotation removed the false N dependency. Independent
+  source/layout review approved. Smoke30/30 and packets763/763 passed. Strict v2_01 passed718/720 before an obsolete disabled-blocker
+  counter expectation; the exact compiled stop action and unchanged state were independently verified.
+  The model-only canary fix keeps all24 probes and is running as strict_02. Full CTL offline suite1002 passed;
+  the subsequent canary changes passed132 focused tests. API 912 tests and
+  legacy installer 89 pass; independent API review approved. Dup/contention offline checks: 215 pass.
+- The pre-v2 checkpoint is 4004c7b62. No successor physical campaign has run. Existing c52 evidence and two
+  unrelated deleted files remain untouched. No software outstations.
+- Remaining: v2 source/harness/model integration; SDK 9.13.2 compile and resource checks; 17-driver model
+  gate; guarded physical smoke, 1,930 reference exchanges at four D values and D20 loss/FIN/RST/reconnect;
+  reproduction, final evidence/status documents, commit and push. Root plan.md records acceptance criteria.
+- The 100 µs complete-CLRT p99 criterion stays unchanged. Physical J remains explicitly unproven by choice.
+  FIN recovery stays open until all complete recovery blocks pass.
 
 ## Previous Claude checkpoint (retained history)
 

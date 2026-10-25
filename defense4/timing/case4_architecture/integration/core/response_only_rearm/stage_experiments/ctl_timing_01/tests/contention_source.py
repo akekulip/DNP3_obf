@@ -88,12 +88,11 @@ class LapPipeline(sp.SourcePipeline):
         for p in self._patches:
             p.start()
         try:
-            response_ready = 'response_wait_timeout' in role(text, 'T')
+            response_ready = t_config.timing_contract_of_source(role(text, 'T')) == 'response_ready_ack_d_v2'
             if response_ready:
-                # QueueSim's scheduler stays unchanged; install the generated action's actual five fields.
+                # QueueSim's scheduler stays unchanged; install the generated action's actual four fields.
                 def set_ready_params(queue, **kw):
-                    fields = dict(gap=5_000_000, op_j=2_400_000, response_wait_timeout=500_000_000,
-                                  budget=240_000, enabled=1)
+                    fields = dict(gap=5_000_000, op_j=2_400_000, budget=240_000, enabled=1)
                     fields.update({k: v for k, v in kw.items() if k in fields})
                     clock = t_config.t_time_of_source(role(text, 'T'))
                     fields = t_config.t_units(fields, **clock)

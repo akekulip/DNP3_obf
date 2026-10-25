@@ -320,7 +320,7 @@ def transform(src):
              'ack_go_check.apply(); ack_status_access.apply(); op_go_check.apply();')
     t = once(t, '{ op_go_check.apply(); try_op_done(); }', '{ try_op_done(); }')
     t = direct_state_predicates(t)
-    return once(src, old, t)
+    return request_retry_n(once(src, old, response_ready_v2(t)))
 
 
 def direct_state_predicates(t):
@@ -365,3 +365,253 @@ def direct_state_predicates(t):
         assert changed == 1 and count, name
         t = t[:start] + body + t[end:]
     return t
+
+
+def replace_block(text, marker, replacement):
+    start = text.index(marker)
+    at = text.index('{', start)
+    depth = 0
+    for end in range(at, len(text)):
+        if text[end] == '{': depth += 1
+        elif text[end] == '}':
+            depth -= 1
+            if depth == 0:
+                stop=end+1
+                if not replacement and marker.startswith('RegisterAction') and text[stop:stop+1]==';':stop+=1
+                return text[:start] + replacement + text[stop:]
+    raise ValueError(marker)
+
+
+def table_text(name, keys, actions, rows, default='NoAction()'):
+    return ('table '+name+' { key = { '+' '.join(k+' : ternary;' for k in keys)+' }\n'
+            '        actions = { '+'; '.join(actions)+'; }\n        const entries = {\n            '+
+            '\n            '.join('('+', '.join(vals)+') : '+action+';' for vals,action in rows)+
+            '\n        } default_action = '+default+'; size = '+str(len(rows))+';\n    }')
+
+
+def response_ready_v2(t):
+    """Lower the selected timing role to unbounded retention with duplicate-request routing."""
+    t=t.replace('response_ready_ack_d_v1','response_ready_ack_d_v2')
+    t=t.replace('t_OUT_WAIT_EXPIRED','t_OUT_REQ_DUP_DROP').replace('t_OUT_EXPIRED_DROP','t_OUT_REQ_DUP_FORWARD')
+    t=once(t,'const bit<8> t_KIND_OPERATE_DUP = 15;','const bit<8> t_KIND_OPERATE_DUP = 15;\nconst bit<8> t_KIND_REQUEST_DUP = 16;')
+    t=once(t,'(t_KIND_OPERATE_DUP, 0) : opaque_ethernet;','(t_KIND_OPERATE_DUP, 0) : opaque_ethernet;\n            (t_KIND_REQUEST_DUP, 0) : opaque_ethernet;')
+    t=t.replace('bit<32> response_wait_timeout; ','')
+    t=t.replace('bit<32> now_m_wait; bit<32> wait_delta;','')
+    t=t.replace('bit<32> committed_word; bit<32> target_word; bit<32> state_old;','bit<32> ack_diff; bit<32> resp_diff;')
+    t=t.replace('bit<32> t0_v;','')
+    t=replace_block(t,'action set_params(','''action set_params(bit<32> gap, bit<32> op_j, bit<32> budget, bit<32> enabled) {
+        md.gap=gap; md.op_j=op_j; md.budget_cap=budget; md.enabled=enabled;
+    }''')
+    t=replace_block(t,'table params {','''table params { actions={set_params;} default_action=set_params(19534,9377,60000,1); size=1; }''')
+    # The former request anchor only existed for the removed exchange timeout.
+    t=once(t,'Register<bit<32>, bit<1>>(1, 0) t0_reg;','')
+    for name in ('t0_read','t0_admit'):
+        marker='RegisterAction<bit<32>, bit<1>, bit<32>>(t0_reg) '+name+' = '
+        t=replace_block(t,marker,'')
+    for name in ('read_t0','admit_t0'):
+        t=replace_block(t,'action '+name+'()', '')
+    t=replace_block(t,'table t0_access {','')
+    t=t.replace('t0_access.apply();','').replace('compute_wait_delta(); state_words();','')
+    t=replace_block(t,'action compute_wait_delta()', '')
+    t=replace_block(t,'action held_offsets()', 'action held_offsets() { md.now_m_gap=md.now-md.gap; }')
+    a=t.index('Register<bit<32>, bit<1>>(1, 0) ack_done_reg;');b=t.index('    // Generation-scoped a_commit',a)
+    t=t[:a]+'''Register<bit<32>, bit<1>>(1,0) ack_done_reg;
+    RegisterAction<bit<32>,bit<1>,bit<32>>(ack_done_reg) ack_done_read={
+        void apply(inout bit<32> v,out bit<32> r){r=v^md.cur_gen;}
+    };
+    RegisterAction<bit<32>,bit<1>,bit<32>>(ack_done_reg) ack_done_try={
+        void apply(inout bit<32> v,out bit<32> r){r=v^md.cur_gen;if(md.ack_go==1){v=md.cur_gen;}}
+    };
+    action read_ack_completion(){md.ack_diff=ack_done_read.execute(0);}
+    action try_ack_completion(){md.ack_diff=ack_done_try.execute(0);}
+    table ack_completion_access {
+        key={ig_intr_md.ingress_port:ternary;hdr.ladder.role:ternary;}
+        actions={read_ack_completion;try_ack_completion;}
+        const entries={(t_HELD_RETURN,t_ROLE_ACK_HELD):try_ack_completion();}
+        default_action=read_ack_completion();size=1;
+    }
+'''+t[b:]
+    t=t.replace('ack_status_access.apply();','ack_completion_access.apply();')
+    t=replace_block(t,'action set_ack_go(', 'action set_ack_go(bit<8> go){md.ack_go=go;}')
+    t=replace_block(t,'table ack_go_check {',table_text('ack_go_check',
+        ['md.e_bad','ig_intr_md.ingress_port','hdr.ladder.role','md.lgen_diff','md.seen0_diff'],['set_ack_go'],
+        [(['0','t_HELD_RETURN','t_ROLE_ACK_HELD','0','0'],'set_ack_go(1)')],'set_ack_go(0)'))
+    for name,writer,reader in (('commit_at_access','mark_ack_commit_at','read_gap_delta'),('commit_generation_access','mark_ack_commit_gen','read_commit_gen')):
+        rows=[(['t_HELD_RETURN','t_ROLE_ACK_HELD','0','_'],'NoAction()'),
+              (['t_HELD_RETURN','t_ROLE_ACK_HELD','_','1'],writer+'()'),
+              (['t_HELD_RETURN','t_ROLE_RESP_HELD','_','_'],reader+'()'),
+              (['t_HELD_RETURN','t_ROLE_RESP_BLK','_','_'],reader+'()')]
+        t=replace_block(t,'table '+name+' {',table_text(name,['ig_intr_md.ingress_port','hdr.ladder.role','md.ack_diff','md.ack_go'],[writer,reader,'NoAction'],rows))
+    for name in ('response_done_wait','response_done_blocker_ready','response_done_commit'):
+        a=t.index('action '+name+'()');b=t.index('}',a)+1
+        t=t[:a]+t[a:b].replace('md.done_diff','md.resp_diff')+t[b:]
+    rows=[]
+    for kind in ('t_KIND_RESPONSE','t_KIND_REQUEST_DUP','t_KIND_OPERATE_DUP'):
+        rows.append((['t_T_IN',kind,'0','_','_','_','_'],'response_done_wait()'))
+    for role_,action in (('t_ROLE_RESP_HELD','response_done_commit()'),('t_ROLE_RESP_BLK','response_done_blocker_ready()')):
+        rows.append((['t_HELD_RETURN','_','0','0','32w0 &&& 32w0x80000000','0',role_],action))
+        rows.append((['t_HELD_RETURN','_','_','_','_','_',role_],'response_done_wait()'))
+    t=replace_block(t,'table response_completion_access {',table_text('response_completion_access',
+        ['ig_intr_md.ingress_port','md.event_kind','md.e_bad','md.lgen_diff','md.gap_delta','md.commit_diff','hdr.ladder.role'],
+        ['response_done_wait','response_done_blocker_ready','response_done_commit','NoAction'],rows))
+    # Read the presence marker for request retries; only genuine responses write it.
+    marker='            (t_HELD_RETURN, _, _, _, _) : read_seen0();'
+    t=once(t,marker,marker+'\n            (t_T_IN,t_KIND_REQUEST_DUP,_,0,_):read_seen0();\n            (t_T_IN,t_KIND_OPERATE_DUP,_,0,_):read_seen0();')
+    start=t.index('table child_seen0_access {');end=t.index('\n    }',start)+6
+    body=t[start:end];body=once(body,'size = 3;','size = 5;');t=t[:start]+body+t[end:]
+    t=replace_block(t,'action drop_expired()', 'action drop_request_duplicate(){ig_dprsr_md.drop_ctl=1;count(t_OUT_REQ_DUP_DROP);}')
+    t=once(t,'action passthrough_operate_dup() { hdr.tev.kind = t_KIND_OPERATE; ig_tm_md.ucast_egress_port = t_RELAY_PORT; }',
+        'action passthrough_operate_dup(){hdr.tev.kind=t_KIND_OPERATE;ig_tm_md.ucast_egress_port=t_RELAY_PORT;count(t_OUT_REQ_DUP_FORWARD);}\n'
+        '    action passthrough_request_dup(){hdr.tev.kind=t_KIND_REQUEST;ig_tm_md.ucast_egress_port=t_RELAY_PORT;count(t_OUT_REQ_DUP_FORWARD);}')
+    keys=['md.event_kind','md.enabled','md.e_bad','md.ack_diff','md.resp_diff','md.done_diff','md.dup_diff','md.seen0_diff','hdr.tev.stage','md.cur_gen','md.op_gen']
+    def row(kind,action,**kw):
+        vals=[kind]+['_']*10
+        pos={'en':1,'bad':2,'ack':3,'rsp':4,'op':5,'dup':6,'seen':7,'stage':8,'gen':9,'opgen':10}
+        for k,v in kw.items():vals[pos[k]]=v
+        return vals,action
+    rows=[row('t_KIND_OPEN','passthrough_tev_relay()',bad='0'),
+          row('t_KIND_RESET','passthrough_tev_relay()',bad='32w2',stage='1'),row('t_KIND_RESET','passthrough_tev_forward()',bad='32w2',stage='2'),
+          row('t_KIND_RESET','passthrough_tev_relay()',bad='0',stage='1'),row('t_KIND_RESET','passthrough_tev_forward()',bad='0',stage='2'),row('t_KIND_RESET','drop_tin()',bad='0'),
+          row('t_KIND_REQUEST','drop_exhausted()',bad='0',gen='32w0xffff'),row('t_KIND_OPERATE','drop_exhausted()',bad='0',gen='32w0xffff'),row('t_KIND_OPERATE','drop_exhausted()',bad='0',opgen='32w0xffff')]
+    rows += [row('t_KIND_REQUEST_DUP','passthrough_request_dup()',bad='0',en='0'),row('t_KIND_OPERATE_DUP','passthrough_operate_dup()',bad='0',en='0')]
+    rows += [row('t_KIND_REQUEST_DUP','passthrough_request_dup()',bad='0',rsp='0'),row('t_KIND_REQUEST_DUP','drop_request_duplicate()',bad='0',seen='0'),row('t_KIND_REQUEST_DUP','passthrough_request_dup()',bad='0'),
+             row('t_KIND_OPERATE_DUP','passthrough_operate_dup()',bad='0',rsp='0',op='0'),row('t_KIND_OPERATE_DUP','drop_operate_dup()',bad='0',rsp='0'),row('t_KIND_OPERATE_DUP','drop_request_duplicate()',bad='0',seen='0'),row('t_KIND_OPERATE_DUP','passthrough_operate_dup()',bad='0',op='0'),row('t_KIND_OPERATE_DUP','drop_operate_dup()',bad='0')]
+    rows += [row('t_KIND_REQUEST','passthrough_tev_relay()',bad='0',en='0'),row('t_KIND_OPERATE','passthrough_tev_relay()',bad='0',en='0'),row('_','passthrough_tev_forward()',bad='0',en='0'),
+             row('t_KIND_REQUEST','admit_request()',bad='0'),row('t_KIND_ACK','drop_tin()',bad='0',ack='0'),row('t_KIND_ACK','hold_ack()',bad='0'),
+             row('t_KIND_RESPONSE','passthrough_tev_forward()',bad='0',rsp='0'),row('t_KIND_RESPONSE','drop_duplicate_response()',bad='0',dup='0'),row('t_KIND_RESPONSE','admit_response()',bad='0'),row('t_KIND_OPERATE','hold_operate()',bad='0')]
+    acts=['passthrough_tev_relay','passthrough_tev_forward','drop_tin','admit_request','hold_ack','drop_duplicate_response','admit_response','hold_operate','drop_old_epoch','drop_exhausted','passthrough_request_dup','passthrough_operate_dup','drop_request_duplicate','drop_operate_dup']
+    t=replace_block(t,'table tin_verdict {',table_text('tin_verdict',keys,acts,rows,'drop_old_epoch()'))
+    # All genuine held originals remain gated until release or lifetime cleanup.
+    keys=['md.e_bad','hdr.ladder.role','md.lgen_diff','md.ack_diff','md.ack_go','md.resp_go','md.resp_diff','hdr.ladder.budget','md.seen0_diff']
+    rows=[]
+    def held(role_,action,**kw):
+        vals=['0',role_]+['_']*7;pos={'gen':2,'ack':3,'go':4,'rgo':5,'rsp':6,'budget':7,'seen':8}
+        for k,v in kw.items():vals[pos[k]]=v
+        return vals,action
+    rows += [held('t_ROLE_ACK_BLK','stop_blocking()',gen='0',ack='0'),held('t_ROLE_ACK_BLK','stop_blocking()',gen='0',seen='0'),held('t_ROLE_ACK_BLK','stop_blocking_tmo()',gen='0',budget='0'),held('t_ROLE_ACK_BLK','keep_blocking(t_HELD_RETURN,7)',gen='0'),held('t_ROLE_ACK_BLK','stop_blocking_stale()')]
+    rows += [held('t_ROLE_RESP_BLK','stop_blocking()',gen='0',rgo='1'),held('t_ROLE_RESP_BLK','stop_blocking()',gen='0',rsp='0'),held('t_ROLE_RESP_BLK','stop_blocking_tmo()',gen='0',budget='0'),held('t_ROLE_RESP_BLK','keep_blocking(t_HELD_RETURN,5)',gen='0'),held('t_ROLE_RESP_BLK','stop_blocking_stale()')]
+    rows += [held('t_ROLE_ACK_HELD','drop_tin()',gen='0',ack='0'),held('t_ROLE_ACK_HELD','release_ack_commit()',gen='0',go='1'),held('t_ROLE_ACK_HELD','rewait_ack()',gen='0'),held('t_ROLE_ACK_HELD','flush_ack_stale()')]
+    rows += [held('t_ROLE_RESP_HELD','drop_duplicate_response()',gen='0',rsp='0'),held('t_ROLE_RESP_HELD','release_response_counted()',gen='0',rgo='1'),held('t_ROLE_RESP_HELD','rewait_response()',gen='0'),held('t_ROLE_RESP_HELD','flush_response_stale()')]
+    acts=['stop_blocking','stop_blocking_tmo','stop_blocking_stale','keep_blocking','drop_tin','release_ack_commit','rewait_ack','flush_ack_stale','drop_duplicate_response','release_response_counted','rewait_response','flush_response_stale','drop_old_epoch']
+    t=replace_block(t,'table held_verdict {',table_text('held_verdict',keys,acts,rows,'drop_old_epoch()'))
+    t=replace_block(t,'table op_go_check {',table_text('op_go_check',['ig_intr_md.ingress_port','hdr.ladder.role','md.e_bad','md.op_lgen_diff','md.op_delta'],['set_op_go'],
+        [(['t_HB_RETURN','t_ROLE_OP_HELD','0','0','32w0 &&& 32w0x80000000'],'set_op_go(1)')],'set_op_go(0)'))
+    t=replace_block(t,'table hb_verdict {',table_text('hb_verdict',['md.e_bad','hdr.ladder.role','md.op_lgen_diff','md.done_diff','md.op_go','md.op_delta','hdr.ladder.budget'],
+        ['stop_blocking','stop_blocking_stale','stop_blocking_tmo','keep_blocking','release_operate_counted','rewait_operate','flush_operate_stale','drop_old_epoch'],[
+        (['0','t_ROLE_OP_BLK','0','0','_','_','_'],'stop_blocking()'),(['0','t_ROLE_OP_BLK','0','_','_','32w0 &&& 32w0x80000000','_'],'stop_blocking()'),(['0','t_ROLE_OP_BLK','0','_','_','_','0'],'stop_blocking_tmo()'),(['0','t_ROLE_OP_BLK','0','_','_','_','_'],'keep_blocking(t_HB_RETURN,3)'),(['0','t_ROLE_OP_BLK','_','_','_','_','_'],'stop_blocking_stale()'),
+        (['0','t_ROLE_OP_HELD','0','0','_','_','_'],'rewait_operate()'),(['0','t_ROLE_OP_HELD','0','_','1','_','_'],'release_operate_counted()'),(['0','t_ROLE_OP_HELD','0','_','_','_','_'],'rewait_operate()'),(['0','t_ROLE_OP_HELD','_','_','_','_','_'],'flush_operate_stale()')],'drop_old_epoch()'))
+    # Unify all OP completion reads/commits too: one physical bank for both ports.
+    t=once(t,'            if (md.event_kind == t_KIND_OPERATE_DUP && md.e_bad == 0 && md.enabled != 0) { read_op_done(); }','')
+    t=once(t,'            if (hdr.ladder.role == t_ROLE_OP_HELD) { try_op_done(); }\n            else if (hdr.ladder.role == t_ROLE_OP_BLK) { read_op_done(); }','')
+    op=table_text('operate_completion_access',['ig_intr_md.ingress_port','md.event_kind','hdr.ladder.role','md.e_bad'],['read_op_done','try_op_done','NoAction'],[
+        (['t_T_IN','t_KIND_OPERATE_DUP','_','0'],'read_op_done()'),(['t_HB_RETURN','_','t_ROLE_OP_HELD','0'],'try_op_done()'),(['t_HB_RETURN','_','t_ROLE_OP_BLK','0'],'read_op_done()')])
+    marker='    // ---- verdict tables'
+    at=t.index(marker);t=t[:at]+op+'\n'+t[at:]
+    t=once(t,'ack_completion_access.apply(); op_go_check.apply();','ack_completion_access.apply(); op_go_check.apply(); operate_completion_access.apply();')
+    rows=[([str(i)],'bump('+str(i)+')') for i in list(range(17))+[23,24]]
+    t=replace_block(t,'table outcome_count {',table_text('outcome_count',['md.outcome_code'],['bump','NoAction'],rows))
+    # No unused successful off flush path survives in the emitted program.
+    for name,rewait in (('flush_ack_off','rewait_ack'),('flush_response_off','rewait_response'),('flush_operate_off','rewait_operate')):
+        t=replace_block(t,'action '+name+'()', 'action '+name+'(){'+rewait+'();}')
+    return t
+
+
+def request_retry_n(src):
+    """Route validated logical request retries through existing kind24 owner checks."""
+    old=combined.segment(src,'N');n=old
+    n=once(n,'action first_operate_dup(){hdr.event.event=16w0x0118;hdr.t0.setValid();hdr.t0.t0q=32w0;}',
+        'action first_operate_dup(){hdr.event.event=16w0x0118;hdr.t0.setValid();hdr.t0.t0q=32w0;}\n'
+        'action first_request_dup(){hdr.event.event=16w0x0118;hdr.t0.setValid();hdr.t0.t0q=32w0;}')
+    # Existing application banks bind retries to the currently admitted logical
+    # request. All fixed object/function bytes were validated by the profiles.
+    start=n.index('table read_app_t{');end=n.index('\n',start);body=n[start:end]
+    body=once(body,'size=2;','size=3;')
+    body=once(body,'const entries={','const entries={(2w0,8w9,32w4,_):match_read_app();')
+    n=n[:start]+body+n[end:]
+    start=n.index('table application_t{');end=n.index('\n',start);body=n[start:end]
+    body=once(body,'size=4;','size=5;')
+    body=once(body,'const entries={','const entries={(2w0,8w5,32w4,_):compare_application();')
+    n=n[:start]+body+n[end:]
+    # Pack logical request type into existing application banks. This binds
+    # native TCP end to the original length/function, without a new register.
+    n=once(n,'m.compare_read_app=(bit<32>)(hdr.rd_req_full.app[3:0]);',
+           'm.compare_read_app=32w0x100 | (bit<32>)(hdr.rd_req_full.app[3:0]);')
+    n=once(n,'m.compare_read_app=(bit<32>)(hdr.rd_req_mx.app[3:0]);',
+           'm.compare_read_app=32w0x200 | (bit<32>)(hdr.rd_req_mx.app[3:0]);')
+    n=replace_block(n,'action read_response_input()',
+        'action read_response_input(bit<32> shape){m.compare_read_app=shape | (bit<32>)(hdr.first.w0[19:16]);}')
+    n=replace_block(n,'table read_input_t{',
+        'table read_input_t{key={m.packet_kind:exact;hdr.rd_req_full.isValid():exact;hdr.rd_req_mx.isValid():exact;hdr.dl.len:ternary;}'
+        'actions={read_request_input;read_request_full_input;read_request_mx_input;read_response_input;NoAction;}size=5;'
+        'const entries={(8w9,false,false,_):read_request_input();(8w9,true,false,_):read_request_full_input();'
+        '(8w9,false,true,_):read_request_mx_input();(8w11,false,false,8w0x4c):read_response_input(32w0x200);'
+        '(8w11,false,false,8w0x73):read_response_input(32w0x100);}const default_action=NoAction();}')
+    n=once(n,'action store_read_app(){',
+        'RegisterAction<bit<32>,bit<1>,bit<32>>(read_app) invalidate_read_app={void apply(inout bit<32> v,out bit<32> r){v=32w0xffffffff;r=v;}};'
+        'action forget_read_app(){invalidate_read_app.execute(1w0);}'
+        'action store_read_app(){')
+    start=n.index('table read_app_t{');end=n.index('\n',start);body=n[start:end]
+    body=once(body,'store_read_app;match_read_app;','store_read_app;match_read_app;forget_read_app;')
+    body=once(body,'const entries={','const entries={(2w1,8w5,32w1,32w0):forget_read_app();(2w1,8w7,32w1,32w0):forget_read_app();')
+    body=once(body,'size=3;','size=5;');n=n[:start]+body+n[end:]
+    for name in ('compare_select_inputs','compare_operate_inputs','compare_operate_store_inputs'):
+        start=n.index('action '+name+'()');end=n.index('}',start)+1;body=n[start:end]
+        body=once(body,'m.compare_application=(bit<32>)(hdr.first.w0[23:16]);',
+                  'm.compare_application=(bit<32>)(hdr.first.w0[15:8]++hdr.first.w0[23:16]);')
+        n=n[:start]+body+n[end:]
+    n=once(n,'action store_application(){',
+        'RegisterAction<bit<32>,bit<1>,bit<32>>(application) invalidate_application={void apply(inout bit<32> v,out bit<32> r){v=32w0xffffffff;r=v;}};'
+        'action forget_application(){invalidate_application.execute(1w0);}'
+        'action store_application(){')
+    start=n.index('table application_t{');end=n.index('\n',start);body=n[start:end]
+    body=once(body,'store_application;compare_application;','store_application;forget_application;compare_application;')
+    body=once(body,'const entries={','const entries={(2w1,8w9,32w1,32w0):forget_application();')
+    body=once(body,'size=5;','size=6;');n=n[:start]+body+n[end:]
+    start=n.index('table object_match{');end=n.index('\n',start);body=n[start:end]
+    body=once(body,'(1w1,32w0,32w0,32w0,32w0,32w0):matched();',
+              '(1w1,32w0,32w0,32w0,32w0,32w0x300):matched();(1w1,32w0,32w0,32w0,32w0,32w0x400):matched();')
+    body=once(body,'32w4294967295):matched();','32w4294967039):matched();')
+    body=once(body,'32w15):matched();','32w4294967055):matched();')
+    body=once(body,'size=3;','size=4;');n=n[:start]+body+n[end:]
+    start=n.index('table first_event{');end=n.index(' action next_stage()',start);body=n[start:end]
+    body=once(body,'m.retry:ternary;}','m.retry:ternary;hdr.dl.len:ternary;m.diff_application:ternary;}')
+    body=once(body,'first_operate_dup;','first_operate_dup;first_request_dup;')
+    def append_keys(m):
+        vals=m[1].split(',')
+        if len(vals)!=11:return m[0]
+        if vals[0]=='8w9' and vals[1]=='3w1':vals[2]='_'
+        extra=['_','0' if m[2]=='first_operate_dup' else '_']
+        return '('+','.join(vals+extra)+'):'+m[2]+'('+m[3]+');'
+    body=re.sub(r'\(([^()]+)\):(\w+)\(([^()]*)\);',append_keys,body)
+    rows=[]
+    def add(kind,phase,length,dl,server,matched,app,action):
+        vals=[str(kind),'_',matched,'32w0x%x0000&&&32w0xffff0000'%phase,'32w0x%08x'%((-length)&0xffffffff),
+              '32w0x%08x'%((-server)&0xffffffff),'2w1','8w24','_','_','_','8w0x%02x'%dl,app]
+        rows.append('('+','.join(('8w'+vals[0],)+tuple(vals[1:]))+'):'+action+'();')
+    for length,dl in ((25,0x12),(27,0x14)):
+        for phase,servers in ((14,(0,)),(5,(0,91,134))):
+            for server in servers:add(9,phase,length,dl,server,'1w1','_','first_request_dup')
+    for kind,phases,action in ((5,(9,10,5),'first_request_dup'),(7,(12,5),'first_operate_dup')):
+        for phase in phases:
+            for server in (0,49):add(kind,phase,45,0x24,server,'_','32w0',action)
+    body=once(body,'const entries={','const entries={'+''.join(rows))
+    body=re.sub(r'size=\d+;', 'size=%d;'%(188+len(rows)),body,count=1)
+    n=n[:start]+body+n[end:]
+    # Kind24 already has parser states and bounded owner/epoch-check laps.
+    # Add its two request shapes to the existing return guard, preserving CRCs.
+    start=n.index('table guard{');end=n.index('\n apply{',start);body=n[start:end]
+    copies=[]
+    for vals,act,args in re.findall(r'\(([^()]+)\):(\w+)\(([^()]*)\);',body):
+        v=vals.split(',')
+        if len(v)==14 and v[1] in ('8w5','8w9') and v[2]=='8w8':
+            v[2]='8w24';copies.append('('+','.join(v)+'):'+act+'('+args+');')
+    assert len(copies)==2
+    body=once(body,'const entries={','const entries={'+''.join(copies))
+    body=once(body,'size=52;','size=54;');n=n[:start]+body+n[end:]
+    start=n.index('table read_terminal_t{');end=n.index('\n',start);body=n[start:end]
+    body=once(body,'m.direction:ternary;}','m.direction:ternary;m.packet_kind:ternary;}')
+    body=re.sub(r'\(([^()]+)\):(\w+)\(([^()]*)\);',lambda m:'('+m[1]+',_):'+m[2]+'('+m[3]+');',body)
+    body=once(body,'const entries={','const entries={(8w24,32w0,32w0,2w1,8w5):emit_tev(16w0x1000);(8w24,32w0,32w0,2w1,8w9):emit_tev(16w0x1000);')
+    body=once(body,'size=14;','size=16;');n=n[:start]+body+n[end:]
+    n=once(n,'control n_Ingress(', '@pa_solitary("ingress","m.diff_real_links")\ncontrol n_Ingress(')
+    return once(src,old,n)

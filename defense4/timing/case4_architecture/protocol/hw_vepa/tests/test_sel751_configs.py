@@ -129,8 +129,8 @@ def test_generator_refuses_unbound_source_and_pins_selected_compile(tmp_path, mo
                          model=model, build=fg.rel(build))
         assert fg.candidate_binding(dict(freeze_version=fg.FREEZE_V3, candidate=candidate), path) == []
     # The explicit new profile emits the 1930-exchange grid, with off/size references only at D5.
-    profile.update(timing_contract='response_ready_ack_d_v1', timing_ns=dict(D_release_budget=5000000,
-                   J_operate_hold=2400000, response_wait_timeout=500000000))
+    profile.update(timing_contract='response_ready_ack_d_v2', timing_ns=dict(D_release_budget=5000000,
+                   J_operate_hold=2400000))
     (build / 'supported_profile.json').write_text(json.dumps(profile))
     ready_output = tmp_path / 'ready_configs'
     common = ['--build', str(build), '--output', str(ready_output), '--native-observation', str(native)]
@@ -144,7 +144,7 @@ def test_generator_refuses_unbound_source_and_pins_selected_compile(tmp_path, mo
     assert len(ready_configs) == 10
     references = [c for c in ready_configs if c['evaluation']['campaign_block'].get('precision_reference')]
     assert sum(c['evaluation']['campaign_block']['expected_exchanges'] for c in references) == 1930
-    assert all(c['timing_params_ns']['response_wait_timeout'] == 500000000 for c in ready_configs)
+    assert all(set(c['timing_params_ns']) == {'gap', 'op_j', 'budget', 'enabled'} for c in ready_configs)
     smoke = next(c for c in ready_configs if c['evaluation']['campaign_block']['phase'] == 'smoke')
     assert smoke['evaluation']['campaign_block']['expected_exchanges'] == 4
     assert not any('held_operate_350' in p.name for p in ready_output.glob('*.json'))

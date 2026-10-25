@@ -69,9 +69,8 @@ def from_env():
     return resolve(json.loads(path.read_text()), path.with_name('response_only.p4'), os.environ.get('MILESTONE'))
 
 
-RESPONSE_READY = 'response_ready_ack_d_v1'
-RESPONSE_WAIT_NS = 500_000_000
-RESPONSE_READY_KEYS = frozenset(('gap', 'op_j', 'response_wait_timeout', 'budget', 'enabled'))
+RESPONSE_READY = 'response_ready_ack_d_v2'
+RESPONSE_READY_KEYS = frozenset(('gap', 'op_j', 'budget', 'enabled'))
 LEGACY_ONLY_KEYS = frozenset(('da', 'readiness', 'cap', 'pb'))
 
 
@@ -84,23 +83,18 @@ def validate_timing_contract(profile):
         raise ValueError('unknown timing_contract: %r' % contract)
     if profile.get('endpoint_profile') != 'sel751':
         raise ValueError('response-ready requires endpoint_profile=sel751')
-    timing = profile.get('timing_ns')
-    if not isinstance(timing, dict) or set(timing) != {
-            'D_release_budget', 'J_operate_hold', 'response_wait_timeout'}:
-        raise ValueError('response-ready timing_ns must contain only D, J and response_wait_timeout')
-    if timing != dict(D_release_budget=5_000_000, J_operate_hold=2_400_000,
-                      response_wait_timeout=RESPONSE_WAIT_NS):
-        raise ValueError('response-ready profile must declare D=5ms, J=2.4ms and response_wait_timeout=500ms')
+    if profile.get('timing_ns') != dict(D_release_budget=5_000_000, J_operate_hold=2_400_000):
+        raise ValueError('response-ready v2 timing_ns must contain only D=5ms and J=2.4ms')
     clock = profile.get('clock') or {}
     if (clock.get('t_unit_ns'), clock.get('t_grid_ns')) != (256, 512):
         raise ValueError('response-ready requires the 256ns T clock and 512ns grid')
 
 
 def model_params(profile, values_ns):
-    """Adapt retained drivers only for the declared successor; never inflate its expiry.
+    """Translate retained legacy stimuli only for the source-bound four-field v2 ABI.
 
-    Drivers keep their stimulus-specific D and J. Legacy readiness/DA/cap/pb values have no
-    successor meaning and are recorded by model_driver along with the five actual writes.
+    D and J remain caller-specific for explicitly labeled model constructions.
+    An exchange timeout has no v2 meaning and is rejected rather than translated.
     """
     values = dict(values_ns)
     if profile.get('timing_contract') != RESPONSE_READY:
@@ -111,11 +105,8 @@ def model_params(profile, values_ns):
         raise ValueError('unknown model T parameters: %r' % sorted(unknown))
     for name in LEGACY_ONLY_KEYS:
         values.pop(name, None)
-    values.setdefault('response_wait_timeout', RESPONSE_WAIT_NS)
-    if values['response_wait_timeout'] != RESPONSE_WAIT_NS:
-        raise ValueError('response-ready model must exercise the real 500ms expiry')
     if set(values) != RESPONSE_READY_KEYS:
-        raise ValueError('response-ready requires all five set_params fields')
+        raise ValueError('response-ready v2 requires all four set_params fields')
     return values
 
 
@@ -176,7 +167,7 @@ def _compiled_stage_numbers(node):
 def compiled_t_state_of_build(build):
     """New-contract preflight: one T bank per object and the approved actual MAU bounds.
 
-    run_model and summary_v3 call this only for response_ready_ack_d_v1; retained
+    run_model and summary_v3 call this only for response_ready_ack_d_v2; retained
     source profiles keep their historical resource and expectation contracts.
     """
     contexts, hashes = {}, {}

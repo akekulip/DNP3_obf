@@ -9,6 +9,7 @@
 #   CANDIDATE=c51 bash reproduce.sh                    # qualified half-closed RST admission (physical SEL-751 candidate)
 #   CANDIDATE=c52 bash reproduce.sh                    # relay FIN+PSH+ACK close (current physical SEL-751 candidate)
 #   CANDIDATE=c60 bash reproduce.sh                    # response-ready ACK then D; requires all 17 model drivers
+#   CANDIDATE=c67 bash reproduce.sh                    # deadline-free ACK+D, retained-request retry suppression, 17-driver gate
 #   CANDIDATE=c62 bash reproduce.sh                    # single-bank response-ready timing; 17-driver gate
 #   CANDIDATE=c26 bash reproduce.sh                  # c25 + behavior-preserving resource reduction (--reduce)
 #   CANDIDATE=c24 bash reproduce.sh                  # c25's P4 with the uncorrected disposition text (historical)
@@ -42,8 +43,12 @@ RELAY_READ=0
 EVIDENCE_TIER="historical software endpoint profile (offline only)"
 BUILD_SUFFIX="$CANDIDATE"
 case "$CANDIDATE" in
+  c67) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing"
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c67_sdk9132
+       SOURCE_SHA=e8565de7c317124b2c3377ce02fc2a932d4f86e1625ed224ec9fed550d6d2ec1
+       EVIDENCE_TIER="deadline-free response-ready SEL-751 candidate; qualification requires all 17 models and physical evidence" ;;
   c62) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing"
-       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c62_sdk9132
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c62_sdk9132; GEN_PIN=4004c7b62; GATE_PIN=4004c7b62
        SOURCE_SHA=569f6461d7f587e225513623dc953c26b568892300370d074de6b2f2ed341b27
        EVIDENCE_TIER="single-bank response-ready SEL-751 candidate; requires all 17 models and physical evidence" ;;
   c60) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing"
@@ -84,7 +89,7 @@ case "$CANDIDATE" in
        SOURCE_SHA=1e94c31d80e6708ab31ca117f066d15f5ec23244fc6f7bf7b9ca68dc81a2a27b ;;
   b08) GEN_ARGS="--policy"
        SOURCE_SHA=7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f ;;
-  *) echo "unknown CANDIDATE $CANDIDATE (c62 | c60 | c52 | c51 | c50 | c49 | c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
+  *) echo "unknown CANDIDATE $CANDIDATE (c67 | c62 | c60 | c52 | c51 | c50 | c49 | c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
 esac
 BUILD="$STAGE/ctl_timing_01/evidence/m12p_$BUILD_SUFFIX"
 FREEZE="$BUILD/freeze_v3.json"
@@ -158,7 +163,7 @@ python3 "$GEN_STAGE/m12_fullsize/make_m12.py" "$SCRATCH/m12p" $GEN_ARGS >/dev/nu
 got="$(sha256sum "$SCRATCH/m12p/response_only.p4" | cut -d' ' -f1)"
 [ "$got" = "$SOURCE_SHA" ] || { echo "regenerated source $got != $SOURCE_SHA"; exit 1; }
 echo "source $got"
-if [ "$CANDIDATE" = c48 ] || [ "$CANDIDATE" = c49 ] || [ "$CANDIDATE" = c50 ] || [ "$CANDIDATE" = c51 ] || [ "$CANDIDATE" = c52 ] || [ "$CANDIDATE" = c60 ] || [ "$CANDIDATE" = c62 ]; then
+if [ "$CANDIDATE" = c48 ] || [ "$CANDIDATE" = c49 ] || [ "$CANDIDATE" = c50 ] || [ "$CANDIDATE" = c51 ] || [ "$CANDIDATE" = c52 ] || [ "$CANDIDATE" = c60 ] || [ "$CANDIDATE" = c62 ] || [ "$CANDIDATE" = c67 ]; then
   step "4b. integrated relay generator, checksum, admission and boundary regressions"
   (cd "$STAGE/m12_fullsize" && "$PY312" -m pytest -q tests)
   python3 "$STAGE/m12_fullsize/check_generator_identity.py"

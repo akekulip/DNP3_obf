@@ -184,12 +184,11 @@ class CandidateCampaign(base.Campaign):
             raise HEADROOM.HeadroomError(str(error))
         if cfg.get('timing_contract') != contract or build.get('timing_contract') != contract:
             raise HEADROOM.HeadroomError('config/build/source timing contract mismatch')
-        if contract == 'response_ready_ack_d_v1':
-            keys = ('D_release_budget', 'J_operate_hold', 'response_wait_timeout')
+        if contract == 'response_ready_ack_d_v2':
+            keys = ('D_release_budget', 'J_operate_hold')
             t = cfg.get('timing_params_ns') or {}
-            if set(t) != {'gap', 'op_j', 'response_wait_timeout', 'budget', 'enabled'} or \
+            if set(t) != {'gap', 'op_j', 'budget', 'enabled'} or \
                     t.get('op_j') != timing['J_operate_hold'] or \
-                    t.get('response_wait_timeout') != timing['response_wait_timeout'] or \
                     t.get('gap') not in (5000000, 10000000, 15000000, 20000000):
                 raise HEADROOM.HeadroomError('response-ready config timing parameter mismatch')
         else:

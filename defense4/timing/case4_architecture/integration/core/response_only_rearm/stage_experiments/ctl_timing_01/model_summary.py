@@ -63,7 +63,7 @@ def required_drivers(build):
         if relay and declared != {'sel751'}:
             raise ValueError('relay semantics require endpoint_profile=sel751')
     contracts = {doc['timing_contract'] for doc in documents if doc.get('timing_contract') is not None}
-    if len(contracts) > 1 or contracts - {'response_ready_ack_d_v1'}:
+    if len(contracts) > 1 or contracts - {'response_ready_ack_d_v2'}:
         raise ValueError('inconsistent or unsupported timing_contract')
     if contracts:
         from model_profile import validate_timing_contract
@@ -404,9 +404,10 @@ def _unmeasured_points(run_dir):
 def _single_child_problems(results):
     """Retain the full invalid-child state-immutability matrix and policy-off positive controls."""
     import copy
+    from model_response_ready import child_ingress_problems
     required = {'N': {'owner', 'epoch', 'client', 'server'},
                 'E': {'epoch', 'mode', 'front', 'acct', 'img_end', 'img_start', 'img_wend'},
-                'T': {'cur_epoch_reg', 'gen_alloc_reg', 'op_gen_alloc_reg', 't0_reg', 'op_t0_reg',
+                'T': {'cur_epoch_reg', 'gen_alloc_reg', 'op_gen_alloc_reg', 'op_t0_reg',
                       'ack_done_reg', 'resp_done_reg', 'op_done_reg', 'child_seen0_reg',
                       'ack_commit_at_reg', 'ack_commit_gen_reg', 'outcomes'}}
     rows = (results.get('meta') or {}).get('single_child_probes') or []
@@ -429,12 +430,11 @@ def _single_child_problems(results):
             problems.append(tag + ': all 25 T outcomes not measured')
             continue
         expected = copy.deepcopy(before)
-        if kind == 'blocker' and child == 0:
-            expected['T']['outcomes'][12] = (expected['T']['outcomes'][12] + 1) & 0xffffffff
         if row.get('policy_off') is not (kind == 'blocker'):
             problems.append(tag + ': missing policy-off blocker construction')
         if row.get('expected_after') != expected or after != expected or row.get('output_frames') != 0:
             problems.append(tag + ': register/counter mutation or public output')
+        problems.extend(tag + ': ' + issue for issue in child_ingress_problems(row))
         if any(type(row.get(key)) is not int or not 0 < row[key] < limit
                for key, limit in (('epoch', 0x80000000), ('read_generation', 0xffff), ('operate_generation', 0xffff))):
             problems.append(tag + ': no live epoch and both generations')
@@ -444,151 +444,124 @@ def _single_child_problems(results):
 
 
 def _generation_isolation_problems(results):
-    from model_response_ready import generation_isolation_problems, delta, token_source_problems
-    points = (results.get('meta') or {}).get('points') or []
-    problems = []
-    for kind in ('late_ACK', 'stale_response', 'expired_token'):
-        for phase in ('waiting', 'committed'):
-            tag = 'generation_A_%s_%s_B' % (kind, phase)
-            matches = [point for point in points if point.get('tag') == tag]
-            if len(matches) != 1:
-                problems.append('missing or duplicate generation A-to-B proof: ' + tag)
-                continue
-            point = matches[0]
-            if (point.get('stale_probe') or {}).get('kind') != kind or (point.get('stale_probe') or {}).get('phase') != phase:
-                problems.append(tag + ': wrong A artifact or B phase')
-            problems.extend(tag + ': ' + problem for problem in generation_isolation_problems(point))
-            source = (point.get('stale_probe') or {}).get('source_tag')
-            prior = [item for item in points if item.get('tag') == source]
-            if len(prior) != 1:
-                problems.append(tag + ': no unique executed A generation')
-                continue
-            prior = prior[0]
-            probe = point.get('stale_probe') or {}
-            artifact_key = {'late_ACK': 'ack', 'stale_response': 'response', 'expired_token': 'token'}[kind]
-            frame = (prior.get('artifacts') or {}).get(artifact_key)
-            if not frame or probe.get('frame_hex') != frame or                     prior.get('generation_after') != probe.get('source_generation') or prior.get('epoch') != probe.get('source_epoch'):
-                problems.append(tag + ': artifact does not bind the actual prior A packet and generation')
-            if kind == 'expired_token':
-                problems.extend(tag + ': ' + issue for issue in token_source_problems(prior))
-                expiry = prior.get('atomic_expiry_units') or []
-                elapsed = None if len(expiry) != 1 else delta(expiry[0], prior.get('t0_units'))
-                if (prior.get('lane') or {}).get('WAIT_EXPIRED') != 1 or prior.get('master_frames') != [] or                         elapsed is None or elapsed < -(-(500000000 + 512) // 256):
-                    problems.append(tag + ': token does not name a genuinely expired A generation')
-                if frame and (not frame.startswith('0b00') or int(frame[4:8], 16) != probe.get('source_generation')):
-                    problems.append(tag + ': token is not the original A generation ACK blocker')
-            else:
-                units = prior.get('written_units') or {}
-                if not isinstance(units.get('gap'), int) or not isinstance(units.get('response_wait_timeout'), int):
-                    problems.append(tag + ': A has no actual timing parameters')
-                else:
-                    from model_response_ready import committed_problems
-                    problems.extend(tag + ': prior A ' + issue for issue in committed_problems(
-                        prior, units['gap'], units['response_wait_timeout']))
-
+    from model_response_ready import generation_isolation_problems, token_source_problems, committed_problems
+    points=(results.get('meta') or {}).get('points') or []
+    problems=[]
+    for kind in ('late_ACK','stale_response','stale_token'):
+        for phase in ('waiting','committed'):
+            tag='generation_A_%s_%s_B'%(kind,phase)
+            matches=[point for point in points if point.get('tag')==tag]
+            if len(matches)!=1:
+                problems.append('missing or duplicate generation A-to-B proof: '+tag);continue
+            point=matches[0]
+            problems.extend(tag+': '+issue for issue in generation_isolation_problems(point))
+            probe=point.get('stale_probe') or {}
+            prior=[item for item in points if item.get('tag')==probe.get('source_tag')]
+            if len(prior)!=1:
+                problems.append(tag+': no unique executed prior A');continue
+            prior=prior[0]
+            key={'late_ACK':'ack','stale_response':'response','stale_token':'token'}[kind]
+            frame=(prior.get('artifacts') or {}).get(key)
+            if not frame or frame!=probe.get('frame_hex') or prior.get('generation_after')!=probe.get('source_generation') or prior.get('epoch')!=probe.get('source_epoch'):
+                problems.append(tag+': artifact is not bound to actual prior A')
+            gap=(prior.get('written_units') or {}).get('gap')
+            if type(gap) is not int:problems.append(tag+': prior A timing not measured')
+            else:problems.extend(tag+': prior A '+issue for issue in committed_problems(prior,gap))
+            if kind=='stale_token':problems.extend(tag+': '+issue for issue in token_source_problems(prior))
     return problems
 
+
 def _response_ready_problems(results):
-    """A partial response-ready run cannot qualify from totals alone."""
-    from model_response_ready import committed_problems
-    D_VALUES = (5000000, 10000000, 15000000, 20000000)
-    meta = results.get('meta') or {}
-    problems = []
-    if meta.get('timing_contract') != 'response_ready_ack_d_v1':
-        problems.append('missing response-ready timing contract in executed results')
-    expected = {}
-    for gap in D_VALUES:
-        for order in ('ack_first', 'response_first'):
-            prefix = 'D%d_%s' % (gap // 1000000, order)
-            for cls in ('mixed', 'integrity'):
-                for suffix, native, image in (('', 91 if cls == 'mixed' else 134, 141 if cls == 'mixed' else 158),
-                                               ('_SELECT', 49, 60), ('_OPERATE', 49, 60)):
-                    expected[prefix + '_' + cls + suffix] = (gap, native, image, order)
-    points = meta.get('points') or []
-    for tag, (gap, native, image, order) in expected.items():
-        matches = [point for point in points if point.get('tag') == tag]
-        if len(matches) != 1:
-            problems.append('missing or duplicate response-ready point: ' + tag)
-            continue
-        point = matches[0]
-        if point.get('order') != order:
-            problems.append(tag + ': observed order does not match required ' + order)
-        units = point.get('written_units') or {}
-        gap_units = -(-(gap + 512) // 256)
-        wait_units = -(-(500000000 + 512) // 256)
-        if (point.get('native_octets'), point.get('image_octets')) != (native, image):
-            problems.append(tag + ': wrong relay native/image shape')
-        if set(units) != {'gap', 'op_j', 'response_wait_timeout', 'budget', 'enabled'} or \
-                units.get('gap') != gap_units or units.get('response_wait_timeout') != wait_units:
-            problems.append(tag + ': actual five-field parameter write does not exercise D and 500ms expiry')
-        problems.extend(tag + ': ' + issue for issue in committed_problems(point, gap_units, wait_units))
-    negatives = ('late98ms', 'absent', 'response_without_ACK', 'wrong_response', 'incomplete_response',
-                 'duplicate_ack_response', 'duplicate_over_bound', 'request_retransmission', 'reset_held', 'commit_across_expiry')
-    from model_response_ready import delta
-    for tag in negatives:
-        matches = [point for point in points if point.get('tag') == tag]
-        if len(matches) != 1:
-            problems.append('missing or duplicate response-ready negative/boundary: ' + tag)
-            continue
-        point = matches[0]
-        lane = point.get('lane') or {}
-        if tag in ('absent', 'response_without_ACK', 'wrong_response', 'incomplete_response', 'duplicate_over_bound'):
-            expiry = point.get('atomic_expiry_units') or []
-            elapsed = delta(expiry[0], point.get('t0_units')) if len(expiry) == 1 else None
-            if point.get('master_frames') != [] or lane.get('ACK_COMMIT') != 0 or \
-                    lane.get('RESP_RELEASE') != 0 or lane.get('WAIT_EXPIRED') != 1 or \
-                    elapsed is None or elapsed < -(-(500000000 + 512) // 256):
-                problems.append(tag + ': expiry without forwarding not proved on T clock')
-            if tag == 'duplicate_over_bound':
-                expiry = point.get('forced_expiry_before_response_units')
-                late = delta(point.get('response_arrival_units'), expiry)
-                if expiry is None or late is None or late >= 1 << 31:
-                    problems.append(tag + ': response was not observed after actual expiry')
-                recovery = [row for row in points if row.get('tag') == 'duplicate_over_bound_reconnect']
-                if len(recovery) != 1 or recovery[0].get('recovery_of') != tag or recovery[0].get('epoch') == point.get('epoch'):
-                    problems.append(tag + ': new-handshake recovery not measured')
-                else:
-                    units = recovery[0].get('written_units') or {}
-                    if not isinstance(units.get('gap'), int) or not isinstance(units.get('response_wait_timeout'), int):
-                        problems.append(tag + ': recovery timing parameters not measured')
-                    else:
-                        problems.extend(tag + ': recovery ' + issue for issue in committed_problems(
-                            recovery[0], units['gap'], units['response_wait_timeout']))
-        elif tag == 'reset_held':
-            held, reset = point.get('held_ack_units'), point.get('reset_application_units')
-            if held is None or reset is None or delta(reset, held) >= 1 << 31 or \
-                    point.get('master_frames') != [] or lane.get('ACK_COMMIT') != 0 or lane.get('RESP_RELEASE') != 0:
-                problems.append(tag + ': reset while actual ACK held was not proved')
+    """Require the complete v2 matrix and ownership-qualified retry/cleanup proofs."""
+    from model_response_ready import committed_problems, lane_integrity_problems, retry_problems, post_release_replay_problems, cleanup_problems, delta
+    meta=results.get('meta') or {};points=meta.get('points') or [];problems=[]
+    if meta.get('timing_contract')!='response_ready_ack_d_v2':problems.append('missing executed v2 contract')
+    def one(tag):
+        matches=[point for point in points if point.get('tag')==tag]
+        if len(matches)!=1:
+            problems.append('missing or duplicate v2 point: '+tag);return None
+        return matches[0]
+    def committed(point,tag):
+        gap=(point.get('written_units') or {}).get('gap')
+        if type(gap) is not int:problems.append(tag+': actual gap units not measured');return
+        problems.extend(tag+': '+issue for issue in committed_problems(point,gap)+lane_integrity_problems(point))
+    durations=(5000000,10000000,15000000,20000000)
+    for gap in durations:
+        for order in ('ack_first','response_first'):
+            for cls in ('mixed','integrity'):
+                for suffix,native,image in (('',91 if cls=='mixed' else 134,141 if cls=='mixed' else 158),('_SELECT',49,60),('_OPERATE',49,60)):
+                    tag='D%d_%s_%s%s'%(gap//1000000,order,cls,suffix);point=one(tag)
+                    if point is None:continue
+                    units=point.get('written_units') or {}
+                    if set(units)!={'gap','op_j','budget','enabled'} or units.get('gap')!=-(-(gap+512)//256) or units.get('op_j')!=9377 or units.get('enabled')!=1:
+                        problems.append(tag+': not the exact four-field nominal D/J write')
+                    if point.get('model_only_hold_override') or point.get('order')!=order or (point.get('native_octets'),point.get('image_octets'))!=(native,image):
+                        problems.append(tag+': nominal matrix order/shape replaced by a construction')
+                    committed(point,tag)
+                    if suffix=='_OPERATE':
+                        hold=delta(point.get('operate_release_units'),point.get('operate_anchor_units'))
+                        if hold is None or hold<9377 or point.get('operate_release_count')!=1 or point.get('op_generation_after')!=point.get('op_generation_before',-2)+1:
+                            problems.append(tag+': nominal independent J not measured')
+                    elif point.get('operate_release_count')!=0 or point.get('op_generation_after')!=point.get('op_generation_before'):
+                        problems.append(tag+': non-OPERATE changed J ownership')
+    retry_cases=[('OPERATE','op_J')]+[(kind,phase) for phase in ('response_D','waiting','after_release','disabled')
+                                    for kind in ('READ','READ_integrity','SELECT','OPERATE')]
+    for kind,phase in retry_cases:
+        tag='retry_%s_%s'%(kind,phase);point=one(tag)
+        if point is None:continue
+        proof=point.get('request_retry') or {}
+        if proof.get('phase')!=phase:problems.append(tag+': wrong retained/forwarding window')
+        problems.extend(tag+': '+issue for issue in retry_problems(point))
+        if phase!='disabled':committed(point,tag)
+        units=point.get('written_units') or {}
+        if phase in ('op_J','response_D'):
+            field='op_j' if phase=='op_J' else 'gap'
+            if not point.get('model_only_hold_override') or units.get(field)!=3906252:
+                problems.append(tag+': model-only retained-window construction not established')
+        elif point.get('model_only_hold_override'):problems.append(tag+': forward case borrowed enlarged hold')
+    for tag in ('late_response','late_ACK','wrong_response','incomplete_response','response_replay'):
+        point=one(tag)
+        if point is None:continue
+        committed(point,tag)
+        if tag!='response_replay':
+            observed=point.get('held_ack_units') if tag=='late_ACK' else point.get('response_arrival_units')
+            age=delta(observed,point.get('request_arrival_units'))
+            if age is None or age*256<1000000000 or point.get('pre_completion_master_frames')!=[]:
+                problems.append(tag+': age-independent wait without successful bypass not measured')
         else:
-            units = point.get('written_units') or {}
-            if not isinstance(units.get('gap'), int) or not isinstance(units.get('response_wait_timeout'), int):
-                problems.append(tag + ': no actual parameter units')
-            else:
-                problems.extend(tag + ': ' + issue for issue in committed_problems(
-                    point, units['gap'], units['response_wait_timeout']))
-            if tag == 'duplicate_ack_response':
-                replay = point.get('post_release_replay')
-                if not isinstance(replay, dict):
-                    problems.append(tag + ': missing post-release replay proof')
-                else:
-                    from model_response_ready import post_release_replay_problems
-                    problems.extend(tag + ': ' + issue for issue in post_release_replay_problems(replay))
-            if tag == 'late98ms':
-                age = delta(point.get('response_arrival_units'), point.get('t0_units'))
-                if age is None or age * 256 < 98000000:
-                    problems.append(tag + ': actual late native response was not constructed')
-            if tag == 'commit_across_expiry':
-                age = delta(point.get('response_release_units'), point.get('t0_units'))
-                if age is None or age < -(-(500000000 + 512) // 256):
-                    problems.append(tag + ': full D across expiry was not constructed')
-    priority_edges = ['duplicate_over_bound', 'commit_across_expiry']
-    expected_cases = priority_edges + ['expired_A_token_isolation'] + ['D%d_%s' % (gap // 1000000, order) for gap in D_VALUES
-                      for order in ('ack_first', 'response_first')] + [case for case in negatives if case not in priority_edges] + [
-                          'generation_A_to_B_isolation', 'invalid_child_ids', 'disabled_and_exhaustion']
-    if meta.get('planned_cases') != expected_cases or meta.get('completed_cases') != expected_cases:
-        problems.append('response-ready did not complete every planned connection/case')
-    problems += _single_child_problems(results)
-    problems += _generation_isolation_problems(results)
+            replay=point.get('post_release_replay')
+            if not isinstance(replay,dict):problems.append(tag+': no pre-master-ACK response replay proof')
+            else:problems.extend(tag+': '+issue for issue in post_release_replay_problems(replay))
+    for tag,commits in (('reset_ACK',0),('reset_response',1)):
+        point=one(tag);recovery=one(tag+'_recovery')
+        if point is not None:
+            problems.extend(tag+': '+issue for issue in cleanup_problems(point,'ack_held' if tag=='reset_ACK' else 'response_held'))
+        if recovery is not None:
+            committed(recovery,tag+'_recovery')
+            if point is not None and point.get('epoch')==recovery.get('epoch'):
+                problems.append(tag+': cleanup did not recover through a fresh handshake')
+    problems+=_single_child_problems(results)+_generation_isolation_problems(results)
+    expected=['invalid_child_ids','request_retry_policy','stale_token_isolation']+['D%d_%s'%(gap//1000000,order) for gap in durations for order in ('ack_first','response_first')]+[
+        'waiting_and_cleanup','generation_A_to_B_isolation','disabled_and_exhaustion']
+    if meta.get('planned_cases')!=expected or meta.get('completed_cases')!=expected:
+        problems.append('v2 did not complete every planned connection/case')
+    return problems
+
+
+
+def _contention_v2_clock_problems(results):
+    problems=[]
+    for case in results.get('cases',[]):
+        if not str(case.get('name','')).endswith('_delivered_once_committed'):
+            continue
+        proof=case.get('response_ready_clock_proof') or {}
+        values=[proof.get(key) for key in ('held_ack_units','response_arrival_units','ack_release_units','response_release_units','gap_units')]
+        if any(type(value) is not int for value in values) or proof.get('passed') is not True:
+            problems.append(case['name']+': missing actual v2 committed-path clock proof');continue
+        held,arrival,ack,response,gap=values
+        if ((ack-held)&0xffffffff)>=1<<31 or ((ack-arrival)&0xffffffff)>=1<<31 or \
+                not gap<=((response-ack)&0xffffffff)<1<<31:
+            problems.append(case['name']+': genuine ACK/whole response/full D causal proof failed')
     return problems
 
 def summarize_v3(build):
@@ -609,7 +582,7 @@ def summarize_v3(build):
             profile = model_profile.resolve(json.loads(inputs_path.read_text()), build / 'response_only.p4')
         except (OSError, ValueError, TypeError) as error:
             reasons.append('unsupported or inconsistent build profile: %s' % error)
-    if profile and profile.get('timing_contract') == 'response_ready_ack_d_v1':
+    if profile and profile.get('timing_contract') == 'response_ready_ack_d_v2':
         state_audit = model_profile.compiled_t_state_of_build(build)
         base['compiled_t_state_audit'] = state_audit
         reasons.extend('compiled T state precondition: ' + problem for problem in state_audit['problems'])
@@ -635,7 +608,13 @@ def summarize_v3(build):
             problems += _unmeasured_points(build.parent / run)
         elif driver == 'abort' and reset_required:
             problems += _unmeasured_points(build.parent / run)
-        if driver == 'control_timing' and run_profile and run_profile.get('timing_contract') == 'response_ready_ack_d_v1':
+        if driver in ('contention', 'abort') and run_profile and run_profile.get('timing_contract') == 'response_ready_ack_d_v2':
+            result_files = list((build.parent / run).glob('*_results.json'))
+            if len(result_files) == 1:
+                problems += _contention_v2_clock_problems(json.loads(result_files[0].read_text()))
+            else:
+                problems.append('v2 contention clock coverage needs exactly one results file')
+        if driver == 'control_timing' and run_profile and run_profile.get('timing_contract') == 'response_ready_ack_d_v2':
             result_files = list((build.parent / run).glob('*_results.json'))
             if len(result_files) == 1:
                 problems += _single_child_problems(json.loads(result_files[0].read_text()))

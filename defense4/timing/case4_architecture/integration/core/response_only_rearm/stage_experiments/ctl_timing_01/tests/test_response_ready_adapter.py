@@ -1,4 +1,4 @@
-"""The emitted-source scheduler uses the five-field ABI without double conversion."""
+"""The emitted-source scheduler uses the four-field ABI without double conversion."""
 import subprocess
 import sys
 
@@ -15,13 +15,13 @@ def test_scheduler_installs_actual_response_ready_parameters(tmp_path):
     try:
         action = pipeline.t.src.controls['Ingress'].actions['set_params'][0]
         assert [name for name, width in action] == [
-            'gap', 'op_j', 'response_wait_timeout', 'budget', 'enabled']
+            'gap', 'op_j', 'budget', 'enabled']
         assert pipeline.t_time == dict(unit_ns=256, grid_ns=512)
         runtime = pipeline.t.src.controls['Ingress'].tables['params']['runtime']
         assert len(runtime) == 1
-        # Shared t_units adds the clock grid before rounding: no expiry inflation to readiness=2e9.
+        # Shared t_units adds the clock grid before rounding: no exchange-age duration is programmed.
         expected = cs.t_config.t_units(dict(gap=20_000_000, op_j=2_400_000,
-            response_wait_timeout=500_000_000, budget=240_000, enabled=1), **pipeline.t_time)
+            budget=240_000, enabled=1), **pipeline.t_time)
         assert list(expected.values()) in [list(entry[2]) for entry in runtime]
     finally:
         pipeline.close()
@@ -46,7 +46,7 @@ def test_runtime_writer_translates_only_bound_successor_and_converts_once(tmp_pa
     supplied = dict(da=1000000, readiness=2000000000, cap=1500000000, pb=1000000000,
                     gap=20000000, op_j=2400000, budget=240000, enabled=1)
     actual = namespace['t_params_for_build'](supplied)
-    values = dict(gap=20000000, op_j=2400000, response_wait_timeout=500000000, budget=240000, enabled=1)
+    values = dict(gap=20000000, op_j=2400000, budget=240000, enabled=1)
     assert actual == cs.t_config.t_units(values, unit_ns=256, grid_ns=512)
     record = json.loads((tmp_path / 't_params_written.json').read_text())[-1]
     assert record['supplied_ns'] == supplied

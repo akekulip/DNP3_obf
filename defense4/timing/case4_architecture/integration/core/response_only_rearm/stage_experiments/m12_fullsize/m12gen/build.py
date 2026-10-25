@@ -228,9 +228,9 @@ def write_outputs(out, a, src, applied):
             control_request_ipv4_octets=97)
     if getattr(a, 'response_ready_timing', False):
         required.add('response_ready_timing')
-        profile['timing_contract'] = 'response_ready_ack_d_v1'
-        profile['timing_ns'] = {'D_release_budget': 5000000, 'J_operate_hold': 2400000, 'response_wait_timeout': 500000000}
-        profile['_note'] += '; genuine ACK waits for whole child0; response follows ACK commit by D; WAITING expires at500ms'
+        profile['timing_contract'] = 'response_ready_ack_d_v2'
+        profile['timing_ns'] = {'D_release_budget': 5000000, 'J_operate_hold': 2400000}
+        profile['_note'] += '; genuine ACK waits for whole child0; response follows ACK commit by D; retries drop only while a genuine request or response is retained'
         scope = profile['_note']
     if getattr(a, 'diag_anchors', False):
         required.add('diag_anchor')
