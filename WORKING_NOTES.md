@@ -1,5 +1,31 @@
 # Working notes
 
+## CURRENT — 2026-10-25 Codex takeover: response-ready ACK then D
+
+Philip approved root `plan.md` and requested implementation. This supersedes the r150 proposal.
+
+- **Contract:** hold genuine relay ACK until matching whole response; release ACK once; response at ACK+D.
+  D=5/10/15/20 ms for mixed/integrity READ, SELECT and OPERATE. J remains2.4ms.
+- **Failure cleanup:** WAITING expires500ms after request admission; discard held packets/blockers and fail,
+  never release early/unshaped. Commit just before expiry retains its complete D interval.
+- **Preserved:** c52 and evidence, READ91→141/134→158, SBO49→60, FIN/RST repairs, identity loss targeting.
+  No software outstation, synthetic ACK, piggyback feature, TCP reassembly, newbuffer, tap/mirror/recorder.
+- **Candidate:** c53_sdk9132 in development; no new compile/model/hardware qualification yet.
+- **Implementation lanes:** generator/P4+source regressions; model/gate coverage; installer/hardware harness.
+  Root owns integration, compilation/resource review, gated physical runs, reproduction and close-out.
+- **Hardware plan:** combinedD5 smoke; baselineoff/sizeonce plus timing/combined at4D =1930 planned reference
+  exchanges; D20 combined loss/graceful/RST/3connection recovery. Everyblock frozen/restored independently.
+- **Acceptance:** exactpadding/appdelivery and completeCLRT p99absoluteerror≤100us per workload, planned=eligible,
+  n≥20. FIN remainsopen until whole recoveryblocks pass. PhysicalJ explicitlyUNPROVEN by Philip's choice.
+- **Takeover preservation:** pre-existing r150 diff + HEAD recorded under
+  read_complete_01/evidence/timing_response_ready_20261025/. Existing two deletions untouched.
+- **Read-only preflight:** ownership inactive/unsafe_restoration=false; switchufispace on production
+  case4_response_path, Vision reachable at10.10.54.19 with dataNIC/address192.168.10.1.
+- **Remaining:** implement/RED→GREEN,compileSDK9.13.2+resourcecompare,16original+newrequiredmodeldriver,
+  independentreview,freeze/dry-run,physicalqualification,reproduce,docs,commit/push.
+
+## Previous Claude checkpoint (retained history)
+
 ## >>> CURRENT (2026-10-25): c52 timing diagnosis (plan: relay-leg tap + switch anchors + verified loss) - read first
 
 c52 is the immutable measured baseline (hashes in read_complete_01/CURRENT.md; reproduce.sh FREEZE_PIN ee7b7f47f).

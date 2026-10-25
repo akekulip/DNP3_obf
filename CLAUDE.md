@@ -8,6 +8,16 @@ tables indexed in
 `campaign_v2` is the record of the earlier timing-only paper and is no longer the manuscript authority. The
 manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
 
+## Active timing correction — Philip, 2026-10-25
+
+Read root `plan.md` first. Codex is implementing response-ready ACK-then-D timing on successor c53:
+D=5/10/15/20ms qualification is now authorized for READ and SBO, superseding the earlier blanket D-campaign
+exclusion only for this bounded qualification. J remains2.4ms; physicalJ measurement is explicitlyunproven.
+Waiting exchanges expire500ms without unshaped release. r150 is superseded. c52 evidence is immutable.
+No new attacker/J-codebook campaign, relay observer, syntheticACK, generalreassembly or sizing redesign.
+Existing guarded SEL-751 authorization/restoration and100us criterion remain in force. No new candidate
+has yet passed compilation/model/hardware gates; WORKING_NOTES tracks progress.
+
 ## Agent start
 
 0. Current SEL-751 continuation (2026-10-24): read root `CLAUDE_HANDOVER_20261024.md` and `plan.md` first.
