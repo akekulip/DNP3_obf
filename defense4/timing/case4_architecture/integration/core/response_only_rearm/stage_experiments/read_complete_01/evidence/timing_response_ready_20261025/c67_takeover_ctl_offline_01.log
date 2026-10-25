@@ -1,0 +1,470 @@
+........................................................................ [  7%]
+........................................................................ [ 14%]
+........................................................................ [ 21%]
+........................................................................ [ 28%]
+........................................................................ [ 35%]
+........................................................................ [ 43%]
+........................................................................ [ 50%]
+...........................................FFF.......................... [ 57%]
+........................................................................ [ 64%]
+........................................................................ [ 71%]
+........................................................................ [ 78%]
+........................................................................ [ 86%]
+........................................................................ [ 93%]
+............................................................EEE.EEE      [100%]
+==================================== ERRORS ====================================
+__ ERROR at setup of test_send_capture_and_cases_are_logged_and_pass_through ___
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-2812/test_send_capture_and_cases_ar0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7faa408110d0>
+
+    @pytest.fixture
+    def tw(tmp_path, monkeypatch):
+        monkeypatch.setenv('CONTENTION_TIMELINE', str(tmp_path / 'timeline.jsonl'))
+>       import timeline_wrapper
+
+tests/test_timeline_wrapper.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+timeline_wrapper.py:34: in <module>
+    import model_driver  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^
+../../../model_driver.py:23: in <module>
+    import bfrt_grpc.client as gc  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py:24: in <module>
+    import grpc
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/__init__.py:22: in <module>
+    from grpc import _compression
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    # Copyright 2019 The gRPC authors.
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #     http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+    
+    from __future__ import annotations
+    
+    from typing import Optional
+    
+    import grpc
+>   from grpc._cython import cygrpc
+E   ImportError: cannot import name 'cygrpc' from 'grpc._cython' (/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_cython/__init__.py)
+
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_compression.py:20: ImportError
+____ ERROR at setup of test_a_fresh_syn_with_zero_frames_stops_the_sequence ____
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-2812/test_a_fresh_syn_with_zero_fra0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7faa47096cf0>
+
+    @pytest.fixture
+    def tw(tmp_path, monkeypatch):
+        monkeypatch.setenv('CONTENTION_TIMELINE', str(tmp_path / 'timeline.jsonl'))
+>       import timeline_wrapper
+
+tests/test_timeline_wrapper.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+timeline_wrapper.py:34: in <module>
+    import model_driver  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^
+../../../model_driver.py:23: in <module>
+    import bfrt_grpc.client as gc  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py:24: in <module>
+    import grpc
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/__init__.py:22: in <module>
+    from grpc import _compression
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    # Copyright 2019 The gRPC authors.
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #     http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+    
+    from __future__ import annotations
+    
+    from typing import Optional
+    
+    import grpc
+>   from grpc._cython import cygrpc
+E   ImportError: cannot import name 'cygrpc' from 'grpc._cython' (/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_cython/__init__.py)
+
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_compression.py:20: ImportError
+_ ERROR at setup of test_the_stop_is_an_exception_so_the_driver_still_writes_results _
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-2812/test_the_stop_is_an_exception_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7faa32a61400>
+
+    @pytest.fixture
+    def tw(tmp_path, monkeypatch):
+        monkeypatch.setenv('CONTENTION_TIMELINE', str(tmp_path / 'timeline.jsonl'))
+>       import timeline_wrapper
+
+tests/test_timeline_wrapper.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+timeline_wrapper.py:34: in <module>
+    import model_driver  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^
+../../../model_driver.py:23: in <module>
+    import bfrt_grpc.client as gc  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py:24: in <module>
+    import grpc
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/__init__.py:22: in <module>
+    from grpc import _compression
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    # Copyright 2019 The gRPC authors.
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #     http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+    
+    from __future__ import annotations
+    
+    from typing import Optional
+    
+    import grpc
+>   from grpc._cython import cygrpc
+E   ImportError: cannot import name 'cygrpc' from 'grpc._cython' (/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_cython/__init__.py)
+
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_compression.py:20: ImportError
+__ ERROR at setup of test_a_zero_frame_syn_with_model_activity_does_not_stop ___
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-2812/test_a_zero_frame_syn_with_mod0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7faa4705e3f0>
+
+    @pytest.fixture
+    def tw(tmp_path, monkeypatch):
+        monkeypatch.setenv('CONTENTION_TIMELINE', str(tmp_path / 'timeline.jsonl'))
+>       import timeline_wrapper
+
+tests/test_timeline_wrapper.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+timeline_wrapper.py:34: in <module>
+    import model_driver  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^
+../../../model_driver.py:23: in <module>
+    import bfrt_grpc.client as gc  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py:24: in <module>
+    import grpc
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/__init__.py:22: in <module>
+    from grpc import _compression
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    # Copyright 2019 The gRPC authors.
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #     http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+    
+    from __future__ import annotations
+    
+    from typing import Optional
+    
+    import grpc
+>   from grpc._cython import cygrpc
+E   ImportError: cannot import name 'cygrpc' from 'grpc._cython' (/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_cython/__init__.py)
+
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_compression.py:20: ImportError
+______ ERROR at setup of test_a_zero_frame_syn_with_a_silent_model_stops _______
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-2812/test_a_zero_frame_syn_with_a_s0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7faa55bfeae0>
+
+    @pytest.fixture
+    def tw(tmp_path, monkeypatch):
+        monkeypatch.setenv('CONTENTION_TIMELINE', str(tmp_path / 'timeline.jsonl'))
+>       import timeline_wrapper
+
+tests/test_timeline_wrapper.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+timeline_wrapper.py:34: in <module>
+    import model_driver  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^
+../../../model_driver.py:23: in <module>
+    import bfrt_grpc.client as gc  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py:24: in <module>
+    import grpc
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/__init__.py:22: in <module>
+    from grpc import _compression
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    # Copyright 2019 The gRPC authors.
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #     http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+    
+    from __future__ import annotations
+    
+    from typing import Optional
+    
+    import grpc
+>   from grpc._cython import cygrpc
+E   ImportError: cannot import name 'cygrpc' from 'grpc._cython' (/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_cython/__init__.py)
+
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_compression.py:20: ImportError
+___ ERROR at setup of test_an_early_zero_frame_capture_is_labelled_not_quiet ___
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-2812/test_an_early_zero_frame_captu0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7faa32a62ed0>
+
+    @pytest.fixture
+    def tw(tmp_path, monkeypatch):
+        monkeypatch.setenv('CONTENTION_TIMELINE', str(tmp_path / 'timeline.jsonl'))
+>       import timeline_wrapper
+
+tests/test_timeline_wrapper.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+timeline_wrapper.py:34: in <module>
+    import model_driver  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^
+../../../model_driver.py:23: in <module>
+    import bfrt_grpc.client as gc  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py:24: in <module>
+    import grpc
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/__init__.py:22: in <module>
+    from grpc import _compression
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    # Copyright 2019 The gRPC authors.
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #     http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+    
+    from __future__ import annotations
+    
+    from typing import Optional
+    
+    import grpc
+>   from grpc._cython import cygrpc
+E   ImportError: cannot import name 'cygrpc' from 'grpc._cython' (/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_cython/__init__.py)
+
+/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_compression.py:20: ImportError
+=================================== FAILURES ===================================
+_ RelayObservationTests.test_double_growth_and_commit_cannot_pass_a_logical_response _
+
+self = <test_relay_sbo_observation.RelayObservationTests testMethod=test_double_growth_and_commit_cannot_pass_a_logical_response>
+
+        def test_double_growth_and_commit_cannot_pass_a_logical_response(self):
+>           result = probe('''
+    import json
+    before=dict(commit=7,replay=3,growth=50)
+    d.verify_encoding_effect(before,dict(commit=8,replay=3,growth=61))
+    d.verify_encoding_effect(dict(commit=8,replay=3,growth=61),dict(commit=8,replay=4,growth=61),commits=0,replays=1,growth=0)
+    bad=[]
+    for after in [dict(commit=9,replay=3,growth=72),dict(commit=8,replay=3,growth=72),dict(commit=7,replay=3,growth=61)]:
+        try:d.verify_encoding_effect(before,after)
+        except AssertionError:bad.append(after)
+    print(json.dumps(dict(rejected=len(bad))))
+    ''')
+
+tests/test_relay_sbo_observation.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = '\nimport json\nbefore=dict(commit=7,replay=3,growth=50)\nd.verify_encoding_effect(before,dict(commit=8,replay=3,growt...coding_effect(before,after)\n    except AssertionError:bad.append(after)\nprint(json.dumps(dict(rejected=len(bad))))\n'
+
+    def probe(code):
+        env = dict(os.environ, PORT_MAP=str(HERE / 'evidence/m12p_c37_sdk9132/response_only.inputs.json'))
+        setup = 'import sys;sys.path.insert(0,%r)\nimport model_relay_sbo as d\nimport model_repeat as r\n' % str(HERE)
+        result = subprocess.run([sys.executable, '-c', setup + code], env=env, text=True, capture_output=True)
+        if result.returncode:
+>           raise AssertionError(result.stderr)
+E           AssertionError: Traceback (most recent call last):
+E             File "<string>", line 3, in <module>
+E             File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py", line 36, in <module>
+E               helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+E                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E             File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py", line 32, in load
+E               spec.loader.exec_module(module)
+E             File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only/model_drive_composite.py", line 46, in <module>
+E               from model_driver import Model, Report, same_frame, gc  # noqa: E402
+E               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E             File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py", line 23, in <module>
+E               import bfrt_grpc.client as gc  # noqa: E402
+E               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E             File "/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 24, in <module>
+E               import grpc
+E             File "/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/__init__.py", line 22, in <module>
+E               from grpc import _compression
+E             File "/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_compression.py", line 20, in <module>
+E               from grpc._cython import cygrpc
+E           ImportError: cannot import name 'cygrpc' from 'grpc._cython' (/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_cython/__init__.py)
+
+tests/test_relay_sbo_observation.py:17: AssertionError
+_ RelayObservationTests.test_observed_control_bytes_must_match_native_even_with_valid_reframing _
+
+self = <test_relay_sbo_observation.RelayObservationTests testMethod=test_observed_control_bytes_must_match_native_even_with_valid_reframing>
+
+        def test_observed_control_bytes_must_match_native_even_with_valid_reframing(self):
+>           result = probe('''
+    import json
+    native=d.control_frame(63,15,response=True)
+    image=d.control_image(native)
+    packet=r.vectors.packet(24,100,200,reverse=True,payload=image)
+    info=d.verify_control_delivery(native,packet)
+    frames=d.mp.rp.split_frames(image)
+    head,user=d.mp.std.deframe(frames[1]);user=user[:-1]+bytes([user[-1]^1])
+    altered=frames[0]+d.mp.std.frame(head,user)
+    bad=r.vectors.packet(24,100,200,reverse=True,payload=altered)
+    rejected=False
+    try:d.verify_control_delivery(native,bad)
+    except AssertionError:rejected=True
+    bad_checksum=bytearray(packet);bad_checksum[50]^=1
+    checksum_rejected=False
+    try:d.verify_control_delivery(native,bytes(bad_checksum))
+    except AssertionError:checksum_rejected=True
+    print(json.dumps(dict(info=info,rejected=rejected,checksum_rejected=checksum_rejected)))
+    ''')
+
+tests/test_relay_sbo_observation.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = '\nimport json\nnative=d.control_frame(63,15,response=True)\nimage=d.control_image(native)\npacket=r.vectors.packet(24...ror:checksum_rejected=True\nprint(json.dumps(dict(info=info,rejected=rejected,checksum_rejected=checksum_rejected)))\n'
+
+    def probe(code):
+        env = dict(os.environ, PORT_MAP=str(HERE / 'evidence/m12p_c37_sdk9132/response_only.inputs.json'))
+        setup = 'import sys;sys.path.insert(0,%r)\nimport model_relay_sbo as d\nimport model_repeat as r\n' % str(HERE)
+        result = subprocess.run([sys.executable, '-c', setup + code], env=env, text=True, capture_output=True)
+        if result.returncode:
+>           raise AssertionError(result.stderr)
+E           AssertionError: Traceback (most recent call last):
+E             File "<string>", line 3, in <module>
+E             File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py", line 36, in <module>
+E               helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+E                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E             File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py", line 32, in load
+E               spec.loader.exec_module(module)
+E             File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only/model_drive_composite.py", line 46, in <module>
+E               from model_driver import Model, Report, same_frame, gc  # noqa: E402
+E               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E             File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py", line 23, in <module>
+E               import bfrt_grpc.client as gc  # noqa: E402
+E               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E             File "/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 24, in <module>
+E               import grpc
+E             File "/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/__init__.py", line 22, in <module>
+E               from grpc import _compression
+E             File "/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_compression.py", line 20, in <module>
+E               from grpc._cython import cygrpc
+E           ImportError: cannot import name 'cygrpc' from 'grpc._cython' (/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_cython/__init__.py)
+
+tests/test_relay_sbo_observation.py:17: AssertionError
+_ RelayObservationTests.test_partial_ack_cannot_advance_native_frontier_or_change_timestamp _
+
+self = <test_relay_sbo_observation.RelayObservationTests testMethod=test_partial_ack_cannot_advance_native_frontier_or_change_timestamp>
+
+        def test_partial_ack_cannot_advance_native_frontier_or_change_timestamp(self):
+>           result = probe('''
+    import json
+    passed=0;rejected=0
+    for offset in (28,29,59):
+        sent=r.vectors.packet(16,100,900+offset,timestamps=(123,456))
+        correct=bytearray(sent);correct[42:46]=(800).to_bytes(4,'big')
+        correct[48:50]=((4096*128+49-(60-offset))//128).to_bytes(2,'big')
+        correct=d.mp.fix_checksums(bytes(correct))
+        d.verify_partial_ack(sent,correct,800,900);passed+=1
+        wrong=bytearray(correct);wrong[42:46]=(800+offset).to_bytes(4,'big')
+        try:d.verify_partial_ack(sent,d.mp.fix_checksums(bytes(wrong)),800,900)
+        except AssertionError:rejected+=1
+    print(json.dumps(dict(passed=passed,rejected=rejected)))
+    ''')
+
+tests/test_relay_sbo_observation.py:62: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+code = '\nimport json\npassed=0;rejected=0\nfor offset in (28,29,59):\n    sent=r.vectors.packet(16,100,900+offset,timestamps...es(wrong)),800,900)\n    except AssertionError:rejected+=1\nprint(json.dumps(dict(passed=passed,rejected=rejected)))\n'
+
+    def probe(code):
+        env = dict(os.environ, PORT_MAP=str(HERE / 'evidence/m12p_c37_sdk9132/response_only.inputs.json'))
+        setup = 'import sys;sys.path.insert(0,%r)\nimport model_relay_sbo as d\nimport model_repeat as r\n' % str(HERE)
+        result = subprocess.run([sys.executable, '-c', setup + code], env=env, text=True, capture_output=True)
+        if result.returncode:
+>           raise AssertionError(result.stderr)
+E           AssertionError: Traceback (most recent call last):
+E             File "<string>", line 3, in <module>
+E             File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py", line 36, in <module>
+E               helpers = load('_retained_model_helpers', BASE / 'model_drive_composite.py')
+E                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E             File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py", line 32, in load
+E               spec.loader.exec_module(module)
+E             File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only/model_drive_composite.py", line 46, in <module>
+E               from model_driver import Model, Report, same_frame, gc  # noqa: E402
+E               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E             File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py", line 23, in <module>
+E               import bfrt_grpc.client as gc  # noqa: E402
+E               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E             File "/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 24, in <module>
+E               import grpc
+E             File "/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/__init__.py", line 22, in <module>
+E               from grpc import _compression
+E             File "/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_compression.py", line 20, in <module>
+E               from grpc._cython import cygrpc
+E           ImportError: cannot import name 'cygrpc' from 'grpc._cython' (/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/grpc/_cython/__init__.py)
+
+tests/test_relay_sbo_observation.py:17: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_relay_sbo_observation.py::RelayObservationTests::test_double_growth_and_commit_cannot_pass_a_logical_response
+FAILED tests/test_relay_sbo_observation.py::RelayObservationTests::test_observed_control_bytes_must_match_native_even_with_valid_reframing
+FAILED tests/test_relay_sbo_observation.py::RelayObservationTests::test_partial_ack_cannot_advance_native_frontier_or_change_timestamp
+ERROR tests/test_timeline_wrapper.py::test_send_capture_and_cases_are_logged_and_pass_through
+ERROR tests/test_timeline_wrapper.py::test_a_fresh_syn_with_zero_frames_stops_the_sequence
+ERROR tests/test_timeline_wrapper.py::test_the_stop_is_an_exception_so_the_driver_still_writes_results
+ERROR tests/test_timeline_wrapper.py::test_a_zero_frame_syn_with_model_activity_does_not_stop
+ERROR tests/test_timeline_wrapper.py::test_a_zero_frame_syn_with_a_silent_model_stops
+ERROR tests/test_timeline_wrapper.py::test_an_early_zero_frame_capture_is_labelled_not_quiet
+3 failed, 994 passed, 6 errors in 370.95s (0:06:10)

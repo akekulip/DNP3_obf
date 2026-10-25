@@ -1,0 +1,3064 @@
+{
+ "run_id": "rc01_hw_c67_20261025_07_loss_full_950",
+ "ok": true,
+ "failure": null,
+ "arms": [
+  {
+   "fixture": "physical_relay",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "m12p_c67_sdk9132",
+   "trials": [
+    {
+     "fixture": "physical_relay",
+     "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t0",
+     "master_port": 59970,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 0,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12345
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65515,
+       "read": 65494
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 19,
+       "read": 40
+      },
+      "reserves": {
+       "operate": 19,
+       "read": 40
+      },
+      "snapshot": {
+       "bfrt_sha256": "7430330ad3f66e5789487a2e02cc147299b9c6fb8fab1c961d7d20dbeea8ab39",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792948029.3528028,
+       "valid": true
+      },
+      "time": 1792948029.3606749,
+      "budget": {
+       "reads": 20,
+       "sbo_cycles": 1,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 22,
+       "operate_per_connection": 1,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t0_before_generation_headroom.json"
+     },
+     "observed": {
+      "connections": {
+       "single": {
+        "application": true,
+        "preservation": "same-packet originals unobserved",
+        "master_acceptance": true,
+        "timing_gated": false,
+        "precision": {
+         "READ mixed": {
+          "planned": 0,
+          "observed": 0,
+          "eligible": 0,
+          "first_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "complete_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "p99_nearest_rank_abs_error_us": null,
+          "max_abs_error_us": null,
+          "pass_": false
+         },
+         "READ integrity": {
+          "planned": 20,
+          "observed": 20,
+          "eligible": 20,
+          "first_clrt_us": {
+           "n": 20,
+           "min": 18502.0,
+           "p99": 22020.0,
+           "max": 22020.0
+          },
+          "complete_clrt_us": {
+           "n": 20,
+           "min": 18502.0,
+           "p99": 22020.0,
+           "max": 22020.0
+          },
+          "p99_nearest_rank_abs_error_us": 2020.0,
+          "max_abs_error_us": 2020.0,
+          "pass_": false
+         },
+         "SELECT": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 20037.0,
+           "p99": 20037.0,
+           "max": 20037.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 20037.0,
+           "p99": 20037.0,
+           "max": 20037.0
+          },
+          "p99_nearest_rank_abs_error_us": 37.0,
+          "max_abs_error_us": 37.0,
+          "pass_": false
+         },
+         "OPERATE": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 20664.0,
+           "p99": 20664.0,
+           "max": 20664.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 20664.0,
+           "p99": 20664.0,
+           "max": 20664.0
+          },
+          "p99_nearest_rank_abs_error_us": 664.0,
+          "max_abs_error_us": 664.0,
+          "pass_": false
+         }
+        },
+        "switch_residence": "unproven: no relay-side observation",
+        "operate_j": "unproven: no relay-side observation"
+       }
+      },
+      "switch": {
+       "request_duplicates_dropped": 0,
+       "request_duplicates_forwarded": 0,
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 31479,
+        "OUT_ACK_COMMIT": 22,
+        "OUT_RESP_RELEASE": 22,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 1,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_REQ_DUP_DROP": 0,
+        "OUT_REQ_DUP_FORWARD": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 0
+       },
+       "token_stale": 0,
+       "generation_exhausted": 0,
+       "pktgen": {
+        "READ": {
+         "triggers": 21,
+         "pkts": 84
+        },
+        "OPERATE": {
+         "triggers": 1,
+         "pkts": 4
+        }
+       },
+       "token_stale_bound": 4,
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       }
+      },
+      "loss_timing": "not qualified: capture includes intentionally dropped attempts"
+     },
+     "endpoint_profile": "sel751",
+     "dimension_verdicts": {
+      "application": true,
+      "switch": true,
+      "timing": "not_qualified_recovery_or_smoke",
+      "operate_j": "unproven",
+      "same_packet_preservation": "unproven",
+      "loss_target": true
+     },
+     "loss": {
+      "class": "request_full",
+      "n": 3,
+      "occurrence": 1,
+      "base": "request_full",
+      "dir": "M>O",
+      "ip_len": 79,
+      "flags": "ACK,PSH",
+      "length_only": false,
+      "ns": "ns_vepa_b",
+      "chain": "OUTPUT",
+      "mode": "identity u32 one-shot (limit-burst-1)",
+      "rules": [
+       "-p tcp -s 192.168.10.1 -d 192.168.10.7 --sport 59970 --dport 20000 -m length --length 79 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0xefcc8f04 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R3ee2c2c0177c8334  --log-tcp-sequence",
+       "-p tcp -s 192.168.10.1 -d 192.168.10.7 --sport 59970 --dport 20000 -m length --length 79 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0xefcc8f04 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+      ],
+      "counters": [
+       {
+        "pos": 1,
+        "target": "LOG",
+        "pkts": 1,
+        "bytes": 79
+       },
+       {
+        "pos": 2,
+        "target": "DROP",
+        "pkts": 1,
+        "bytes": 79
+       }
+      ],
+      "counter_error": null,
+      "dropped_packets": 1,
+      "dropped_bytes": 79,
+      "earlier_matches": 0,
+      "exact": true,
+      "removed": true,
+      "remove_errors": [],
+      "state_before": [
+       "-P OUTPUT ACCEPT"
+      ],
+      "state_after": [
+       "-P OUTPUT ACCEPT"
+      ],
+      "state_restored": true,
+      "spec": {
+       "text": "request_full:3:identity",
+       "schedule": "full",
+       "padding": 1,
+       "class": "request_full",
+       "n": 3,
+       "dir": "M>O",
+       "ip_len": 79,
+       "flags": "ACK,PSH",
+       "occurrence": 1,
+       "chain": "OUTPUT",
+       "base": "request_full",
+       "operation": "READ",
+       "index": 2,
+       "frontier": "request",
+       "length_only": false,
+       "target": "identity",
+       "match": "SEQ",
+       "response_payload": null
+      },
+      "kernel_log": [
+       "[495286.107386] D4R3ee2c2c0177c8334 IN= OUT=enp59s0f0np0 SRC=192.168.10.1 DST=192.168.10.7 LEN=79 TOS=0x00 PREC=0x00 TTL=64 ID=32806 DF PROTO=TCP SPT=59970 DPT=20000 SEQ=4023160580 ACK=802995938 WINDOW=501 RES=0x00 ACK PSH URGP=0 "
+      ],
+      "kernel_packet": {
+       "LEN": 79,
+       "SPT": 59970,
+       "DPT": 20000,
+       "SEQ": 4023160580,
+       "ACK": 802995938,
+       "SRC": "192.168.10.1",
+       "DST": "192.168.10.7"
+      },
+      "log_rc": 0,
+      "restoration": {
+       "applied": true,
+       "errors": [],
+       "restored": true,
+       "before": [
+        "-P OUTPUT ACCEPT"
+       ],
+       "after": [
+        "-P OUTPUT ACCEPT"
+       ]
+      },
+      "observation_point": "master host OUTPUT",
+      "switch_sides_observed": false,
+      "iptables_version": "iptables v1.8.10 (nf_tables)",
+      "identity": {
+       "armed": true,
+       "key": "SEQ",
+       "value": 4023160580,
+       "master_isn": 4023160525,
+       "relay_isn": 802995621,
+       "operation": "READ",
+       "index": 2,
+       "error": null,
+       "arm_ns": 32665394
+      }
+     }
+    },
+    {
+     "fixture": "physical_relay",
+     "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t1",
+     "master_port": 59971,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 0,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12346
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65515,
+       "read": 65494
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 19,
+       "read": 40
+      },
+      "reserves": {
+       "operate": 19,
+       "read": 40
+      },
+      "snapshot": {
+       "bfrt_sha256": "7430330ad3f66e5789487a2e02cc147299b9c6fb8fab1c961d7d20dbeea8ab39",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792948104.1780386,
+       "valid": true
+      },
+      "time": 1792948104.1860743,
+      "budget": {
+       "reads": 20,
+       "sbo_cycles": 1,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 22,
+       "operate_per_connection": 1,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t1_before_generation_headroom.json"
+     },
+     "observed": {
+      "connections": {
+       "single": {
+        "application": true,
+        "preservation": "same-packet originals unobserved",
+        "master_acceptance": true,
+        "timing_gated": false,
+        "precision": {
+         "READ mixed": {
+          "planned": 0,
+          "observed": 0,
+          "eligible": 0,
+          "first_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "complete_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "p99_nearest_rank_abs_error_us": null,
+          "max_abs_error_us": null,
+          "pass_": false
+         },
+         "READ integrity": {
+          "planned": 20,
+          "observed": 20,
+          "eligible": 20,
+          "first_clrt_us": {
+           "n": 20,
+           "min": 18004.0,
+           "p99": 21714.0,
+           "max": 21714.0
+          },
+          "complete_clrt_us": {
+           "n": 20,
+           "min": 18004.0,
+           "p99": 21714.0,
+           "max": 21714.0
+          },
+          "p99_nearest_rank_abs_error_us": 1996.0,
+          "max_abs_error_us": 1996.0,
+          "pass_": false
+         },
+         "SELECT": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 20293.0,
+           "p99": 20293.0,
+           "max": 20293.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 20293.0,
+           "p99": 20293.0,
+           "max": 20293.0
+          },
+          "p99_nearest_rank_abs_error_us": 293.0,
+          "max_abs_error_us": 293.0,
+          "pass_": false
+         },
+         "OPERATE": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 21050.0,
+           "p99": 21050.0,
+           "max": 21050.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 21050.0,
+           "p99": 21050.0,
+           "max": 21050.0
+          },
+          "p99_nearest_rank_abs_error_us": 1050.0,
+          "max_abs_error_us": 1050.0,
+          "pass_": false
+         }
+        },
+        "switch_residence": "unproven: no relay-side observation",
+        "operate_j": "unproven: no relay-side observation"
+       }
+      },
+      "switch": {
+       "request_duplicates_dropped": 0,
+       "request_duplicates_forwarded": 0,
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 32045,
+        "OUT_ACK_COMMIT": 22,
+        "OUT_RESP_RELEASE": 22,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 1,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_REQ_DUP_DROP": 0,
+        "OUT_REQ_DUP_FORWARD": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 0
+       },
+       "token_stale": 0,
+       "generation_exhausted": 0,
+       "pktgen": {
+        "READ": {
+         "triggers": 21,
+         "pkts": 84
+        },
+        "OPERATE": {
+         "triggers": 1,
+         "pkts": 4
+        }
+       },
+       "token_stale_bound": 4,
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       }
+      },
+      "loss_timing": "not qualified: capture includes intentionally dropped attempts"
+     },
+     "endpoint_profile": "sel751",
+     "dimension_verdicts": {
+      "application": true,
+      "switch": true,
+      "timing": "not_qualified_recovery_or_smoke",
+      "operate_j": "unproven",
+      "same_packet_preservation": "unproven",
+      "loss_target": true
+     },
+     "loss": {
+      "class": "ack_sep",
+      "n": 3,
+      "occurrence": 1,
+      "base": "ack_sep",
+      "dir": "O>M",
+      "ip_len": 52,
+      "flags": "ACK",
+      "length_only": false,
+      "ns": "ns_vepa_a",
+      "chain": "INPUT",
+      "mode": "identity u32 one-shot (limit-burst-1)",
+      "rules": [
+       "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 59971 -m length --length 52 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m u32 --u32 0>>22&0x3C@8=0xbb50f21c -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R0ae5e29487db982f  --log-tcp-sequence",
+       "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 59971 -m length --length 52 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m u32 --u32 0>>22&0x3C@8=0xbb50f21c -m limit --limit 1/hour --limit-burst 1 -j DROP"
+      ],
+      "counters": [
+       {
+        "pos": 1,
+        "target": "LOG",
+        "pkts": 1,
+        "bytes": 52
+       },
+       {
+        "pos": 2,
+        "target": "DROP",
+        "pkts": 1,
+        "bytes": 52
+       }
+      ],
+      "counter_error": null,
+      "dropped_packets": 1,
+      "dropped_bytes": 52,
+      "earlier_matches": 0,
+      "exact": true,
+      "removed": true,
+      "remove_errors": [],
+      "state_before": [
+       "-P INPUT ACCEPT"
+      ],
+      "state_after": [
+       "-P INPUT ACCEPT"
+      ],
+      "state_restored": true,
+      "spec": {
+       "text": "ack_sep:3:identity",
+       "schedule": "full",
+       "padding": 1,
+       "class": "ack_sep",
+       "n": 3,
+       "dir": "O>M",
+       "ip_len": 52,
+       "flags": "ACK",
+       "occurrence": 1,
+       "chain": "INPUT",
+       "base": "ack_sep",
+       "operation": "READ",
+       "index": 2,
+       "frontier": "request_ack",
+       "length_only": false,
+       "target": "identity",
+       "match": "ACK",
+       "response_payload": null
+      },
+      "kernel_log": [
+       "[495360.938613] D4R0ae5e29487db982f IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=52 TOS=0x00 PREC=0x00 TTL=64 ID=13585 PROTO=TCP SPT=20000 DPT=59971 SEQ=821846635 ACK=3142644252 WINDOW=8607 RES=0x00 ACK URGP=0 "
+      ],
+      "kernel_packet": {
+       "LEN": 52,
+       "SPT": 20000,
+       "DPT": 59971,
+       "SEQ": 821846635,
+       "ACK": 3142644252,
+       "SRC": "192.168.10.7",
+       "DST": "192.168.10.1"
+      },
+      "log_rc": 0,
+      "restoration": {
+       "applied": true,
+       "errors": [],
+       "restored": true,
+       "before": [
+        "-P INPUT ACCEPT"
+       ],
+       "after": [
+        "-P INPUT ACCEPT"
+       ]
+      },
+      "observation_point": "master host INPUT",
+      "switch_sides_observed": false,
+      "iptables_version": "iptables v1.8.10 (nf_tables)",
+      "identity": {
+       "armed": true,
+       "key": "ACK",
+       "value": 3142644252,
+       "master_isn": 3142644170,
+       "relay_isn": 821846318,
+       "operation": "READ",
+       "index": 2,
+       "error": null,
+       "arm_ns": 35372041
+      }
+     }
+    },
+    {
+     "fixture": "physical_relay",
+     "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t2",
+     "master_port": 59972,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 0,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12347
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65515,
+       "read": 65494
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 19,
+       "read": 40
+      },
+      "reserves": {
+       "operate": 19,
+       "read": 40
+      },
+      "snapshot": {
+       "bfrt_sha256": "7430330ad3f66e5789487a2e02cc147299b9c6fb8fab1c961d7d20dbeea8ab39",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792948178.8560932,
+       "valid": true
+      },
+      "time": 1792948178.8640141,
+      "budget": {
+       "reads": 20,
+       "sbo_cycles": 1,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 22,
+       "operate_per_connection": 1,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t2_before_generation_headroom.json"
+     },
+     "observed": {
+      "connections": {
+       "single": {
+        "application": true,
+        "preservation": "same-packet originals unobserved",
+        "master_acceptance": true,
+        "timing_gated": false,
+        "precision": {
+         "READ mixed": {
+          "planned": 0,
+          "observed": 0,
+          "eligible": 0,
+          "first_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "complete_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "p99_nearest_rank_abs_error_us": null,
+          "max_abs_error_us": null,
+          "pass_": false
+         },
+         "READ integrity": {
+          "planned": 20,
+          "observed": 20,
+          "eligible": 20,
+          "first_clrt_us": {
+           "n": 20,
+           "min": 18540.0,
+           "p99": 21964.0,
+           "max": 21964.0
+          },
+          "complete_clrt_us": {
+           "n": 20,
+           "min": 18540.0,
+           "p99": 21964.0,
+           "max": 21964.0
+          },
+          "p99_nearest_rank_abs_error_us": 1964.0,
+          "max_abs_error_us": 1964.0,
+          "pass_": false
+         },
+         "SELECT": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 18041.0,
+           "p99": 18041.0,
+           "max": 18041.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 18041.0,
+           "p99": 18041.0,
+           "max": 18041.0
+          },
+          "p99_nearest_rank_abs_error_us": 1959.0,
+          "max_abs_error_us": 1959.0,
+          "pass_": false
+         },
+         "OPERATE": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 20005.0,
+           "p99": 20005.0,
+           "max": 20005.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 20005.0,
+           "p99": 20005.0,
+           "max": 20005.0
+          },
+          "p99_nearest_rank_abs_error_us": 5.0,
+          "max_abs_error_us": 5.0,
+          "pass_": false
+         }
+        },
+        "switch_residence": "unproven: no relay-side observation",
+        "operate_j": "unproven: no relay-side observation"
+       }
+      },
+      "switch": {
+       "request_duplicates_dropped": 0,
+       "request_duplicates_forwarded": 0,
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 30688,
+        "OUT_ACK_COMMIT": 22,
+        "OUT_RESP_RELEASE": 22,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 1,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_REQ_DUP_DROP": 0,
+        "OUT_REQ_DUP_FORWARD": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 0
+       },
+       "token_stale": 0,
+       "generation_exhausted": 0,
+       "pktgen": {
+        "READ": {
+         "triggers": 21,
+         "pkts": 84
+        },
+        "OPERATE": {
+         "triggers": 1,
+         "pkts": 4
+        }
+       },
+       "token_stale_bound": 4,
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       }
+      },
+      "loss_timing": "not qualified: capture includes intentionally dropped attempts"
+     },
+     "endpoint_profile": "sel751",
+     "dimension_verdicts": {
+      "application": true,
+      "switch": true,
+      "timing": "not_qualified_recovery_or_smoke",
+      "operate_j": "unproven",
+      "same_packet_preservation": "unproven",
+      "loss_target": true
+     },
+     "loss": {
+      "class": "read_resp_padded",
+      "n": 3,
+      "occurrence": 1,
+      "base": "read_resp_padded",
+      "dir": "O>M",
+      "ip_len": 210,
+      "flags": "ACK,PSH",
+      "length_only": false,
+      "ns": "ns_vepa_a",
+      "chain": "INPUT",
+      "mode": "identity u32 one-shot (limit-burst-1)",
+      "rules": [
+       "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 59972 -m length --length 210 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x321bb038 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4Rad696ec633c1e229  --log-tcp-sequence",
+       "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 59972 -m length --length 210 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x321bb038 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+      ],
+      "counters": [
+       {
+        "pos": 1,
+        "target": "LOG",
+        "pkts": 1,
+        "bytes": 210
+       },
+       {
+        "pos": 2,
+        "target": "DROP",
+        "pkts": 1,
+        "bytes": 210
+       }
+      ],
+      "counter_error": null,
+      "dropped_packets": 1,
+      "dropped_bytes": 210,
+      "earlier_matches": 0,
+      "exact": true,
+      "removed": true,
+      "remove_errors": [],
+      "state_before": [
+       "-P INPUT ACCEPT"
+      ],
+      "state_after": [
+       "-P INPUT ACCEPT"
+      ],
+      "state_restored": true,
+      "spec": {
+       "text": "read_resp_padded:3:identity",
+       "schedule": "full",
+       "padding": 1,
+       "class": "read_resp_padded",
+       "n": 3,
+       "dir": "O>M",
+       "ip_len": 210,
+       "flags": "ACK,PSH",
+       "occurrence": 1,
+       "chain": "INPUT",
+       "base": "read_resp_padded",
+       "operation": "READ",
+       "index": 2,
+       "frontier": "response",
+       "length_only": false,
+       "target": "identity",
+       "match": "SEQ",
+       "response_payload": null
+      },
+      "kernel_log": [
+       "[495435.842410] D4Rad696ec633c1e229 IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=210 TOS=0x00 PREC=0x00 TTL=64 ID=13633 PROTO=TCP SPT=20000 DPT=59972 SEQ=840675384 ACK=3208572673 WINDOW=8607 RES=0x00 ACK PSH URGP=0 "
+      ],
+      "kernel_packet": {
+       "LEN": 210,
+       "SPT": 20000,
+       "DPT": 59972,
+       "SEQ": 840675384,
+       "ACK": 3208572673,
+       "SRC": "192.168.10.7",
+       "DST": "192.168.10.1"
+      },
+      "log_rc": 0,
+      "restoration": {
+       "applied": true,
+       "errors": [],
+       "restored": true,
+       "before": [
+        "-P INPUT ACCEPT"
+       ],
+       "after": [
+        "-P INPUT ACCEPT"
+       ]
+      },
+      "observation_point": "master host INPUT",
+      "switch_sides_observed": false,
+      "iptables_version": "iptables v1.8.10 (nf_tables)",
+      "identity": {
+       "armed": true,
+       "key": "SEQ",
+       "value": 840675384,
+       "master_isn": 3208572591,
+       "relay_isn": 840675067,
+       "operation": "READ",
+       "index": 2,
+       "error": null,
+       "arm_ns": 35279320
+      }
+     }
+    },
+    {
+     "fixture": "physical_relay",
+     "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t3",
+     "master_port": 59973,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 0,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12348
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65515,
+       "read": 65494
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 19,
+       "read": 40
+      },
+      "reserves": {
+       "operate": 19,
+       "read": 40
+      },
+      "snapshot": {
+       "bfrt_sha256": "7430330ad3f66e5789487a2e02cc147299b9c6fb8fab1c961d7d20dbeea8ab39",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792948254.8110914,
+       "valid": true
+      },
+      "time": 1792948254.8191917,
+      "budget": {
+       "reads": 20,
+       "sbo_cycles": 1,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 22,
+       "operate_per_connection": 1,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t3_before_generation_headroom.json"
+     },
+     "observed": {
+      "connections": {
+       "single": {
+        "application": true,
+        "preservation": "same-packet originals unobserved",
+        "master_acceptance": true,
+        "timing_gated": false,
+        "precision": {
+         "READ mixed": {
+          "planned": 0,
+          "observed": 0,
+          "eligible": 0,
+          "first_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "complete_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "p99_nearest_rank_abs_error_us": null,
+          "max_abs_error_us": null,
+          "pass_": false
+         },
+         "READ integrity": {
+          "planned": 20,
+          "observed": 20,
+          "eligible": 20,
+          "first_clrt_us": {
+           "n": 20,
+           "min": 18103.0,
+           "p99": 22725.0,
+           "max": 22725.0
+          },
+          "complete_clrt_us": {
+           "n": 20,
+           "min": 18103.0,
+           "p99": 22725.0,
+           "max": 22725.0
+          },
+          "p99_nearest_rank_abs_error_us": 2725.0,
+          "max_abs_error_us": 2725.0,
+          "pass_": false
+         },
+         "SELECT": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 20860.0,
+           "p99": 20860.0,
+           "max": 20860.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 20860.0,
+           "p99": 20860.0,
+           "max": 20860.0
+          },
+          "p99_nearest_rank_abs_error_us": 860.0,
+          "max_abs_error_us": 860.0,
+          "pass_": false
+         },
+         "OPERATE": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 18659.0,
+           "p99": 18659.0,
+           "max": 18659.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 18659.0,
+           "p99": 18659.0,
+           "max": 18659.0
+          },
+          "p99_nearest_rank_abs_error_us": 1341.0,
+          "max_abs_error_us": 1341.0,
+          "pass_": false
+         }
+        },
+        "switch_residence": "unproven: no relay-side observation",
+        "operate_j": "unproven: no relay-side observation"
+       }
+      },
+      "switch": {
+       "request_duplicates_dropped": 0,
+       "request_duplicates_forwarded": 0,
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 32306,
+        "OUT_ACK_COMMIT": 22,
+        "OUT_RESP_RELEASE": 22,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 1,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_REQ_DUP_DROP": 0,
+        "OUT_REQ_DUP_FORWARD": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 0
+       },
+       "token_stale": 0,
+       "generation_exhausted": 0,
+       "pktgen": {
+        "READ": {
+         "triggers": 21,
+         "pkts": 84
+        },
+        "OPERATE": {
+         "triggers": 1,
+         "pkts": 4
+        }
+       },
+       "token_stale_bound": 4,
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       }
+      },
+      "loss_timing": "not qualified: capture includes intentionally dropped attempts"
+     },
+     "endpoint_profile": "sel751",
+     "dimension_verdicts": {
+      "application": true,
+      "switch": true,
+      "timing": "not_qualified_recovery_or_smoke",
+      "operate_j": "unproven",
+      "same_packet_preservation": "unproven",
+      "loss_target": true
+     },
+     "loss": {
+      "class": "select_resp_padded",
+      "n": 1,
+      "occurrence": 1,
+      "base": "select_resp_padded",
+      "dir": "O>M",
+      "ip_len": 112,
+      "flags": "ACK,PSH",
+      "length_only": false,
+      "ns": "ns_vepa_a",
+      "chain": "INPUT",
+      "mode": "identity u32 one-shot (limit-burst-1)",
+      "rules": [
+       "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 59973 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x333ff6b4 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R215656e806286581  --log-tcp-sequence",
+       "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 59973 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x333ff6b4 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+      ],
+      "counters": [
+       {
+        "pos": 1,
+        "target": "LOG",
+        "pkts": 1,
+        "bytes": 112
+       },
+       {
+        "pos": 2,
+        "target": "DROP",
+        "pkts": 1,
+        "bytes": 112
+       }
+      ],
+      "counter_error": null,
+      "dropped_packets": 1,
+      "dropped_bytes": 112,
+      "earlier_matches": 0,
+      "exact": true,
+      "removed": true,
+      "remove_errors": [],
+      "state_before": [
+       "-P INPUT ACCEPT"
+      ],
+      "state_after": [
+       "-P INPUT ACCEPT"
+      ],
+      "state_restored": true,
+      "spec": {
+       "text": "select_resp_padded:1:identity",
+       "schedule": "full",
+       "padding": 1,
+       "class": "select_resp_padded",
+       "n": 1,
+       "dir": "O>M",
+       "ip_len": 112,
+       "flags": "ACK,PSH",
+       "occurrence": 1,
+       "chain": "INPUT",
+       "base": "select_resp_padded",
+       "operation": "SELECT",
+       "index": 0,
+       "frontier": "response",
+       "length_only": false,
+       "target": "identity",
+       "match": "SEQ",
+       "response_payload": null
+      },
+      "kernel_log": [
+       "[495512.564577] D4R215656e806286581 IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=13717 PROTO=TCP SPT=20000 DPT=59973 SEQ=859829940 ACK=445548232 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+      ],
+      "kernel_packet": {
+       "LEN": 112,
+       "SPT": 20000,
+       "DPT": 59973,
+       "SEQ": 859829940,
+       "ACK": 445548232,
+       "SRC": "192.168.10.7",
+       "DST": "192.168.10.1"
+      },
+      "log_rc": 0,
+      "restoration": {
+       "applied": true,
+       "errors": [],
+       "restored": true,
+       "before": [
+        "-P INPUT ACCEPT"
+       ],
+       "after": [
+        "-P INPUT ACCEPT"
+       ]
+      },
+      "observation_point": "master host INPUT",
+      "switch_sides_observed": false,
+      "iptables_version": "iptables v1.8.10 (nf_tables)",
+      "identity": {
+       "armed": true,
+       "key": "SEQ",
+       "value": 859829940,
+       "master_isn": 445547646,
+       "relay_isn": 859826779,
+       "operation": "SELECT",
+       "index": 0,
+       "error": null,
+       "arm_ns": 30707126
+      }
+     }
+    },
+    {
+     "fixture": "physical_relay",
+     "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t4",
+     "master_port": 59974,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 0,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12349
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65515,
+       "read": 65494
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 19,
+       "read": 40
+      },
+      "reserves": {
+       "operate": 19,
+       "read": 40
+      },
+      "snapshot": {
+       "bfrt_sha256": "7430330ad3f66e5789487a2e02cc147299b9c6fb8fab1c961d7d20dbeea8ab39",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792948330.4057536,
+       "valid": true
+      },
+      "time": 1792948330.4136035,
+      "budget": {
+       "reads": 20,
+       "sbo_cycles": 1,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 22,
+       "operate_per_connection": 1,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t4_before_generation_headroom.json"
+     },
+     "observed": {
+      "connections": {
+       "single": {
+        "application": true,
+        "preservation": "same-packet originals unobserved",
+        "master_acceptance": true,
+        "timing_gated": false,
+        "precision": {
+         "READ mixed": {
+          "planned": 0,
+          "observed": 0,
+          "eligible": 0,
+          "first_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "complete_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "p99_nearest_rank_abs_error_us": null,
+          "max_abs_error_us": null,
+          "pass_": false
+         },
+         "READ integrity": {
+          "planned": 20,
+          "observed": 20,
+          "eligible": 20,
+          "first_clrt_us": {
+           "n": 20,
+           "min": 18227.0,
+           "p99": 21929.0,
+           "max": 21929.0
+          },
+          "complete_clrt_us": {
+           "n": 20,
+           "min": 18227.0,
+           "p99": 21929.0,
+           "max": 21929.0
+          },
+          "p99_nearest_rank_abs_error_us": 1929.0,
+          "max_abs_error_us": 1929.0,
+          "pass_": false
+         },
+         "SELECT": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 20220.0,
+           "p99": 20220.0,
+           "max": 20220.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 20220.0,
+           "p99": 20220.0,
+           "max": 20220.0
+          },
+          "p99_nearest_rank_abs_error_us": 220.0,
+          "max_abs_error_us": 220.0,
+          "pass_": false
+         },
+         "OPERATE": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 20036.0,
+           "p99": 20036.0,
+           "max": 20036.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 20036.0,
+           "p99": 20036.0,
+           "max": 20036.0
+          },
+          "p99_nearest_rank_abs_error_us": 36.0,
+          "max_abs_error_us": 36.0,
+          "pass_": false
+         }
+        },
+        "switch_residence": "unproven: no relay-side observation",
+        "operate_j": "unproven: no relay-side observation"
+       }
+      },
+      "switch": {
+       "request_duplicates_dropped": 0,
+       "request_duplicates_forwarded": 0,
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 31673,
+        "OUT_ACK_COMMIT": 22,
+        "OUT_RESP_RELEASE": 22,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 1,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_REQ_DUP_DROP": 0,
+        "OUT_REQ_DUP_FORWARD": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 0
+       },
+       "token_stale": 0,
+       "generation_exhausted": 0,
+       "pktgen": {
+        "READ": {
+         "triggers": 21,
+         "pkts": 84
+        },
+        "OPERATE": {
+         "triggers": 1,
+         "pkts": 4
+        }
+       },
+       "token_stale_bound": 4,
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       }
+      },
+      "loss_timing": "not qualified: capture includes intentionally dropped attempts"
+     },
+     "endpoint_profile": "sel751",
+     "dimension_verdicts": {
+      "application": true,
+      "switch": true,
+      "timing": "not_qualified_recovery_or_smoke",
+      "operate_j": "unproven",
+      "same_packet_preservation": "unproven",
+      "loss_target": true
+     },
+     "loss": {
+      "class": "operate_req",
+      "n": 1,
+      "occurrence": 1,
+      "base": "operate_req",
+      "dir": "M>O",
+      "ip_len": 97,
+      "flags": "ACK,PSH",
+      "length_only": false,
+      "ns": "ns_vepa_b",
+      "chain": "OUTPUT",
+      "mode": "identity u32 one-shot (limit-burst-1)",
+      "rules": [
+       "-p tcp -s 192.168.10.1 -d 192.168.10.7 --sport 59974 --dport 20000 -m length --length 97 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0xf7e570ac -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4Ra6e42458859681fc  --log-tcp-sequence",
+       "-p tcp -s 192.168.10.1 -d 192.168.10.7 --sport 59974 --dport 20000 -m length --length 97 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0xf7e570ac -m limit --limit 1/hour --limit-burst 1 -j DROP"
+      ],
+      "counters": [
+       {
+        "pos": 1,
+        "target": "LOG",
+        "pkts": 1,
+        "bytes": 97
+       },
+       {
+        "pos": 2,
+        "target": "DROP",
+        "pkts": 1,
+        "bytes": 97
+       }
+      ],
+      "counter_error": null,
+      "dropped_packets": 1,
+      "dropped_bytes": 97,
+      "earlier_matches": 0,
+      "exact": true,
+      "removed": true,
+      "remove_errors": [],
+      "state_before": [
+       "-P OUTPUT ACCEPT"
+      ],
+      "state_after": [
+       "-P OUTPUT ACCEPT"
+      ],
+      "state_restored": true,
+      "spec": {
+       "text": "operate_req:1:identity",
+       "schedule": "full",
+       "padding": 1,
+       "class": "operate_req",
+       "n": 1,
+       "dir": "M>O",
+       "ip_len": 97,
+       "flags": "ACK,PSH",
+       "occurrence": 1,
+       "chain": "OUTPUT",
+       "base": "operate_req",
+       "operation": "OPERATE",
+       "index": 0,
+       "frontier": "request",
+       "length_only": false,
+       "target": "identity",
+       "match": "SEQ",
+       "response_payload": null
+      },
+      "kernel_log": [
+       "[495588.134482] D4Ra6e42458859681fc IN= OUT=enp59s0f0np0 SRC=192.168.10.1 DST=192.168.10.7 LEN=97 TOS=0x00 PREC=0x00 TTL=64 ID=9707 DF PROTO=TCP SPT=59974 DPT=20000 SEQ=4159008940 ACK=878873179 WINDOW=501 RES=0x00 ACK PSH URGP=0 "
+      ],
+      "kernel_packet": {
+       "LEN": 97,
+       "SPT": 59974,
+       "DPT": 20000,
+       "SEQ": 4159008940,
+       "ACK": 878873179,
+       "SRC": "192.168.10.1",
+       "DST": "192.168.10.7"
+      },
+      "log_rc": 0,
+      "restoration": {
+       "applied": true,
+       "errors": [],
+       "restored": true,
+       "before": [
+        "-P OUTPUT ACCEPT"
+       ],
+       "after": [
+        "-P OUTPUT ACCEPT"
+       ]
+      },
+      "observation_point": "master host OUTPUT",
+      "switch_sides_observed": false,
+      "iptables_version": "iptables v1.8.10 (nf_tables)",
+      "identity": {
+       "armed": true,
+       "key": "SEQ",
+       "value": 4159008940,
+       "master_isn": 4159008354,
+       "relay_isn": 878869958,
+       "operation": "OPERATE",
+       "index": 0,
+       "error": null,
+       "arm_ns": 34358230
+      }
+     }
+    },
+    {
+     "fixture": "physical_relay",
+     "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t5",
+     "master_port": 59975,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 0,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12350
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65515,
+       "read": 65494
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 19,
+       "read": 40
+      },
+      "reserves": {
+       "operate": 19,
+       "read": 40
+      },
+      "snapshot": {
+       "bfrt_sha256": "7430330ad3f66e5789487a2e02cc147299b9c6fb8fab1c961d7d20dbeea8ab39",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792948405.400679,
+       "valid": true
+      },
+      "time": 1792948405.4088233,
+      "budget": {
+       "reads": 20,
+       "sbo_cycles": 1,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 22,
+       "operate_per_connection": 1,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t5_before_generation_headroom.json"
+     },
+     "observed": {
+      "connections": {
+       "single": {
+        "application": true,
+        "preservation": "same-packet originals unobserved",
+        "master_acceptance": true,
+        "timing_gated": false,
+        "precision": {
+         "READ mixed": {
+          "planned": 0,
+          "observed": 0,
+          "eligible": 0,
+          "first_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "complete_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "p99_nearest_rank_abs_error_us": null,
+          "max_abs_error_us": null,
+          "pass_": false
+         },
+         "READ integrity": {
+          "planned": 20,
+          "observed": 20,
+          "eligible": 20,
+          "first_clrt_us": {
+           "n": 20,
+           "min": 18020.0,
+           "p99": 21626.0,
+           "max": 21626.0
+          },
+          "complete_clrt_us": {
+           "n": 20,
+           "min": 18020.0,
+           "p99": 21626.0,
+           "max": 21626.0
+          },
+          "p99_nearest_rank_abs_error_us": 1980.0,
+          "max_abs_error_us": 1980.0,
+          "pass_": false
+         },
+         "SELECT": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 20241.0,
+           "p99": 20241.0,
+           "max": 20241.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 20241.0,
+           "p99": 20241.0,
+           "max": 20241.0
+          },
+          "p99_nearest_rank_abs_error_us": 241.0,
+          "max_abs_error_us": 241.0,
+          "pass_": false
+         },
+         "OPERATE": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 20018.0,
+           "p99": 20018.0,
+           "max": 20018.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 20018.0,
+           "p99": 20018.0,
+           "max": 20018.0
+          },
+          "p99_nearest_rank_abs_error_us": 18.0,
+          "max_abs_error_us": 18.0,
+          "pass_": false
+         }
+        },
+        "switch_residence": "unproven: no relay-side observation",
+        "operate_j": "unproven: no relay-side observation"
+       }
+      },
+      "switch": {
+       "request_duplicates_dropped": 0,
+       "request_duplicates_forwarded": 0,
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 31821,
+        "OUT_ACK_COMMIT": 22,
+        "OUT_RESP_RELEASE": 22,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 1,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_REQ_DUP_DROP": 0,
+        "OUT_REQ_DUP_FORWARD": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 0
+       },
+       "token_stale": 0,
+       "generation_exhausted": 0,
+       "pktgen": {
+        "READ": {
+         "triggers": 21,
+         "pkts": 84
+        },
+        "OPERATE": {
+         "triggers": 1,
+         "pkts": 4
+        }
+       },
+       "token_stale_bound": 4,
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       }
+      },
+      "loss_timing": "not qualified: capture includes intentionally dropped attempts"
+     },
+     "endpoint_profile": "sel751",
+     "dimension_verdicts": {
+      "application": true,
+      "switch": true,
+      "timing": "not_qualified_recovery_or_smoke",
+      "operate_j": "unproven",
+      "same_packet_preservation": "unproven",
+      "loss_target": true
+     },
+     "loss": {
+      "class": "operate_resp_padded",
+      "n": 1,
+      "occurrence": 1,
+      "base": "operate_resp_padded",
+      "dir": "O>M",
+      "ip_len": 112,
+      "flags": "ACK,PSH",
+      "length_only": false,
+      "ns": "ns_vepa_a",
+      "chain": "INPUT",
+      "mode": "identity u32 one-shot (limit-burst-1)",
+      "rules": [
+       "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 59975 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x35833ed7 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R0def55da29c35d20  --log-tcp-sequence",
+       "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 59975 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x35833ed7 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+      ],
+      "counters": [
+       {
+        "pos": 1,
+        "target": "LOG",
+        "pkts": 1,
+        "bytes": 112
+       },
+       {
+        "pos": 2,
+        "target": "DROP",
+        "pkts": 1,
+        "bytes": 112
+       }
+      ],
+      "counter_error": null,
+      "dropped_packets": 1,
+      "dropped_bytes": 112,
+      "earlier_matches": 0,
+      "exact": true,
+      "removed": true,
+      "remove_errors": [],
+      "state_before": [
+       "-P INPUT ACCEPT"
+      ],
+      "state_after": [
+       "-P INPUT ACCEPT"
+      ],
+      "state_restored": true,
+      "spec": {
+       "text": "operate_resp_padded:1:identity",
+       "schedule": "full",
+       "padding": 1,
+       "class": "operate_resp_padded",
+       "n": 1,
+       "dir": "O>M",
+       "ip_len": 112,
+       "flags": "ACK,PSH",
+       "occurrence": 1,
+       "chain": "INPUT",
+       "base": "operate_resp_padded",
+       "operation": "OPERATE",
+       "index": 0,
+       "frontier": "response",
+       "length_only": false,
+       "target": "identity",
+       "match": "SEQ",
+       "response_payload": null
+      },
+      "kernel_log": [
+       "[495663.377247] D4R0def55da29c35d20 IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=13814 PROTO=TCP SPT=20000 DPT=59975 SEQ=897793751 ACK=3294151258 WINDOW=8058 RES=0x00 ACK PSH URGP=0 "
+      ],
+      "kernel_packet": {
+       "LEN": 112,
+       "SPT": 20000,
+       "DPT": 59975,
+       "SEQ": 897793751,
+       "ACK": 3294151258,
+       "SRC": "192.168.10.7",
+       "DST": "192.168.10.1"
+      },
+      "log_rc": 0,
+      "restoration": {
+       "applied": true,
+       "errors": [],
+       "restored": true,
+       "before": [
+        "-P INPUT ACCEPT"
+       ],
+       "after": [
+        "-P INPUT ACCEPT"
+       ]
+      },
+      "observation_point": "master host INPUT",
+      "switch_sides_observed": false,
+      "iptables_version": "iptables v1.8.10 (nf_tables)",
+      "identity": {
+       "armed": true,
+       "key": "SEQ",
+       "value": 897793751,
+       "master_isn": 3294150627,
+       "relay_isn": 897790530,
+       "operation": "OPERATE",
+       "index": 0,
+       "error": null,
+       "arm_ns": 35269551
+      }
+     }
+    },
+    {
+     "fixture": "physical_relay",
+     "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t6",
+     "master_port": 59976,
+     "reads": 20,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 0,
+      "gap_ms": 0,
+      "start_delay_ms": 0,
+      "start_seed": 12351
+     },
+     "generation_headroom": {
+      "current": {
+       "operate": 0,
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "operate": "p1.t_Ingress.op_gen_alloc_reg",
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "operate": 65515,
+       "read": 65494
+      },
+      "remaining_before_reserve": {
+       "operate": 65534,
+       "read": 65534
+      },
+      "reserve": {
+       "operate": 19,
+       "read": 40
+      },
+      "reserves": {
+       "operate": 19,
+       "read": 40
+      },
+      "snapshot": {
+       "bfrt_sha256": "7430330ad3f66e5789487a2e02cc147299b9c6fb8fab1c961d7d20dbeea8ab39",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.op_gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1792948481.2840812,
+       "valid": true
+      },
+      "time": 1792948481.2935636,
+      "budget": {
+       "reads": 20,
+       "sbo_cycles": 1,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 22,
+       "operate_per_connection": 1,
+       "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t6_before_generation_headroom.json"
+     },
+     "observed": {
+      "connections": {
+       "single": {
+        "application": true,
+        "preservation": "same-packet originals unobserved",
+        "master_acceptance": true,
+        "timing_gated": false,
+        "precision": {
+         "READ mixed": {
+          "planned": 0,
+          "observed": 0,
+          "eligible": 0,
+          "first_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "complete_clrt_us": {
+           "n": 0,
+           "min": null,
+           "p99": null,
+           "max": null
+          },
+          "p99_nearest_rank_abs_error_us": null,
+          "max_abs_error_us": null,
+          "pass_": false
+         },
+         "READ integrity": {
+          "planned": 20,
+          "observed": 20,
+          "eligible": 20,
+          "first_clrt_us": {
+           "n": 20,
+           "min": 18392.0,
+           "p99": 21317.0,
+           "max": 21317.0
+          },
+          "complete_clrt_us": {
+           "n": 20,
+           "min": 18392.0,
+           "p99": 21317.0,
+           "max": 21317.0
+          },
+          "p99_nearest_rank_abs_error_us": 1608.0,
+          "max_abs_error_us": 1608.0,
+          "pass_": false
+         },
+         "SELECT": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 20818.0,
+           "p99": 20818.0,
+           "max": 20818.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 20818.0,
+           "p99": 20818.0,
+           "max": 20818.0
+          },
+          "p99_nearest_rank_abs_error_us": 818.0,
+          "max_abs_error_us": 818.0,
+          "pass_": false
+         },
+         "OPERATE": {
+          "planned": 1,
+          "observed": 1,
+          "eligible": 1,
+          "first_clrt_us": {
+           "n": 1,
+           "min": 20021.0,
+           "p99": 20021.0,
+           "max": 20021.0
+          },
+          "complete_clrt_us": {
+           "n": 1,
+           "min": 20021.0,
+           "p99": 20021.0,
+           "max": 20021.0
+          },
+          "p99_nearest_rank_abs_error_us": 21.0,
+          "max_abs_error_us": 21.0,
+          "pass_": false
+         }
+        },
+        "switch_residence": "unproven: no relay-side observation",
+        "operate_j": "unproven: no relay-side observation"
+       }
+      },
+      "switch": {
+       "request_duplicates_dropped": 0,
+       "request_duplicates_forwarded": 0,
+       "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 31378,
+        "OUT_ACK_COMMIT": 22,
+        "OUT_RESP_RELEASE": 22,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 1,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_REQ_DUP_DROP": 0,
+        "OUT_REQ_DUP_FORWARD": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 0
+       },
+       "token_stale": 0,
+       "generation_exhausted": 0,
+       "pktgen": {
+        "READ": {
+         "triggers": 21,
+         "pkts": 84
+        },
+        "OPERATE": {
+         "triggers": 1,
+         "pkts": 4
+        }
+       },
+       "token_stale_bound": 4,
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+       }
+      },
+      "loss_timing": "not qualified: capture includes intentionally dropped attempts"
+     },
+     "endpoint_profile": "sel751",
+     "dimension_verdicts": {
+      "application": true,
+      "switch": true,
+      "timing": "not_qualified_recovery_or_smoke",
+      "operate_j": "unproven",
+      "same_packet_preservation": "unproven",
+      "loss_target": true
+     },
+     "loss": {
+      "class": "master_ack_of_padded_data",
+      "n": 1,
+      "occurrence": 1,
+      "base": "master_ack_of_padded_data",
+      "dir": "M>O",
+      "ip_len": 52,
+      "flags": "ACK",
+      "length_only": false,
+      "ns": "ns_vepa_b",
+      "chain": "OUTPUT",
+      "mode": "identity u32 one-shot (limit-burst-1)",
+      "rules": [
+       "-p tcp -s 192.168.10.1 -d 192.168.10.7 --sport 59976 --dport 20000 -m length --length 52 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m u32 --u32 0>>22&0x3C@8=0x36a6dbfb -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R9d720b007da97fb6  --log-tcp-sequence",
+       "-p tcp -s 192.168.10.1 -d 192.168.10.7 --sport 59976 --dport 20000 -m length --length 52 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m u32 --u32 0>>22&0x3C@8=0x36a6dbfb -m limit --limit 1/hour --limit-burst 1 -j DROP"
+      ],
+      "counters": [
+       {
+        "pos": 1,
+        "target": "LOG",
+        "pkts": 1,
+        "bytes": 52
+       },
+       {
+        "pos": 2,
+        "target": "DROP",
+        "pkts": 1,
+        "bytes": 52
+       }
+      ],
+      "counter_error": null,
+      "dropped_packets": 1,
+      "dropped_bytes": 52,
+      "earlier_matches": 0,
+      "exact": true,
+      "removed": true,
+      "remove_errors": [],
+      "state_before": [
+       "-P OUTPUT ACCEPT"
+      ],
+      "state_after": [
+       "-P OUTPUT ACCEPT"
+      ],
+      "state_restored": true,
+      "spec": {
+       "text": "master_ack_of_padded_data:1:identity",
+       "schedule": "full",
+       "padding": 1,
+       "class": "master_ack_of_padded_data",
+       "n": 1,
+       "dir": "M>O",
+       "ip_len": 52,
+       "flags": "ACK",
+       "occurrence": 1,
+       "chain": "OUTPUT",
+       "base": "master_ack_of_padded_data",
+       "operation": "READ",
+       "index": 0,
+       "frontier": "response_ack",
+       "length_only": false,
+       "target": "identity",
+       "match": "ACK",
+       "response_payload": 158
+      },
+      "kernel_log": [
+       "[495737.953890] D4R9d720b007da97fb6 IN= OUT=enp59s0f0np0 SRC=192.168.10.1 DST=192.168.10.7 LEN=52 TOS=0x00 PREC=0x00 TTL=64 ID=38813 DF PROTO=TCP SPT=59976 DPT=20000 SEQ=3110332959 ACK=916904955 WINDOW=501 RES=0x00 ACK URGP=0 "
+      ],
+      "kernel_packet": {
+       "LEN": 52,
+       "SPT": 59976,
+       "DPT": 20000,
+       "SEQ": 3110332959,
+       "ACK": 916904955,
+       "SRC": "192.168.10.1",
+       "DST": "192.168.10.7"
+      },
+      "log_rc": 0,
+      "restoration": {
+       "applied": true,
+       "errors": [],
+       "restored": true,
+       "before": [
+        "-P OUTPUT ACCEPT"
+       ],
+       "after": [
+        "-P OUTPUT ACCEPT"
+       ]
+      },
+      "observation_point": "master host OUTPUT",
+      "switch_sides_observed": false,
+      "iptables_version": "iptables v1.8.10 (nf_tables)",
+      "identity": {
+       "armed": true,
+       "key": "ACK",
+       "value": 916904955,
+       "master_isn": 3110332931,
+       "relay_isn": 916904796,
+       "operation": "READ",
+       "index": 0,
+       "error": null,
+       "arm_ns": 36481090
+      }
+     }
+    }
+   ],
+   "achieved_shaping": null
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t0",
+   "fixture": "physical_relay",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 59970,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t0.json"
+  },
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t1",
+   "fixture": "physical_relay",
+   "arm": "combined",
+   "trial": 1,
+   "master_port": 59971,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t1.json"
+  },
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t2",
+   "fixture": "physical_relay",
+   "arm": "combined",
+   "trial": 2,
+   "master_port": 59972,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t2.json"
+  },
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t3",
+   "fixture": "physical_relay",
+   "arm": "combined",
+   "trial": 3,
+   "master_port": 59973,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t3.json"
+  },
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t4",
+   "fixture": "physical_relay",
+   "arm": "combined",
+   "trial": 4,
+   "master_port": 59974,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t4.json"
+  },
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t5",
+   "fixture": "physical_relay",
+   "arm": "combined",
+   "trial": 5,
+   "master_port": 59975,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t5.json"
+  },
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t6",
+   "fixture": "physical_relay",
+   "arm": "combined",
+   "trial": 6,
+   "master_port": 59976,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t6.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t1",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t1",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t1",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t1",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t1",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t1",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t2",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t2",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t2",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t2",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t2",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t2",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t3",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t3",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t3",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t3",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t3",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t3",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t4",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t4",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t4",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t4",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t4",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t4",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t5",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t5",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t5",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t5",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t5",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t5",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t6",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t6",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t6",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t6",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t6",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t6",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "integration/core/response_only_rearm/cp.py": "74ce4da95f438dae5500fa055fcf939868cba9afd5d4ccb7e53f9363d233d75c",
+  "integration/core/response_only_rearm/hw/bringup_composite.py": "2e946d201c26ccfbac18c19d8142d882c16a25721a6fb50ce5c3fc0c7dc8a899",
+  "integration/core/response_only_rearm/hw/snapshot_counters.py": "9b46b3f3284f3814838bcc387d810cdbdc15813bcf8485afa364092fcec22a61",
+  "integration/core/response_only_rearm/hw/sealed_profile.py": "c2fd4bfdc53fb1e5c7664319b5924d9d96453f1b17506bbc4335e1b5725d0462",
+  "integration/core/response_only_rearm/hw/generation_headroom.py": "e2ef66698dce9a1c6ae2a9eace37bca1ac5fa5056e61afee23f7c62ae1fb8c2c",
+  "integration/core/response_only_rearm/hw/mau_snapshot.py": "163778145a272a52d686d6e700068f5e4524c520e981f6312cf3aaa2567330f4"
+ },
+ "endpoint_observed": {
+  "endpoint_profile": "sel751",
+  "source_hashes": {
+   "vision_run.py": "8692254ed731794543f1c286d1460d41964832d46c1c716d02b0c2f2b248d41c",
+   "endpoint_profiles.py": "b8219c7eb9f86fab8d67ca6aac0963b75130d928d9ff787c534a9e0999019eff",
+   "relay_master.py": "e630dedb00d883a1b179f0b739f978098e46fb3b847a67ca6e5c03606ae2a76c",
+   "loss.py": "536dd9a6c52b82813e3b5f8cad2f1c41f81d8db0685e13425b5a38e29035b0d4",
+   "capture_observation.py": "339e07eba34ef257f8e803fade535f54583b5e3ce0b083057cee2dc2194dd4de",
+   "wire_check.py": "742eded14f7dca1cb30c6d7ff41006e685cd93197ef6e5ead1d60a3a9335c953",
+   "relay_check.py": "5b8a61ec6eeb97fa9c9c5d2cff38052877493b08cb1604e8a4d43e68cd986438",
+   "relay_loss.py": "cf8745656df694d8824f5f0193e54ee55aa5e47ee56a5afecd04e0ec38223885",
+   "active_harness/read_requests.py": "b0bed2bad9b1e6be2a0b628e5c0d991d92096ad30dacbc9e18c3b819dd628a43",
+   "active_harness/sbo_driver.py": "161950e99b711d38ae4aefb49a43e2cab2b2201b1488cce93498d63f11c41ee2",
+   "active_harness/frozen_builders.py": "12dd425d08c7c86eb4e1f1af4420adc538033af7a506d90d93f061c378d0a079",
+   "active_harness/read_driver.py": "4a3c56ab68332221b913b1d81f3df0007f960f00a0cd913f5202a63dc638adb8",
+   "active_harness/relay_native_baseline.py": "897c170042793dd5aac010a07084548e6630249ebff5e0481149b097cd2b89d9",
+   "active_harness/dnp3_codec.py": "a70da36cbdd7fe0865f51926fac46c51db3511d46ed3d3f35340fb57da44bce8",
+   "active_harness/session.py": "652700dc50daf4cdd52ffa4ecf2d3ca8c70e8ee1a1288c11d19f0ac17a38fa48",
+   "implementation/harness/relay_operate_guarded.py": "39642db9049f65bd15d960f9b10d268fc059b3dd52dc9a45a33478172cdd0597",
+   "implementation/harness/relay_read_g10_23.py": "feeb6c5cac66900a6e4d7daad1edec66ed57a02be411ebd3ee2d4b48dc8ddfe4",
+   "implementation/harness/dnp3_wire.py": "1b3488b2bb2b5e0e6d8ebe697b5fbb15cfa4890a10d97e67c9a44859c294ea6d"
+  },
+  "master_ip": "192.168.10.1",
+  "relay_ip": "192.168.10.7"
+ },
+ "relay_helper_preflight": {
+  "command": "sudo -n /usr/bin/python3 /home/decps/sel751_guarded_20261024/relay_master.py --preflight",
+  "rc": 0,
+  "stdout": "{\"ok\": true, \"endpoint_profile\": \"sel751\", \"control_request_lengths\": [45, 45], \"socket_opened\": false}\n",
+  "stderr": ""
+ },
+ "candidate_profile_identity": {
+  "m12p_c67_sdk9132": {
+   "profile/response_only.p4": "e8565de7c317124b2c3377ce02fc2a932d4f86e1625ed224ec9fed550d6d2ec1",
+   "profile/response_only.inputs.json": "285c6ba6812704a752d3d76088b45dedb2a5a926d766c657dc477a83fa6e2350",
+   "profile/supported_profile.json": "789677a3f7ab7a34a60e63ae59e6438248e8a7f68e56bf0883de4ce766b9a888",
+   "profile/compile_local/manifest.json": "198f8f4c38272d564d41c50424deb08febecbdfa68d90e606b737a1876202ab2"
+  }
+ },
+ "pre_run_program": "case4_response_path",
+ "vision_offload_baseline_sha256": "c184f7a53b9e777274b506c365810092747a8c683f3cd5ec730c8036727af985",
+ "fixture": {
+  "mode": "physical_relay",
+  "emulated": false
+ },
+ "generation_headroom": [
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t0",
+   "ok": true,
+   "reserve": {
+    "operate": 19,
+    "read": 40
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65515,
+    "read": 65494
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t1",
+   "ok": true,
+   "reserve": {
+    "operate": 19,
+    "read": 40
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65515,
+    "read": 65494
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t2",
+   "ok": true,
+   "reserve": {
+    "operate": 19,
+    "read": 40
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65515,
+    "read": 65494
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t3",
+   "ok": true,
+   "reserve": {
+    "operate": 19,
+    "read": 40
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65515,
+    "read": 65494
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t4",
+   "ok": true,
+   "reserve": {
+    "operate": 19,
+    "read": 40
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65515,
+    "read": 65494
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t5",
+   "ok": true,
+   "reserve": {
+    "operate": 19,
+    "read": 40
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65515,
+    "read": 65494
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "rc01_hw_c67_20261025_07_loss_full_950_physical_relay_combined_t6",
+   "ok": true,
+   "reserve": {
+    "operate": 19,
+    "read": 40
+   },
+   "current": {
+    "operate": 0,
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "operate": 65515,
+    "read": 65494
+   },
+   "dry_run": false,
+   "error": null
+  }
+ ],
+ "state_touched": {
+  "switch": true,
+  "vision": true
+ },
+ "effective": {
+  "timing_params_ns": {
+   "budget": 240000,
+   "enabled": 1,
+   "gap": 20000000,
+   "op_j": 2400000
+  },
+  "timing_contract": "response_ready_ack_d_v2",
+  "qualification_dimensions": {
+   "operate_j": "unproven_by_user_choice"
+  },
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "op": 59570,
+    "resp": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "op": 59570,
+    "resp": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "delay_ms": 0,
+   "jitter_ms": 0,
+   "modes": [
+    "physical_relay"
+   ]
+  },
+  "trials": {
+   "reads_per_trial": 20,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "close_grace_ms": 0,
+   "expected_reads_per_class": {
+    "integrity": 20
+   },
+   "gap_ms": 0,
+   "master_port_note": "Three successive connections on this same installed tuple; one cold bring-up, no register clear or reseed.",
+   "master_port_range": {
+    "first": 59970,
+    "last": 59976
+   },
+   "range": 8,
+   "read_pause_ms": 25,
+   "read_schedule": "full",
+   "read_schedule_note": "Physical relay full schedule; complete READ application validation.",
+   "run_sbo": true,
+   "start_delay_ms": 0,
+   "start_delay_note": "maximum pre-connect delay in ms; each trial applies a seeded uniform draw in 0..N (seed = seeds.rng_seed + trial number, recorded). 0 = connect immediately."
+  },
+  "ports_map": {
+   "hb_return": 181,
+   "held_return": 182,
+   "master_dev": 9,
+   "n_ack_return": 48,
+   "recirc": 68,
+   "relay_dev": 64,
+   "stat_ports": "9,64",
+   "t_in": 180
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.1",
+   "outstation_ip": "192.168.10.7",
+   "outstation_port": 20000,
+   "read_dst": 0,
+   "read_src": 1
+  },
+  "evaluation": {
+   "purpose": "qualification",
+   "read_precision": true,
+   "campaign_block": {
+    "arguments": [
+     "--arms",
+     "combined",
+     "--fixtures",
+     "physical_relay",
+     "--loss",
+     "core_full"
+    ],
+    "arms": [
+     "combined"
+    ],
+    "collection_index": 2,
+    "expected_exchanges": null,
+    "id": "rc01_m12p_c67_sdk9132_sel751_d20_loss_full_950",
+    "phase": "recovery",
+    "precision_reference": false,
+    "template": "eval_m11_09_20261018_01_loss_core_950.json",
+    "tool": "candidate_campaign"
+   },
+   "candidate61_label": "m11_09_loss_core",
+   "collection_order_sha256": "b91d208078dda7b5053747cce4e3d913259846a1fdbd4370ef7736e86fea36f7",
+   "host_precision_gated": true
+  },
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "m12p_c67_sdk9132": 0
+  },
+  "endpoint_identity": {
+   "code": 1,
+   "count": 1,
+   "master": "active_harness",
+   "off_ms": 0,
+   "on_ms": 200,
+   "points": [
+    1,
+    3
+   ]
+  },
+  "vision_run_dir": "/home/decps/sel751_guarded_20261024"
+ },
+ "config_sha256": "8aea0f4a5a808b68e8a36996c04cb35fa686693d5ff333fe873b6e21f6c52bb9",
+ "config_file_sha256": "59591150ea5c461d405089f733b309aadfd4239f7dd2b897a7f5a3d584b76cad",
+ "source_identity": {
+  "runner_files": {
+   "campaign.py": "cd59a645c8a91113bd912f0f4bd686b175aac0239c64760f3f19afbc0bd8ec28",
+   "checks.py": "241f8f9f3414af82b729f97e631cd5f2b34e7c3ea7c11da0231b9375cc7bba5a",
+   "vision_run.py": "8692254ed731794543f1c286d1460d41964832d46c1c716d02b0c2f2b248d41c",
+   "clrt_check.py": "11e19ec874f18bea47c425c59006a2b1da81c90dc7c4a1697184c20a6b29732f",
+   "wire_check.py": "742eded14f7dca1cb30c6d7ff41006e685cd93197ef6e5ead1d60a3a9335c953",
+   "hold_check.py": "5f27d05ae9bfe7a25a0fe9e65cc04906e46247856d4e759613c0db8e05267303",
+   "read_classes.py": "b62c4798fe35bd3115d8727e2b734f8233d23e0069138c5e39998e2e039cef31"
+  },
+  "build_sources": {
+   "m12p_c67_sdk9132": {
+    "source_sha256": "e8565de7c317124b2c3377ce02fc2a932d4f86e1625ed224ec9fed550d6d2ec1",
+    "source_files": {
+     "response_only.p4": "e8565de7c317124b2c3377ce02fc2a932d4f86e1625ed224ec9fed550d6d2ec1"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "m12p_c67_sdk9132": {
+   "bfrt.json": "7430330ad3f66e5789487a2e02cc147299b9c6fb8fab1c961d7d20dbeea8ab39",
+   "p0/tofino.bin": "4e031889951c77e20244fd1df05fde12d550e403e992cda07b425293e720a73a",
+   "p1/tofino.bin": "197189858d8dedae437a9e7f060e1ca45f499507942b4f4b5089b41ebb3d2b41",
+   "p1/response_only.bfa": "a7a7825d383e6cffc331226cc94c806aa636fded2a16edf4f227e2b1f9d142fb"
+  }
+ },
+ "paired_block": null,
+ "time": 1792948547.5207636,
+ "gate_ok": true
+}

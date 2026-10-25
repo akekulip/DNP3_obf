@@ -19,6 +19,7 @@ import copy
 import time
 import hashlib
 import importlib.util
+import json
 import os
 import sys
 import traceback
@@ -98,6 +99,18 @@ if rp.SEL751:
     READ_OBJECTS, READ_BODY = repeat_builders.READ_OBJECTS, repeat_builders.READ_BODY
 
 
+def timing_params_for_profile(profile, enabled):
+    contract = profile.get('timing_contract')
+    if contract == 'response_ready_ack_d_v2':
+        timing = profile['timing_ns']
+        return dict(gap=timing['D_release_budget'], op_j=timing['J_operate_hold'],
+                    budget=240000, enabled=enabled)
+    if contract is not None:
+        raise ValueError('unsupported abandoned-SELECT timing contract')
+    return dict(da=50000000, readiness=400000000, cap=16000000,
+                gap=50000000, op_j=200000000, budget=240000, enabled=enabled)
+
+
 def main():
     timed = int(os.environ.get('ABANDON_T', '0'))
     report = Report(os.environ['PROG'], physical=False,
@@ -129,8 +142,15 @@ def main():
         if rp.POLICY:   # pipe-1 READ padder's size enable, mirroring E's fwd_conn row (cp.p1_pad_rows)
             for table, key, action, data, priority in cp.p1_pad_rows(RELAY, MASTER, True):
                 m.add(table, dict(key), action, dict(data), priority)
-        params = dict(da=50_000_000, readiness=400_000_000, cap=16_000_000,
-                      gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=timed)
+        profile = {}
+        if os.environ.get('PORT_MAP'):
+            inputs = json.loads(Path(os.environ['PORT_MAP']).read_text())
+            profile = inputs.get('supported_profile') or {}
+            if profile.get('timing_contract') is not None:
+                profiles = load('_abandon_model_profile', HERE / 'stage_experiments/ctl_timing_01/model_profile.py')
+                profile = profiles.resolve(inputs, Path(os.environ['PORT_MAP']).with_name('response_only.p4'))
+        report.record['meta']['timing_contract'] = profile.get('timing_contract')
+        params = timing_params_for_profile(profile, timed)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
         mirror = m.table('$mirror.cfg', raw=True)
         mirror.entry_add(gc.Target(device_id=0, pipe_id=0xffff),

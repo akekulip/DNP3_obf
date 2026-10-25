@@ -123,9 +123,12 @@ def configure(build_out):
     P1_PAD['enabled'] = p4pp.is_file() and 'p1_conn' in p4pp.read_text(errors='replace')
     descriptor = profile.describe(build_out)
     sealed = descriptor['sealed']
-    # Rebuild from the original map so a later three-bank install restores all banks.
+    # Rebuild from the original map so a later three-bank install restores all banks. The response-ready
+    # contract has no exchange anchor, so its T compiles no t0_reg (c67 smoke rc01_hw_c67_20261025_01).
+    absent = {'quarantine_reg'} | ({'t0_reg'} if descriptor.get('timing_contract') == 'response_ready_ack_d_v2'
+                                   else set())
     sealed_readback.T_REGISTER_INIT = {name: value for name, value in original_readback.T_REGISTER_INIT.items()
-                                      if name != 'quarantine_reg' and
+                                      if name not in absent and
                                       (not name.startswith('child_seen') or name in profile.child_registers(descriptor))}
     installer.readback = sealed_readback if sealed else original_readback
     return sealed

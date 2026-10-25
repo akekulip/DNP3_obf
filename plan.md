@@ -5,6 +5,15 @@ Approved by Philip: “Implement the plan.” This replaces the r150 readiness p
 padding/loss-targeting/FIN/RST repairs. Physical SEL-751 only; no software outstation. Work directly on main,
 commit and push task changes; preserve unrelated files and the two pre-existing deletions.
 
+## Claude takeover scope — Philip, 2026-10-25
+
+Philip requested updated working notes and handover, and explicitly said to keep Claude from expanding scope.
+Read `CLAUDE_HANDOVER_20261025.md` before acting. Complete this existing plan only. Next: repair the missing
+genuine ACK in the v2 abort negative fixture, retain the strict surviving-response gate, then complete the
+affected model runs and the already-listed physical blocks. No P4 redesign, historical-tooling cleanup,
+new instrumentation/campaigns/profiles, physical J project, package/OS/firmware change, threshold relaxation,
+or production-default change. If a required repair crosses these limits, report the concrete blocker to Philip.
+
 ## Contract
 
 - READ mixed/integrity, SELECT and OPERATE share one serialized response timing lane. Hold the genuine relay
@@ -38,23 +47,23 @@ commit and push task changes; preserve unrelated files and the two pre-existing 
   duplicates/retransmissions/noextra growth,reset whileheld and all FIN/reconnect regressions.
 - [x] SDK9.13.2 compile,pin artifacts before gates,compare actual resources. N/E maximumindex10,
   T≤11occupiedstages,pipe1egress≤4. No inferred stage savings or extra traversal.
-- [ ] Pass all16 existing required model drivers,with explicit new-contract expectations,plus required
+- [x] Pass all16 existing required model drivers,with explicit new-contract expectations,plus required
   response_ready driver. Preserve c52 semantics under its profile; no hiddenselectors/readiness masking.
-- [ ] Complete compiled runtime integration; source/installer and adapter reviews are approved.
+- [x] Complete compiled runtime integration; source/installer and adapter reviews are approved.
 
 ## Physical qualification
 
-- [ ] Existing frozen supervisor only: ownership/preflight/dry-run/freeze/independent restore for everyblock.
+- [x] Existing frozen supervisor only: ownership/preflight/dry-run/freeze/independent restore for everyblock.
   Unsafe restoration stops hardware. Guarded points{1,3},code1/count1/on200ms/off0 unchanged.
-- [ ] CombinedD5ms smoke: both READs plus one complete successful SELECT/OPERATE.
-- [ ] Off and size_only reference arms once; timing_only and combined at eachD. Each arm65READ+64SELECT+64OPERATE
+- [x] CombinedD5ms smoke (PASS, rc01_hw_c67_20261025_02): both READs plus one complete successful SELECT/OPERATE.
+- [x] Off and size_only reference arms once (run: campaigns 03-06, 1,930/1,930 eligible); timing_only and combined at eachD. Each arm65READ+64SELECT+64OPERATE
   =193; total1930 unique planned reference exchanges. Preserve failed attempts/planned denominators.
-- [ ] D20ms combined recovery: identity-targeted mixed/full loss presets,graceful close,RST and all3 reconnect
+- [x] D20ms combined recovery (run: loss_mixed FAILED at t3 OPERATE CROB TIMEOUT; loss_full, graceful, RST, reconnect PASS): identity-targeted mixed/full loss presets,graceful close,RST and all3 reconnect
   connections. No new350ms stress campaign; retain historical record.
-- [ ] Each timed reference workload(READmixed,READintegrity,SELECT,OPERATE): planned=eligible,n≥20,
+- [ ] FAILED -- each timed reference workload(READmixed,READintegrity,SELECT,OPERATE): planned=eligible,n≥20,
   nearest-rankp99|completeCLRT-D|≤100us. Report first/complete timing,maxima,capture drops/retransmissions;
   verify padding/application/SEQ/ACK/switch counts simultaneously. No successful reference bypass.
-- [ ] FIN closes only after graceful/RST/reconnect blocks pass as wholeblocks,including all planned connections.
+- [x] FIN PASS (campaign 07; mixed-loss failure is separate). FIN closes only after graceful/RST/reconnect blocks pass as wholeblocks,including all planned connections.
 
 ## Completion and limits
 
@@ -65,7 +74,7 @@ kernel attribution without proof,OS/TCP/firmware changes,reboot,keepalive maskin
 No attacker campaign,sizing redesign,paper work or IEEE audit. Record genuine blockers honestly.
 
 - [ ] Clean-checkout reproduction of source/artifacts/model gates/config/readouts.
-- [ ] Update WORKING_NOTES,CURRENT,STATUS,COMPLETION_RECORD,ACTIVE_CODE_MAP,CLAUDE checkpoints/reproduce entry.
+- [x] Update WORKING_NOTES,CURRENT,STATUS,COMPLETION_RECORD,ACTIVE_CODE_MAP,CLAUDE checkpoints/reproduce entry.
 - [ ] Commit/push only task files/evidence; exclude unrelated edits/deletions.
 
 ## Execution ledger
@@ -120,3 +129,30 @@ This is one model-only predicate, with7 focused observer tests passing. Earlier 
 
 2026-10-25 rearm_02 passes on c67 after a model-only select-module alias repair; rearm_01 exception retained.
 The compiled source is unchanged. Dup and the remaining regressions continue sequentially.
+
+2026-10-25 nine model tests now pass: smoke,packets,response_ready,rearm,dup,repeat,select_lifecycle,
+control_timing,fin_busy. Remaining8 run with at most2 isolated local model instances; memory/private-network
+isolation was checked (196hugepages,72/model; anonymous DMA;32CPUs). No physical switch resource is used.
+All old test scenarios remain; repeat/lifecycle now use genuine ACK pairs and actual T-clock proofs. The
+finite reset postcheck is preserved by placing the clock proof in the existing committed verdict, rather
+than introducing extra reset case names. Current source remains e8565de7; physical qualification pending.
+
+2026-10-25 Claude handover: exact-output-port and prerequisite-stop repairs are implemented/reviewed;
+64 focused tests and24 independent probes pass. Fresh repeat03 passes530/530 with all208 planned exchanges
+completed; lifecycle02 passes138/138 with all33 exchanges; control_timing02 passes390/390. Policy boundary206
+and size-off30 also pass. Contention02 passes453/453 and its postcheck but has a stale repeat dependency.
+The v3 gate remains blocked: abandon has no attempt; abort01 has a stale dependency and four absent survivor
+proofs. Diagnosis: held negative fixtures omit the genuine ACK, so v2 correctly retains the response; do not
+weaken the checker. Source and compiled artifacts remain unchanged c67. No freeze or physical campaign exists.
+No new jobs are scheduled after Philip's handover request. Exact next steps and final process/archive state
+are in CLAUDE_HANDOVER_20261025.md and its referenced handover snapshot.
+
+2026-10-25 c67 closeout (Philip's disposition): model gate PASS (17/17; abort02 84/84 with the genuine-ACK survivor
+fixture, contention03 457/457, abandon01 12/12). Freeze freeze_v3_02 (after the v2-only installer t0_reg fix; campaign
+01 was refused pre-write). Physical: smoke PASS; FIN PASS (graceful/RST/reconnect, all three connections); timing FAIL
+in every timed class (1,930 exchanges; p99 error 1.722-44.104 ms; worst D10 timing_only mixed READ, observed CLRT
+54.104 ms = 44.104 ms error; cause unresolved, not attributed); mixed-loss SBO recovery FAIL (t3 OPERATE CROB TIMEOUT,
+an application failure; recovery times do not measure the select window); physical J unproven. c67 is not
+hardware-qualified. Revised scope: bounded hypothesis-specific hardware debugging/retesting of those two failures on
+the existing testbed/profiles/guarded operations; preserve failed evidence and thresholds; no new features,
+production defaults, relay profiles or instrumentation project.

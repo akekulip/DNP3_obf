@@ -1,0 +1,26 @@
+[
+  {
+    "lane": "A",
+    "driver": "repeat",
+    "attempt": 1,
+    "exit_code": 1,
+    "retained_existing_launcher": true
+  },
+  {
+    "lane": "B",
+    "driver": "contention",
+    "attempt": 1,
+    "exit_code": 1,
+    "seconds": 433.12,
+    "log": "c67_gate_contention_01.log",
+    "command": [
+      "python3",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c67_sdk9132",
+      "contention",
+      "1",
+      "--milestone",
+      "m12"
+    ]
+  }
+]

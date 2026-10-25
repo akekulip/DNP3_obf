@@ -201,9 +201,11 @@ def test_installer_and_snapshot_restore_three_child_initialization_after_one_chi
 
 @pytest.mark.parametrize('driver', ['model_rearm.py', 'model_dup.py'])
 @pytest.mark.parametrize('children', [1, 3])
-def test_model_snapshots_read_every_selected_child_bank_and_no_others(driver, children):
+@pytest.mark.parametrize('response_ready', [False, True])
+def test_model_snapshots_read_every_selected_child_bank_and_no_others(driver, children, response_ready):
     # Execute the real nested snapshot against a register-reader boundary double;
     # importing the model driver would require the BF SDK and running simulator.
+    # The snapshot closes over the driver's timing-contract flag (model_dup `ready`, model_rearm `response_ready`).
     import ast
     path = CORE / 'stage_experiments/seg61_02' / driver
     tree = ast.parse(path.read_text())
@@ -213,11 +215,14 @@ def test_model_snapshots_read_every_selected_child_bank_and_no_others(driver, ch
         def register_read(self, name, index, pipe):
             reads.append(name)
             return [0]
-    namespace = {'m': Model(), 'child_regs': profile.child_registers({'t_child_count': children})}
+    namespace = {'m': Model(), 'child_regs': profile.child_registers({'t_child_count': children}),
+                 'ready': response_ready, 'response_ready': response_ready}
     exec(compile(ast.Module(body=[snapshot_node], type_ignores=[]), str(path), 'exec'), namespace)
     namespace['snapshot']()
     assert {name for name in reads if '.child_seen' in name} == {
         'p1.t_Ingress.child_seen%d_reg' % i for i in range(children)}
+    # The response-ready contract compiles no t0_reg; only the legacy branch reads it.
+    assert ('p1.t_Ingress.t0_reg' in reads) is (not response_ready)
 
 
 def test_deployed_build_retains_enough_bound_metadata_for_strict_profile_selection(tmp_path):
@@ -261,3 +266,28 @@ def test_successor_schema_rejects_missing_profile_fields_clearly(tmp_path, field
     path.write_text(json.dumps(inputs))
     with pytest.raises(ValueError):
         profile.select(out)
+
+
+C67 = CORE / 'stage_experiments/ctl_timing_01/evidence/m12p_c67_sdk9132'
+
+
+@pytest.mark.skipif(not (C67 / 'compile_local/out/bfrt.json').is_file(), reason='c67 compiler output is git-ignored')
+def test_response_ready_install_checks_exactly_the_compiled_t_registers_at_their_p4_inits():
+    """rc01_hw_c67_20261025_01 refused: the v2 T compiles no t0_reg. The installer and snapshot must check
+    exactly the registers c67 compiled, each against its Register<>(1, init) in the source."""
+    import json
+    import re
+    out = C67 / 'compile_local/out'
+    spec = importlib.util.spec_from_file_location('c67_installer', CORE / 'hw/bringup_composite.py')
+    entry = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(entry)
+    assert entry.configure(out) is True
+    checked = entry.installer.readback.T_REGISTER_INIT
+    compiled = {t['name'].split('.')[-1] for t in json.loads((out / 'bfrt.json').read_text())['tables']
+                if t['name'].startswith('p1.t_Ingress.') and t['name'].endswith('_reg')}
+    assert set(checked) == compiled and 't0_reg' not in checked
+    source = (C67 / 'response_only.p4').read_text()
+    inits = {name: int(init, 0) for init, name in
+             re.findall(r'Register<bit<32>, bit<1>>\(1,\s*(0x[0-9a-f]+|\d+)\)\s+(\w+_reg);', source)}
+    assert {name: inits[name] for name in checked} == checked
+    assert 't0_reg' in entry.original_readback.T_REGISTER_INIT          # legacy contracts still check it

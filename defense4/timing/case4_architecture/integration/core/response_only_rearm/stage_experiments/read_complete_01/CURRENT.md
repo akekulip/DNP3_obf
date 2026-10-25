@@ -1,12 +1,76 @@
-## Active override — 2026-10-25, response-ready timing v2
+# Current status — c67 response-ready timing v2 (2026-10-25 closeout: hardware qualification FAILED)
 
-Follow root plan.md and WORKING_NOTES.md. Philip removed the exchange deadline. ACK waits for matching
-whole response, ACK releases once, response follows after D=5/10/15/20 ms. J remains 2.4 ms. Drop validated
-request retries only while their original request or response is retained; otherwise allow TCP recovery
-without new admission/growth/J. FIN/RST/epoch cleanup; no timing fallback. Candidate c67 compiles within all resource bounds; its runtime gate is in progress.
-c62 v1 strict model passed 694/694; its 500 ms deadline is superseded. No successor hardware run yet.
+Continue from repository-root [CLAUDE_HANDOVER_20261025.md](../../../../../../../../CLAUDE_HANDOVER_20261025.md) (see its Closeout section), then `plan.md` and `WORKING_NOTES.md`.
 
-# Current status — c52 physical SEL-751 set (2026-10-24 night)
+**c67 outcome (2026-10-25 closeout; Philip's disposition).** The planned c67 hardware testing is complete, and c67 has
+**not** passed hardware qualification.
+
+| dimension | result | evidence |
+|---|---|---|
+| model gate | PASS | 17/17 drivers; `model_summary.py --v3 --enforce` = model_gate_passed (`model_summary_v3.json` 4dbd5710...) |
+| smoke (D5) | PASS | campaign `rc01_hw_c67_20261025_02` |
+| FIN recovery | PASS for the planned scope (plan.md FIN criterion) | campaign `_07`: graceful, RST and reconnect, each with all three connections, restoration verified |
+| timing | FAIL, cause unresolved | campaigns `_03` (D5, four arms), `_04`/`_05`/`_06` reference_rest (D10/D15/D20) |
+| mixed-loss SBO recovery | FAIL | campaign `_06` loss_mixed_950, trial t3 |
+| physical OPERATE J | unproven | no relay-side observation |
+
+- **Freeze:** every block ran under `freeze_v3_02.json` (b82acb00...). `freeze_v3.json` (bd8852a2...) predates the
+  v2-only installer fix and is retained. Campaign 01 was refused by the installer dry-run before any pipeline write,
+  because the installer expected a T register (t0_reg) that the v2 build does not compile. Every block's
+  restoration was verified, and ownership ended inactive with unsafe_restoration=false.
+- **Timing:**
+  - All 1,930 planned reference exchanges were observed and eligible.
+  - Every timed class at every D fails the unchanged 100 us criterion (0 of 32 timed cells pass).
+  - The nearest-rank p99 absolute errors range from 1.722 to 44.104 ms.
+  - The worst case is D10 timing_only mixed READ (n=33). Its observed complete CLRT is 54.104 ms, an absolute error of
+    44.104 ms at D=10; with 33 samples, that error is also the p99.
+  - The other timed classes lie roughly within D +/- 2-3 ms. The spread does not change with D, which does not locate
+    its source. No cause is attributed (Vision included).
+  - `evidence/c67_reference_replay_20261025.json` (5010adec...) is an offline replay with the campaign checker
+    (relay_check.py), not an independent checker validation. It reproduces the recorded per-class precision exactly.
+- **Mixed loss:**
+  - In trial t3, the padded SELECT response was dropped by identity-targeted loss. SELECT recovered after 1024.2 ms,
+    and the relay then answered OPERATE with CROB status TIMEOUT on points 1 and 3.
+  - This is recorded as an application failure, separate from transport correctness.
+  - The other SELECT recovery times (c67 loss_full t3 1007.5 ms with OPERATE OK; c52 loss_mixed t3 1001.7 ms with
+    OPERATE OK) neither measure the relay's select window nor show that D caused the expiry.
+- **Debugging scope:** further work is limited to bounded, hypothesis-specific debugging and retesting of these two
+  failures, on the existing testbed, profiles, guarded operations and restoration (Philip, 2026-10-25). Failed
+  evidence and the original thresholds are preserved. It must not become a new feature, production default, relay
+  profile or instrumentation project.
+
+## Superseded checkpoint — c67 takeover start (2026-10-25, before the model gate and hardware ran)
+
+Continue from repository-root [CLAUDE_HANDOVER_20261025.md](../../../../../../../../CLAUDE_HANDOVER_20261025.md), then `plan.md` and `WORKING_NOTES.md`.
+The root handover owns the final model-attempt inventory, remaining gates and next commands; older entries below
+are historical checkpoints. Philip requested handover: no new implementation, model or hardware launches in this session.
+
+The selected candidate is `m12p_c67_sdk9132`, source
+`e8565de7c317124b2c3377ce02fc2a932d4f86e1625ed224ec9fed550d6d2ec1`, with `timing_contract=response_ready_ack_d_v2`.
+SDK9.13.2 compilation passes: N/E indices0..10, T0..9, pipe1 egress0..3; all 11 T state objects have one physical bank.
+ACK waits for the matching whole response, releases once, then response follows after D=5/10/15/20ms. There is no
+exchange deadline or timing fallback. Suppress a validated retry only while its original request or response is
+retained; otherwise allow ordinary TCP recovery without new admission, growth or J. FIN/RST/epoch clean up ownership.
+Preserve native91/134/49/49 to encoded141/158/60/60, successful SELECT before OPERATE, and J=2.4ms.
+
+The repeat/lifecycle harness repairs require exact output endpoints and ACK/response order, full D from the compiled
+T clock, and immediate stop on a failed exchange with planned/completed counts retained. The [independent harness review](evidence/timing_response_ready_20261025/claude_handover/harness-final-review.md)
+is PASS (64 focused tests and 24 production-function probes). Lifecycle02 passes 138/138 with planned=completed
+9READ/18SELECT/6OPERATE. Final repeat03/control_timing02 outcomes and all other driver results belong in the root
+handover rather than a second mutable table here.
+
+**The 17-driver model gate remains blocked; no c67 freeze or physical run exists.** Control_timing02 passed. Remaining blockers include missing abandon, stale repeat dependency closures in
+abort01/contention02, and abort01 negative-survivor coverage missing for four required tags. The root handover
+records the confirmed v2 held-negative stimulus defect: all four probes omit the genuine ACK, so responses=0
+and no commit/release occurs. The strict validator is correct. Future repair is limited to injecting the genuine ACK
+after the no-reset proof and observing the exact surviving response after full D; preserve positive abort scenarios.
+Follow the root handover scope limits: no new campaigns, instrumentation or architecture. Recompute v3 before any freeze. No historical c52/c62 result qualifies c67. Ten prepared physical configs cover
+combined D5 smoke, 1,930 reference exchanges, and combined D20 identity-loss/graceful/RST/three-connection recovery.
+Every future block uses the existing frozen supervisor, generation headroom and independent restoration gates.
+The 100 us timing criterion is unchanged; physical OPERATE J remains explicitly unproven. No new tap, software
+outstation, OS changes or attacker campaign. c52 source 8f37f702 and its measured evidence remain immutable.
+
+## Historical status — c52 physical SEL-751 set (2026-10-24 night)
 
 ## c52 measured baseline (immutable from 2026-10-25)
 

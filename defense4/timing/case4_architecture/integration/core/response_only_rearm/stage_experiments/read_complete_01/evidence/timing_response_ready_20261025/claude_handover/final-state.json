@@ -1,0 +1,237 @@
+{
+  "generated_at_utc": "2026-10-25T15:52:37.173895+00:00",
+  "head": "68fcec059ac4c47a24aa24c1ee6350462ebd50fa",
+  "source_sha256": "e8565de7c317124b2c3377ce02fc2a932d4f86e1625ed224ec9fed550d6d2ec1",
+  "qualification": "blocked",
+  "blocked_reasons": [
+    "abandon: no attempt",
+    "abort: latest attempt model_abort_m12p_c67_sdk9132_01: abort negatives without the surviving response: ['abort_held_READ_plus90', 'abort_held_READ_plus92', 'abort_held_SELECT_plus48', 'abort_held_SELECT_plus50']",
+    "abort: latest attempt model_abort_m12p_c67_sdk9132_01: closure file changed since the run: defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py",
+    "contention: latest attempt model_contention_m12p_c67_sdk9132_02: closure file changed since the run: defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py"
+  ],
+  "required_drivers": [
+    "smoke",
+    "packets",
+    "rearm",
+    "dup",
+    "repeat",
+    "select_lifecycle",
+    "control_timing",
+    "contention",
+    "abort",
+    "policy",
+    "policy_boundary",
+    "two_read_robust",
+    "smoke_sizeoff",
+    "abandon",
+    "relay_sbo",
+    "fin_busy",
+    "response_ready"
+  ],
+  "latest": [
+    {
+      "driver": "abort",
+      "run": "model_abort_m12p_c67_sdk9132_01",
+      "attempt": 1,
+      "exit_code": 0,
+      "passed": 80,
+      "total": 80,
+      "failed": [],
+      "dependency_problems": [
+        "closure file changed since the run: defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py"
+      ]
+    },
+    {
+      "driver": "contention",
+      "run": "model_contention_m12p_c67_sdk9132_02",
+      "attempt": 2,
+      "exit_code": 0,
+      "passed": 453,
+      "total": 453,
+      "failed": [],
+      "dependency_problems": [
+        "closure file changed since the run: defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py"
+      ]
+    },
+    {
+      "driver": "control_timing",
+      "run": "model_control_timing_m12p_c67_sdk9132_02",
+      "attempt": 2,
+      "exit_code": 0,
+      "passed": 390,
+      "total": 390,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "dup",
+      "run": "model_dup_m12p_c67_sdk9132_02",
+      "attempt": 2,
+      "exit_code": 0,
+      "passed": 117,
+      "total": 117,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "fin_busy",
+      "run": "model_fin_busy_m12p_c67_sdk9132_01",
+      "attempt": 1,
+      "exit_code": 0,
+      "passed": 193,
+      "total": 193,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "packets",
+      "run": "model_packets_m12p_c67_sdk9132_01",
+      "attempt": 1,
+      "exit_code": 0,
+      "passed": 763,
+      "total": 763,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "policy",
+      "run": "model_policy_m12p_c67_sdk9132_01",
+      "attempt": 1,
+      "exit_code": 0,
+      "passed": 281,
+      "total": 281,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "policy_boundary",
+      "run": "model_policy_boundary_m12p_c67_sdk9132_01",
+      "attempt": 1,
+      "exit_code": 0,
+      "passed": 206,
+      "total": 206,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "rearm",
+      "run": "model_rearm_m12p_c67_sdk9132_02",
+      "attempt": 2,
+      "exit_code": 0,
+      "passed": 800,
+      "total": 800,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "relay_sbo",
+      "run": "model_relay_sbo_m12p_c67_sdk9132_01",
+      "attempt": 1,
+      "exit_code": 0,
+      "passed": 1085,
+      "total": 1085,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "repeat",
+      "run": "model_repeat_m12p_c67_sdk9132_03",
+      "attempt": 3,
+      "exit_code": 0,
+      "passed": 530,
+      "total": 530,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "response_ready",
+      "run": "model_response_ready_m12p_c67_sdk9132_03",
+      "attempt": 3,
+      "exit_code": 0,
+      "passed": 826,
+      "total": 826,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "select_lifecycle",
+      "run": "model_select_lifecycle_m12p_c67_sdk9132_02",
+      "attempt": 2,
+      "exit_code": 0,
+      "passed": 138,
+      "total": 138,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "smoke",
+      "run": "model_smoke_m12p_c67_sdk9132_01",
+      "attempt": 1,
+      "exit_code": 0,
+      "passed": 30,
+      "total": 30,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "smoke_sizeoff",
+      "run": "model_smoke_sizeoff_m12p_c67_sdk9132_01",
+      "attempt": 1,
+      "exit_code": 0,
+      "passed": 30,
+      "total": 30,
+      "failed": [],
+      "dependency_problems": []
+    },
+    {
+      "driver": "two_read_robust",
+      "run": "model_two_read_robust_m12p_c67_sdk9132_01",
+      "attempt": 1,
+      "exit_code": 0,
+      "passed": 181,
+      "total": 181,
+      "failed": [],
+      "dependency_problems": []
+    }
+  ],
+  "source_files_sha256": {
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_repeat.py": "4d259036e3bd0e74a812b67c7fd8d770a52d95c436090c77bca685bc14a773bb",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_select_lifecycle.py": "35e0d4444dfc12dec9a674f7ccb6a81099c5e5f6b7749f6b27d1049c6b1752d8",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_abandon.py": "8022a36b23e74a08ab7e234e109316b1ab8c2ec4ac92c6802766a96e4e3146a5",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/seg61_02/model_dup.py": "04fe7dbfff03715689b58cabfd640a308e4c1c57cf9ac99c93f238ec9237a09c",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_contention.py": "8ccc4c7c465e7d037c7a36e8d0ddfc4210ac904959aa2e4244a847dd13540d3a"
+  },
+  "active_model_test_archive_processes": [],
+  "running_hardware_units": "",
+  "hardware_ownership": {
+    "active": false,
+    "campaign_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/rc01_hw_c52_20261025_35",
+    "step_id": "rc01_hw_c52_20261025_35_idt_loss_full_950",
+    "terminal_sha256": "fc409a12182b37875867e4751856edc6125c1feeec6ff8554772e3ad91780ae7",
+    "unit": "dnp3-eval-rc01_hw_c52_20261025_35-9a12a8ef28dd-step-rc01_hw_c52_20261025_35_idt_loss_full_950.service",
+    "unsafe_restoration": false
+  },
+  "c67_freeze_exists": false,
+  "retention": {
+    "manifest": "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/c67_dependency_retention_20261025/manifest.json",
+    "pinned_logs": 44,
+    "completed_run_directories": 25,
+    "unarchived_logs": [
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_control_timing_m12p_c67_sdk9132_02/model.out",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_control_timing_m12p_c67_sdk9132_02/model_20261025_114438.log",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_repeat_m12p_c67_sdk9132_03/model.out",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_repeat_m12p_c67_sdk9132_03/model_20261025_114317.log",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_select_lifecycle_m12p_c67_sdk9132_02/model.out",
+      "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_select_lifecycle_m12p_c67_sdk9132_02/model_20261025_114317.log"
+    ]
+  },
+  "verification": {
+    "generator": "182 passed, 1 skipped, 163 subtests passed; 10 legacy identities unchanged",
+    "focused": "64 passed; independent 24 timed probes passed",
+    "ctl_python312": "994 passed, 3 failed, 6 setup errors; all nine failures/errors are SDK cygrpc ABI mismatch",
+    "corrected_python38": "relay observation 3 passed; timeline wrapper 7 passed (covers all 6 setup errors)",
+    "compile": "Retained SDK9.13.2 exit0; source/compile input/all9 artifact hashes reverified; fresh source/profile regeneration identical"
+  },
+  "next_action": "Repair v2 held-negative abort fixture missing genuine ACK; keep strict survivor validator. Then abort02, contention03, abandon01, recompute v3. Scope limits in CLAUDE_HANDOVER_20261025.md.",
+  "publication": "No new commit or push during this takeover; reviewed source/docs and model evidence remain local."
+}

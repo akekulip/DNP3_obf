@@ -113,6 +113,41 @@ def repeat_milestone():
     return profile.from_env()['milestone']
 
 
+def response_ready_pair(model, ports, relay_port, ack, response, want_ack, want_response, equal,
+                        master_port=None):
+    """Submit the genuine pair without observing between sends; retain every captured frame."""
+    if master_port is None:
+        candidates = set(ports) - {relay_port}
+        if len(candidates) != 1:
+            raise ValueError('response-ready pair requires an explicit master port')
+        master_port = candidates.pop()
+    if master_port == relay_port or master_port not in ports:
+        raise ValueError('response-ready pair requires a distinct observed master port')
+    model.drain(ports)
+    model.send(relay_port, ack)
+    model.send(relay_port, response)
+    got = model.capture(ports, timeout=3, quiet=.3)
+    frames = got.get(master_port, [])
+    good = not any(values for port, values in got.items() if port != master_port) and \
+        len(frames) == 2 and equal(frames[0], want_ack, ack) and equal(frames[1], want_response, response)
+    return got, good
+
+
+def repeat_clock_proof(records, gap_units):
+    """Actual T arrivals and one commit/release prove causality and full D; no host-time floor."""
+    names = ('hold_ack', 'admit_response', 'release_ack_commit', 'release_response_counted')
+    matches = [[record for record in records if record.get('pipe') == 1 and
+                't_Ingress.' + action in record.get('actions', [])] for action in names]
+    stamps = [rows[0]['t_units'] & ~1 if len(rows) == 1 and type(rows[0].get('t_units')) is int else None
+              for rows in matches]
+    held, arrival, commit, release = stamps
+    valid = all(value is not None for value in stamps)
+    valid = valid and all(((commit - stamp) & 0xffffffff) < 1 << 31 for stamp in (held, arrival)) and \
+        gap_units <= ((release - commit) & 0xffffffff) < 1 << 31
+    return dict(held_ack_units=held, response_arrival_units=arrival, ack_release_units=commit,
+                response_release_units=release, gap_units=gap_units, passed=valid)
+
+
 def main():
     cycles = int(os.environ.get('REPEAT_CYCLES', '64'))
     timed_cycles = int(os.environ.get('REPEAT_TIMED_CYCLES', '3'))
@@ -121,9 +156,43 @@ def main():
                           '%d timed cycles; sequence wraps; unpaired OPERATE after READ' % (cycles, timed_cycles),
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     rp.report_endpoint(report)
+    meta = report.record['meta']
+    counts = dict(READ=0, SELECT=0, OPERATE=0)
+    c, s, growth = 100, 900, 0
+    meta['planned_counts'] = dict(READ=cycles + timed_cycles + 5, SELECT=cycles + timed_cycles + 1,
+                                  OPERATE=cycles + timed_cycles)
+    meta['planned_cases'] = (['phaseA_lead'] + ['phaseA_cycle_%02d' % n for n in range(cycles)] +
+        ['phaseA_summary', 'phaseB_lead'] + ['phaseB_cycle_%02d' % n for n in range(timed_cycles)] +
+        ['phaseB_summary', 'probe1', 'probe2', 'probe3', 'probe4'])
+    meta['completed_cases'], meta['active_case'] = [], None
+
+    def begin_case(name):
+        if meta['active_case'] is not None:
+            meta['completed_cases'].append(meta['active_case'])
+        meta['active_case'] = name
+
+    def check(name, expected, observed, ok=None, **fields):
+        good = expected == observed if ok is None else ok
+        report.add(name, expected, observed, ok=good, **fields)
+        if not good:
+            meta['failed_case'] = name
+            raise AssertionError(name + ': stop dependent cases after failed prerequisite')
+        return good
+
     try:
         milestone = repeat_milestone()
         report.record['meta']['expectation_milestone'] = milestone
+        if milestone in ('m4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):
+            meta['planned_counts']['READ'] += 1
+        ready = False
+        if milestone is not None:
+            profile = load('_repeat_model_profile', HERE / 'stage_experiments/ctl_timing_01/model_profile.py').from_env()
+            ready = profile.get('timing_contract') == 'response_ready_ack_d_v2'
+            report.record['meta']['timing_contract'] = profile.get('timing_contract')
+        if ready:
+            sys.path.insert(0, str(HERE / 'stage_experiments/ctl_timing_01'))
+            view = load('_repeat_clock_view', HERE / 'stage_experiments/ctl_timing_01/model_log_view.py')
+            log_path = view.log_path()
         m = Model(ports=[], enable=False)
         ports = sorted({MASTER.dev_port, RELAY.dev_port})
         m.enable_ports(ports + helpers.FRONT_LOOPS)
@@ -152,6 +221,8 @@ def main():
                 m.add(table, dict(key), action, dict(data), priority)
         params = dict(da=50_000_000, readiness=400_000_000, cap=16_000_000,
                       gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=0)
+        if ready:
+            params = dict(gap=5_000_000, op_j=2_400_000, budget=240_000, enabled=0)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
         mirror = m.table('$mirror.cfg', raw=True)
         mirror.entry_add(gc.Target(device_id=0, pipe_id=0xffff),
@@ -178,14 +249,24 @@ def main():
             flat = [frame for frames in got.values() for frame in frames]
             good = len(flat) == (0 if expected is None else 1)
             if good and expected is not None:
-                good = same_frame(flat[0], expected, sent)
-            report.add(name, 'drop' if expected is None else 'one exact frame',
+                endpoint = RELAY.dev_port if master else MASTER.dev_port
+                delivered = got.get(endpoint, [])
+                good = len(delivered) == 1 and same_frame(delivered[0], expected, sent)
+            check(name, 'drop' if expected is None else 'one exact frame',
                        'drop' if not flat else '%d frames' % len(flat), ok=good,
                        received=got, want='' if expected is None else expected.hex())
             return good
 
+        def timing_proof(tag, offset):
+            records = view.records_since(log_path, offset)
+            written = json.loads((Path(os.environ['OUT']) / 't_params_written.json').read_text())[-1]['written']
+            proof = repeat_clock_proof(records, written['gap'])
+            check(tag + '_T_clock_response_ready_ACK_then_D', True, proof['passed'],
+                       response_ready_clock_proof=proof, t_ingress_records=[record for record in records if record['pipe'] == 1])
+            return proof['passed']
+
         # TCP coordinates: client (master) c; server native s and wire s + growth
-        c, s, growth = 100, 900, 0
+        begin_case('phaseA_lead')
         syn = vectors.packet(2, c, mss=1460)
         step('SYN', syn, syn)
         synack = vectors.packet(18, s, c + 1, reverse=True, mss=1460)
@@ -193,24 +274,38 @@ def main():
         c, s = c + 1, s + 1
         step('final_ACK', vectors.packet(16, c, s), vectors.packet(16, c, s))
         seqs = Sequences()
-        counts = {'READ': 0, 'SELECT': 0, 'OPERATE': 0}
 
         def exchange(tag, kind, fc, objects, response_body, separate_ack):
             nonlocal c, s, growth
             request, app = seqs.request(fc, objects)
-            seqs.next_app()
             ok = step('%s_%s_request' % (tag, kind), vectors.packet(24, c, s + growth, payload=request),
                       vectors.packet(24, c, s, payload=request))
+            seqs.next_app()
             c += len(request)
-            if separate_ack:
+            if separate_ack and not (ready and params['enabled']):
                 ok &= step('%s_%s_server_ACK' % (tag, kind), vectors.packet(16, s, c, reverse=True),
                            vectors.packet(16, s + growth, c, reverse=True), master=False)
             native = seqs.response(app, response_body, kind)
             image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
             if image is None or len(image) != rp.image_len_of(native, IMAGE_LEN):
                 raise AssertionError('%s %s: oracle produced no 61-octet image' % (tag, kind))
-            ok &= step('%s_%s_response_61' % (tag, kind), vectors.packet(24, s, c, reverse=True, payload=native),
-                       vectors.packet(24, s + growth, c, reverse=True, payload=image), master=False)
+            if ready and params['enabled']:
+                ack = vectors.packet(16, s, c, reverse=True)
+                response = vectors.packet(24, s, c, reverse=True, payload=native)
+                want_ack = rp.preserve_options(ack, vectors.packet(16, s + growth, c, reverse=True))
+                want_response = rp.preserve_options(response, vectors.packet(24, s + growth, c, reverse=True, payload=image))
+                rp.advance_timestamp()
+                offset = view.size(log_path)
+                got, pair_ok = response_ready_pair(m, ports, RELAY.dev_port, ack, response,
+                                                   want_ack, want_response, same_frame, master_port=MASTER.dev_port)
+                check('%s_%s_ACK_and_response_61' % (tag, kind), 'one exact ACK then whole response',
+                           sum(map(len, got.values())), ok=pair_ok, received=got,
+                           want=[want_ack.hex(), want_response.hex()])
+                ok &= pair_ok
+                ok &= timing_proof('%s_%s' % (tag, kind), offset)
+            else:
+                ok &= step('%s_%s_response_61' % (tag, kind), vectors.packet(24, s, c, reverse=True, payload=native),
+                           vectors.packet(24, s + growth, c, reverse=True, payload=image), master=False)
             s += len(native)
             growth += rp.growth(native, IMAGE_LEN)
             counts[kind] += 1
@@ -238,39 +333,44 @@ def main():
         read('c00')
         failed_cycle = None
         for cycle in range(cycles):
+            begin_case('phaseA_cycle_%02d' % cycle)
             tag = 'c%02d' % cycle
             ok = sbo(tag, cycle)
             ok &= read(tag)
             if not ok and failed_cycle is None:
                 failed_cycle = cycle
                 break
+        begin_case('phaseA_summary')
         master_ack('phaseA_end')
         end = snapshot()
         report.record['meta']['phaseA_end_snapshot'] = end
-        report.add('phaseA_all_cycles_exact', None, failed_cycle)
-        report.add('phaseA_counts', {'READ': cycles + 1, 'SELECT': cycles, 'OPERATE': cycles}, dict(counts))
+        check('phaseA_all_cycles_exact', None, failed_cycle)
+        check('phaseA_counts', {'READ': cycles + 1, 'SELECT': cycles, 'OPERATE': cycles}, dict(counts))
         # name kept from m11_09 (12 per READ there); the expectation is this build's own READ growth
-        report.add('phaseA_growth_12_per_READ_24_per_control', rp.growth(bytes(READ_NATIVE), IMAGE_LEN) * (cycles + 1) +
+        check('phaseA_growth_12_per_READ_24_per_control', rp.growth(bytes(READ_NATIVE), IMAGE_LEN) * (cycles + 1) +
                    (IMAGE_LEN - CONTROL_NATIVE) * 2 * cycles, growth)
         # Observed rollovers of the counters whose values every exact frame above carried on the wire.
         wraps = dict(seqs.wraps)
         report.record['meta']['phaseA_wraps'] = wraps
-        report.add('phaseA_master_transport_wrapped', True, wraps['master_transport'] >= 1)
-        report.add('phaseA_application_sequence_wrapped', True, wraps['application'] >= 4)
-        report.add('phaseA_outstation_transport_wrapped', True, wraps['outstation_transport'] >= 1)
+        check('phaseA_master_transport_wrapped', True, wraps['master_transport'] >= 1)
+        check('phaseA_application_sequence_wrapped', True, wraps['application'] >= 4)
+        check('phaseA_outstation_transport_wrapped', True, wraps['outstation_transport'] >= 1)
 
         # Phase B: T enabled; one OPERATE release per cycle, no duplicates.
+        begin_case('phaseB_lead')
         params['enabled'] = 1
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
         releases = outcome(5)
         read('timed_lead')
         for cycle in range(timed_cycles):
+            begin_case('phaseB_cycle_%02d' % cycle)
             tag = 't%02d' % cycle
             sbo(tag, 200 + cycle)
-            report.add('%s_one_OPERATE_release' % tag, releases + cycle + 1, outcome(5))
+            check('%s_one_OPERATE_release' % tag, releases + cycle + 1, outcome(5))
             read(tag)
+        begin_case('phaseB_summary')
         master_ack('phaseB_end')
-        report.add('phaseB_releases', releases + timed_cycles, outcome(5))
+        check('phaseB_releases', releases + timed_cycles, outcome(5))
 
         # Authority probes with T enabled. Each ends its connection: a dropped OPERATE leaves its TCP sequence
         # slot outstanding, so the connection is retired (qualified RST) and a fresh one is opened.
@@ -280,9 +380,9 @@ def main():
             seqs.next_app()
             got = m.exchange(MASTER.dev_port, vectors.packet(24, c, s + growth, payload=request), ports,
                              timeout=3, quiet=.15)
-            report.add('%s_OPERATE_dropped' % tag, 0, sum(len(v) for v in got.values()), received=got)
-            report.add('%s_no_OPERATE_release' % tag, before_release, outcome(5))
-            report.add('%s_no_OPERATE_generation' % tag, before_state['T']['op_gen_alloc_reg'],
+            check('%s_OPERATE_dropped' % tag, 0, sum(len(v) for v in got.values()), received=got)
+            check('%s_no_OPERATE_release' % tag, before_release, outcome(5))
+            check('%s_no_OPERATE_generation' % tag, before_state['T']['op_gen_alloc_reg'],
                        snapshot()['T']['op_gen_alloc_reg'])
 
         def reconnect(tag, client, server):
@@ -297,31 +397,43 @@ def main():
             step('%s_final_ACK' % tag, vectors.packet(16, c, s), vectors.packet(16, c, s))
 
         # A READ after a completed SBO grants no OPERATE authority (unpaired OPERATE dropped, nothing released).
+        begin_case('probe1')
         read('probe1')
         unpaired_operate('probe1_SBO_READ_then')
+        begin_case('probe2')
         reconnect('probe2', 20000, 30000)
         read('probe2')
         unpaired_operate('probe2_READ_then_no_SELECT')
         # SELECT then READ (an abandoned SELECT) is an unsupported shape: N admits only the matching OPERATE, so the
         # READ is dropped and the connection must be reset (model_abandon.py characterizes it in detail).
         # ctl_timing m4 and its supported successors implement Table 4-9: READ cancels the selection and is answered.
+        begin_case('probe3')
         reconnect('probe3', 40000, 50000)
         exchange('probe3', 'SELECT', 3, crob(500), control_body(500), False)
         if milestone in ('m4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):
-            report.add('probe3_READ_after_SELECT_cancels_selection', True, read('probe3_cancel'))
+            check('probe3_READ_after_SELECT_cancels_selection', True, read('probe3_cancel'))
         else:
             request, _app = seqs.request(1, READ_OBJECTS)
             seqs.next_app()
             got = m.exchange(MASTER.dev_port, vectors.packet(24, c, s + growth, payload=request), ports, timeout=3,
                              quiet=.15)
-            report.add('probe3_READ_after_SELECT_dropped_unsupported_shape', 0, sum(len(v) for v in got.values()),
+            check('probe3_READ_after_SELECT_dropped_unsupported_shape', 0, sum(len(v) for v in got.values()),
                        received=got)
+        begin_case('probe4')
         reconnect('probe4', 60000, 70000)
         read('probe4_after_reset')
         report.record['meta']['final_snapshot'] = snapshot()
         report.record['meta']['reflections'] = {r.port: r.summary() for r in reflectors}
+        meta['completed_cases'].append(meta['active_case'])
+        meta['active_case'] = None
     except Exception:
+        meta.setdefault('failed_case', meta['active_case'] or 'setup')
+        meta['stopped_frontier'] = dict(c=c, s=s, growth=growth)
         report.add('exception', 'none', traceback.format_exc(), ok=False)
+    meta['completed_counts'] = dict(counts)
+    meta['uncompleted_counts'] = {kind: meta['planned_counts'][kind] - count for kind, count in counts.items()}
+    meta['unexecuted_cases'] = [name for name in meta['planned_cases']
+        if name not in meta['completed_cases'] and name != meta['active_case']]
     ok = report.finish(Path(os.environ['OUT']) / 'repeat_results.json')
     return 0 if ok else 1
 

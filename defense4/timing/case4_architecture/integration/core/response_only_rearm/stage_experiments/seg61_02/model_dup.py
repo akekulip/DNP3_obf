@@ -511,10 +511,24 @@ def main():
             report.add(tag + '_late_duplicate_preserves_mapping_except_replay_marker', stable_e, late_stable_e)
             expected_acct = dict(state['E']['acct'])
             # acct.hi tracks reverse pending distance; lo is the wire frontier.
-            expected_acct['r_Egress.acct.hi'] = [READ_IMAGE]
+            expected_acct['r_Egress.acct.hi'] = [0 if ready else READ_IMAGE]
             report.add(tag + '_late_duplicate_replay_marker_only', expected_acct, late['E']['acct'])
             report.add(tag + '_late_duplicate_no_extra_release', counts_after,
                        {i: outcome(i) for i in counts})
+            if ready:
+                # A forwarded retry must still support an exact cached response replay after
+                # the original image was fully acknowledged, without another image commit.
+                before_replay = snapshot()
+                step(tag + '_late_duplicate_cached_response_replay', response, expected, master=False)
+                replay = snapshot()
+                report.add(tag + '_cached_replay_preserves_generations',
+                           [before_replay['T'][name] for name in ('gen_alloc_reg', 'op_gen_alloc_reg')],
+                           [replay['T'][name] for name in ('gen_alloc_reg', 'op_gen_alloc_reg')])
+                report.add(tag + '_cached_replay_no_second_timing_release', counts_after,
+                           {i: outcome(i) for i in counts})
+                report.add(tag + '_cached_replay_preserves_image_frontiers',
+                           {name: before_replay['E'][name] for name in ('front', 'img_start', 'img_end', 'img_wend')},
+                           {name: replay['E'][name] for name in ('front', 'img_start', 'img_end', 'img_wend')})
             rec.update(log=log, after_release_duplicate_log=late_log,
                        outcomes_delta={i: counts_after[i] - counts[i] for i in counts},
                        before=before, after_release=after_release, after_late_duplicate=late)

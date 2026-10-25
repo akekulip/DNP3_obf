@@ -1,0 +1,90 @@
+{
+  "active_step": null,
+  "active_unit": null,
+  "campaign_id": "rc01_hw_c67_20261025_06",
+  "controller_generation": 1,
+  "controller_unit": "dnp3-eval-rc01_hw_c67_20261025_06-27aff782e7c7-controller-1.service",
+  "created": 1792946292.9621687,
+  "deadline": 1793032693.0749338,
+  "evidence_kind": "hardware",
+  "manifest_sha256": "450464ed52d6d1e31b9bded2d075ea0e91c1b441d90332c327b30a4c8f168a14",
+  "phase": "stopped",
+  "start": 1792946293.0749338,
+  "started": true,
+  "steps": {
+    "rc01_hw_c67_20261025_06_loss_full_950": {
+      "rc": null,
+      "restoration": null,
+      "status": "unexecuted"
+    },
+    "rc01_hw_c67_20261025_06_loss_mixed_950": {
+      "artifact_manifest": {
+        "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c67_20261025_06_loss_mixed_950/artifact_manifest.json",
+        "sha256": "74d5597c9ddcfcdb41c76e7bcc11ff032a7c4b748e5a21645bf6e626e59a697d"
+      },
+      "finished": 1792947153.1585302,
+      "hardware_entry": 1792946541.5782318,
+      "id": "rc01_hw_c67_20261025_06_loss_mixed_950",
+      "kind": "block",
+      "manifest_sha256": "450464ed52d6d1e31b9bded2d075ea0e91c1b441d90332c327b30a4c8f168a14",
+      "postcheck_rc": null,
+      "rc": 1,
+      "reason": "block_failed",
+      "restoration": {
+        "device": 2050,
+        "inode": 51788998,
+        "mtime_ns": 1792947153113251942,
+        "ok": true,
+        "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c67_20261025_06_loss_mixed_950/restore_verify.json",
+        "sha256": "09fe4fa39b636d55a5210b885d80b677480b63837380fdd72784dcee7a98e8d7",
+        "size": 6039
+      },
+      "started": 1792946541.5735276,
+      "status": "failed",
+      "unit": "dnp3-eval-rc01_hw_c67_20261025_06-27aff782e7c7-step-rc01_hw_c67_20261025_06_loss_mixed_950.service"
+    },
+    "rc01_hw_c67_20261025_06_persistence_graceful_950": {
+      "rc": null,
+      "restoration": null,
+      "status": "unexecuted"
+    },
+    "rc01_hw_c67_20261025_06_persistence_rst_950": {
+      "rc": null,
+      "restoration": null,
+      "status": "unexecuted"
+    },
+    "rc01_hw_c67_20261025_06_reconnect_950": {
+      "rc": null,
+      "restoration": null,
+      "status": "unexecuted"
+    },
+    "rc01_hw_c67_20261025_06_reference_rest": {
+      "artifact_manifest": {
+        "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c67_20261025_06_reference_rest/artifact_manifest.json",
+        "sha256": "9a59eddb5e0f4fd738ae57f1c57c27c0bb5a778638ce3bcbc10d8b99ff776144"
+      },
+      "finished": 1792946541.085886,
+      "hardware_entry": 1792946293.1455863,
+      "id": "rc01_hw_c67_20261025_06_reference_rest",
+      "kind": "block",
+      "manifest_sha256": "450464ed52d6d1e31b9bded2d075ea0e91c1b441d90332c327b30a4c8f168a14",
+      "postcheck_rc": null,
+      "rc": 0,
+      "reason": null,
+      "restoration": {
+        "device": 2050,
+        "inode": 51788860,
+        "mtime_ns": 1792946541036074306,
+        "ok": true,
+        "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c67_20261025_06_reference_rest/restore_verify.json",
+        "sha256": "d521b4261b100fdfec2e39bbd63399a8d6469968fa047a857fd865cb147bb62e",
+        "size": 5682
+      },
+      "started": 1792946293.1390414,
+      "status": "completed",
+      "unit": "dnp3-eval-rc01_hw_c67_20261025_06-27aff782e7c7-step-rc01_hw_c67_20261025_06_reference_rest.service"
+    }
+  },
+  "stop_after_current": false,
+  "stop_reason": "block_failed"
+}

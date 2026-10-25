@@ -10,18 +10,28 @@ manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
 
 ## Active timing correction — Philip, 2026-10-25
 
+Current handover: [CLAUDE_HANDOVER_20261025.md](CLAUDE_HANDOVER_20261025.md). Philip requested takeover by
+Claude and explicitly prohibited scope expansion. The c67 model gate and all planned physical blocks are done
+(handover Closeout section): model PASS, smoke PASS, FIN PASS, timing FAIL, mixed-loss SBO recovery FAIL, physical
+J unproven; c67 has not passed hardware qualification. Revised scope (Philip, 2026-10-25): bounded hardware
+debugging and retesting of the existing timing and mixed-loss failures only, on the existing testbed, profiles,
+guarded operations and restoration procedure. Each test must address a specific hypothesis or verify a concrete
+fix; preserve failed evidence and the original thresholds. No new features, production defaults, additional relay
+profiles, instrumentation project, package/OS changes or threshold relaxation. The Vision-jitter and select-window
+explanations remain unproven. Read the handover's scope limits before acting.
+
 Read root `plan.md` first. Codex is implementing response-ready ACK-then-D timing on successor c67 (v2):
 D=5/10/15/20ms qualification is now authorized for READ and SBO, superseding the earlier blanket D-campaign
 exclusion only for this bounded qualification. J remains2.4ms; physicalJ measurement is explicitlyunproven.
 No exchange deadline: suppress retries only while an original request/response is retained; otherwise allow TCP recovery. FIN/RST/epoch clean up ownership. r150 is superseded. c52 evidence is immutable.
 No new attacker/J-codebook campaign, relay observer, syntheticACK, generalreassembly or sizing redesign.
-Existing guarded SEL-751 authorization/restoration and100us criterion remain in force. c62 v1 passed its strict model but is superseded; c67 v2 compilation is approved; model and hardware gates remain pending; WORKING_NOTES tracks progress.
+Existing guarded SEL-751 authorization/restoration and100us criterion remain in force. c62 v1 passed its strict model but is superseded; c67 v2 passed its 17-driver model gate and ran every planned physical block; it failed timing (100 us) and mixed-loss SBO recovery; WORKING_NOTES tracks progress.
 
 ## Agent start
 
-0. Current SEL-751 continuation (2026-10-24): read root `CLAUDE_HANDOVER_20261024.md` and `plan.md` first.
-   c52 selected: model_gate_passed; physical set 23-31 ran (reference 772/772); timing fails 100 us, J unproven;
-   FIN recovery open (reconnect fails the switch gate on late-first-READ fallbacks).
+0. Current SEL-751 continuation (2026-10-25): read root `CLAUDE_HANDOVER_20261025.md`, then `plan.md`.
+   c67 v2 is the active candidate: model gate PASS; physical smoke/FIN PASS, timing FAIL, mixed-loss FAIL, J unproven.
+   c52 is the immutable measured baseline. The October 24 handover is historical, not the next-action list.
 1. Read `defense4/timing/case4_architecture/ACTIVE_CODE_MAP.md`: the active code path with commands.
 2. Read the run's status file `.../stage_experiments/read_complete_01/CURRENT.md` (history in `STATUS.md`,
    full record in `COMPLETION_RECORD.md`).
@@ -35,7 +45,8 @@ Existing guarded SEL-751 authorization/restoration and100us criterion remain in 
   (`.../stage_experiments/m12_fullsize/make_m12.py` with `m12gen/`), builds and model gate
   (`.../ctl_timing_01`), the manuscript evaluation (`.../seg61_02`), the current run (`.../read_complete_01`),
   the hardware supervisor (`integration/evidence/rearm_01/hw`) and the endpoint library (`protocol/hw_vepa`).
-  Current checkpoint: `m12p_c52_sdk9132` (model gate passed; full guarded physical SEL-751 set ran; see CURRENT.md).
+  Current candidate: `m12p_c67_sdk9132` (model gate passed; physical qualification failed on timing and mixed loss). The measured
+  `m12p_c52_sdk9132` baseline remains immutable; see CURRENT.md and the October 25 handover.
 - `defense4/timing/` (outside `case4_architecture/`) — the timing-only record: the P4 that ran
   (`implementation/`), the campaigns (`evidence/campaign_v2/`, which corrects the acknowledgment-anchored
   `campaign_v1/`; `final_read_sbo/` is older), the anchor fix (`anchor_fix/FINDINGS.md`), audits, the delay

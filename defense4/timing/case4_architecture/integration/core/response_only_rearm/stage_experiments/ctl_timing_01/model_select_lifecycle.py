@@ -15,6 +15,7 @@ Model behavior only, not host timing or ASIC evidence.
 """
 import hashlib
 import importlib.util
+import json
 import os
 import sys
 import traceback
@@ -33,11 +34,38 @@ PB = int(os.environ.get('CTL_PB', '300000000'))
 
 
 def main():
+    from model_profile import from_env
+    profile = from_env()
+    ready = profile.get('timing_contract') == 'response_ready_ack_d_v2'
+    if ready:
+        import model_log_view as view
+        log_path = view.log_path()
     report = Report(os.environ['PROG'], physical=False,
                     scope='ctl_timing m4 compiled: Table 4-9 selection cancellation, replacement, retry and stale '
                           'OPERATE, T disabled then enabled',
                     driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     rep.rp.report_endpoint(report)
+    meta = report.record['meta']
+    state, counts = {}, dict(READ=0, SELECT=0, OPERATE=0)
+    meta['planned_counts'] = dict(READ=9, SELECT=18, OPERATE=6)
+    meta['planned_cases'] = ['%s_%s' % (phase, case) for phase in ('untimed', 'timed') for case in
+        ('connect', 'lead', 'cancel', 'new_sbo', 'replace', 'retry', 'after_retry', 'replaced_authority',
+         'stale_authority')] + ['after_reconnect']
+    meta['completed_cases'], meta['active_case'] = [], None
+
+    def begin_case(name):
+        if meta['active_case'] is not None:
+            meta['completed_cases'].append(meta['active_case'])
+        meta['active_case'] = name
+
+    def check(name, expected, observed, ok=None, **fields):
+        good = expected == observed if ok is None else ok
+        report.add(name, expected, observed, ok=good, **fields)
+        if not good:
+            meta['failed_case'] = name
+            raise AssertionError(name + ': stop dependent cases after failed prerequisite')
+        return good
+
     try:
         m = Model(ports=[], enable=False)
         ports = sorted({MASTER.dev_port, RELAY.dev_port})
@@ -64,6 +92,8 @@ def main():
                 m.add(table, dict(key), action, dict(data), priority)
         params = dict(da=50_000_000, readiness=400_000_000, cap=16_000_000, gap=50_000_000, op_j=200_000_000,
                       budget=240_000, enabled=0, pb=PB)
+        if ready:
+            params = dict(gap=5_000_000, op_j=2_400_000, budget=240_000, enabled=0)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
         mirror = m.table('$mirror.cfg', raw=True)
         mirror.entry_add(gc.Target(device_id=0, pipe_id=0xffff),
@@ -89,13 +119,13 @@ def main():
             flat = [frame for frames in got.values() for frame in frames]
             good = len(flat) == (0 if expected is None else 1)
             if good and expected is not None:
-                good = same_frame(flat[0], expected, sent)
-            report.add(name, 'drop' if expected is None else 'one exact frame',
+                endpoint = RELAY.dev_port if master else MASTER.dev_port
+                delivered = got.get(endpoint, [])
+                good = len(delivered) == 1 and same_frame(delivered[0], expected, sent)
+            check(name, 'drop' if expected is None else 'one exact frame',
                        'drop' if not flat else '%d frames' % len(flat), ok=good,
                        received=got, want='' if expected is None else expected.hex())
             return good
-
-        state = {}
 
         def connect(tag, client, server):
             state.update(c=client, s=server, growth=0, seqs=Sequences())
@@ -110,25 +140,44 @@ def main():
         def request(tag, kind, fc, objects, advance_app=True):
             seqs = state['seqs']
             frame, app = seqs.request(fc, objects)
-            if advance_app:
-                seqs.next_app()
             c, s, growth = state['c'], state['s'], state['growth']
             step('%s_%s_request' % (tag, kind), vectors.packet(24, c, s + growth, payload=frame),
                  vectors.packet(24, c, s, payload=frame))
+            if advance_app:
+                seqs.next_app()
             state['c'] = c + len(frame)
             return app
 
         def respond(tag, kind, app, body, separate_ack):
             seqs, c, s, growth = state['seqs'], state['c'], state['s'], state['growth']
-            if separate_ack:
+            if separate_ack and not (ready and params['enabled']):
                 step('%s_%s_server_ACK' % (tag, kind), vectors.packet(16, s, c, reverse=True),
                      vectors.packet(16, s + growth, c, reverse=True), master=False)
             native = seqs.response(app, body, kind)
             image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
-            step('%s_%s_response_61' % (tag, kind), vectors.packet(24, s, c, reverse=True, payload=native),
-                 vectors.packet(24, s + growth, c, reverse=True, payload=image), master=False)
+            response = vectors.packet(24, s, c, reverse=True, payload=native)
+            expected_response = vectors.packet(24, s + growth, c, reverse=True, payload=image)
+            if ready and params['enabled']:
+                ack = vectors.packet(16, s, c, reverse=True)
+                expected_ack = rep.rp.preserve_options(ack, vectors.packet(16, s + growth, c, reverse=True))
+                expected_response = rep.rp.preserve_options(response, expected_response)
+                offset = view.size(log_path)
+                got, exact = rep.response_ready_pair(m, ports, RELAY.dev_port, ack, response,
+                                                     expected_ack, expected_response, same_frame,
+                                                     master_port=MASTER.dev_port)
+                label = '%s_%s' % (tag, kind)
+                check(label + '_genuine_ACK_and_complete_response', 'exact ACK then whole response',
+                           sum(map(len, got.values())), ok=exact, received=got)
+                records = view.records_since(log_path, offset)
+                written = json.loads((Path(os.environ['OUT']) / 't_params_written.json').read_text())[-1]['written']
+                proof = rep.repeat_clock_proof(records, written['gap'])
+                check(label + '_T_clock_response_ready_ACK_then_D', True, proof['passed'],
+                           response_ready_clock_proof=proof)
+            else:
+                step('%s_%s_response_61' % (tag, kind), response, expected_response, master=False)
             state['s'] = s + len(native)
             state['growth'] = growth + rep.rp.growth(native, IMAGE_LEN)
+            counts['SELECT' if kind == 'SELECT_retry' else kind] += 1
 
         read_body = rep.READ_BODY
 
@@ -148,23 +197,26 @@ def main():
 
         def counted(tag, timed, body, lane, releases):
             """Run body; when timed, assert its lane generations and OPERATE releases exactly."""
+            begin_case(tag)
             lane0, rel0 = t_reg('gen_alloc_reg'), outcome(5)
             body()
             if timed:
-                report.add('%s_lane_generations' % tag, lane, t_reg('gen_alloc_reg') - lane0)
-                report.add('%s_OPERATE_releases' % tag, releases, outcome(5) - rel0)
+                check('%s_lane_generations' % tag, lane, t_reg('gen_alloc_reg') - lane0)
+                check('%s_OPERATE_releases' % tag, releases, outcome(5) - rel0)
 
         for phase, timed, (client, server) in (('untimed', 0, (100, 900)), ('timed', 1, (20000, 30000))):
+            begin_case('%s_connect' % phase)
             params['enabled'] = timed
             m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
             connect(phase, client, server)
+            begin_case('%s_lead' % phase)
             read('%s_lead' % phase)
 
             def cancel(p=phase):
                 select('%s_cancel' % p, 100)
-                report.add('%s_cancel_selection_in_effect_owner_0xa' % p, 0xa, owner())
+                check('%s_cancel_selection_in_effect_owner_0xa' % p, 0xa, owner())
                 read('%s_cancel_by' % p)
-                report.add('%s_cancel_owner_idle' % p, 5, owner())
+                check('%s_cancel_owner_idle' % p, 5, owner())
             counted('%s_cancel' % phase, timed, cancel, lane=2, releases=0)
             counted('%s_new_sbo' % phase, timed,
                     lambda p=phase: (select('%s_new_sbo' % p, 101), operate('%s_new_sbo' % p, 101)), lane=2, releases=1)
@@ -180,14 +232,16 @@ def main():
                 app = select('%s_retry_first' % p, 104, advance_app=False)
                 # identical octets after the function code: same application sequence, new transport segment
                 again = select('%s_retry_again' % p, 104, advance_app=True, kind='SELECT_retry')
-                report.add('%s_retry_same_application_sequence' % p, app, again)
+                check('%s_retry_same_application_sequence' % p, app, again)
                 operate('%s_retry' % p, 104)
                 return seqs
             counted('%s_retry' % phase, timed, retry, lane=3, releases=1)
+            begin_case('%s_after_retry' % phase)
             read('%s_after_retry' % phase)
 
             # OPERATE for the REPLACED selection (A's objects, next application sequence after B): only B may be
             # operated, so this is dropped with no release and no OPERATE generation; it retires the connection
+            begin_case('%s_replaced_authority' % phase)
             old_app = select('%s_old_sel_A' % phase, 106)
             select('%s_old_sel_B' % phase, 107)
             op_gen0, rel0 = t_reg('op_gen_alloc_reg'), outcome(5)
@@ -199,10 +253,10 @@ def main():
                 frame = rep.rp._std().frame(head, user[:1] + bytes([0xc0 | ((old_app + 1) & 15)]) + user[2:])
             got = m.exchange(MASTER.dev_port, vectors.packet(24, state['c'], state['s'] + state['growth'],
                                                              payload=frame), ports, timeout=3, quiet=.15)
-            report.add('%s_replaced_selection_OPERATE_dropped' % phase, 0, sum(len(v) for v in got.values()),
+            check('%s_replaced_selection_OPERATE_dropped' % phase, 0, sum(len(v) for v in got.values()),
                        received=got)
-            report.add('%s_replaced_selection_OPERATE_no_release' % phase, rel0, outcome(5))
-            report.add('%s_replaced_selection_OPERATE_no_generation' % phase, op_gen0, t_reg('op_gen_alloc_reg'))
+            check('%s_replaced_selection_OPERATE_no_release' % phase, rel0, outcome(5))
+            check('%s_replaced_selection_OPERATE_no_generation' % phase, op_gen0, t_reg('op_gen_alloc_reg'))
             if rep.rp.SEL751:
                 frame, _app = state['seqs'].request(4, crob(107))
                 head, user = rep.rp._std().deframe(frame)
@@ -212,10 +266,10 @@ def main():
                 frame = rep.rp._std().frame(head, user)
                 got = m.exchange(MASTER.dev_port, vectors.packet(24, state['c'], state['s'] + state['growth'],
                                                                  payload=frame), ports, timeout=3, quiet=.15)
-                report.add('%s_out_of_profile_second_CROB_OPERATE_dropped' % phase, 0,
+                check('%s_out_of_profile_second_CROB_OPERATE_dropped' % phase, 0,
                            sum(len(v) for v in got.values()), received=got)
-                report.add('%s_out_of_profile_OPERATE_no_generation' % phase, op_gen0, t_reg('op_gen_alloc_reg'))
-                report.add('%s_out_of_profile_OPERATE_no_release' % phase, rel0, outcome(5))
+                check('%s_out_of_profile_OPERATE_no_generation' % phase, op_gen0, t_reg('op_gen_alloc_reg'))
+                check('%s_out_of_profile_OPERATE_no_release' % phase, rel0, outcome(5))
                 report.record['meta']['replacement_contract'] = (
                     'fixed guarded command; replacement changes application/TCP identity; stale application refused; '
                     'current application with out-of-profile second CROB refused; identical current OPERATE is valid')
@@ -224,22 +278,32 @@ def main():
             connect('%s_after_replaced' % phase, client + 5000, server + 5000)
 
             # stale OPERATE after cancellation: dropped, nothing released, no OPERATE generation; retire connection
+            begin_case('%s_stale_authority' % phase)
             select('%s_stale' % phase, 105)
             read('%s_stale_cancel' % phase)
             op_gen0, rel0 = t_reg('op_gen_alloc_reg'), outcome(5)
             frame, _app = state['seqs'].request(4, crob(105))
             got = m.exchange(MASTER.dev_port, vectors.packet(24, state['c'], state['s'] + state['growth'],
                                                              payload=frame), ports, timeout=3, quiet=.15)
-            report.add('%s_stale_OPERATE_dropped' % phase, 0, sum(len(v) for v in got.values()), received=got)
-            report.add('%s_stale_OPERATE_no_release' % phase, rel0, outcome(5))
-            report.add('%s_stale_OPERATE_no_generation' % phase, op_gen0, t_reg('op_gen_alloc_reg'))
+            check('%s_stale_OPERATE_dropped' % phase, 0, sum(len(v) for v in got.values()), received=got)
+            check('%s_stale_OPERATE_no_release' % phase, rel0, outcome(5))
+            check('%s_stale_OPERATE_no_generation' % phase, op_gen0, t_reg('op_gen_alloc_reg'))
             step('%s_RST' % phase, vectors.packet(20, state['c'], state['s'] + state['growth']),
                  vectors.packet(20, state['c'], state['s']))
+        begin_case('after_reconnect')
         connect('after', 60000, 70000)
         read('after_reconnect')
         report.record['meta']['reflections'] = {r.port: r.summary() for r in reflectors}
+        meta['completed_cases'].append(meta['active_case'])
+        meta['active_case'] = None
     except Exception:
+        meta.setdefault('failed_case', meta['active_case'] or 'setup')
+        meta['stopped_frontier'] = {key: state[key] for key in ('c', 's', 'growth') if key in state}
         report.add('exception', 'none', traceback.format_exc(), ok=False)
+    meta['completed_counts'] = dict(counts)
+    meta['uncompleted_counts'] = {kind: meta['planned_counts'][kind] - count for kind, count in counts.items()}
+    meta['unexecuted_cases'] = [name for name in meta['planned_cases']
+        if name not in meta['completed_cases'] and name != meta['active_case']]
     ok = report.finish(Path(os.environ['OUT']) / 'select_lifecycle_results.json')
     return 0 if ok else 1
 

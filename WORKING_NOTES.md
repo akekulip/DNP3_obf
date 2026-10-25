@@ -1,35 +1,51 @@
 # Working notes
 
-## CURRENT — 2026-10-25: response-ready timing v2
+## CURRENT — 2026-10-25: Claude handover, c67 v2
 
-Philip's latest instruction removes the 500 ms exchange deadline. The active contract is:
+Read [CLAUDE_HANDOVER_20261025.md](CLAUDE_HANDOVER_20261025.md), then [plan.md](plan.md).
+Philip requested this handover and explicitly required that Claude not expand scope. Complete the existing
+c67 gates and already-approved physical blocks only. No redesign, new instrumentation/campaigns/profiles,
+physical J measurement project, threshold relaxation, package/OS/firmware change, or production-default change.
+The October 24 handover and the c52 sections below are historical; c52 remains the immutable measured baseline.
 
-- Hold the real relay ACK until the matching whole response arrives. Release ACK once, then response after
-  D = 5, 10, 15 or 20 ms. OPERATE request J remains 2.4 ms. READ and SBO padding remain unchanged.
-- Drop a validated duplicate request only while its original OPERATE request or response is retained.
-  Otherwise forward the retry without another admission, growth commit or J hold. Do not restart D.
-- Held packets occupy existing queues; registers hold ownership/completion. FIN/RST/epoch clean up retained
-  originals. Finite blocker circulation remains a resource guard, with no early release fallback.
-- Active profile is `response_ready_ack_d_v2`, installer keys `gap, op_j, budget, enabled`.
-- Candidate c67 compiles after identity/disabled-retry repairs; N/E0..10, T0..9, P1E0..3, all T banks coherent. c62 v1 passed its strict compiled model, 694/694, and four legacy
-  drivers; those results remain historical and do not qualify v2. c60 was rejected for a physically split
-  response-completion bank. c62 repaired that defect; v2 must preserve the single-bank layout.
-- c67 compiles: a one-field PHV placement annotation removed the false N dependency. Independent
-  source/layout review approved. Smoke30/30 and packets763/763 passed. Strict v2_01 passed718/720 before an obsolete disabled-blocker
-  counter expectation; the exact compiled stop action and unchanged state were independently verified.
-  The model-only canary fix keeps all24 probes. Strict_02 caught an incremental-log read before the
-  blocker clock line arrived; the observer now waits for that field. Strict_03 PASSED826/826.
-  Rearm now passes on attempt02; attempt01 hit a Python select-module/name collision in its new
-  observer. That model-only alias is fixed. The remaining regressions are running sequentially (dup now). Full CTL offline suite1002 passed;
-  the subsequent canary changes passed132 focused tests. API 912 tests and
-  legacy installer 89 pass; independent API review approved. Dup/contention offline checks: 215 pass.
-- The pre-v2 checkpoint is 4004c7b62. No successor physical campaign has run. Existing c52 evidence and two
-  unrelated deleted files remain untouched. No software outstations.
-- Remaining: v2 source/harness/model integration; SDK 9.13.2 compile and resource checks; 17-driver model
-  gate; guarded physical smoke, 1,930 reference exchanges at four D values and D20 loss/FIN/RST/reconnect;
-  reproduction, final evidence/status documents, commit and push. Root plan.md records acceptance criteria.
-- The 100 µs complete-CLRT p99 criterion stays unchanged. Physical J remains explicitly unproven by choice.
-  FIN recovery stays open until all complete recovery blocks pass.
+- Current source: `m12p_c67_sdk9132`, SHA-256
+  `e8565de7c317124b2c3377ce02fc2a932d4f86e1625ed224ec9fed550d6d2ec1`.
+  SDK 9.13.2 compile exit 0; N/E stages 0..10, T 0..9, pipe-1 egress 0..3; all 11 T objects single-bank.
+  Source and nine compiled artifact hashes reverified. Fresh source/profile regeneration is identical.
+- Contract: genuine ACK waits for the matching whole response, ACK releases once, response follows after
+  D=5/10/15/20 ms. J stays 2.4 ms. No exchange expiry/fallback. Suppress validated retries only while an
+  original request or response is retained; otherwise allow TCP recovery without new admission/growth/J.
+  Existing queues hold packets; FIN/RST/epoch clean up ownership. Physical shapes stay 91→141, 134→158, 49→60.
+- Reviewed harness repairs: repeat/lifecycle now require the exact output endpoint and stop dependent traffic
+  after a failed prerequisite, preserving planned/completed/unexecuted counts and the failed frontier.
+  Genuine v2 ACK/response pairs and T-clock proofs remain mandatory. Duplicate replay and contention reset
+  schema repairs are also independently reviewed. No P4 or compiled artifact changed during this takeover.
+- Fresh model passes: repeat03 530/530 (READ73, SELECT68, OPERATE67 completed, all planned), lifecycle02
+  138/138 (READ9, SELECT18, OPERATE6 completed, all planned), control_timing02 390/390, policy_boundary01
+  206/206, smoke_sizeoff01 30/30. Other reusable passes and all attempt identities are in the handover table.
+- **The v3 model gate is BLOCKED.** Abort01 reports 80/80 but lacks four required surviving-response proofs
+  and has a stale repeat dependency. Contention02 passes 453/453 plus its reset postcheck, but its repeat
+  dependency is stale. Abandon has no attempt. Behavioral pass counts do not override these blockers.
+- Exact next repair: the v2 held-negative abort fixture sends a response and invalid RST but omits the genuine
+  ACK, so the original response correctly remains held. Keep the strict survivor validator. Supply the ACK
+  after proving no reset, then prove exact delivery of that held original after full D. Preserve positive
+  abort tests. This is a stimulus defect, not justification for a checker relaxation or P4 redesign.
+- Verification: 64 focused tests and 24 independent timed-function probes pass. Generator suite: 182 passed,
+  1 skipped, 163 subtests passed; ten historical source identities unchanged. Full CTL run under Python 3.12:
+  994 passed, 3 failed and 6 setup errors, all nine from loading SDK Python 3.8 cygrpc. The affected three
+  relay-observation and six timeline tests pass under system Python 3.8. Retain that failed invocation;
+  use 3.8 for SDK/CTL work and research 3.12 for generator/software tests. No package changes are needed.
+- No c67 freeze, pipeline load, physical traffic, or control operation occurred. Read-only checks found
+  production case4_response_path, Vision .19 data NIC up, no running hardware campaign, and ownership
+  inactive/unsafe_restoration=false. Recheck through the existing supervisor before any future physical run.
+- Existing physical plan only: D5 combined smoke; 1,930 reference exchanges across the approved four D values;
+  D20 mixed/full identity loss, graceful/RST/reconnect recovery. Keep the 100 us p99 complete-CLRT criterion,
+  full planned denominators, exact capture/provenance gates and independent restoration. Physical J remains
+  explicitly unproven; FIN remains open until whole recovery blocks pass.
+- New scheduling stopped at Philip's handover request. Existing runs and archival work were allowed to finish.
+  Final process/archive state is in `read_complete_01/evidence/timing_response_ready_20261025/claude_handover/final-state.json`.
+  Source changes, configs and evidence remain local/uncommitted; HEAD is 68fcec059. No new commit/push in this
+  takeover. Preserve unrelated deletions and all old evidence; use explicit staging paths when work resumes.
 
 ## Previous Claude checkpoint (retained history)
 
@@ -3182,4 +3198,100 @@ pinned-stack repro, frozen policy 141/247/401, coverage 25/25, live 5 classes). 
 ### Compaction handoff — 2026-10-25T06:58:49Z
 - Git: branch `main`, 3393 uncommitted file(s): BRANCH_PRUNE_20260915.txt DNP3_Implementation_Directive_492013014.md .drawio-tmp/ .scratch_p4/ .scratch_repo/ PlainObfus bf_drivers.log defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md defense4/ieee-standard-for-electric-power-systems-communicationsdistribut.pdf defense4/timing/audit_current/MEETING_20261005_DIRECTION.md defense4/timing/case4_architecture/FOUR_ARM_DESIGN_REVIEW.md defense4/timing/case4_architecture/integration/core/ordinary/transport_model_select.py 
 - Last verification run recorded: 2026-10-25T06:04:25Z	tail -4 /tmp/claude-1002/-home-philip-Projects-DNP3/3a7bcfe2-1832-436d-bcfe-39259e9151ca/scratchpad/campaigns.log; pytho
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+### Model integration checkpoint (2026-10-25)
+
+The P4 source/binaries remain c67/e8565de7. The older repeat and selection lifecycle timed fixtures were
+updated to submit genuine ACK+response pairs and check actual T-clock causality; all original cycles and
+selection assertions remain. The duplicate check now proves cached-response delivery after a late request
+retry while preserving generation/frontiers, instead of requiring an obsolete internal replay marker.
+Contention01 passed493/493 dataplane checks; its reset postcheck rejected the additional standalone clock
+case names. The clock proof is now part of the original committed case verdict, retaining the finite reset
+schema and mandatory timing proof. A fresh contention run remains required after the repeat-module update.
+
+### Claude takeover — abort fixture repair (2026-10-25)
+
+- Repaired only the v2 abort negative controls in `ctl_timing_01/model_contention.py` (sha256 e44b6379…):
+  after the `<tag>_no_master_reset` verdict, the genuine standalone relay ACK (packet(16, s, c), as in the
+  released branch) is sent; new case `<tag>_held_original_survives_once` requires the response held across the
+  RST (held_ok), nothing at the master before the ACK, then exactly mapped ACK + original response, ACK_COMMIT +1,
+  RESP_RELEASE +1, E-16 unchanged, and `repeat_clock_proof` (ACK release after both arrivals, response a full D
+  later). The post-completion row feeds `_abort_negatives`; the pre-ACK row is kept as `before_ack`. No response
+  resend, no new request, checker unchanged, held-positive/released/legacy paths unchanged.
+- New test `ctl_timing_01/tests/test_abort_response_ready.py` (6): red on HEAD, green now; related suites 282 passed
+  (python3 3.8). Independent code review: nothing blocking; its warning W1 (held precondition) applied.
+- abandon01 on c67: 12/12, exit 0. Launched abort02 and contention03 (both use the final source).
+- 2026-10-25 model gate: abort02 84/84 (all four v2 survivor proofs, `_abort_negatives` empty), contention03
+  457/457, abandon01 12/12 -> enforced v3 `model_gate_passed`, 17/17 drivers, no blocked reasons/limitations.
+  `model_summary_v3.json` written; freeze `freeze_v3.json` written/checked (all ten configs).
+- HW rc01_hw_c67_20261025_01 (D5 smoke): refused at the installer dry-run before any pipeline write —
+  `p1.t_Ingress.t0_reg: register not in bfrt.json` (v2 T compiles no t0_reg). Restoration verified; ownership
+  inactive/safe. Repair: `response_only_rearm/hw/bringup_composite.py configure()` drops t0_reg for the v2
+  contract only; new test binds the checked set to c67's compiled registers and P4 inits (red before, green
+  after). Local name-check replay PASS. New freeze `freeze_v3_02.json` (old freeze kept).
+  Pre-existing failures (not from this change, out of scope): 4 cases of
+  `test_sealed_profile.py::test_model_snapshots_read_every_selected_child_bank_and_no_others` NameError
+  (`ready`/`response_ready`) in AST-extracted model_rearm/model_dup code.
+- HW rc01_hw_c67_20261025_02 (D5 smoke): COMPLETE, rc 0, restoration verified. READ mixed 91->141, SELECT/OPERATE
+  ->60, integrity ->158; all OK, IIN 0x80; counters ACK_COMMIT 4 / RESP_RELEASE 4 / OP_RELEASE 1, no stale/fallback.
+  Not timing-gated (n=1), but master ACK->response: mixed 4.997 ms, SELECT 6.417, OPERATE 3.176, integrity 4.765
+  (D=5). READ pktgen triggers 3 for 4 responses: OPERATE response may lack its own D blocker. The model T-clock
+  proof bounds release only from below (>= D). Next: D5 four-arm reference (approved) for n>=20 evidence.
+- HW rc01_hw_c67_20261025_03 (D5 four-arm reference, 772): COMPLETE rc 0, restoration verified, n planned=observed=
+  eligible in every class/arm. 100 us criterion FAILS in both timed arms: timing_only p99 |err| 1924-2987 us,
+  combined 2087-2672 us; complete CLRT ~2.0-7.7 ms, median ~4.97-4.99 ms (centred on D, symmetric ±2-3 ms),
+  uncorrelated with request->ACK delay (r -0.19/-0.08). off/size_only native CLRT 5 us..68 ms. c52 had similar
+  residual (combined SELECT/OPERATE ~1.9 ms). [WITHDRAWN at closeout: the master-side/Vision-jitter hypothesis
+  is unproven; a D-independent spread does not locate the source. Cause unresolved.]
+- Remaining approved blocks launched as campaigns 04 (D10 ref_rest), 05 (D15), 06 (D20 ref_rest + 5 recovery);
+  all eight exact argvs dry-ran rc 0; authorization records beside each manifest.
+- HW campaigns 04/05 (D10/D15 ref_rest) and 06 reference_rest (D20): COMPLETE, restoration verified, all planned
+  denominators eligible. 100 us criterion FAILS in every timed class; residual is D-independent: CLRT ~[D-2, D+2] ms,
+  p99 |err| 1.7-4.1 ms (one outlier: D10 timing_only mixed READ, observed complete CLRT 54.104 ms = absolute
+  error 44.104 ms at D10, which with n=33 is also the nearest-rank p99 error) [corrected at closeout; the error
+  is 44.104 ms, not 54.1 ms].
+- HW campaign 06 loss_mixed_950: FAILED (rc 1, restoration verified) at trial t3 (select_resp_padded identity loss):
+  SELECT recovered after 1024.2 ms, then relay OPERATE CROB status TIMEOUT on points 1,3. Same trial on c52
+  (rc01_hw_c52_20261024_25 t3): SELECT 1001.7 ms, OPERATE OK. [Select-window inference WITHDRAWN at closeout:
+  the recovery times neither measure the relay's select window nor show that D caused the expiry.] Controller stopped; remaining recovery blocks rerun as campaign 07 (loss_full last).
+- HW campaign 07: persistence_graceful, persistence_rst, reconnect (c1/c2/c3 all application+acceptance) and
+  loss_full (all 7 identity targets) COMPLETE rc 0, restoration verified each. loss_full t3 (select_resp_padded):
+  SELECT 1007.5 ms -> OPERATE OK, versus loss_mixed t3 1024.2 ms -> OPERATE TIMEOUT [window-edge inference
+  withdrawn at closeout]. Ownership inactive, unsafe_restoration false.
+- STATUS at end of Claude session 2026-10-25: model gate PASSED; all approved physical blocks executed with
+  verified restoration. OPEN: (1) reference 100 us criterion fails at every D (D-independent ±~2 ms residual,
+  cause unlocated; locating it needs excluded instrumentation) -> Philip; (2) loss_mixed_950 failed once
+  (OPERATE TIMEOUT after SELECT-response loss) -> FIN stays open; Philip decides disposition. Nothing committed
+  or pushed in this session; evidence/log archival per evidence-retention-plan.md not yet done.
+
+
+## 2026-10-25 c67 CLOSEOUT (Philip's disposition) and revised scope
+
+Status: model PASS (17/17) | smoke PASS | FIN PASS (planned scope; campaign 07) | timing FAIL | mixed-loss SBO
+recovery FAIL | physical J unproven. c67 has NOT passed hardware qualification. Failed qualification is evidence.
+- Timing: 1,930/1,930 reference exchanges eligible; 0/32 timed cells within 100 us; p99 |err| 1.722-44.104 ms.
+  Worst: D10 timing_only mixed READ (n=33), observed CLRT 54.104 ms = error 44.104 ms (also the p99). Cause
+  unresolved; NOT attributed to Vision. Offline replay with the campaign checker (relay_check.py; not an
+  independent checker validation): read_complete_01/evidence/c67_reference_replay_20261025.json, 0 disagreements.
+- Mixed loss: t3 OPERATE CROB TIMEOUT recorded as an application failure, separate from transport correctness.
+  SELECT recovery times do not measure the relay select window or prove that D caused the expiry.
+- Closeout work: 4 test_sealed_profile snapshot fixtures repaired (test-only; both timing modes; t0_reg read only in
+  the legacy branch) -> 32/32; ctl_timing_01 tests 1009 passed. rearm_01/hw tests: 797 passed, 2 FAIL that also
+  fail at committed HEAD 68fcec059 (v1 response_ready_ack_d_v1 tests: test_candidate_series switch-gate [v1] and
+  test_profile_contract mixed-ABI) -- pre-existing, not touched. Archive: 56 c67 logs pinned (28 attempts, failed
+  and passing); restore_retained_logs rc 0 (265 ok).
+- REVISED SCOPE (Philip): bounded hardware debugging/retesting of the timing and mixed-loss failures only, existing
+  testbed/profiles/guarded operations/restoration; one hypothesis or concrete fix per test; preserve failed
+  evidence and thresholds; no new features, production defaults, relay profiles or instrumentation project.
+- Plan for debugging (B1 offline first, then B2 hardware): /home/philip/.claude/plans/wobbly-skipping-pond.md.
+  Concrete lead T-d: exchange 162 of block 04 timing_only: ACK at 2.908 ms after the READ request, response at
+  57.012 ms; counters normal (193 commit/193 release, no fallback). Either T released ~44 ms late, or the ACK left
+  before the response was complete (relay late after an OPERATE). Not yet discriminated.
+- Next: commit + clean-checkout reproduction + push (authorized), then Part B.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-25T18:10:33Z -->
+### Compaction handoff — 2026-10-25T18:10:33Z
+- Git: branch `main`, 3582 uncommitted file(s): BRANCH_PRUNE_20260915.txt CLAUDE.md CLAUDE_HANDOVER_20261024.md DNP3_Implementation_Directive_492013014.md WORKING_NOTES.md defense4/timing/case4_architecture/ACTIVE_CODE_MAP.md defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/bringup_composite.py defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_contention.py defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_select_lifecycle.py defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/COMPLETION_RECORD.md defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/CURRENT.md defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/STATUS.md 
+- Last verification run recorded: 2026-10-25T16:53:59Z	cd /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.

@@ -1,0 +1,104 @@
+[
+  {
+    "lane": "B",
+    "driver": "select_lifecycle",
+    "attempt": 1,
+    "exit_code": 0,
+    "seconds": 61.556,
+    "log": "c67_gate_select_lifecycle_01.log",
+    "command": [
+      "python3",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c67_sdk9132",
+      "select_lifecycle",
+      "1",
+      "--milestone",
+      "m12"
+    ]
+  },
+  {
+    "lane": "A",
+    "driver": "repeat",
+    "attempt": 2,
+    "exit_code": 0,
+    "seconds": 149.236,
+    "log": "c67_gate_repeat_02.log",
+    "command": [
+      "python3",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c67_sdk9132",
+      "repeat",
+      "2",
+      "--milestone",
+      "m12"
+    ]
+  },
+  {
+    "lane": "A",
+    "driver": "fin_busy",
+    "attempt": 1,
+    "exit_code": 0,
+    "seconds": 42.926,
+    "log": "c67_gate_fin_busy_01.log",
+    "command": [
+      "python3",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c67_sdk9132",
+      "fin_busy",
+      "1",
+      "--milestone",
+      "m12"
+    ]
+  },
+  {
+    "lane": "B",
+    "driver": "control_timing",
+    "attempt": 1,
+    "exit_code": 0,
+    "seconds": 163.019,
+    "log": "c67_gate_control_timing_01.log",
+    "command": [
+      "python3",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c67_sdk9132",
+      "control_timing",
+      "1",
+      "--milestone",
+      "m12"
+    ]
+  },
+  {
+    "lane": "A",
+    "driver": "two_read_robust",
+    "attempt": 1,
+    "exit_code": 0,
+    "seconds": 73.514,
+    "log": "c67_gate_two_read_robust_01.log",
+    "command": [
+      "python3",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c67_sdk9132",
+      "two_read_robust",
+      "1",
+      "--milestone",
+      "m12"
+    ]
+  },
+  {
+    "lane": "B",
+    "driver": "abort",
+    "attempt": 1,
+    "exit_code": 0,
+    "seconds": 140.571,
+    "log": "c67_gate_abort_01.log",
+    "command": [
+      "python3",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/run_model.py",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c67_sdk9132",
+      "abort",
+      "1",
+      "--milestone",
+      "m12"
+    ]
+  }
+]

@@ -80,6 +80,20 @@ OP_HOLD_S = 0.9                # > J (200 ms model) in wall time
 READ_BODY = rb.READ_BODY
 
 
+def abort_survivor_verdict(held, before, frames, ack, want_ack, want_rsp, deltas, e_delta, proof, same):
+    """v2 abort negative after its genuine ACK. held: T had admitted the response and released nothing when the
+    invalid RST was sent; before: nothing reached the master before the ACK. Then the master receives exactly the
+    mapped ACK and the already-held original response; T commits the ACK once and releases the response once (the
+    v2 counters have no fallback cells); E resets nothing; T's own clock shows the ACK release after both arrivals
+    and the response release a full D later."""
+    return (held is True and before.get('responses') == 0 and before.get('frames_to_master') == 0
+            and len(frames) == 2 and same(frames[0], want_ack, ack) and same(frames[1], want_rsp, want_rsp)
+            and not any(f[47] & 0x04 for f in frames)
+            and deltas.get('ACK_COMMIT', 0) == 1 and deltas.get('RESP_RELEASE', 0) == 1
+            and deltas.get('ACK_FALLBACK', 0) == 0 and deltas.get('RESP_FALLBACK', 0) == 0
+            and e_delta == 0 and proof.get('passed') is True)
+
+
 class PointInterrupted(Exception):
     """A handshake step got nothing back (harness fix 4, 2026-10-17). Attempt 06: one SYN took the model about 3.5 s,
     the 3 s step closed first, and the point's remaining cases failed in a cascade. The step's evidence is recorded
@@ -372,7 +386,8 @@ def main():
                 valid = after(a, arrivals['held_ack_units']) and after(a, arrivals['response_arrival_units']) and \
                     after(r, a) and ((r - a) & 0xffffffff) >= written['gap']
                 row['response_ready_clock_proof'] = dict(arrivals, gap_units=written['gap'], passed=valid)
-                report.add(tag + '_T_clock_response_ready_ACK_then_D', True, valid, **row['response_ready_clock_proof'])
+                # The original committed case owns this proof; keep the finite reset case schema unchanged.
+                ok = ok and valid
             row['readiness_reached_before_release'] = readiness_first
             row['readiness_evidence'] = readiness_evidence
             points.append(row)
@@ -690,10 +705,49 @@ def main():
             flushed = sum(dt.get(k, 0) for k in FLUSHED)
             good_rst = row['rst_ack'] == [c] and all(row['rst_checksums_ok'])
             if offset is not None:
-                # negative controls: 48/50 must not reset the master; 49/37 with nothing held is recorded only
+                # negative controls: 48/50 must not reset the master; 49/37 with nothing held is recorded only.
+                # v2 (response-ready) also requires the held original to survive once its genuine ACK arrives
                 negatives = (reference - 1, reference + 1) if rb.rp.SEL751 else (48, 50)
                 if offset in negatives:
                     report.add('%s_no_master_reset' % tag, True, ok and rst_frames == [] and e1 - e0 == 0, **row)
+                    if ready:
+                        # v2 retains the response until its genuine ACK, so survival needs that ACK: send it now and
+                        # require the already-held original to reach the master once, a full D after the ACK. The
+                        # response is never resent and no new request is made (the claim is about the original).
+                        row['before_ack'] = {k: row[k] for k in ('responses', 'frames_to_master', 't_deltas',
+                                                                  'e_reset_front_delta', 'resets_seq')}
+                        ack = vectors.packet(16, s, c, reverse=True)
+                        want_ack = rb.rp.preserve_options(ack, vectors.packet(16, s + g, c, reverse=True))
+                        want_rsp = rb.rp.preserve_options(sent_rsp, vectors.packet(24, s + g, c, reverse=True,
+                                                                                   payload=image))
+                        m.send(RELAY.dev_port, ack)
+                        late = capture(WAIT_S, QUIET_S)
+                        end = time.monotonic() + WAIT_S
+                        while time.monotonic() < end and sum(outcomes()[k] - t1[k] for k in RELEASED) == 0:
+                            late += capture(0.5, 0.5)
+                        late += capture(QUIET_S, QUIET_S)
+                        t2, e2 = outcomes(), e_count(E_RESET_FRONT)
+                        after_ack = [f for _t, p, f in late if p == MASTER.dev_port
+                                     and int.from_bytes(f[36:38], 'big') == vectors.CLIENT_PORT]
+                        records = [r for r in (view.records_since(log, pos) if pos is not None else [])
+                                   if r['pipe'] == 1 and ('%08x' % c) in r['frame']]
+                        written = json.loads((Path(os.environ['OUT']) / 't_params_written.json').read_text())[-1]
+                        proof = rb.repeat_clock_proof(records, written['written']['gap'])
+                        dt2 = {k: t2[k] - t0[k] for k in names if t2[k] != t0[k]}
+                        # the post-completion row is the one model_summary._abort_negatives reads
+                        row.update(responses=len(responses) + sum(f.endswith(image) for f in after_ack),
+                                   frames_to_master=len(to_master) + len(after_ack), t_deltas=dt2,
+                                   e_reset_front_delta=e2 - e0,
+                                   resets_seq=row['resets_seq'] + [int.from_bytes(f[38:42], 'big')
+                                                                    for f in after_ack if f[47] & 0x04],
+                                   genuine_ack_sent=True, response_ready_clock_proof=proof,
+                                   after_ack_frame_log=[(len(f), 'ack' if same_frame(f, want_ack, ack) else
+                                                         'response' if same_frame(f, want_rsp, want_rsp) else
+                                                         'other') for f in after_ack])
+                        report.add('%s_held_original_survives_once' % tag, True, ok and rst_frames == [] and
+                                   e1 - e0 == 0 and abort_survivor_verdict(held_ok, row['before_ack'], after_ack, ack,
+                                                                           want_ack, want_rsp, dt2, e2 - e0, proof,
+                                                                           same_frame), **row)
                 else:
                     report.record['meta'].setdefault('abort_negative_characterization', []).append(row)
             elif milestone in ('m8', 'm9', 'm9d', 'm10'):

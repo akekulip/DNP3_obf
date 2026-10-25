@@ -1,5 +1,9 @@
 # Claude handover — SEL-751, 2026-10-24
 
+**Historical checkpoint.** The current takeover instructions and explicit scope limits are in
+[CLAUDE_HANDOVER_20261025.md](CLAUDE_HANDOVER_20261025.md). Preserve this record, but do not execute its
+superseded candidate repairs or campaign list as the current next actions.
+
 ## Update (night): c52 physical set executed
 
 c52 (`m12p_c52_sdk9132`, source 8f37f702; c51 plus acceptance of the relay's FIN+PSH+ACK as its FIN) passed the

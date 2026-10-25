@@ -1,0 +1,58 @@
+BUILD IDENTITY (/home/decps/Philip_repo/dnp3-defense4/response_only_composite/out_m12p_c67_sdk9132):
+    OK       7430330ad3f66e5789487a2e02cc147299b9c6fb8fab1c961d7d20dbeea8ab39  bfrt.json
+    OK       4e031889951c77e20244fd1df05fde12d550e403e992cda07b425293e720a73a  p0/tofino.bin
+    OK       a7a7825d383e6cffc331226cc94c806aa636fded2a16edf4f227e2b1f9d142fb  p1/response_only.bfa
+    OK       197189858d8dedae437a9e7f060e1ca45f499507942b4f4b5089b41ebb3d2b41  p1/tofino.bin
+MIRROR GUARD (check_mirror_select on /home/decps/Philip_repo/dnp3-defense4/response_only_composite/out_m12p_c67_sdk9132/p1/response_only.bfa, sha256 a7a7825d383e6cffc331226cc94c806aa636fded2a16edf4f227e2b1f9d142fb): PASS
+    select 0: session $tmp4 from H2
+    select 1: session md.clone_ses from H1
+    unconditional mirror_type=1: tbl_response_only2254
+PORTS FROM THE BUILD (response_only.p4pp): clone_session=7, e_ports=[9, 48], e_relay_departure=64, forward=9, hb_return=181, held_return=182, n_ack_return=48, n_handoff=180, pktgen_return=196, relay=64, return_port=68, t_in=180, t_n_return=68
+    front-panel ports this bring-up puts in MAC loopback: n_ack_return=48, t_in=180, hb_return=181, held_return=182
+PLAN: 41 writes (+2 pktgen enables, last, only with --enable-pktgen) | pad_enable=1 | T enabled=1
+     loopback      pipe=0xffff $PORT                          [$DEV_PORT=48] -> mod($LOOPBACK_MODE=BF_LPBK_MAC_NEAR)
+     loopback      pipe=0xffff $PORT                          [$DEV_PORT=180] -> mod($LOOPBACK_MODE=BF_LPBK_MAC_NEAR)
+     loopback      pipe=0xffff $PORT                          [$DEV_PORT=181] -> mod($LOOPBACK_MODE=BF_LPBK_MAC_NEAR)
+     loopback      pipe=0xffff $PORT                          [$DEV_PORT=182] -> mod($LOOPBACK_MODE=BF_LPBK_MAC_NEAR)
+     queue         pipe=0x1    tf1.tm.queue.sched_cfg         [dev_port=182, qid=7] -> mod(min_rate_enable=False, max_rate_enable=True, max_priority=7, scheduling_enable=True)
+     queue_shaping pipe=0x1    tf1.tm.queue.sched_shaping     [dev_port=182, qid=7] -> mod(unit=PPS, max_rate=59570, max_burst_size=64)
+     queue         pipe=0x1    tf1.tm.queue.sched_cfg         [dev_port=182, qid=6] -> mod(min_rate_enable=False, max_rate_enable=True, max_priority=6, scheduling_enable=True)
+     queue_shaping pipe=0x1    tf1.tm.queue.sched_shaping     [dev_port=182, qid=6] -> mod(unit=PPS, max_rate=59570, max_burst_size=1)
+     queue         pipe=0x1    tf1.tm.queue.sched_cfg         [dev_port=182, qid=5] -> mod(min_rate_enable=False, max_rate_enable=True, max_priority=5, scheduling_enable=True)
+     queue_shaping pipe=0x1    tf1.tm.queue.sched_shaping     [dev_port=182, qid=5] -> mod(unit=PPS, max_rate=59570, max_burst_size=64)
+     queue         pipe=0x1    tf1.tm.queue.sched_cfg         [dev_port=182, qid=4] -> mod(min_rate_enable=False, max_rate_enable=True, max_priority=4, scheduling_enable=True)
+     queue_shaping pipe=0x1    tf1.tm.queue.sched_shaping     [dev_port=182, qid=4] -> mod(unit=PPS, max_rate=59570, max_burst_size=1)
+     queue         pipe=0x1    tf1.tm.queue.sched_cfg         [dev_port=181, qid=3] -> mod(min_rate_enable=False, max_rate_enable=True, max_priority=3, scheduling_enable=True)
+     queue_shaping pipe=0x1    tf1.tm.queue.sched_shaping     [dev_port=181, qid=3] -> mod(unit=PPS, max_rate=59570, max_burst_size=64)
+     queue         pipe=0x1    tf1.tm.queue.sched_cfg         [dev_port=181, qid=2] -> mod(min_rate_enable=False, max_rate_enable=True, max_priority=2, scheduling_enable=True)
+     queue_shaping pipe=0x1    tf1.tm.queue.sched_shaping     [dev_port=181, qid=2] -> mod(unit=PPS, max_rate=59570, max_burst_size=1)
+     pktgen_port   pipe=0x1    tf1.pktgen.port_cfg            [dev_port=196] -> mod(pktgen_enable=True, recirculation_enable=True, pattern_matching_enable=True)
+     pktgen_buffer pipe=0x1    tf1.pktgen.pkt_buffer          [pkt_buffer_offset=0, pkt_buffer_size=60] -> mod(buffer=<60 bytes, [4:6]=0800>)
+     pktgen_app    pipe=0x1    tf1.pktgen.app_cfg             [app_id=1] -> trigger_recirc_pattern(pattern_value=3774939136, pattern_mask=4294901760, pkt_len=60, pkt_buffer_offset=0, pipe_local_source_port=68, increment_source_port=False, batch_count_cfg=0, packets_per_batch_cfg=3, ipg=0, ibg=0, trigger_counter=0, batch_counter=0, pkt_counter=0, app_enable=False)
+     pktgen_app    pipe=0x1    tf1.pktgen.app_cfg             [app_id=0] -> trigger_recirc_pattern(pattern_value=3774873600, pattern_mask=4294901760, pkt_len=60, pkt_buffer_offset=0, pipe_local_source_port=68, increment_source_port=False, batch_count_cfg=0, packets_per_batch_cfg=3, ipg=0, ibg=0, trigger_counter=0, batch_counter=0, pkt_counter=0, app_enable=False)
+     mirror        pipe=0xffff $mirror.cfg                    [$sid=7] -> $normal($direction=INGRESS, $ucast_egress_port=196, $ucast_egress_port_valid=True, $session_enable=True, $max_pkt_len=2048)
+     default       pipe=0xffff p1.t_Ingress.params            [] -> t_Ingress.set_params(gap=19534, op_j=9377, budget=240000, enabled=1)
+     p4            pipe=0xffff p0.r_Egress.conn               [hdr.ip.src=0xc0a80a07, hdr.ip.dst=0xc0a80a01, hdr.tcp.sport=20000, hdr.tcp.dport=60000, eg.egress_port=9] -> r_Egress.fwd_conn(enable=1, idx=0)
+     p4            pipe=0xffff p0.r_Egress.conn               [hdr.ip.src=0xc0a80a01, hdr.ip.dst=0xc0a80a07, hdr.tcp.sport=60000, hdr.tcp.dport=20000, eg.egress_port=48] -> r_Egress.rev_conn(idx=0)
+     p4            pipe=0xffff p0.r_Egress.odd_ip_t           [hdr.ip.src=0xc0a80a07, hdr.ip.dst=0xc0a80a01] -> r_Egress.odd_conn(idx=0)
+     p4            pipe=0xffff p0.r_Egress.odd_ip_t           [hdr.ip.src=0xc0a80a01, hdr.ip.dst=0xc0a80a07] -> r_Egress.odd_conn(idx=0)
+     p4            pipe=0xffff p0.r_Egress.conn               [hdr.ip.src=0xc0a80a01, hdr.ip.dst=0xc0a80a07, hdr.tcp.sport=60000, hdr.tcp.dport=20000, eg.egress_port=64] -> r_Egress.rev_conn(idx=0)
+     p4            pipe=0xffff p1.x_Egress.p1_conn            [hdr.ip.src=0xc0a80a07, hdr.ip.dst=0xc0a80a01, hdr.tcp.sport=20000, hdr.tcp.dport=60000] -> x_Egress.p1_pad_ok()
+     p4            pipe=0xffff p0.n_Ingress.ports             [ig.ingress_port=9, hdr.ip.$valid=1&&&0x1, hdr.ip.proto=6&&&0xff, hdr.ip.src=0&&&0x0] prio=1 -> n_Ingress.normalize_ack()
+     p4            pipe=0xffff p0.n_Ingress.ports             [ig.ingress_port=9, hdr.ip.$valid=0&&&0x0, hdr.ip.proto=0&&&0x0, hdr.ip.src=0&&&0x0] prio=100 -> n_Ingress.route(port=64)
+     p4            pipe=0xffff p0.n_Ingress.ports             [ig.ingress_port=64, hdr.ip.$valid=0&&&0x0, hdr.ip.proto=0&&&0x0, hdr.ip.src=0&&&0x0] prio=100 -> n_Ingress.route(port=9)
+     p4            pipe=0xffff p0.n_Ingress.ports             [ig.ingress_port=48, hdr.ip.$valid=0&&&0x0, hdr.ip.proto=0&&&0x0, hdr.ip.src=0&&&0x0] prio=100 -> n_Ingress.route(port=64)
+     p4            pipe=0xffff p0.n_Ingress.ports             [ig.ingress_port=68, hdr.ip.$valid=0&&&0x0, hdr.ip.proto=0&&&0x0, hdr.ip.src=0&&&0x0] prio=100 -> n_Ingress.route(port=68)
+     p4            pipe=0xffff p0.n_Ingress.read_connection   [hdr.ip.src=0xc0a80a01, hdr.ip.dst=0xc0a80a07, hdr.tcp.sport=60000, hdr.tcp.dport=20000] -> n_Ingress.read_configure(dst=0, src=256)
+     p4            pipe=0xffff p0.n_Ingress.read_connection   [hdr.ip.src=0xc0a80a07, hdr.ip.dst=0xc0a80a01, hdr.tcp.sport=20000, hdr.tcp.dport=60000] -> n_Ingress.read_configure(dst=256, src=0)
+     p4            pipe=0xffff p0.n_Ingress.data_connection   [hdr.ip.src=0xc0a80a01, hdr.ip.dst=0xc0a80a07, hdr.tcp.sport=60000, hdr.tcp.dport=20000] -> n_Ingress.configure(index=51456, code=1, repeat=1, on=0, off=0)
+     p4            pipe=0xffff p0.n_Ingress.data_connection   [hdr.ip.src=0xc0a80a07, hdr.ip.dst=0xc0a80a01, hdr.tcp.sport=20000, hdr.tcp.dport=60000] -> n_Ingress.configure(index=51456, code=1, repeat=1, on=0, off=0)
+     p4            pipe=0xffff p0.n_Ingress.connection        [hdr.ip.src=0xc0a80a01, hdr.ip.dst=0xc0a80a07, hdr.tcp.sport=60000, hdr.tcp.dport=20000, ig.ingress_port=48] -> n_Ingress.forward_flow(port=64)
+     p4            pipe=0xffff p0.n_Ingress.connection        [hdr.ip.src=0xc0a80a01, hdr.ip.dst=0xc0a80a07, hdr.tcp.sport=60000, hdr.tcp.dport=20000, ig.ingress_port=68] -> n_Ingress.forward_flow(port=64)
+     p4            pipe=0xffff p0.n_Ingress.connection        [hdr.ip.src=0xc0a80a07, hdr.ip.dst=0xc0a80a01, hdr.tcp.sport=20000, hdr.tcp.dport=60000, ig.ingress_port=64] -> n_Ingress.reverse_flow(port=9)
+     p4            pipe=0xffff p0.n_Ingress.connection        [hdr.ip.src=0xc0a80a07, hdr.ip.dst=0xc0a80a01, hdr.tcp.sport=20000, hdr.tcp.dport=60000, ig.ingress_port=68] -> n_Ingress.reverse_flow(port=9)
+NAME CHECK against /home/decps/Philip_repo/dnp3-defense4/response_only_composite/out_m12p_c67_sdk9132/bfrt.json and /home/decps/Downloads/bf-sde-9.13.2/install/share/bf_rt_shared (shared schemas; the switch runs SDE 9.13.2):
+    p1.t_Ingress.t0_reg: register not in bfrt.json
+OPEN QUESTIONS: see README.md. The master must stay quiet (no SYN) until INSTALLED is printed.
+REFUSED: 1 error(s):
+    p1.t_Ingress.t0_reg: register not in bfrt.json

@@ -1,0 +1,140 @@
+{
+  "label": "rc01_hw_c67_20261025_06_loss_mixed_950_physical_relay_combined_t6",
+  "endpoint_profile": "sel751",
+  "master_port": 59958,
+  "reads": 20,
+  "observation_scope": "single master NIC TX/RX; switch residence and OPERATE J unproven",
+  "endpoint_controls": {
+    "read_pause_ms": 25,
+    "run_sbo": true,
+    "close_grace_ms": 0
+  },
+  "tcpdump": {
+    "out": {
+      "captured": 26,
+      "received": 73,
+      "dropped_kernel": 0
+    },
+    "in": {
+      "captured": 47,
+      "received": 73,
+      "dropped_kernel": 0
+    }
+  },
+  "ok": true,
+  "source_port_wait": {
+    "result": "free",
+    "polls": 1,
+    "elapsed_s": 0.03195319196674973
+  },
+  "master_rc": 0,
+  "close_observation": {
+    "complete": true,
+    "mode": "graceful",
+    "polls": 1,
+    "elapsed_s": 0.0012124499771744013
+  },
+  "loss": {
+    "class": "master_ack_of_padded_data",
+    "n": 1,
+    "occurrence": 1,
+    "base": "master_ack_of_padded_data",
+    "dir": "M>O",
+    "ip_len": 52,
+    "flags": "ACK",
+    "length_only": false,
+    "ns": "ns_vepa_b",
+    "chain": "OUTPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+      "-p tcp -s 192.168.10.1 -d 192.168.10.7 --sport 59958 --dport 20000 -m length --length 52 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m u32 --u32 0>>22&0x3C@8=0x21d120ef -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4Rc3d510f4b2b53a0d  --log-tcp-sequence",
+      "-p tcp -s 192.168.10.1 -d 192.168.10.7 --sport 59958 --dport 20000 -m length --length 52 --tcp-flags SYN,RST,ACK,FIN,PSH ACK -m u32 --u32 0>>22&0x3C@8=0x21d120ef -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+      {
+        "pos": 1,
+        "target": "LOG",
+        "pkts": 1,
+        "bytes": 52
+      },
+      {
+        "pos": 2,
+        "target": "DROP",
+        "pkts": 1,
+        "bytes": 52
+      }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 52,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+      "-P OUTPUT ACCEPT"
+    ],
+    "state_after": [
+      "-P OUTPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+      "text": "master_ack_of_padded_data:1:identity",
+      "schedule": "mixed",
+      "padding": 1,
+      "class": "master_ack_of_padded_data",
+      "n": 1,
+      "dir": "M>O",
+      "ip_len": 52,
+      "flags": "ACK",
+      "occurrence": 1,
+      "chain": "OUTPUT",
+      "base": "master_ack_of_padded_data",
+      "operation": "READ",
+      "index": 0,
+      "frontier": "response_ack",
+      "length_only": false,
+      "target": "identity",
+      "match": "ACK",
+      "response_payload": 141
+    },
+    "kernel_log": [
+      "[494334.092649] D4Rc3d510f4b2b53a0d IN= OUT=enp59s0f0np0 SRC=192.168.10.1 DST=192.168.10.7 LEN=52 TOS=0x00 PREC=0x00 TTL=64 ID=42371 DF PROTO=TCP SPT=59958 DPT=20000 SEQ=3479278604 ACK=567353583 WINDOW=501 RES=0x00 ACK URGP=0 "
+    ],
+    "kernel_packet": {
+      "LEN": 52,
+      "SPT": 59958,
+      "DPT": 20000,
+      "SEQ": 3479278604,
+      "ACK": 567353583,
+      "SRC": "192.168.10.1",
+      "DST": "192.168.10.7"
+    },
+    "log_rc": 0,
+    "restoration": {
+      "applied": true,
+      "errors": [],
+      "restored": true,
+      "before": [
+        "-P OUTPUT ACCEPT"
+      ],
+      "after": [
+        "-P OUTPUT ACCEPT"
+      ]
+    },
+    "observation_point": "master host OUTPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+      "armed": true,
+      "key": "ACK",
+      "value": 567353583,
+      "master_isn": 3479278578,
+      "relay_isn": 567353441,
+      "operation": "READ",
+      "index": 0,
+      "error": null,
+      "arm_ns": 32705227
+    }
+  }
+}
