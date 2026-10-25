@@ -27,8 +27,18 @@ the application reconnect checks pass on all three connections.
   - hw_vepa suite: 876 passed, 4 skipped (all four privileged).
   - Root kernel test still to run, needs sudo: `sudo -v && cd .../protocol/hw_vepa && python3 -m pytest -q -rs
     tests/test_loss_identity_netns.py`.
-  - Next: new configs and freeze on unchanged c52, then a physical request_full repeat and the full 7-preset
-    loss_full block.
+  - **Physical result on unchanged c52** (freeze `read_complete_01/hw/freeze_diag/freeze_v3_c52_idt2.json`):
+    - campaign 34 repeats the invalid t0 (request_full n=3): the loss target was hit, the application passed and
+      restoration was verified;
+    - campaign 35 runs the full core_full set: 7/7 loss targets hit and 7/7 applications passed, with the armed
+      SEQ/ACK equal to the kernel-logged value in every trial; exact drop, iptables 1.8.10 (nf_tables), arming
+      31-65 ms;
+    - t3 and t4 again show one ACK/RESP fallback each, the same trials as block 26, i.e. the open first-READ
+      fallback class;
+    - timing still fails 100 us and J is unproven.
+  - Campaign 32 failed before any hardware contact, through my manifest error: a stale `--loss core_full` argv.
+    It was reconciled by the no-contact path after fixing `baseline_inputs()` to carry the offload record
+    (f407f5ecf). Campaign 33 never ran. Lesson in memory: dry-run the exact manifest argv.
 - **Step 3 prep:**
   - `hw_vepa/phc_offset.py` samples a NIC's PHC against CLOCK_REALTIME with the PTP_SYS_OFFSET_EXTENDED ioctl
     (no package install). Read-only on Vision: the i40e master NIC's offset is about -316.2 ms +-272 ns, and its
