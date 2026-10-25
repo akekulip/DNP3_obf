@@ -356,6 +356,11 @@ def resolve_shaping(cfg, preset=None):
             'block_burst': p.get('block_burst')}
 
 
+def drop_text(entry):
+    """A loss preset entry -> the --drop text: CLASS:N, or CLASS:N:identity for an explicit identity target."""
+    return '%s:%d' % (entry['class'], entry['n']) + (':identity' if entry.get('target') == 'identity' else '')
+
+
 def validate_loss_and_scenarios(cfg):
     lc = cfg['loss']
     mr = lc.get('max_recovery_s', 5.0)
@@ -365,8 +370,13 @@ def validate_loss_and_scenarios(cfg):
         if not entries:
             raise ValueError('loss.presets.%s must list at least one {class, n}' % pname)
         for e in entries:
-            if set(e) != {'class', 'n'} or not isinstance(e['n'], int) or isinstance(e['n'], bool):
+            if set(e) - {'target'} != {'class', 'n'} or not isinstance(e['n'], int) or isinstance(e['n'], bool):
                 raise ValueError('loss.presets.%s: each entry needs exactly class and integer n, got %r' % (pname, e))
+            if 'target' in e and (e['target'] != 'identity' or not endpoint_profiles.is_relay(cfg)):
+                # identity targeting (relay_loss.IdentityTarget, LOSS_TARGETING.md) exists only on the physical relay
+                # path; an entry without `target` keeps the retained occurrence behaviour unchanged
+                raise ValueError('loss.presets.%s: target must be "identity" and needs the sel751 profile, got %r'
+                                 % (pname, e))
             loss.parse_drop('%s:%d' % (e['class'], e['n']), cfg['trials']['reads_per_trial'])
     names = [a['name'] for a in cfg['arms']]
     for sname, sc in cfg.get('scenarios', {}).items():
@@ -918,7 +928,7 @@ class Campaign:
                     for e in entries:
                         out.append(dict(base, fixture=fx, arm=arm, i=i, preset=None, pair=None, reads=t['reads_per_trial'],
                                         start_seed=c['seeds']['rng_seed'] + len(out),
-                                        drop=('%s:%d' % (e['class'], e['n']) + self._padded_suffix(arm, e['class'])) if e else None,
+                                        drop=(drop_text(e) + self._padded_suffix(arm, e['class'])) if e else None,
                                         scenario=self.scenario))
                         i += 1
             return out
@@ -1681,9 +1691,18 @@ class Campaign:
             if self.rn.dry:
                 return
             import relay_loss
-            result = json.loads(Path(dest, 'result.json').read_text())
-            wire = json.loads(Path(dest, 'relay_wire.json').read_text())
-            failures = relay_loss.target_checks(result.get('loss') or {}, wire, port)
+            # A master that stopped before traffic (e.g. an identity arm or ISN failure) leaves no relay_wire.json:
+            # that is a RECORDED trial failure like any other failed recovery, never an exception aborting the block.
+            loaded = {}
+            for name in ('result.json', 'relay_wire.json'):
+                try:
+                    loaded[name] = json.loads(Path(dest, name).read_text())
+                except (OSError, ValueError) as error:
+                    loaded[name] = None
+                    trial['failures'].append('%s missing or unreadable: %s' % (name, error))
+            result = loaded['result.json'] or {}
+            failures = (relay_loss.target_checks(result.get('loss') or {}, loaded['relay_wire.json'], port)
+                        if loaded['relay_wire.json'] is not None else ['physical loss target unverifiable'])
             trial['loss'] = result.get('loss')
             trial['failures'] += failures
             trial['dimension_verdicts']['loss_target'] = not failures

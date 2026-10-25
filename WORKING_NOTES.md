@@ -1,6 +1,46 @@
 # Working notes
 
-## >>> CURRENT (2026-10-24 night): c52 physical set done; FIN recovery stays open (read this first)
+## >>> CURRENT (2026-10-25): c52 timing diagnosis (plan: relay-leg tap + switch anchors + verified loss) - read first
+
+c52 is the immutable measured baseline (hashes in read_complete_01/CURRENT.md; reproduce.sh FREEZE_PIN ee7b7f47f).
+Readiness is 30 ms from T's t0 (corrected from "about 33 ms"). FIN/reconnect overall stays OPEN; FIN delivery and
+the application reconnect checks pass on all three connections.
+
+- **Step 1, master-only diagnosis:** done and independently verified (commit 36a9101e0;
+  `read_complete_01/evidence/c52_timing_diagnosis_20261025/`).
+  - Every fallback is the first READ on its connection, with the ACK at the master 31-38 ms after the request.
+  - With T on, complete CLRT clusters near 0 and near 2 ms, not at the 950 us gap.
+  - Block 26 t0: READ #1 got no ACK, so the master retransmitted it at about 210 ms (RTO). With op_j 350 ms
+    (block 30), the master's RTO always fires during the hold.
+- **Step 4, switch-clock anchor image:** stopped; it does not fit. c52d, c52d2 and c52d3 all fail SDK 9.13.2. The
+  last two leave the same 19 pipe-1 PHV slices of T's clock and deadline chain unallocated, because recording a
+  release instant late in T keeps md.now alive to the end. Record: `ctl_timing_01/evidence/C52D_FIT_RECORD_20261025.md`.
+  The generator still emits c52 byte for byte without `--diag-anchors`.
+- **Step 2, retransmission-safe loss targeting** (hw_vepa `"target": "identity"`; `LOSS_TARGETING.md`): built,
+  independently reviewed, and the review fixes verified.
+  - How it works: a one-shot u32 SEQ/ACK rule is armed and confirmed with `-C` before the send; the trial fails
+    closed if it isn't; the kernel LOG check is kept.
+  - Kernel tests in user namespaces: the request, response (INPUT) and ACK paths each pass, 10 of 10 sequential and
+    6 of 6 concurrent runs (builder), and 5 of 5 in my own rerun.
+  - The report records the iptables backend and arm_ns (about 90 ms locally; this delays the target request).
+    A missing relay_wire.json is now a recorded trial failure.
+  - hw_vepa suite: 876 passed, 4 skipped (all four privileged).
+  - Root kernel test still to run, needs sudo: `sudo -v && cd .../protocol/hw_vepa && python3 -m pytest -q -rs
+    tests/test_loss_identity_netns.py`.
+  - Next: new configs and freeze on unchanged c52, then a physical request_full repeat and the full 7-preset
+    loss_full block.
+- **Step 3 prep:**
+  - `hw_vepa/phc_offset.py` samples a NIC's PHC against CLOCK_REALTIME with the PTP_SYS_OFFSET_EXTENDED ioctl
+    (no package install). Read-only on Vision: the i40e master NIC's offset is about -316.2 ms +-272 ns, and its
+    narrow-window samples agree within 19 ns; preempted reads widen the window to as much as 2 ms and are excluded.
+    The offset drifted about 20 us over a few minutes, so every block needs before and after samples.
+  - **Waiting on Philip:** the tap device and a dedicated capture port. eno1 and eno2 are management;
+    enp59s0f1np1 has link to an unknown peer.
+- **Step 5:** `hw_vepa/relay_anchor_check.py` (12 tests, red first). It reports J, switch residence, request
+  forwarding and relay turnaround only from correlated captures with a bounded clock relation; otherwise each is
+  "unproven" with its reason. Its wiring into campaign.relay_verdict waits for the loss fixes and the tap.
+
+## >>> EARLIER (2026-10-24 night): c52 physical set done; FIN recovery stays open (read this first)
 
 **Candidate c52** (`m12p_c52_sdk9132`, source 8f37f702…) ran the full guarded physical SEL-751 set (Vision at
 10.10.54.19), campaigns 23–31. Every block restored with verification and ownership never became unsafe.

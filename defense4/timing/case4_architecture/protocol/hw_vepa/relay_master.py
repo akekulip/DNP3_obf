@@ -32,7 +32,8 @@ def preflight():
 
 
 def workload(master_port, reads, schedule='mixed_full', sbo_cycles=0, run_sbo=True,
-             gap_ms=0, read_pause_ms=25, close_grace_ms=0, budget_ms=3000, close_mode='graceful'):
+             gap_ms=0, read_pause_ms=25, close_grace_ms=0, budget_ms=3000, close_mode='graceful',
+             loss_target=None):
     if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':
         raise ValueError('relay master requires DEFENSE4_HW_AUTHORIZED=1')
     if not 1024 <= master_port <= 65535 or reads < 1 or sbo_cycles < 0 or sbo_cycles >= reads:
@@ -50,6 +51,15 @@ def workload(master_port, reads, schedule='mixed_full', sbo_cycles=0, run_sbo=Tr
         records.extend([selected.as_dict(), operated.as_dict()])
         return selected.ok and operated.ok
     with Session(RELAY_IP, RELAY_PORT, source_address=(MASTER_IP, master_port)) as session:
+        if loss_target is not None:
+            # identity loss (relay_loss.RelayLoss): ISNs now, then every request passes through before_send, which
+            # arms the u32 rule immediately before the target leaves; a failure there raises before the send.
+            loss_target.on_connect()
+            send = session.transaction
+            def transaction(**kwargs):
+                loss_target.before_send(kwargs['operation'], kwargs['frame'], session.sock)
+                return send(**kwargs)
+            session.transaction = transaction
         for i in range(reads):
             if i and i <= sbo_cycles and not sbo(session):
                 break

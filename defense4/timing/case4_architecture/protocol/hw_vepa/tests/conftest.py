@@ -39,9 +39,17 @@ def evidence_root():
 def pytest_configure(config):
     config.addinivalue_line('markers', 'build_tree: needs the compiled build out/ and its compile manifest')
     config.addinivalue_line('markers', 'evidence_tree: needs committed hardware captures under integration/evidence')
+    config.addinivalue_line('markers', 'privileged: needs root or passwordless sudo on this machine; skipped otherwise')
 
 
 def pytest_collection_modifyitems(config, items):
+    if os.environ.get('HW_VEPA_NESTED') == '1':
+        # test_markers' nested runs check the build/evidence skip discipline; a test that skips for want of
+        # root/sudo on this machine is outside that check, and the outer run still reports it with its reason
+        privileged = [item for item in items if item.get_closest_marker('privileged')]
+        if privileged:
+            config.hook.pytest_deselected(items=privileged)
+            items[:] = [item for item in items if not item.get_closest_marker('privileged')]
     root = evidence_root()
     for item in items:
         for name, files in NEEDS.items():

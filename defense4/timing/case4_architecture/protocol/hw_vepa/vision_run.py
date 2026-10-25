@@ -116,12 +116,14 @@ def run_relay_connection(run_dir, label, master_port, reads, gap_ms=0, read_paus
                     raise RuntimeError('relay capture failed before traffic: ' + direction)
             if unused.get('drop'):
                 import relay_loss
-                loss_owner[0] = relay_loss.RelayLoss(unused['drop'], master_port, label, HOME + '/relay_loss_state.json')
+                loss_owner[0] = relay_loss.RelayLoss(unused['drop'], master_port, label, HOME + '/relay_loss_state.json',
+                                                     capture=os.path.join(run_dir, 'in.pcap'))
                 loss_owner[0].install()
             time.sleep(start_delay_ms(start_delay_max, start_seed) / 1000)
             master = workload(master_port, reads, schedule=read_schedule or 'mixed_full', sbo_cycles=sbo_cycles,
                               run_sbo=run_sbo, gap_ms=gap_ms, read_pause_ms=read_pause_ms,
-                              close_grace_ms=close_grace_ms, close_mode=close_mode)
+                              close_grace_ms=close_grace_ms, close_mode=close_mode,
+                              loss_target=loss_owner[0] if loss_owner[0] is not None and loss_owner[0].identity else None)
             json.dump(master, open(os.path.join(run_dir, 'master.json'), 'w'), indent=2)
             result.update(ok=master['ok'], master_rc=0 if master['ok'] else 1)
             result['close_observation'] = wait_relay_close(run_dir, master_port, close_mode)
