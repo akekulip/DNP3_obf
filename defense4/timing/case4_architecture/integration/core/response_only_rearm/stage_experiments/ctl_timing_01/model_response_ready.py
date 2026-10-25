@@ -725,7 +725,8 @@ def main(*, control_only=False):
                 live.poll()
                 source = live.action('seed_ack_blocker')
                 blocker = next((record for record in live.records if record['port'] == self.pm.held_return and
-                    record['frame'].startswith(prefix) and len(record['frame']) >= 2 * (8 + t_config.TOKEN_LEN)), None)
+                    record['t_units'] is not None and record['frame'].startswith(prefix) and
+                    len(record['frame']) >= 2 * (8 + t_config.TOKEN_LEN)), None)
                 if source is not None and blocker is not None and source['port'] == self.h.PKTGEN_RETURN and \
                         source['frame'].startswith(timer.hex()):
                     break

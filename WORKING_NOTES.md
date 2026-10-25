@@ -17,7 +17,9 @@ Philip's latest instruction removes the 500 ms exchange deadline. The active con
 - c67 compiles: a one-field PHV placement annotation removed the false N dependency. Independent
   source/layout review approved. Smoke30/30 and packets763/763 passed. Strict v2_01 passed718/720 before an obsolete disabled-blocker
   counter expectation; the exact compiled stop action and unchanged state were independently verified.
-  The model-only canary fix keeps all24 probes and is running as strict_02. Full CTL offline suite1002 passed;
+  The model-only canary fix keeps all24 probes. Strict_02 caught an incremental-log read before the
+  blocker clock line arrived; the observer now waits for that field. Strict_03 PASSED826/826.
+  Fourteen remaining original regressions are running sequentially (rearm first). Full CTL offline suite1002 passed;
   the subsequent canary changes passed132 focused tests. API 912 tests and
   legacy installer 89 pass; independent API review approved. Dup/contention offline checks: 215 pass.
 - The pre-v2 checkpoint is 4004c7b62. No successor physical campaign has run. Existing c52 evidence and two

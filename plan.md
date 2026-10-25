@@ -112,3 +112,8 @@ counter expectation: the completed child0 blocker executes stop_blocking, droppi
 Independent raw-log review confirms exact ingress/current generation/action, unchanged full state and zero output.
 The model-only correction retains all24 probes plus exact branch proof; strict_02 is queued/running. Source and
 compiled artifacts remain unchanged. CTL offline suite1002 passed; subsequent focused canary tests132 passed.
+
+2026-10-25 strict compiled gate PASS826/826 on unchanged c67 artifacts (attempt03). Attempt02 exposed an observer
+race: the complete blocker frame appeared before its T-clock log line; the wait now requires that clock field.
+This is one model-only predicate, with7 focused observer tests passing. Earlier attempts are retained. Remaining
+14 original regressions are running sequentially (smoke30/30 and packets763/763 already pass). No hardware yet.
