@@ -9,7 +9,7 @@ import hashlib
 import importlib.util
 import json
 import os
-import select
+import select as select_io
 import socket
 import struct
 import sys
@@ -390,7 +390,7 @@ def main():
                 fast[port] = sock
 
             def collect(duration):
-                ready, _, _ = select.select(list(receive), [], [], duration)
+                ready, _, _ = select_io.select(list(receive), [], [], duration)
                 packets = []
                 for sock in ready:
                     while True:

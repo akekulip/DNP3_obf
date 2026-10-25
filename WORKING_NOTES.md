@@ -19,7 +19,8 @@ Philip's latest instruction removes the 500 ms exchange deadline. The active con
   counter expectation; the exact compiled stop action and unchanged state were independently verified.
   The model-only canary fix keeps all24 probes. Strict_02 caught an incremental-log read before the
   blocker clock line arrived; the observer now waits for that field. Strict_03 PASSED826/826.
-  Fourteen remaining original regressions are running sequentially (rearm first). Full CTL offline suite1002 passed;
+  Rearm now passes on attempt02; attempt01 hit a Python select-module/name collision in its new
+  observer. That model-only alias is fixed. The remaining regressions are running sequentially (dup now). Full CTL offline suite1002 passed;
   the subsequent canary changes passed132 focused tests. API 912 tests and
   legacy installer 89 pass; independent API review approved. Dup/contention offline checks: 215 pass.
 - The pre-v2 checkpoint is 4004c7b62. No successor physical campaign has run. Existing c52 evidence and two

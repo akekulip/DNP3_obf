@@ -117,3 +117,6 @@ compiled artifacts remain unchanged. CTL offline suite1002 passed; subsequent fo
 race: the complete blocker frame appeared before its T-clock log line; the wait now requires that clock field.
 This is one model-only predicate, with7 focused observer tests passing. Earlier attempts are retained. Remaining
 14 original regressions are running sequentially (smoke30/30 and packets763/763 already pass). No hardware yet.
+
+2026-10-25 rearm_02 passes on c67 after a model-only select-module alias repair; rearm_01 exception retained.
+The compiled source is unchanged. Dup and the remaining regressions continue sequentially.
