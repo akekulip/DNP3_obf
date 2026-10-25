@@ -1,0 +1,113 @@
+{
+  "scenario": "physical_same_tuple",
+  "label": "rc01_hw_c51_20261024_21_held_operate_350_physical_relay_combined_t0",
+  "close_mode": "graceful",
+  "connections": {
+    "c1": {
+      "label": "rc01_hw_c51_20261024_21_held_operate_350_physical_relay_combined_t0_c1",
+      "endpoint_profile": "sel751",
+      "master_port": 59960,
+      "reads": 20,
+      "observation_scope": "single master NIC TX/RX; switch residence and OPERATE J unproven",
+      "endpoint_controls": {
+        "read_pause_ms": 25,
+        "run_sbo": true,
+        "close_grace_ms": 0
+      },
+      "tcpdump": {
+        "out": {
+          "captured": 27,
+          "received": 73,
+          "dropped_kernel": 0
+        },
+        "in": {
+          "captured": 46,
+          "received": 73,
+          "dropped_kernel": 0
+        }
+      },
+      "ok": true,
+      "source_port_wait": {
+        "result": "free",
+        "polls": 1,
+        "elapsed_s": 0.031703789019957185
+      },
+      "master_rc": 0,
+      "close_observation": {
+        "complete": false,
+        "mode": "graceful",
+        "polls": 60,
+        "elapsed_s": 3.159324634994846,
+        "error": null
+      }
+    },
+    "c2": {
+      "label": "rc01_hw_c51_20261024_21_held_operate_350_physical_relay_combined_t0_c2",
+      "endpoint_profile": "sel751",
+      "master_port": 59960,
+      "reads": 20,
+      "observation_scope": "single master NIC TX/RX; switch residence and OPERATE J unproven",
+      "endpoint_controls": {
+        "read_pause_ms": 25,
+        "run_sbo": true,
+        "close_grace_ms": 0
+      },
+      "tcpdump": {
+        "out": {
+          "captured": 5,
+          "received": 5,
+          "dropped_kernel": 0
+        },
+        "in": {
+          "captured": 0,
+          "received": 5,
+          "dropped_kernel": 0
+        }
+      },
+      "ok": false,
+      "source_port_wait": {
+        "result": "free",
+        "polls": 57,
+        "elapsed_s": 57.82626698695822
+      },
+      "error": "timed out",
+      "master_rc": 1
+    },
+    "c3": {
+      "label": "rc01_hw_c51_20261024_21_held_operate_350_physical_relay_combined_t0_c3",
+      "endpoint_profile": "sel751",
+      "master_port": 59960,
+      "reads": 20,
+      "observation_scope": "single master NIC TX/RX; switch residence and OPERATE J unproven",
+      "endpoint_controls": {
+        "read_pause_ms": 25,
+        "run_sbo": true,
+        "close_grace_ms": 0
+      },
+      "tcpdump": {
+        "out": {
+          "captured": 5,
+          "received": 5,
+          "dropped_kernel": 0
+        },
+        "in": {
+          "captured": 0,
+          "received": 5,
+          "dropped_kernel": 0
+        }
+      },
+      "ok": false,
+      "source_port_wait": {
+        "result": "free",
+        "polls": 1,
+        "elapsed_s": 0.029525980993639678
+      },
+      "error": "timed out",
+      "master_rc": 1
+    }
+  },
+  "ok": false,
+  "planned_connections": 3,
+  "attempted_connections": 3,
+  "completed_connections": 1
+}
