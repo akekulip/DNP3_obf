@@ -216,6 +216,31 @@ class UnreachableReconcileTests(ReconcileTests):
         self.assertNotIn('nic_repair', data)
         self.assert_flag_set()
 
+    def test_offload_baseline_is_carried_and_hash_bound(self):
+        run_root = self.root / 'run0'
+        (run_root / 'vision_offload_baseline.json').write_text('{"interface": "x"}')
+        files = {p.name: {'sha256': sha(p), 'size': p.stat().st_size} for p in run_root.iterdir()
+                 if p.name != 'artifact_manifest.json'}
+        (run_root / 'artifact_manifest.json').write_text(json.dumps({'files': files}))
+        steps = self.campaign / 'steps' / 'block0'
+        terminal = json.loads((steps / 'terminal.json').read_text())
+        terminal['artifact_manifest']['sha256'] = sha(run_root / 'artifact_manifest.json')
+        (steps / 'terminal.json').write_text(json.dumps(terminal))
+        own = json.loads(self.ownership.read_text())
+        own['terminal_sha256'] = sha(steps / 'terminal.json')
+        self.ownership.write_text(json.dumps(own))
+        self.write_repair(bound_sha256={'terminal': sha(steps / 'terminal.json'),
+                                        'campaign_run.json': sha(run_root / 'campaign_run.json')})
+        record = Path(self.run_reconcile(verifier=self.fresh(self.ONLY)))
+        self.assertEqual((record.parent / 'vision_offload_baseline.json').read_text(), '{"interface": "x"}')
+        # a changed baseline is refused before any check runs
+        (run_root / 'vision_offload_baseline.json').write_text('{"interface": "y"}')
+        own = json.loads(self.ownership.read_text())
+        own.update(unsafe_restoration=True, terminal_sha256=sha(steps / 'terminal.json'))
+        self.ownership.write_text(json.dumps(own))
+        with self.assertRaises(self.c.Refused):
+            self.run_reconcile(verifier=self.fresh(self.ONLY), now=5000)
+
     def test_vision_host_needs_a_hardware_block(self):
         self.write_repair()
         with self.assertRaises(self.c.Refused):

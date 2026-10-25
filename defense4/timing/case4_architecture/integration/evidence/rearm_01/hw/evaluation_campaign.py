@@ -1304,6 +1304,10 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
         inputs = [run_root / 'campaign_run.json'] + sorted(run_root.glob('*_prerun.json'))
         if len(inputs) != 2 or not all(p.is_file() for p in inputs):
             problems.append('block restore record and exactly one pre-run snapshot are required')
+        # a physical-relay block's receive-offload baseline (restore_verify checks Vision against it and against the
+        # runner record's vision_offload_baseline_sha256): carried into the fresh run root, hash-bound like the rest
+        if (run_root / 'vision_offload_baseline.json').is_file():
+            inputs.append(run_root / 'vision_offload_baseline.json')
         for path in inputs:
             rel = str(path.relative_to(run_root))
             if path.is_file() and artifacts.get(rel, {}).get('sha256') != digest(path.read_bytes()):

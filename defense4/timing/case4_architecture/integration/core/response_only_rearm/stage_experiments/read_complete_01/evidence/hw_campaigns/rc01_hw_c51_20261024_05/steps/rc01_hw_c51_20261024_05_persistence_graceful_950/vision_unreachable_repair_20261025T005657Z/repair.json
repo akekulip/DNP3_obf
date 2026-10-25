@@ -1,0 +1,55 @@
+{
+  "at": 1792889817.917119,
+  "bound_sha256": {
+    "artifact_manifest": "94c4d4ca1e0e660d76aab760dfcd9ecaca350eac00cdaa547384ecebe47933e4",
+    "campaign_run.json": "6adfacf66e9bfb8430462623bb0b5c22b7e61aacb848c37ebe912ba61b25ebe4",
+    "config": "b396bf5358a208e35ddbea130d57f01ad90295e46510ce95d0658d588b7e2557",
+    "freeze_check.json": "039365a24c649192150f91c410896e708f7eb48537a4692a6eb570c84f8f26db",
+    "run_block_run.out": "7b53e084f28c3269a48f022f934ae522870f83c40bc24bc275ae8c8d4576125d",
+    "terminal": "e3c6f8c0bc1dd6a3d6982be3243d6cbfda15f470b91eabadf8ec8e2867da27b8"
+  },
+  "campaign_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/rc01_hw_c51_20261024_05",
+  "configured_vision_host": "decps@10.10.54.166",
+  "errors": [],
+  "failed_restoration": {
+    "lines": [
+      "RESTORE STEP FAILED: Vision: fixture off, namespace profile and NIC flag restored (rc 255) ssh: connect to host 10.10.54.166 port 22: No route to host",
+      "RESTORE STEP FAILED: ping through the restored switch path (rc 255) ssh: connect to host 10.10.54.166 port 22: No route to host"
+    ],
+    "steps": [
+      {
+        "ok": false,
+        "rc": 255,
+        "step": "Vision: fixture off, namespace profile and NIC flag restored"
+      },
+      {
+        "ok": false,
+        "rc": 255,
+        "step": "ping through the restored switch path"
+      }
+    ]
+  },
+  "identity": {
+    "data_mac": "3c:fd:fe:cc:5d:c0",
+    "hostname": "vision",
+    "rc": 0
+  },
+  "ok": true,
+  "original_runner_result": "left unchanged (failed)",
+  "ping": {
+    "command": "ping -c 2 -I 192.168.10.1 192.168.10.7",
+    "rc": 0,
+    "stderr": "",
+    "stdout": "PING 192.168.10.7 (192.168.10.7) from 192.168.10.1 : 56(84) bytes of data.\n64 bytes from 192.168.10.7: icmp_seq=1 ttl=255 time=3.53 ms\n64 bytes from 192.168.10.7: icmp_seq=2 ttl=255 time=0.351 ms\n\n--- 192.168.10.7 ping statistics ---\n2 packets transmitted, 2 received, 0% packet loss, time 1002ms\nrtt min/avg/max/mdev = 0.351/1.942/3.534/1.591 ms\n"
+  },
+  "restore": {
+    "command": "sudo -n /usr/bin/python3 /home/decps/sel751_guarded_20261024/vision_run.py restore --endpoint-profile sel751",
+    "rc": 0,
+    "stderr": "",
+    "stdout": "{\"endpoint_profile\": \"sel751\", \"mode\": \"restore\", \"offload\": {\"errors\": [], \"restored\": true, \"loss\": {\"applied\": false, \"errors\": [], \"restored\": true}}}\ndisable-source-pruning : off\nns_vepa_a net.ipv4.tcp_timestamps = 1 | net.ipv4.tcp_sack = 1 | net.ipv4.tcp_window_scaling = 1 | net.ipv4.ip_local_port_range = 32768\t60999\nns_vepa_b net.ipv4.tcp_timestamps = 1 | net.ipv4.tcp_sack = 1 | net.ipv4.tcp_window_scaling = 1 | net.ipv4.ip_local_port_range = 32768\t60999\nroute: 192.168.10.0/24 dev mvB scope link src 192.168.10.62\nqdisc: qdisc noqueue 0: root refcnt 2\n"
+  },
+  "result": "Vision restore and ping run and passed",
+  "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c51_20261024_05_persistence_graceful_950",
+  "step_id": "rc01_hw_c51_20261024_05_persistence_graceful_950",
+  "vision_host": "decps@10.10.54.19"
+}
