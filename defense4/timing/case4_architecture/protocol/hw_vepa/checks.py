@@ -395,10 +395,14 @@ def piggyback_latency(timing, pb_ns, margin_us=PIGGYBACK_MARGIN_US):
                 **{'pass': not reasons})
 
 
-def _delta_outcomes(before, after):
+def _delta_outcomes(before, after, timing_contract=None, require_no_bypass=False):
+    expiry = ('OUT_WAIT_EXPIRED', 'OUT_EXPIRED_DROP') if timing_contract == 'response_ready_ack_d_v1' else \
+             ('OUT_ACK_FALLBACK', 'OUT_RESP_FALLBACK')
+    required = ('OUT_ACK_COMMIT', 'OUT_RESP_RELEASE', 'OUT_OP_RELEASE', 'OUT_TOKEN_STALE') + expiry
+    if require_no_bypass:
+        required += ('OUT_REQ_BYPASS',)
     for snap in (before, after):
-        for key in ('OUT_ACK_COMMIT', 'OUT_ACK_FALLBACK', 'OUT_RESP_RELEASE', 'OUT_RESP_FALLBACK',
-                    'OUT_OP_RELEASE', 'OUT_TOKEN_STALE'):
+        for key in required:
             value = snap['outcomes'][key]
             if not isinstance(value, int) or isinstance(value, bool) or value < 0:
                 raise TypeError('required outcome is unreadable: %s' % key)
@@ -562,7 +566,7 @@ def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stal
 
 def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=0, diagnostic=False,
                     sbo_count=1, complete_reads=None, piggyback_reads=0, control_timed=False, piggyback_bound=False,
-                    piggyback_controls=0, gen_exhausted_outcome=None):
+                    piggyback_controls=0, gen_exhausted_outcome=None, timing_contract=None):
     """Switch deltas for installed traffic; callers supply the number of installed READs and SBOs.
 
     Reconnect's unknown-port connection is native and contributes no installed generator/release counts.
@@ -573,9 +577,11 @@ def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=
         if not ev.get(key):
             fails.append('missing evidence: %s snapshot' % key)
     b, a = ev.get('before'), ev.get('after')
+    require_no_bypass = bool(timing_contract == 'response_ready_ack_d_v1' and arm['T'] and
+                             (reads > 0 or control_timed and sbo_count > 0))
     if a and b:
         try:
-            d = _delta_outcomes(b, a)
+            d = _delta_outcomes(b, a, timing_contract, require_no_bypass)
         except (KeyError, TypeError) as err:
             d = None
             fails.append('snapshots carry missing or unreadable outcomes: %s' % err)
@@ -588,6 +594,11 @@ def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=
             except ValueError as err:
                 fails.append(str(err))
                 d['OUT_TOKEN_STALE'] = None
+            if timing_contract == 'response_ready_ack_d_v1':
+                obs.update(waiting_expired=d['OUT_WAIT_EXPIRED'], expired_drops=d['OUT_EXPIRED_DROP'])
+                for key in ('OUT_WAIT_EXPIRED', 'OUT_EXPIRED_DROP'):
+                    if d[key]:
+                        fails.append('response-ready failure: %s=%s' % (key, d[key]))
             obs['outcomes'] = d
             obs['token_stale'] = d.get('OUT_TOKEN_STALE')      # unreadable evidence stays unknown
             # GEN_EXHAUSTED (T outcome 15 where the build declares it, build.gen_exhausted_outcome; snapshots name
@@ -619,6 +630,12 @@ def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=
                 wanted = {'OUT_ACK_COMMIT': complete - piggy + controls - piggy_ctl,
                           'OUT_RESP_RELEASE': complete - piggy + controls - piggy_ctl + (piggy_all if piggyback_bound else 0),
                           'OUT_ACK_FALLBACK': 0, 'OUT_RESP_FALLBACK': 0 if piggyback_bound else piggy_all}
+                if timing_contract == 'response_ready_ack_d_v1':
+                    wanted.pop('OUT_ACK_FALLBACK')
+                    wanted.pop('OUT_RESP_FALLBACK')
+                    wanted.update(OUT_WAIT_EXPIRED=0, OUT_EXPIRED_DROP=0)
+                    if require_no_bypass:
+                        wanted['OUT_REQ_BYPASS'] = 0
                 for k, count in wanted.items():
                     if d.get(k) != count:
                         fails.append('T on: %s=%s, expected %d (complete READs=%d, piggyback=%d)' %

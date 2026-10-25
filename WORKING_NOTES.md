@@ -10,7 +10,13 @@ Philip approved root `plan.md` and requested implementation. This supersedes the
   never release early/unshaped. Commit just before expiry retains its complete D interval.
 - **Preserved:** c52 and evidence, READ91→141/134→158, SBO49→60, FIN/RST repairs, identity loss targeting.
   No software outstation, synthetic ACK, piggyback feature, TCP reassembly, newbuffer, tap/mirror/recorder.
-- **Candidate:** c53_sdk9132 in development; no new compile/model/hardware qualification yet.
+- **Candidate:** successor in development; c53–c57 compile failures retained (SALU restrictions and placement).
+  No successor has yet passed compilation, compiled-model or physical qualification. Source regression186passed;
+  final dedicated source16passed; protocol887passed/4skipped; reviewed harness fixes118passed.
+- **Review:** harness fixes independently approved (readable zero bypass gate, exact option spelling,
+  absolute manifest paths/tagged references). Model review requires restoring invalid-child probes and adding
+  prior-generation isolation coverage; those changes are underway. Delayed held-OPERATE expiry bug reproduced
+  in source and being repaired before any hardware. Physical testbed remains untouched.
 - **Implementation lanes:** generator/P4+source regressions; model/gate coverage; installer/hardware harness.
   Root owns integration, compilation/resource review, gated physical runs, reproduction and close-out.
 - **Hardware plan:** combinedD5 smoke; baselineoff/sizeonce plus timing/combined at4D =1930 planned reference

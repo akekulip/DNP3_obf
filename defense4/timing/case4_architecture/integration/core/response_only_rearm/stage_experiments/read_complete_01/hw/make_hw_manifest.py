@@ -25,15 +25,23 @@ ORDER_TWO_READ = ['reference', 'persistence_graceful_950', 'persistence_rst_950'
 def main(argv):
     build = 'm12p_b08'
     profile = None
-    while argv[:1] and argv[0] in ('--build', '--endpoint-profile'):
+    config_dir, config_tag = HERE / 'config', ''
+    while argv[:1] and argv[0] in ('--build', '--endpoint-profile', '--config-dir', '--config-tag'):
         flag, value, argv = argv[0], argv[1], argv[2:]
         if flag == '--build':
             build = value
-        else:
+        elif flag == '--endpoint-profile':
             profile = value
+        elif flag == '--config-dir':
+            config_dir = Path(value)
+        else:
+            config_tag = value + '_'
+    config_dir = config_dir.resolve(strict=True)
     if profile is None:
-        physical = (HERE / 'config' / ('rc01_%s_sel751_reference.json' % build)).is_file()
-        software = (HERE / 'config' / ('rc01_%s_reference.json' % build)).is_file()
+        physical = any((config_dir / ('rc01_%s_sel751_%s%s.json' % (build, config_tag, name))).is_file()
+                       for name in ('reference', 'reference_rest'))
+        software = any((config_dir / ('rc01_%s_%s%s.json' % (build, config_tag, name))).is_file()
+                       for name in ('reference', 'reference_rest'))
         if physical and software:
             raise ValueError('both endpoint profiles have configs; select --endpoint-profile explicitly')
         profile = 'sel751' if physical else 'software'
@@ -41,19 +49,31 @@ def main(argv):
         raise ValueError('unsupported endpoint profile')
     prefix = build + ('_sel751' if profile == 'sel751' else '')
     freeze, campaign = str(Path(argv[0]).resolve(strict=True)), argv[1]
-    two_read = (HERE / 'config' / ('rc01_%s_loss_mixed_950.json' % prefix)).exists()
+    two_read = (config_dir / ('rc01_%s_%sloss_mixed_950.json' % (prefix, config_tag))).exists()
     default_blocks = (['smoke'] if profile == 'sel751' else []) + (ORDER_TWO_READ if two_read else ORDER)
+    # Prefer the complete reference when both exist; a split reference may be the tag's only block.
+    reference_name = next((name for name in ('reference', 'reference_rest')
+                           if (config_dir / ('rc01_%s_%s%s.json' % (prefix, config_tag, name))).is_file()), 'reference')
+    reference = config_dir / ('rc01_%s_%s%s.json' % (prefix, config_tag, reference_name))
+    ready = reference.is_file() and json.loads(reference.read_text()).get('timing_contract') == 'response_ready_ack_d_v1'
+    if ready:
+        order = ['smoke', reference_name] + [name for name in ORDER_TWO_READ
+                                            if name not in ('reference', 'held_operate_350')]
+        default_blocks = [name for name in order
+                          if (config_dir / ('rc01_%s_%s%s.json' % (prefix, config_tag, name))).is_file()]
     blocks = argv[2:] or default_blocks
     steps = []
     for name in blocks:
-        path = HERE / 'config' / ('rc01_%s_%s.json' % (prefix, name))
+        path = config_dir / ('rc01_%s_%s%s.json' % (prefix, config_tag, name))
         cfg = json.loads(path.read_text())
         if cfg.get('endpoint_profile', 'software') != profile:
             raise ValueError('config endpoint profile differs from selected manifest profile')
+        if cfg.get('timing_contract') == 'response_ready_ack_d_v1' and 'held_operate_350' in name:
+            raise ValueError('response-ready campaign excludes historical 350 ms stress')
         cb = cfg['evaluation']['campaign_block']
         tool = cb['tool']
         args = list(cb.get('arguments') or [])
-        if name == 'reference' and not args:
+        if name in ('reference', 'reference_rest') and not args:
             args = ['--arms', ','.join(cfg['evaluation']['arm_order']), '--fixtures',
                     'physical_relay' if profile == 'sel751' else 'separate_ack']
         run_id = '%s_%s' % (campaign, name)

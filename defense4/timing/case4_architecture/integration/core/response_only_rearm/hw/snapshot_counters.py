@@ -14,10 +14,15 @@ snapshot.build_ports = entry.installer.build_ports
 
 original_diagnostics = snapshot.read_diagnostics
 original_diagnostic_build = snapshot.diagnostic_build
+original_outcomes = snapshot.T_OUTCOMES
 
 
 def configure(build_out):
     sealed = entry.configure(build_out)
+    descriptor = entry.profile.describe(build_out)
+    snapshot.T_OUTCOMES = tuple('OUT_WAIT_EXPIRED' if i == 8 else 'OUT_EXPIRED_DROP' if i == 9 else name
+                                for i, name in enumerate(original_outcomes)) \
+        if descriptor.get('timing_contract') == 'response_ready_ack_d_v1' else original_outcomes
     snapshot.readback = entry.installer.readback
     snapshot.read_diagnostics = entry.profile.read_diagnostics if sealed else original_diagnostics
     snapshot.diagnostic_build = (lambda _out: False) if sealed else original_diagnostic_build

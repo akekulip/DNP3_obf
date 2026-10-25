@@ -20,6 +20,9 @@ _spec = importlib.util.spec_from_file_location('candidate_generation_headroom',
                                                ARCH / CANDIDATE / 'hw/generation_headroom.py')
 HEADROOM = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(HEADROOM)
+_spec = importlib.util.spec_from_file_location('candidate_timing_profile', ARCH / CANDIDATE / 'hw/sealed_profile.py')
+TIMING_PROFILE = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(TIMING_PROFILE)
 # Sources whose T admits SELECT and OPERATE on the read lane (ctl_timing_01 m3 and later); a build of one of
 # these must declare control_timed, or its generation budget would be READ-only.
 CONTROL_TIMED_SOURCES = frozenset({
@@ -175,7 +178,22 @@ class CandidateCampaign(base.Campaign):
                 not source.is_file() or base.sha256_file(source) != digest:
             raise HEADROOM.HeadroomError('supported profile source identity does not match the build and inputs')
         encoding, timing = profile.get('encoding', {}), profile.get('timing_ns', {})
-        keys = ('D_release_budget', 'J_operate_hold', 'pb_piggyback_bound', 'readiness', 'da', 'cap')
+        try:
+            contract = TIMING_PROFILE.validate_timing_contract(profile, source.read_text())
+        except ValueError as error:
+            raise HEADROOM.HeadroomError(str(error))
+        if cfg.get('timing_contract') != contract or build.get('timing_contract') != contract:
+            raise HEADROOM.HeadroomError('config/build/source timing contract mismatch')
+        if contract == 'response_ready_ack_d_v1':
+            keys = ('D_release_budget', 'J_operate_hold', 'response_wait_timeout')
+            t = cfg.get('timing_params_ns') or {}
+            if set(t) != {'gap', 'op_j', 'response_wait_timeout', 'budget', 'enabled'} or \
+                    t.get('op_j') != timing['J_operate_hold'] or \
+                    t.get('response_wait_timeout') != timing['response_wait_timeout'] or \
+                    t.get('gap') not in (5000000, 10000000, 15000000, 20000000):
+                raise HEADROOM.HeadroomError('response-ready config timing parameter mismatch')
+        else:
+            keys = ('D_release_budget', 'J_operate_hold', 'pb_piggyback_bound', 'readiness', 'da', 'cap')
         endpoint_profile = cfg.get('endpoint_profile', 'software')
         if endpoint_profile == 'sel751' and (profile.get('endpoint_profile') != 'sel751' or
                 profile.get('ports', {}).get('master_dev') != 9 or profile.get('ports', {}).get('relay_dev') != 64):

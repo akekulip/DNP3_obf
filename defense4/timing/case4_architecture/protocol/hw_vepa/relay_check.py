@@ -157,6 +157,9 @@ def analyze(root, master_port, expected=None, schedule=None):
     if offload.get('restore_ok') is not True:
         failures.append('capture offload restoration missing or failed')
     report = dict(schema='sel751-wire-v1', ok=not failures, failures=failures, packets=packets, exchanges=exchanges,
+                capture_drops={direction: (result.get('tcpdump') or {}).get(direction) for direction in streams},
+                retransmissions={direction: len([p for p in stream if p['len']]) -
+                    len({(p['seq'], p['payload']) for p in stream if p['len']}) for direction, stream in streams.items()},
                 observation_scope='single master NIC TX/RX; SYN/options and TCP sequence spans retained',
                 independent_packet_boundary_calibration=False, same_packet_preservation_proven=False,
                 artifacts={p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in
@@ -169,16 +172,26 @@ def analyze(root, master_port, expected=None, schedule=None):
     return report
 
 
-def precision(report, target_ns):
+def precision(report, target_ns, split_reads=False, planned=None):
     result = {}
-    for operation in ('READ', 'SELECT', 'OPERATE'):
-        rows = [row for row in report['exchanges'] if row['operation'] == operation]
+    groups = ('READ mixed', 'READ integrity', 'SELECT', 'OPERATE') if split_reads else ('READ', 'SELECT', 'OPERATE')
+    for operation in groups:
+        op, _, workload = operation.partition(' ')
+        rows = [row for row in report['exchanges'] if row['operation'] == op and
+                (not workload or row.get('workload') == workload)]
         eligible = [row for row in rows if not row['piggyback'] and row['complete_clrt_us'] is not None]
         errors = sorted(abs(row['complete_clrt_us'] - target_ns / 1000) for row in eligible)
         p99 = errors[max(0, math.ceil(.99 * len(errors)) - 1)] if errors else None
-        result[operation] = dict(planned=len(rows), eligible=len(eligible),
+        count = planned[operation] if planned is not None else len(rows)
+        boundaries = {}
+        for key in ('first_clrt_us', 'complete_clrt_us'):
+            values = sorted(row[key] for row in eligible if row.get(key) is not None)
+            boundaries[key] = dict(n=len(values), min=min(values) if values else None,
+                                   p99=values[math.ceil(.99 * len(values)) - 1] if values else None,
+                                   max=max(values) if values else None)
+        result[operation] = dict(planned=count, observed=len(rows), eligible=len(eligible), **boundaries,
                                  p99_nearest_rank_abs_error_us=p99, max_abs_error_us=max(errors) if errors else None,
-                                 pass_=len(eligible) == len(rows) and len(rows) >= 20 and p99 <= 100)
+                                 pass_=len(eligible) == len(rows) == count and count >= 20 and p99 <= 100)
     return result
 
 

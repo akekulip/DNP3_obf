@@ -21,7 +21,11 @@ T_PARAM_DEFAULTS = dict(da=2000000, readiness=12000000, cap=16000000, gap=800000
 # 256 ns grid (every T up to ctl_timing m6: global_tstamp[31:0] & ~0xff) or in 256 ns units sampled on a 512 ns grid
 # (ctl_timing m7+: global_tstamp[39:8] & ~1). A build declares which in its inputs.json "t_time".
 T_TIME_NS = dict(unit_ns=1, grid_ns=256)
-T_DURATIONS = ('da', 'readiness', 'cap', 'gap', 'op_j', 'pb')
+T_DURATIONS = ('da', 'readiness', 'cap', 'gap', 'op_j', 'pb', 'response_wait_timeout')
+RESPONSE_READY_CONTRACT = 'response_ready_ack_d_v1'
+RESPONSE_READY_DEFAULTS = dict(gap=5000000, op_j=2400000, response_wait_timeout=500000000,
+                               budget=240000, enabled=1)
+RESPONSE_READY_KEYS = ('gap', 'op_j', 'response_wait_timeout', 'budget', 'enabled')
 
 
 def t_units(values_ns, unit_ns=1, grid_ns=256):
@@ -51,6 +55,23 @@ def t_time_of_source(text):
     if 'md.now = ((bit<32>)ig_prsr_md.global_tstamp) & 32w0xffffff00;' in text or 'global_tstamp' not in text:
         return dict(T_TIME_NS)          # the ns clock, or a source with no T clock at all (test stubs)
     raise ValueError('unrecognised T clock: refusing to guess its units')
+
+
+def timing_contract_of_source(text):
+    """Select the parameter ABI from the compiled action (comments may be stripped)."""
+    import re
+    actions = re.findall(r'action\s+set_params\s*\(([^)]*)\)', text, re.S)
+    ready = 'response_wait_timeout' in text
+    if not ready:
+        if RESPONSE_READY_CONTRACT in text:
+            raise ValueError('response-ready contract marker lacks response_wait_timeout')
+        return None
+    if len(actions) != 1:
+        raise ValueError('response-ready contract requires exactly one set_params action')
+    keys = tuple(re.findall(r'bit\s*<\s*\d+\s*>\s+(\w+)', actions[0]))
+    if keys != RESPONSE_READY_KEYS or t_time_of_source(text) != dict(unit_ns=256, grid_ns=512):
+        raise ValueError('response-ready contract parameter ABI or T clock mismatch')
+    return RESPONSE_READY_CONTRACT
 
 
 # (role of the port, qid, label): strict priority, qid == max_priority, descending within each port.
@@ -92,6 +113,11 @@ def queue_plan(ports):
 
 
 def params_op(values):
+    if 'response_wait_timeout' in values:
+        if set(values) != set(RESPONSE_READY_KEYS):
+            raise ValueError('response-ready set_params requires exactly %s' % (RESPONSE_READY_KEYS,))
+        return dict(kind='default', table='p1.t_Ingress.params', pipe=ALL_PIPES, action='t_Ingress.set_params',
+                    data=[(key, values[key]) for key in RESPONSE_READY_KEYS])
     return dict(kind='default', table='p1.t_Ingress.params', pipe=ALL_PIPES, action='t_Ingress.set_params',
                 data=[(k, values[k]) for k in ('da', 'readiness', 'cap', 'gap', 'op_j', 'budget', 'enabled')]
                 + ([('pb', values['pb'])] if values.get('pb') is not None else []))
@@ -191,6 +217,21 @@ def enable_ops(ports):
 def check_params(values):
     """Range check before anything is written; returns error strings."""
     errs = []
+    if 'response_wait_timeout' in values:
+        if set(values) != set(RESPONSE_READY_KEYS):
+            errs.append('response-ready parameters must contain exactly %s' % (RESPONSE_READY_KEYS,))
+        for key in ('gap', 'op_j', 'response_wait_timeout'):
+            if type(values.get(key)) is not int or not 0 < values[key] < 1000000000:
+                errs.append('invalid response-ready duration ' + key)
+        if values.get('response_wait_timeout') != 500000000:
+            errs.append('response-ready WAITING cleanup is fixed at 500000000 ns')
+        if values.get('op_j') != 2400000:
+            errs.append('response-ready OPERATE hold is fixed at 2400000 ns')
+        if type(values.get('budget')) is not int or not 0 < values['budget'] < 1 << 31:
+            errs.append('invalid response-ready blocker budget')
+        if values.get('enabled') not in (0, 1):
+            errs.append('invalid response-ready enabled')
+        return errs
     for k in ('da', 'readiness', 'cap', 'gap', 'op_j'):
         if not 0 < values[k] < 1000000000:
             errs.append('T param %s=%d ns outside (0, 1e9)' % (k, values[k]))

@@ -74,6 +74,34 @@ def relay_config(template, read_dst=0, read_src=1):
     return cfg
 
 
+def response_ready_config(cfg, block, d_ms):
+    """Apply only the explicit new timing profile; frozen legacy configs retain their path."""
+    if block == 'held_operate_350':
+        raise ValueError('the response-ready campaign excludes historical 350 ms stress')
+    cfg['timing_contract'] = 'response_ready_ack_d_v1'
+    cfg['timing_params_ns'] = dict(gap=d_ms * 1000000, op_j=2400000, response_wait_timeout=500000000,
+                                   budget=cfg['timing_params_ns'].get('budget', 240000), enabled=1)
+    cfg['evaluation'].update(purpose='qualification', host_precision_gated=True)
+    cfg['qualification_dimensions'] = dict(operate_j='unproven_by_user_choice')
+    for build in cfg['builds'].values():
+        build.update(timing_contract=cfg['timing_contract'], piggyback_bound=False, control_timed=True)
+    cb = cfg['evaluation']['campaign_block']
+    cb['precision_reference'] = block == 'reference'
+    if block == 'smoke':
+        cfg['arms'] = [arm for arm in cfg['arms'] if arm['name'] == 'combined']
+        cfg['trials'] = dict(reads_per_trial=2, trials_per_arm=1)
+        cfg['traffic'].update(run_sbo=True, sbo_cycles=1, expected_reads_per_class=dict(mixed=1, integrity=1),
+                              start_delay_ms=0)
+        cfg['scenarios'] = {}
+        cfg['evaluation']['arm_order'] = ['combined']
+        cb.update(arms=['combined'], expected_exchanges=4, phase='smoke',
+                  arguments=['--arms', 'combined', '--fixtures', 'physical_relay'])
+    if block.startswith('loss_'):
+        cfg['loss']['presets'] = {key: [dict(entry, target='identity') for entry in entries]
+                                   for key, entries in cfg['loss']['presets'].items()}
+    return cfg
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build', type=Path, required=True)
@@ -91,6 +119,10 @@ def main(argv=None):
                         help='write only the loss_full block with every preset targeted by transaction identity '
                         '(LOSS_TARGETING.md) and a one-preset t0_repeat (request_full n=3): c52 block 26 t0 dropped '
                         'the wrong READ after a retransmission shifted the occurrence count')
+    parser.add_argument('--d-ms', type=int, choices=(5, 10, 15, 20), default=5,
+                        help='response-ready D target; new profile only')
+    parser.add_argument('--blocks', nargs='+', choices=BLOCKS,
+                        help='select named blocks (response-ready defaults exclude held_operate_350)')
     args = parser.parse_args(argv)
     build = args.build.resolve()
     profile = json.loads((build / 'supported_profile.json').read_text())
@@ -104,6 +136,11 @@ def main(argv=None):
             profile['encoding'].get('syn_tcp_header_octets') != 40 or profile['encoding'].get('synack_tcp_header_octets') != 44 or \
             profile['encoding'].get('ipv4_ihl') != 5 or profile['encoding'].get('timestamp_option_prefix') != '0101080a':
         raise ValueError('selected build does not implement the observed physical timestamp profile')
+    ready = profile.get('timing_contract') == 'response_ready_ack_d_v1'
+    if ready and profile.get('timing_ns') != dict(D_release_budget=5000000, J_operate_hold=2400000, response_wait_timeout=500000000):
+        raise ValueError('response-ready supported profile timing contract mismatch')
+    if not ready and args.d_ms != 5:
+        raise ValueError('--d-ms requires the response-ready timing profile')
     native = json.loads(args.native_observation.read_text())
     endpoint_profiles.validate_tcp_observation(native)
     artifacts = native.get('artifacts') or {}
@@ -129,11 +166,13 @@ def main(argv=None):
         raise ValueError('selected SDK compile is not bound to the source')
     args.output.mkdir(parents=True, exist_ok=True)
     blocks = ('smoke',) if args.diagnostic_mau_snapshot else ('reference',) if args.reference_arms else \
-        ('loss_full_950',) if args.loss_identity else BLOCKS
+        ('loss_full_950',) if args.loss_identity else tuple(args.blocks or BLOCKS)
+    if ready:
+        blocks = tuple(block for block in blocks if block != 'held_operate_350')
     for block in blocks:
         template = HERE / 'config' / ('rc01_%s_%s.json' % (args.template_build, 'reference' if block == 'smoke' else block))
         cfg = relay_config(json.loads(template.read_text()), *read_link_addresses(native))
-        if block == 'smoke':
+        if block == 'smoke' and not ready:
             cfg['arms'] = [arm for arm in cfg['arms'] if arm['name'] == 'size_only']
             cfg['trials'] = dict(reads_per_trial=2, trials_per_arm=1)
             cfg['traffic'].update(run_sbo=False, expected_reads_per_class=dict(mixed=1, integrity=1), start_delay_ms=0)
@@ -143,6 +182,8 @@ def main(argv=None):
             cfg['evaluation'].update(arm_order=['size_only'], purpose='qualification')
             cfg['evaluation']['campaign_block'].update(arms=['size_only'], expected_exchanges=2, phase='smoke',
                 arguments=['--arms', 'size_only', '--fixtures', 'physical_relay'])
+        if ready:
+            response_ready_config(cfg, block, args.d_ms)
         if block == 'reference' and args.reference_arms:
             full = [arm['name'] for arm in cfg['arms']]
             if len(set(args.reference_arms)) != len(args.reference_arms) or not set(args.reference_arms) <= set(full):

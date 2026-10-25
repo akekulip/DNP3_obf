@@ -121,6 +121,19 @@ def load_config(path):
     if missing:
         raise ValueError('config missing required sections: %s' % ', '.join(missing))
     t = cfg['timing_params_ns']
+    response_ready = cfg.get('timing_contract') == 'response_ready_ack_d_v1'
+    if response_ready:
+        allowed = {'gap', 'op_j', 'response_wait_timeout', 'budget', 'enabled'}
+        if set(t) != allowed or any(type(t[k]) is not int for k in allowed) or \
+                t['gap'] not in (5000000, 10000000, 15000000, 20000000) or t['op_j'] != 2400000 or \
+                t['response_wait_timeout'] != 500000000 or not 0 < t['budget'] < 1 << 31 or t['enabled'] not in (0, 1):
+            raise ValueError('invalid response_ready_ack_d_v1 timing parameters')
+        if any(b.get('timing_contract') != cfg['timing_contract'] or b.get('piggyback_bound')
+               for b in cfg['builds'].values()):
+            raise ValueError('response-ready config/build timing contract mismatch')
+    elif 'response_wait_timeout' in t or any(b.get('timing_contract') == 'response_ready_ack_d_v1'
+                                           for b in cfg['builds'].values()):
+        raise ValueError('response-ready parameters/build require explicit timing_contract')
     if 'pb' in t and not (isinstance(t['pb'], int) and not isinstance(t['pb'], bool) and t['op_j'] < t['pb'] < t['readiness']):
         raise ValueError('timing_params_ns.pb (piggyback bound, ctl_timing builds only) must be an int in op_j < pb < readiness')
     if any(b.get('piggyback_bound') for b in cfg.get('builds', {}).values()) and 'pb' not in t:
@@ -130,7 +143,7 @@ def load_config(path):
         if g is not None and not (isinstance(g, int) and not isinstance(g, bool) and 0 <= g < 32):
             raise ValueError('build %s: gen_exhausted_outcome must be the T outcome index (int 0..31) declaring '
                              'GEN_EXHAUSTED, or absent' % name)
-    if not (t['da'] < t['readiness'] <= t['cap']):
+    if not response_ready and not (t['da'] < t['readiness'] <= t['cap']):
         raise ValueError('timing params must satisfy da < readiness <= cap (got da=%d readiness=%d cap=%d)'
                          % (t['da'], t['readiness'], t['cap']))
     if not cfg['arms']:
@@ -1508,18 +1521,27 @@ class Campaign:
                 (Path(directory) / 'relay_wire.json').write_text(json.dumps(report, indent=2) + '\n')
                 reports[name] = report
                 application_failures += [name + ': ' + error for error in report['failures']]
+                planned = None
+                if self.cfg.get('timing_contract') == 'response_ready_ack_d_v1':
+                    schedule = self.cfg['traffic']['read_schedule']
+                    mixed = (trial['reads'] + 1) // 2 if schedule == 'mixed_full' else trial['reads'] if schedule == 'mixed' else 0
+                    planned = {'READ mixed': mixed, 'READ integrity': trial['reads'] - mixed, 'SELECT': sbo, 'OPERATE': sbo}
                 observed[name] = dict(application=report['ok'], preservation='same-packet originals unobserved',
                                       master_acceptance=master.get('ok') is True and master.get('counts') ==
                                           dict(READ=trial['reads'], SELECT=sbo, OPERATE=sbo),
-                                      timing_gated=bool(arm['T'] and not native_connection),
-                                      precision=relay_check.precision(report, self.cfg['timing_params_ns']['gap']),
+                                      timing_gated=bool(arm['T'] and not native_connection and
+                                          (self.cfg.get('timing_contract') != 'response_ready_ack_d_v1' or
+                                           self.cfg['evaluation']['campaign_block'].get('precision_reference') is True)),
+                                      precision=relay_check.precision(report, self.cfg['timing_params_ns']['gap'],
+                                          split_reads=self.cfg.get('timing_contract') == 'response_ready_ack_d_v1', planned=planned),
                                       switch_residence='unproven: no relay-side observation',
                                       operate_j='unproven: no relay-side observation')
-                if arm['T'] and not native_connection:
+                if observed[name]['timing_gated']:
                     for operation, verdict in observed[name]['precision'].items():
                         if not verdict['pass_']:
                             failures.append(name + ': ' + operation + ' complete master CLRT failed 100 us criterion')
-                    failures.append(name + ': OPERATE J unproven without relay-side observation')
+                    if self.cfg.get('qualification_dimensions', {}).get('operate_j') != 'unproven_by_user_choice':
+                        failures.append(name + ': OPERATE J unproven without relay-side observation')
             except (OSError, ValueError, KeyError, TypeError) as error:
                 application_failures.append(name + ': missing/malformed physical relay evidence: ' + str(error))
         snapshots = checks.load_evidence_files(
@@ -1537,13 +1559,17 @@ class Campaign:
             checks.max_token_stale(build), diagnostic=build.get('diagnostic', False),
             sbo_count=installed * sbo, piggyback_reads=read_piggybacks, piggyback_controls=control_piggybacks,
             control_timed=bool(build.get('control_timed')),
-            piggyback_bound=bool(build.get('piggyback_bound')), gen_exhausted_outcome=build.get('gen_exhausted_outcome'))
+            piggyback_bound=bool(build.get('piggyback_bound')), gen_exhausted_outcome=build.get('gen_exhausted_outcome'),
+            timing_contract=self.cfg.get('timing_contract'))
         failures = application_failures + failures + switch_failures
         if v is None or v.rc:
             failures.append('physical relay Vision workload failed')
+        timing_dimension = not arm['T'] or not failures
+        if self.cfg.get('timing_contract') == 'response_ready_ack_d_v1':
+            timing_dimension = not failures if any(c['timing_gated'] for c in observed.values()) else 'not_qualified_recovery_or_smoke'
         trial.update(ok=not failures, failures=failures, observed=dict(connections=observed, switch=switch_observed),
                      endpoint_profile='sel751', dimension_verdicts=dict(application=not application_failures,
-                     switch=not switch_failures, timing=not arm['T'] or not failures, same_packet_preservation='unproven'))
+                     switch=not switch_failures, timing=timing_dimension, operate_j='unproven', same_packet_preservation='unproven'))
         (Path(dest) / 'trial.json').write_text(json.dumps(trial, indent=2) + '\n')
         # Timing qualification is retained as failed; continue safely to requested recovery blocks.
         if raise_on_failure and (application_failures or switch_failures or v is None or v.rc):
@@ -1934,14 +1960,20 @@ class Campaign:
         flag = c.get('padding_installer_flag', '--pad-enable')
         if self.installer_has(flag):
             pad = ' %s %d' % (flag, padding)
+        if c.get('timing_contract') == 'response_ready_ack_d_v1':
+            timing = '--t-gap %d --t-op-j %d --t-response-wait-timeout %d --t-budget %d --t-enabled %d' % (
+                t['gap'], t['op_j'], t['response_wait_timeout'], t['budget'], t['enabled'])
+        else:
+            timing = '--t-da %d --t-readiness %d --t-cap %d --t-gap %d --t-op-j %d' % (
+                t['da'], t['readiness'], t['cap'], t['gap'], t['op_j'])
+            if t.get('pb') is not None:
+                timing += ' --t-pb %d' % t['pb']
         return ('python3 %s/%s/bringup_composite.py --build-out %s %s --master-ip %s --master-port %d --master-dev %d '
                 '--relay-ip %s --relay-port %d --relay-dev %d --read-dst 0x%04x --read-src 0x%04x '
-                '--t-da %d --t-readiness %d --t-cap %d --t-gap %d --t-op-j %d --k %d %s%s'
+                '%s --k %d %s%s'
                 % (self.R, HW, out_remote, expects, e['master_ip'], port, pm['master_dev'],
                    e['outstation_ip'], e['outstation_port'], pm['relay_dev'], *installer_read_addresses(c),
-                   t['da'], t['readiness'], t['cap'], t['gap'], t['op_j'], c['service']['k'],
-                   shaping_args(c, preset=preset), pad)
-                + (' --t-pb %d' % t['pb'] if t.get('pb') is not None else ''))
+                   timing, c['service']['k'], shaping_args(c, preset=preset), pad))
 
     def snapshot(self, out_remote, name, check=True, preset=None):
         # diagnostic_mau_snapshot (validated in validate_profile): the candidate snapshot arms an N-ingress MAU
@@ -1999,7 +2031,8 @@ class Campaign:
             return
         c = self.cfg
         self.record['effective'] = {
-            'timing_params_ns': c['timing_params_ns'], 'k': c['service']['k'],
+            'timing_params_ns': c['timing_params_ns'], 'timing_contract': c.get('timing_contract'),
+            'qualification_dimensions': c.get('qualification_dimensions', {}), 'k': c['service']['k'],
             'shaping_requested': resolve_shaping(c), 'fixture': c['fixture'], 'trials': c['trials'],
             'traffic': dict(c['traffic'], **self.endpoint_controls()), 'ports_map': c['ports_map'], 'endpoints': c['endpoints'],
             'evaluation': dict({'purpose': 'qualification', 'read_precision': True}, **c.get('evaluation', {})),

@@ -38,7 +38,7 @@ REQUIRED_EXPECT = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_o
 
 
 def parse(argv):
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0], allow_abbrev=False)
     ap.add_argument('--build-out', required=True, help='the compiled out/ directory the daemon loads')
     ap.add_argument('--expect', action='append', default=[], metavar='REL=SHA256',
                     help='expected sha256 of a file under --build-out; bfrt.json, p0/tofino.bin, p1/tofino.bin and '
@@ -55,6 +55,7 @@ def parse(argv):
     ap.add_argument('--read-src', type=lambda s: int(s, 0), default=0x0100)
     for k, v in tc.T_PARAM_DEFAULTS.items():
         ap.add_argument('--t-' + k.replace('_', '-'), dest='t_' + k, type=int, default=v)
+    ap.add_argument('--t-response-wait-timeout', type=int, default=None)
     ap.add_argument('--t-pb', dest='t_pb', type=int, default=None,
                     help='piggyback response bound (ns); only for builds whose set_params takes pb')
     ap.add_argument('--pad-enable', type=int, choices=(0, 1), default=1,
@@ -78,7 +79,9 @@ def parse(argv):
                     help='accept this looping port although a module is plugged into its cage (media not UNKNOWN)')
     ap.add_argument('--loopback-wait', type=float, default=10.0, help='seconds to wait for $PORT_UP after the loopback write')
     ap.add_argument('--apply', action='store_true')
+    argv = list(sys.argv[1:] if argv is None else argv)
     a = ap.parse_args(argv)
+    a.explicit_t_params = {x.split('=')[0] for x in argv if x.startswith('--t-')}
     if a.master_dev == a.relay_dev and not (a.master_ip and a.relay_ip):
         ap.error('endpoints sharing dev_port %d are told apart by address: give --master-ip and --relay-ip' % a.master_dev)
     a.master_ip, a.relay_ip = a.master_ip or '192.168.10.1', a.relay_ip or '192.168.10.7'
@@ -138,6 +141,17 @@ def build_ports_for(a):
 
 
 def params(a):
+    text = (Path(a.build_out) / 'response_only.p4pp').read_text()
+    contract = tc.timing_contract_of_source(text)
+    if contract == tc.RESPONSE_READY_CONTRACT:
+        obsolete = getattr(a, 'explicit_t_params', set()) & {'--t-da', '--t-readiness', '--t-cap', '--t-pb'}
+        if obsolete:
+            raise ValueError('obsolete parameters for response-ready contract: %s' % sorted(obsolete))
+        return {key: (getattr(a, 't_' + key, None) if '--t-' + key.replace('_', '-') in
+                      getattr(a, 'explicit_t_params', set()) else value)
+                for key, value in tc.RESPONSE_READY_DEFAULTS.items()}
+    if getattr(a, 't_response_wait_timeout', None) is not None:
+        raise ValueError('response_wait_timeout requires response-ready compiled contract')
     values = {k: getattr(a, 't_' + k) for k in tc.T_PARAM_DEFAULTS}
     if getattr(a, 't_pb', None) is not None:
         values['pb'] = a.t_pb

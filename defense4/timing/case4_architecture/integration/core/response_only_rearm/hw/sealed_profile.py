@@ -103,6 +103,25 @@ def child_registers(descriptor):
     return tuple('child_seen%d_reg' % index for index in range(count))
 
 
+def validate_timing_contract(supported, text):
+    """Reject a source/profile ABI mismatch before choosing any hardware writes."""
+    contract = supported.get('timing_contract')
+    ready = 'response_wait_timeout' in text
+    if contract != 'response_ready_ack_d_v1':
+        if ready or contract is not None:
+            raise ValueError('source timing ABI differs from supported profile')
+        return None
+    if supported.get('timing_ns') != dict(D_release_budget=5000000, J_operate_hold=2400000,
+                                          response_wait_timeout=500000000):
+        raise ValueError('response-ready profile timing must bind only D, J and WAITING cleanup')
+    actions = re.findall(r'action\s+set_params\s*\(([^)]*)\)', text, re.S)
+    keys = tuple(re.findall(r'bit\s*<\s*\d+\s*>\s+(\w+)', actions[0])) if len(actions) == 1 else ()
+    if keys != ('gap', 'op_j', 'response_wait_timeout', 'budget', 'enabled') or \
+            'md.now = ig_prsr_md.global_tstamp[39:8] & 32w0xfffffffe;' not in text:
+        raise ValueError('response-ready compiled source ABI/clock mismatch')
+    return contract
+
+
 def _source_profile(out):
     """Locate unchanged build metadata locally or in the deployed out/profile copy."""
     if (out / 'profile').is_dir():
@@ -138,6 +157,7 @@ def _source_profile(out):
     separate = directory / 'supported_profile.json'
     if separate.is_file() and json.loads(separate.read_text()) != supported:
         raise ValueError('supported profile file differs from its build inputs')
+    contract = validate_timing_contract(supported, source.read_text())
     compiles = candidate.get('artifact_sha256')
     if not isinstance(compiles, dict):
         raise ValueError('supported profile requires artifact hashes for both SDK compiles')
@@ -171,7 +191,7 @@ def _source_profile(out):
         if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
             raise ValueError('supported profile artifact differs or is missing: ' + name)
     return dict(sealed=True, t_child_count=supported['t_child_count'], source_sha256=digest,
-                compile_name=compile_name)
+                compile_name=compile_name, timing_contract=contract)
 
 
 def describe(build_out):

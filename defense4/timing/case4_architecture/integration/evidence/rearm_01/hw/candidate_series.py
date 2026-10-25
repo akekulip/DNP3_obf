@@ -280,7 +280,7 @@ def series_switch_gate(cfg, arm, reads, ev, lifecycle, piggybacks=None):
         # triggers and their bounded stranded tokens), as campaign.py's verdict does
         control_timed=bool(build.get('control_timed')), piggyback_bound=bool(build.get('piggyback_bound')),
         piggyback_controls=piggybacks.get('SELECT', 0) + piggybacks.get('OPERATE', 0),
-        gen_exhausted_outcome=build.get('gen_exhausted_outcome'))
+        gen_exhausted_outcome=build.get('gen_exhausted_outcome'), timing_contract=cfg.get('timing_contract'))
     try:
         growth = (_mapper_reg(lifecycle, 'acct', '.lo') - _mapper_reg(lifecycle, 'front')) & 0xffffffff
         unacked = _mapper_reg(lifecycle, 'acct', '.hi')

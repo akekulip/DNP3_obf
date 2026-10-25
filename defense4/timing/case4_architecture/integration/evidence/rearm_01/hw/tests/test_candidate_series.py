@@ -186,7 +186,8 @@ def test_fresh_mapping_without_any_read_response_says_so():
         module.freshness_gate(sent, returned, 59420)
 
 
-def test_series_switch_gate_uses_three_t_counts_but_last_leg_mapper_growth_only():
+@pytest.mark.parametrize("timing_contract", [None, "response_ready_ack_d_v1"])
+def test_series_switch_gate_uses_three_t_counts_but_last_leg_mapper_growth_only(timing_contract):
     module, cfg = configured()
     before = {'outcomes': {'OUT_ACK_COMMIT': 0, 'OUT_ACK_FALLBACK': 0, 'OUT_RESP_RELEASE': 0,
                            'OUT_RESP_FALLBACK': 0, 'OUT_OP_RELEASE': 0, 'OUT_TOKEN_STALE': 0},
@@ -201,6 +202,12 @@ def test_series_switch_gate_uses_three_t_counts_but_last_leg_mapper_growth_only(
     after['pktgen']['OPERATE'] = {'trigger_counter': 3, 'pkt_counter': 12}
     after['regs']['acct']['acct.lo'] = [222]
     lifecycle = actual_lifecycle()
+    if timing_contract:
+        cfg['timing_contract'] = timing_contract
+        for snapshot in (before, after):
+            snapshot['outcomes']['OUT_WAIT_EXPIRED'] = snapshot['outcomes'].pop('OUT_ACK_FALLBACK')
+            snapshot['outcomes']['OUT_EXPIRED_DROP'] = snapshot['outcomes'].pop('OUT_RESP_FALLBACK')
+            snapshot['outcomes']['OUT_REQ_BYPASS'] = 0
     failures, observed = module.series_switch_gate(cfg, cfg['arms'][0], 20, {'before': before, 'after': after}, lifecycle)
     assert failures == []
     assert observed['external_growth_expected'] == 222

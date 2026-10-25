@@ -128,6 +128,31 @@ def test_generator_refuses_unbound_source_and_pins_selected_compile(tmp_path, mo
                          artifacts=dict(compile_local={'out/' + key: value for key, value in hashes.items()}),
                          model=model, build=fg.rel(build))
         assert fg.candidate_binding(dict(freeze_version=fg.FREEZE_V3, candidate=candidate), path) == []
+    # The explicit new profile emits the 1930-exchange grid, with off/size references only at D5.
+    profile.update(timing_contract='response_ready_ack_d_v1', timing_ns=dict(D_release_budget=5000000,
+                   J_operate_hold=2400000, response_wait_timeout=500000000))
+    (build / 'supported_profile.json').write_text(json.dumps(profile))
+    ready_output = tmp_path / 'ready_configs'
+    common = ['--build', str(build), '--output', str(ready_output), '--native-observation', str(native)]
+    assert mod.main(common + ['--tag', 'd5', '--d-ms', '5', '--blocks', 'smoke', 'reference']) == 0
+    for d in (10, 15, 20):
+        assert mod.main(common + ['--tag', 'd%d' % d, '--d-ms', str(d), '--reference-arms',
+                                  'timing_only', 'combined']) == 0
+    assert mod.main(common + ['--tag', 'd20', '--d-ms', '20', '--blocks', 'loss_mixed_950', 'loss_full_950',
+                             'persistence_graceful_950', 'persistence_rst_950', 'reconnect_950']) == 0
+    ready_configs = [json.loads(p.read_text()) for p in ready_output.glob('*.json')]
+    assert len(ready_configs) == 10
+    references = [c for c in ready_configs if c['evaluation']['campaign_block'].get('precision_reference')]
+    assert sum(c['evaluation']['campaign_block']['expected_exchanges'] for c in references) == 1930
+    assert all(c['timing_params_ns']['response_wait_timeout'] == 500000000 for c in ready_configs)
+    smoke = next(c for c in ready_configs if c['evaluation']['campaign_block']['phase'] == 'smoke')
+    assert smoke['evaluation']['campaign_block']['expected_exchanges'] == 4
+    assert not any('held_operate_350' in p.name for p in ready_output.glob('*.json'))
+    for cfg in ready_configs:
+        campaign.validate_profile(cfg)
+        loadable = tmp_path / 'ready_load.json'
+        loadable.write_text(json.dumps(cfg))
+        campaign.load_config(loadable)
     (build / 'response_only.p4').write_bytes(b'changed after profile was pinned')
     with pytest.raises(ValueError, match='source-bound'):
         mod.main(['--build', str(build), '--output', str(tmp_path / 'bad_configs'), '--native-observation', str(native)])
