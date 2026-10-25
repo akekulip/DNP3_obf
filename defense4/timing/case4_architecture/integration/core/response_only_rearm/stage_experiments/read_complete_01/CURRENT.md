@@ -11,7 +11,7 @@ Continue from repository-root [CLAUDE_HANDOVER_20261025.md](../../../../../../..
 | smoke (D5) | PASS | campaign `rc01_hw_c67_20261025_02` |
 | FIN recovery | PASS for the planned scope (plan.md FIN criterion) | campaign `_07`: graceful, RST and reconnect, each with all three connections, restoration verified |
 | timing | FAIL, cause unresolved | campaigns `_03` (D5, four arms), `_04`/`_05`/`_06` reference_rest (D10/D15/D20) |
-| mixed-loss SBO recovery | FAIL, reproduced (2/2) | campaign `_06` loss_mixed_950 t3; rerun `_08` (H-M1) t3 again OPERATE TIMEOUT; loss_full t3 (integrity-READ history) OK |
+| mixed-loss SBO recovery | FAIL, reproduced (2/2) | campaign `_06` loss_mixed_950 t3; rerun `_08` (H-M1) t3 again OPERATE TIMEOUT; loss_full t3 (integrity-READ history) OK. Model diagnostic H-M1b (`ctl_timing_01/evidence/diag_select_retransmit_m12p_c67_sdk9132_02`): T forwards a retransmitted SELECT response in one pass with no hold after either history, so a switch re-hold is not reproduced in the model; cause unlocated |
 | physical OPERATE J | unproven | no relay-side observation |
 
 - **Freeze:** every block ran under `freeze_v3_02.json` (b82acb00...). `freeze_v3.json` (bd8852a2...) predates the

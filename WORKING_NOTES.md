@@ -3304,17 +3304,20 @@ recovery FAIL | physical J unproven. c67 has NOT passed hardware qualification. 
 - Timing T-a: in every D x arm ~43-50% of timed exchanges land BELOW D-100 us (down to D-3.2 ms), ~10-17% within
   100 us, rest above. The model proves release >= D after T's ACK anchor, so on those exchanges the ACK reached the
   master late relative to the response; where (switch emission vs path vs host) is not located.
-- T-c: |err| bound sharp near 2.0 ms (>1.9 ms: 68, >2.0: 28, >2.1: 18 of 1,544); consecutive errors independent
-  (lag-1 r=0.02). Consistent with an independent 0..~2 ms delay per released packet; mechanism unproven.
+- T-c: |err| bound sharp near 2.0 ms (>1.9 ms: 68, >2.0: 28, >2.1: 18 of 1,544); lag-1 r=0.02 (near zero; this
+  does not establish independence). [Corrected after review: the error distribution does not show a separate
+  0..~2 ms delay per packet.] Mechanism unlocated.
 - Model limit: c67 model T-clock events sit on a ~4882-unit (~1.25 ms) grid; release-ACK in the model is 68k-122k
   units vs gap 19.5k-78k. The model gate proves only release >= D and CANNOT evaluate sub-ms release precision.
   T itself uses global_tstamp[39:8] (256 ns); c67 writes no ~2 ms timing parameter.
 - T-d (54.104 ms CLRT): READ RTT after OPERATE natively (D5 off/size_only, n=128) median ~6.2 ms, max 23.5 ms; the
   outlier's ACK at 2.908 ms implies the response was at the switch then; counters normal. Late T release vs early
   ACK not discriminated by any existing observation.
-- Relay TCP TSvals step in 10 ms units: too coarse for the 2 ms question.
+- [Corrected after review; erratum c67_failure_diagnosis_20261025/ERRATA.md] Relay TCP TSval runs at ~1,000
+  units/s and every positive increment in the t3 captures is a multiple of 30 (not "10 ms steps"): far too coarse
+  for the 2 ms question.
 - M-a/M-b: loss is an iptables INPUT one-shot on the master host AFTER capture (first copy is in the capture). All
-  three t3 trials: relay retransmission spacing 1,020 TSval ticks (~1.02 s +/-10 ms); T counters identical (22
+  three t3 trials: relay TSval copy gap 1,020 units (only "about 1.02 s"; does not establish equal wire-departure intervals); T counters identical (22
   commit / 22 release, no dup/fallback). Master-side SELECT->OPERATE sent: c67 FAIL 1024.7 ms, c67 loss_full OK
   1008.0 ms, c52 OK 1002.2 ms; second copy relative to first: 999.5 / 978.7 / 994.1 ms. The 17 ms difference
   between the two c67 trials is NOT attributed (master-side bounds; not the relay select window).
@@ -3336,17 +3339,59 @@ recovery FAIL | physical J unproven. c67 has NOT passed hardware qualification. 
   06 FAIL: ACK 4.36, copy1 24.15, copy2 1023.64 (gap 999.5), OPERATE sent 1024.7; relay TSval copy gap 1020.
   08 FAIL: ACK 4.27, copy1 24.76, copy2 1025.16 (gap 1000.4), OPERATE sent 1026.2; TSval gap 1020.
   07 loss_full OK: ACK 7.37, copy1 28.23, copy2 1006.95 (gap 978.7), OPERATE sent 1008.0; TSval gap 1020.
-- Same loss target, same relay retransmission spacing (1,020 ticks, 10 ms granularity); the failing (mixed-READ
-  history) trials deliver the retransmitted copy ~21 ms later relative to the first copy than the passing
-  (integrity-READ history) trial. Consistent with the retransmitted SELECT response being held ~D before delivery
+- Same loss target; TSval copy gap 1,020 in all three, which [corrected after review] shows only ~1.02 s at a
+  30-unit step: it does not establish equal relay departure intervals or rule out relay-side timing differences,
+  and the ~21 ms difference is below that step. The failing (mixed-READ
+  history) trials deliver the retransmitted copy 20.778 / 21.687 ms later relative to the first copy than the
+  passing (integrity-READ history) trial. That justifies testing the re-hold hypothesis but does not locate the
+  delay in the switch. Consistent with the retransmitted SELECT response being held ~D before delivery
   in the mixed case and not in the integrity case -- NOT yet shown (switch counters identical: 22 commit/22
   release; no per-packet switch observation). Still not a measurement of the relay select window.
 - Next (proposed): reproduce offline in the model -- a 20 ms re-hold is visible at the model's ~1.25 ms clock grid:
   drop the first padded SELECT response after mixed vs integrity READ history and observe when T releases the
   relay's retransmission. No second H-M1 repeat needed (2/2 consistent).
 
+### Review corrections + H-M1b PRE-REGISTRATION (2026-10-25, before the model run)
+- Philip's pasted review corrected three claims (applied above; erratum
+  read_complete_01/evidence/c67_failure_diagnosis_20261025/ERRATA.md): lag-1 r~0 is not independence; the +/-2 ms bound
+  is not a per-packet 0-2 ms delay; relay TSval ~1000 units/s with increments in multiples of 30 (checked read-only
+  on 06/08/07 t3: 26/26, 28/28, 27/27), so a 1,020 copy gap is only ~1.02 s.
+- H-M1b (model only, no testbed): on c67 with T enabled (gap 20 ms = the failing D20 config), a relay
+  retransmission of an already-released, un-ACKed SELECT response is held ~D before reaching the master after a
+  mixed READ, and forwarded without that hold after an integrity READ.
+- Driver: new diagnostic ctl_timing_01/model_select_retransmit.py (subclass of model_relay_sbo.RelayGate; gate
+  drivers unchanged). Per connection (mixed, integrity; 2 cycles each): timed READ + mapped ACK; timed SELECT
+  (ACK + response); master does NOT ACK; relay resends the identical native response (fresh TSval); record master
+  delivery, the pipe-1 T records (port, actions, t_units span = hold), T outcome deltas 2/3/5/8/9 and E
+  commit/replay; then master ACK, timed OPERATE, mapped ACK.
+- Predictions: mixed holds >= ~15 ms of T time and integrity forwards within 1-2 model clock steps => reproduced,
+  locate the history-dependent T/N path; both forward (or both hold equally) => not reproduced in the model, no
+  hardware rerun from it; drop/wrong image => separate model defect, reported.
+
+### H-M1b RESULT (model diagnostic, no testbed contact)
+- Driver ctl_timing_01/model_select_retransmit.py, launched through run_model.py as a DIAGNOSTIC (new DIAGNOSTICS
+  dict; evidence ctl_timing_01/evidence/diag_*, which model_summary's model_* glob never reads, so the gate set is
+  unchanged). Attempt 01: bf_switchd gRPC never came up in the default 15 s (infra; driver never ran; kept).
+  Attempt 02 (WAIT=60): rc 0, 89/89 harness checks.
+- All four SELECT retransmissions (mixed c0 cycles 0/1, integrity c1 cycles 0/1): exactly one T pass on port 180,
+  action passthrough_tev_forward, no port-182 hold recirculation, model-clock span 0, T outcome deltas 2/3/5/8/9 all
+  0, E replay +1 / commit 0 / growth 0, exact 60-octet image delivered once to the master. The original timed pairs
+  hold normally (7 passes, 5 on 182, one hold_ack/release_ack_commit/release_response_counted). OPERATE J released
+  once each cycle.
+- Verdict per pre-registration: NOT reproduced in the model -- T does not re-hold the retransmission after either
+  history. Limits: the model resends right after release, not ~1 s later as the relay did; it observes T's code path
+  only, not ASIC/host timing. The ~21 ms hardware difference and the OPERATE TIMEOUT stay unlocated; no hardware
+  rerun follows from this result.
+- After the run: model_summary --v3 --enforce = model_gate_passed; freeze_v3_02 check ok for all 10 c67 configs.
+
 <!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-25T18:10:33Z -->
 ### Compaction handoff — 2026-10-25T18:10:33Z
 - Git: branch `main`, 3582 uncommitted file(s): BRANCH_PRUNE_20260915.txt CLAUDE.md CLAUDE_HANDOVER_20261024.md DNP3_Implementation_Directive_492013014.md WORKING_NOTES.md defense4/timing/case4_architecture/ACTIVE_CODE_MAP.md defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/bringup_composite.py defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_contention.py defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_select_lifecycle.py defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/COMPLETION_RECORD.md defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/CURRENT.md defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/STATUS.md 
 - Last verification run recorded: 2026-10-25T16:53:59Z	cd /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-25T21:06:16Z -->
+### Compaction handoff — 2026-10-25T21:06:16Z
+- Git: branch `main`, 3484 uncommitted file(s): BRANCH_PRUNE_20260915.txt DNP3_Implementation_Directive_492013014.md .drawio-tmp/ .scratch_p4/ .scratch_repo/ PlainObfus bf_drivers.log defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md defense4/ieee-standard-for-electric-power-systems-communicationsdistribut.pdf defense4/timing/audit_current/MEETING_20261005_DIRECTION.md defense4/timing/case4_architecture/FOUR_ARM_DESIGN_REVIEW.md defense4/timing/case4_architecture/integration/core/ordinary/transport_model_select.py 
+- Last verification run recorded: 2026-10-25T20:11:28Z	cd /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.

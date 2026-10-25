@@ -20,6 +20,8 @@ DRIVERS = {'fin_busy': HERE / 'model_fin_busy.py', 'relay_sbo': HERE / 'model_re
            'response_ready': HERE / 'model_response_ready.py',  # required for the declared response-ready contract
            'mau_snapshot': HERE / 'model_mau_snapshot.py',  # diagnostic: snapshot tool proof, not a gate driver
            'mau_probe': HERE / 'model_mau_probe.py'}  # diagnostic: snapshot write semantics, not a gate driver
+# diagnostics outside the gate: evidence/diag_<name>_<build>_NN, which model_summary's model_* glob never reads
+DIAGNOSTICS = {'select_retransmit': HERE / 'model_select_retransmit.py'}  # H-M1b, WORKING_NOTES 2026-10-25
 # wrapper drivers and the driver code they execute; local modules every driver imports
 WRAPPED = {name: {'model_contention.py': HERE / 'model_contention.py'} for name in ('abort', 'egress_diag')}
 WRAPPED['half_rst'] = {'model_packets.py': HERE.parent / 'seg61_02' / 'model_packets.py'}
@@ -78,7 +80,7 @@ def check_reset(out, inputs_path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('build')
-    parser.add_argument('driver', choices=sorted(DRIVERS))
+    parser.add_argument('driver', choices=sorted(DRIVERS) + sorted(DIAGNOSTICS))
     parser.add_argument('attempt', type=int)
     parser.add_argument('--milestone', default='m1')
     parser.add_argument('--timeline', action='store_true',
@@ -105,9 +107,10 @@ def main():
             raise SystemExit('compiled T state precondition failed: ' + '; '.join(audit['problems']))
     if inputs.get('milestone') and args.milestone != inputs['milestone']:
         raise SystemExit('--milestone %s does not match the build (%s)' % (args.milestone, inputs['milestone']))
-    out = HERE / ('evidence/model_%s_%s_%02d' % (args.driver, build.name, args.attempt))
+    prefix = 'diag' if args.driver in DIAGNOSTICS else 'model'
+    out = HERE / ('evidence/%s_%s_%s_%02d' % (prefix, args.driver, build.name, args.attempt))
     assert not out.exists(), 'evidence must not be overwritten'
-    driver = DRIVERS[args.driver]
+    driver = DIAGNOSTICS.get(args.driver) or DRIVERS[args.driver]
     launched = HERE / 'with_pb.py' if args.pb is not None else driver
     if args.timeline:
         if args.driver != 'contention' or args.pb is not None:
