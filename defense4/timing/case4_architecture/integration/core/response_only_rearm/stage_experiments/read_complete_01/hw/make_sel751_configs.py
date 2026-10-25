@@ -84,6 +84,9 @@ def main(argv=None):
                         'existing configs bound to retained blocks are never rewritten')
     parser.add_argument('--diagnostic-mau-snapshot', action='store_true',
                         help='write only smoke_mau: the smoke block plus an N-ingress MAU snapshot of the first READ')
+    parser.add_argument('--reference-arms', nargs='+', metavar='ARM',
+                        help='write only reference_rest: the reference block limited to these arms, for completing a '
+                        'reference block that stopped early (rc01_hw_c52_20261024_24 ran only off and timing_only)')
     args = parser.parse_args(argv)
     build = args.build.resolve()
     profile = json.loads((build / 'supported_profile.json').read_text())
@@ -121,7 +124,8 @@ def main(argv=None):
             not manifest.get('compiler', '').startswith('p4c 9.13.2'):
         raise ValueError('selected SDK compile is not bound to the source')
     args.output.mkdir(parents=True, exist_ok=True)
-    for block in (('smoke',) if args.diagnostic_mau_snapshot else BLOCKS):
+    blocks = ('smoke',) if args.diagnostic_mau_snapshot else ('reference',) if args.reference_arms else BLOCKS
+    for block in blocks:
         template = HERE / 'config' / ('rc01_%s_%s.json' % (args.template_build, 'reference' if block == 'smoke' else block))
         cfg = relay_config(json.loads(template.read_text()), *read_link_addresses(native))
         if block == 'smoke':
@@ -134,6 +138,17 @@ def main(argv=None):
             cfg['evaluation'].update(arm_order=['size_only'], purpose='qualification')
             cfg['evaluation']['campaign_block'].update(arms=['size_only'], expected_exchanges=2, phase='smoke',
                 arguments=['--arms', 'size_only', '--fixtures', 'physical_relay'])
+        if block == 'reference' and args.reference_arms:
+            full = [arm['name'] for arm in cfg['arms']]
+            if len(set(args.reference_arms)) != len(args.reference_arms) or not set(args.reference_arms) <= set(full):
+                raise ValueError('--reference-arms %r must be distinct arms of %r' % (args.reference_arms, full))
+            arms = [name for name in full if name in args.reference_arms]
+            per_arm = cfg['evaluation']['campaign_block']['expected_exchanges'] // len(full)
+            cfg['arms'] = [arm for arm in cfg['arms'] if arm['name'] in arms]
+            cfg['evaluation']['arm_order'] = arms
+            cfg['evaluation']['campaign_block'].update(arms=arms, expected_exchanges=per_arm * len(arms),
+                arguments=['--arms', ','.join(arms), '--fixtures', 'physical_relay'])
+            cfg['reference_split'] = dict(arms=arms, full_reference_arms=full, exchanges_per_arm=per_arm)
         cfg['wire_profile'] = dict(tcp_profile='sel751_ts', ipv4_header_octets=20, tcp_header_octets=32,
                                   native_observation=str(args.native_observation.resolve()),
                                   native_observation_sha256=hashlib.sha256(args.native_observation.read_bytes()).hexdigest(),
@@ -155,7 +170,7 @@ def main(argv=None):
                                          source_sha256=source, artifact_sha256=manifest['artifact_sha256'],
                                          compiler=manifest['compiler'], sdk='9.13.2')
         cfg['ctl_timing_identity'] = identity
-        name = (args.tag + '_' if args.tag else '') + block
+        name = (args.tag + '_' if args.tag else '') + block + ('_rest' if args.reference_arms else '')
         if args.diagnostic_mau_snapshot:
             name = (args.tag + '_' if args.tag else '') + block + '_mau'
             cfg['diagnostic_mau_snapshot'] = MAU_SNAPSHOT

@@ -7,6 +7,7 @@
 #   CANDIDATE=c49 bash reproduce.sh                    # canonical profile keys for the same guarded relay profile
 #   CANDIDATE=c50 bash reproduce.sh                    # bounded FIN owner-phase retry repair
 #   CANDIDATE=c51 bash reproduce.sh                    # qualified half-closed RST admission (physical SEL-751 candidate)
+#   CANDIDATE=c52 bash reproduce.sh                    # relay FIN+PSH+ACK close (current physical SEL-751 candidate)
 #   CANDIDATE=c26 bash reproduce.sh                  # c25 + behavior-preserving resource reduction (--reduce)
 #   CANDIDATE=c24 bash reproduce.sh                  # c25's P4 with the uncorrected disposition text (historical)
 #   CANDIDATE=c12 bash reproduce.sh                  # the preserved rotate4 checkpoint
@@ -34,6 +35,10 @@ RELAY_READ=0
 EVIDENCE_TIER="historical software endpoint profile (offline only)"
 BUILD_SUFFIX="$CANDIDATE"
 case "$CANDIDATE" in
+  c52) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts"
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c52_sdk9132
+       SOURCE_SHA=8f37f70240ffa03daf887349e5e52a6abf7e32eb4b43ec559e35077902e3dce4
+       EVIDENCE_TIER="integrated SEL-751 timestamp profile; qualification requires recorded gates" ;;
   c51) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts"
        TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c51_sdk9132
        SOURCE_SHA=3fe7087971f165942f8af1c94cceab5d0bef163d5d83708957d03fc270065598
@@ -64,7 +69,7 @@ case "$CANDIDATE" in
        SOURCE_SHA=1e94c31d80e6708ab31ca117f066d15f5ec23244fc6f7bf7b9ca68dc81a2a27b ;;
   b08) GEN_ARGS="--policy"
        SOURCE_SHA=7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f ;;
-  *) echo "unknown CANDIDATE $CANDIDATE (c51 | c50 | c49 | c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
+  *) echo "unknown CANDIDATE $CANDIDATE (c52 | c51 | c50 | c49 | c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
 esac
 BUILD="$STAGE/ctl_timing_01/evidence/m12p_$BUILD_SUFFIX"
 FREEZE="$BUILD/freeze_v3.json"
@@ -129,7 +134,7 @@ python3 "$STAGE/m12_fullsize/make_m12.py" "$SCRATCH/m12p" $GEN_ARGS >/dev/null
 got="$(sha256sum "$SCRATCH/m12p/response_only.p4" | cut -d' ' -f1)"
 [ "$got" = "$SOURCE_SHA" ] || { echo "regenerated source $got != $SOURCE_SHA"; exit 1; }
 echo "source $got"
-if [ "$CANDIDATE" = c48 ] || [ "$CANDIDATE" = c49 ] || [ "$CANDIDATE" = c50 ] || [ "$CANDIDATE" = c51 ]; then
+if [ "$CANDIDATE" = c48 ] || [ "$CANDIDATE" = c49 ] || [ "$CANDIDATE" = c50 ] || [ "$CANDIDATE" = c51 ] || [ "$CANDIDATE" = c52 ]; then
   step "4b. integrated relay generator, checksum, admission and boundary regressions"
   (cd "$STAGE/m12_fullsize" && "$PY312" -m pytest -q tests)
   python3 "$STAGE/m12_fullsize/check_generator_identity.py"
@@ -204,7 +209,14 @@ if [ -f "$FREEZE" ] && ls "$HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json >/dev/
   # they are absent, so the freeze binding of the artifact BYTES cannot be checked without recompiling; that case is
   # reported as NOT CHECKED (never as ok). Any changed file, or any missing file outside compile_*/out/, fails.
   for c in "$HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json; do
-    if out="$(python3 "$HW/freeze_gate.py" check "$FREEZE" --config "$c" 2>&1)"; then
+    # A later block set has its own freeze beside freeze_v3.json (c52: freeze_v3_ref2.json for reference_rest);
+    # check each config against the live freeze that names it.
+    f="$FREEZE"
+    for g in "$BUILD"/freeze_v3_*.json; do
+      case "$g" in *SUPERSEDED*|*UNUSED*) continue ;; esac
+      [ -f "$g" ] && grep -q "/$(basename "$c")\"" "$g" && f="$g"
+    done
+    if out="$(python3 "$HW/freeze_gate.py" check "$f" --config "$c" 2>&1)"; then
       echo "ok $(basename "$c")"
     elif echo "$out" | grep -q '^freeze check: FAILED 0 changed' \
          && ! echo "$out" | grep '^  missing ' | grep -vq '/compile_[a-z0-9_]*/out/'; then
