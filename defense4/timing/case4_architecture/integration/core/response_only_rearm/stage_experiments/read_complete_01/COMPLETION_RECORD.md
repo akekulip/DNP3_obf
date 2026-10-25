@@ -1,5 +1,31 @@
 # read_complete_01 — completion record (current execution 2026-10-24)
 
+## 2026-10-24 (night) — c52 physical SEL-751 set
+
+c52 (`m12p_c52_sdk9132`, source 8f37f702; c51 plus acceptance of the relay's FIN+PSH+ACK as its FIN) passed the
+enforced 16-driver model gate and ran the full guarded physical SEL-751 set (campaigns 23-31, Vision at
+10.10.54.19). Every block restored with verification and ownership never became unsafe.
+
+- **Reference:** 772/772 planned and eligible exchanges, recorded in
+  `evidence/c52_reference_ledger_20261024.json`. Block 24 ran off and timing_only, then stopped on its switch gate;
+  block 31 ran size_only and combined under a fresh freeze, `freeze_v3_ref2.json`. The application passes in all
+  four arms.
+- **Timing and J:** timing fails the unchanged 100 us criterion in both timing arms. READ p99 is 64,389 us for
+  timing_only and 3,626 us for combined. OPERATE J is unproven.
+- **Recovery blocks:**
+  - Passed: smoke (23), loss_mixed (25), graceful persistence (27; the relay FIN+PSH+ACK close works where c51
+    failed), held OPERATE (30).
+  - loss_full (26) fails on one trial, t0, whose dropped packet was not the intended frontier.
+  - RST persistence (28) and reconnect (29) pass the application on every connection but fail the switch gate
+    on 2 and 1 ACK/RESP fallbacks.
+- **Open fallback class:** every switch-gate failure is the designed fallback when the relay's first response on a
+  fresh connection arrives after the readiness bound (about 33 ms). Those responses took 38-98 ms, against
+  about 30 ms on c51, and c51 block 04 shows the same counters. Rows c52 changed cannot match READ data (flags
+  0x18). The cause is unobserved, because nothing captures the relay side. No threshold was relaxed.
+- **FIN recovery: OPEN.** The reconnect block did not pass as a block.
+
+Details: repository-root WORKING_NOTES.md (top).
+
 ## 2026-10-24 — Claude handover at verified c50
 
 The current authority is `CURRENT.md` and `OVERNIGHT_PLAN_20261024.md`. Older completion claims below are historical.

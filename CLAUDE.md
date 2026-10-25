@@ -11,7 +11,8 @@ manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
 ## Agent start
 
 0. Current SEL-751 continuation (2026-10-24): read root `CLAUDE_HANDOVER_20261024.md` and `plan.md` first.
-   c51 selected: model_gate_passed; physical reference 772/772; persistence/reconnect/held-OPERATE pending (Vision outage).
+   c52 selected: model_gate_passed; physical set 23-31 ran (reference 772/772); timing fails 100 us, J unproven;
+   FIN recovery open (reconnect fails the switch gate on late-first-READ fallbacks).
 1. Read `defense4/timing/case4_architecture/ACTIVE_CODE_MAP.md`: the active code path with commands.
 2. Read the run's status file `.../stage_experiments/read_complete_01/CURRENT.md` (history in `STATUS.md`,
    full record in `COMPLETION_RECORD.md`).
@@ -25,7 +26,7 @@ manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
   (`.../stage_experiments/m12_fullsize/make_m12.py` with `m12gen/`), builds and model gate
   (`.../ctl_timing_01`), the manuscript evaluation (`.../seg61_02`), the current run (`.../read_complete_01`),
   the hardware supervisor (`integration/evidence/rearm_01/hw`) and the endpoint library (`protocol/hw_vepa`).
-  Current checkpoint: `m12p_c51_sdk9132` (model gate passed; padded physical smoke and 772-exchange reference ran).
+  Current checkpoint: `m12p_c52_sdk9132` (model gate passed; full guarded physical SEL-751 set ran; see CURRENT.md).
 - `defense4/timing/` (outside `case4_architecture/`) — the timing-only record: the P4 that ran
   (`implementation/`), the campaigns (`evidence/campaign_v2/`, which corrects the acknowledgment-anchored
   `campaign_v1/`; `final_read_sbo/` is older), the anchor fix (`anchor_fix/FINDINGS.md`), audits, the delay
