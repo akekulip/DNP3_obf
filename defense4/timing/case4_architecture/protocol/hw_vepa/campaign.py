@@ -1690,8 +1690,13 @@ class Campaign:
             trial['observed']['loss_timing'] = 'not qualified: capture includes intentionally dropped attempts'
             trial['ok'] = not trial['failures']
             Path(dest, 'trial.json').write_text(json.dumps(trial, indent=2) + '\n')
+            # As for the software fixture: a failed recovery is RECORDED and the block goes on to its next
+            # preset (rc01_hw_c51_20261024_03 stopped after 4/7); only an infrastructure failure (Vision run rc
+            # other than 0 = clean or 1 = recorded master failure, e.g. ssh 255) stops the block.
+            if v.rc not in (0, 1):
+                raise StepFailed('physical relay loss trial infrastructure failure (Vision run rc %s)' % v.rc)
             if failures or not trial['dimension_verdicts']['application'] or v.rc:
-                raise StepFailed('physical relay loss recovery/target gate failed')
+                self.soft_failures.append(label)
             return
         """Gate for a trial with one deterministic drop. A failed recovery is RECORDED (trial not ok, campaign goes
         on to the next trial); only infrastructure failures stop the campaign."""

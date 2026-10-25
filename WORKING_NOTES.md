@@ -32,6 +32,12 @@ c50) is the selected physical SEL-751 image. Plan: ~/.claude/plans/pasted-conten
 - Next: Vision must be brought back by Philip (no reboot by Claude). Then reconcile through
   `evaluation_campaign.py reconcile <campaign dir> rc01_hw_c51_20261024_05_persistence_graceful_950` (reviewed path),
   rerun 05 under a new ID, then 06-08, and the missing loss presets.
+- Offline after the outage: relay loss trials now RECORD a failed recovery and continue to the next preset (only a
+  Vision-run rc other than 0/1 stops the block), matching the software fixture's contract; tests 819/741 pass.
+  campaign.py is a frozen harness file: write a NEW c51 freeze and dry-run all nine configs before any hardware.
+- Clean-worktree `CANDIDATE=c51 bash reproduce.sh`: rc 0 (source byte-identical, model_gate_passed, 9 configs bound).
+  The repository readout tool (analysis/hw_read_readout.py) cannot read single-observation physical blocks; the
+  physical-tier verdict is relay_check/relay_wire.json per trial plus the campaign gate.
 
 ## >>> PREVIOUS HANDOVER (2026-10-24, before this continuation)
 
