@@ -1,0 +1,169 @@
+{
+  "fixture": "physical_relay",
+  "label": "rc01_hw_c52_20261024_23_smoke_physical_relay_size_only_t0",
+  "master_port": 60000,
+  "reads": 2,
+  "ok": true,
+  "failures": [],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 0,
+    "gap_ms": 0,
+    "start_delay_ms": 0,
+    "start_seed": 57101
+  },
+  "generation_headroom": {
+    "current": {
+      "operate": 0,
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "operate": "p1.t_Ingress.op_gen_alloc_reg",
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "operate": 65516,
+      "read": 65516
+    },
+    "remaining_before_reserve": {
+      "operate": 65534,
+      "read": 65534
+    },
+    "reserve": {
+      "operate": 18,
+      "read": 18
+    },
+    "reserves": {
+      "operate": 18,
+      "read": 18
+    },
+    "snapshot": {
+      "bfrt_sha256": "b8038d82f847c86319c88a0677aa0300440b1b7c09ba9dd9b0e7f2498f18d7b8",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.op_gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1792895208.1850483,
+      "valid": true
+    },
+    "time": 1792895208.193059,
+    "budget": {
+      "reads": 2,
+      "sbo_cycles": 0,
+      "cancelled_selects": 0,
+      "connections": 1,
+      "control_timed": true,
+      "timed": false,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "read_lane_per_connection": 0,
+      "operate_per_connection": 0,
+      "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c52_20261024_23_smoke_physical_relay_size_only_t0_before_generation_headroom.json"
+  },
+  "observed": {
+    "connections": {
+      "single": {
+        "application": true,
+        "preservation": "same-packet originals unobserved",
+        "master_acceptance": true,
+        "timing_gated": false,
+        "precision": {
+          "READ": {
+            "planned": 2,
+            "eligible": 2,
+            "p99_nearest_rank_abs_error_us": 5758.0,
+            "max_abs_error_us": 5758.0,
+            "pass_": false
+          },
+          "SELECT": {
+            "planned": 0,
+            "eligible": 0,
+            "p99_nearest_rank_abs_error_us": null,
+            "max_abs_error_us": null,
+            "pass_": false
+          },
+          "OPERATE": {
+            "planned": 0,
+            "eligible": 0,
+            "p99_nearest_rank_abs_error_us": null,
+            "max_abs_error_us": null,
+            "pass_": false
+          }
+        },
+        "switch_residence": "unproven: no relay-side observation",
+        "operate_j": "unproven: no relay-side observation"
+      }
+    },
+    "switch": {
+      "outcomes": {
+        "OUT_UNMATCHED": 0,
+        "OUT_HELD_REWAIT": 0,
+        "OUT_ACK_COMMIT": 0,
+        "OUT_RESP_RELEASE": 0,
+        "OUT_RESP_DUP_DROP": 0,
+        "OUT_OP_RELEASE": 0,
+        "OUT_TOKEN_STALE": 0,
+        "OUT_HELD_STALE_FLUSH": 0,
+        "OUT_ACK_FALLBACK": 0,
+        "OUT_RESP_FALLBACK": 0,
+        "OUT_TOKEN_TMO": 0,
+        "OUT_HELD_OFF_FLUSH": 0,
+        "OUT_TOKEN_OFF": 0,
+        "OUT_REQ_BYPASS": 0,
+        "index_14": 0,
+        "index_15": 0,
+        "STALE_BLOCKER": 0,
+        "RAW_OPERATE_TIMER_STALE": 0,
+        "RAW_READ_TIMER_STALE": 0,
+        "OUT_OP_DUP_DROP": 0
+      },
+      "token_stale": 0,
+      "generation_exhausted": 0,
+      "pktgen": {
+        "READ": {
+          "triggers": 0,
+          "pkts": 0
+        },
+        "OPERATE": {
+          "triggers": 0,
+          "pkts": 0
+        }
+      },
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+      }
+    }
+  },
+  "endpoint_profile": "sel751",
+  "dimension_verdicts": {
+    "application": true,
+    "switch": true,
+    "timing": true,
+    "same_packet_preservation": "unproven"
+  }
+}
