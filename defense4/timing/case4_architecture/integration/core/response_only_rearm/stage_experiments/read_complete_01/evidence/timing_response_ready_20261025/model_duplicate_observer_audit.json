@@ -1,0 +1,150 @@
+{
+  "scope": "Offline attempt-02 N/T diagnosis and driver regression; no attempt-03 or physical result",
+  "retained_run": "model_response_ready_m12p_c60_sdk9132_02",
+  "results_sha256": "96c7f6a3e2bbf6d336026a031035dc077cee07ecb61c6be7ebd06e599ad03558",
+  "tag": "duplicate_ack_response",
+  "model_clock": {
+    "t0_units": 636596678,
+    "ack_units": 637480468,
+    "response_units": 639018554,
+    "expiry_units": [
+      638564452
+    ],
+    "ack_age_ns": 226250240,
+    "response_age_ns": 620000256
+  },
+  "original_relay_ingress": [
+    {
+      "wall": "09:19:29.876717",
+      "port": 64,
+      "actions": [
+        "n_Ingress.reverse_flow",
+        "n_Ingress.route",
+        "n_Ingress.network_accept",
+        "n_Ingress.go_new",
+        "n_Ingress.next_seq",
+        "n_Ingress.work",
+        "n_Ingress.ack_native",
+        "n_Ingress.load_epoch",
+        "n_Ingress.load_server",
+        "n_Ingress.load_client",
+        "n_Ingress.owner_read",
+        "n_Ingress.diff_reverse",
+        "n_Ingress.seq_ok",
+        "n_Ingress.snapshot",
+        "n_Ingress.first_read_ack"
+      ]
+    },
+    {
+      "wall": "09:19:29.896940",
+      "port": 64,
+      "actions": [
+        "n_Ingress.reverse_flow",
+        "n_Ingress.route",
+        "n_Ingress.network_accept",
+        "n_Ingress.go_new",
+        "n_Ingress.next_seq",
+        "n_Ingress.work",
+        "n_Ingress.ack_native",
+        "n_Ingress.load_epoch",
+        "n_Ingress.load_server",
+        "n_Ingress.load_client",
+        "n_Ingress.owner_read",
+        "n_Ingress.diff_reverse",
+        "n_Ingress.seq_ok",
+        "n_Ingress.busy_retry_ack"
+      ]
+    },
+    {
+      "wall": "09:19:29.905745",
+      "port": 64,
+      "actions": [
+        "n_Ingress.reverse_flow",
+        "n_Ingress.route",
+        "n_Ingress.crc_head_first_shallow",
+        "n_Ingress.read_configure",
+        "n_Ingress.eligible",
+        "n_Ingress.read_shallow_admit",
+        "n_Ingress.network_accept",
+        "n_Ingress.go_new",
+        "n_Ingress.next_read_len",
+        "n_Ingress.work",
+        "n_Ingress.ack_native",
+        "n_Ingress.read_response_input",
+        "n_Ingress.load_epoch",
+        "n_Ingress.load_server",
+        "n_Ingress.load_client",
+        "n_Ingress.owner_read",
+        "n_Ingress.diff_read_response",
+        "n_Ingress.seq_ok",
+        "n_Ingress.busy_retry"
+      ]
+    },
+    {
+      "wall": "09:19:29.915803",
+      "port": 64,
+      "actions": [
+        "n_Ingress.reverse_flow",
+        "n_Ingress.route",
+        "n_Ingress.crc_head_first_shallow",
+        "n_Ingress.read_configure",
+        "n_Ingress.eligible",
+        "n_Ingress.read_shallow_admit",
+        "n_Ingress.network_accept",
+        "n_Ingress.go_new",
+        "n_Ingress.next_read_len",
+        "n_Ingress.work",
+        "n_Ingress.ack_native",
+        "n_Ingress.read_response_input",
+        "n_Ingress.load_epoch",
+        "n_Ingress.load_server",
+        "n_Ingress.load_client",
+        "n_Ingress.owner_read",
+        "n_Ingress.diff_read_response",
+        "n_Ingress.seq_ok",
+        "n_Ingress.busy_retry"
+      ]
+    }
+  ],
+  "n_action_counts": {
+    "first_read_ack": 2,
+    "busy_retry_ack": 1,
+    "busy_retry": 2,
+    "busy_retry_next": 13,
+    "snapshot_retry": 3,
+    "first_read_response": 1,
+    "first_response_dup": 1,
+    "emit_tev": 4
+  },
+  "conclusion": "N retries serialized the four burst inputs; first response reached T after actual expiry. Attempt02 did not record host send/RPC windows, so observer causality cannot be established retrospectively.",
+  "changes": [
+    "No BFRT reads while an exchange is active; resolve by public response or observed completion-SALU expiry.",
+    "Record send start/end and RPC windows diagnostically; T clock/counters remain the verdict.",
+    "Normal duplicate case: two ACK copies, one response, then legitimate post-release replay with no second commit/growth.",
+    "Separate forced-expiry case waits for actual T expiry before response, then proves new-handshake recovery.",
+    "Derive explicit valid model timer from captured READ seed via existing header helper/shared buffer; compiled T must emit role11 and its HELD_RETURN frame must be captured."
+  ],
+  "timer_format_verification": "Existing model_drive_pktgen_port.token helper and t_config.token_buffer imported and verified to produce valid 66-byte pipe1/app0/batch8/packet0 stimulus.",
+  "pytest": {
+    "command": [
+      "/usr/bin/python3",
+      "-m",
+      "pytest",
+      "-q",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_response_ready_stimulus.py",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_response_ready_profile.py",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_response_ready_adapter.py",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_model_summary.py"
+    ],
+    "exit_code": 0,
+    "stdout": "........................................................................ [ 42%]\n........................................................................ [ 85%]\n........................                                                 [100%]\n168 passed in 1.35s\n"
+  },
+  "file_sha256": {
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_response_ready.py": "d8baa12dba5c70dfd864df765284ac9e337d636f76f6641491fd440d809dc0c0",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_summary.py": "d6e39bea3e2b982728f5d4b40a53a3b3dcb2c2c8ca16ad5ccf6891f2d1df63c9",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_response_ready_stimulus.py": "1b02e53651358c980cec2ab612d56bf7f84308f80251e61996fb9a306bbd0963",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_response_ready_profile.py": "dee3d036bea86e29751235a6474fb69d48774cec49b636392c217540fe49fd28",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_response_ready_adapter.py": "eff17d048868c2b7601b84ea48d4124f56ba32e2028695a95ad719153a1115d5",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_model_summary.py": "d7cc5748866202dc8d2245d1330412198faa31e147bf483739ddfdc6df5955e8"
+  }
+}

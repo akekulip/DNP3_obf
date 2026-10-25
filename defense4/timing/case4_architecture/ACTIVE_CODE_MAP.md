@@ -1,3 +1,17 @@
+## Active execution — 2026-10-25 response-ready timing
+
+Philip approved root plan.md. Current successor c62, source
+569f6461d7f587e225513623dc953c26b568892300370d074de6b2f2ed341b27, compiles SDK9.13.2 withinN/E/T0..10
+andP1egress0..3. All12 T stateful objects have one physical bank. Source191tests pass withactualcontext.
+Timing contract response_ready_ack_d_v1: realACK waitsforwholematchingresponse; releaseACK thenresponse+D,
+D5/10/15/20ms; J2.4mskept;500msWAITINGexpiry drops/fails, neverunshapedrelease. Paddingunchanged.
+
+**NOT YET QUALIFIED:** strictcompiledmodelc62_01passed419/421 but failedto constructthe near500msboundary
+(the response was injectedat490msbeforetheNpathandarrivedatTafterexpiry). Earlier c60preACKreplaybank
+bug isfixedc62andthecompiledreplaynowpasses. Late-response expiry/RSTACK/fresh-handshake recoverypassed.
+All17 finalmodeldriversstillrequired; no successorhardwarecampaignhasrun. FINrecoveryremainsOPEN;
+physicalOPERATEJexplicitlyUNPROVENbyPhilip'schoice. SeeWORKING_NOTES/rootplanforliveexecution.
+
 # Active code map: the two-READ size and timing candidate
 
 Claude continuation: repository-root [plan.md](../../../plan.md) and

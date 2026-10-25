@@ -1,0 +1,14 @@
+{
+  "scope": "Retained c62_02 timer/blocker identity diagnosis; no c62_03 runtime claim",
+  "results_sha256": "4e45fe5c3c9ea1aeb69ea39a3e6506bab76c7230c7ad3f6b83e23fce9486f4aa",
+  "timer_injected_octets": 66,
+  "timer_actual_T_ingress_octets": 70,
+  "blocker_return_octets": 72,
+  "timer_frame_hex": "080000730000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "timer_actual_T_ingress_frame_hex": "08000073000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "blocker_frame_hex": "0b0000730003a98000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "blocker_budget": 240000,
+  "payload_bit_exact": true,
+  "updated_provenance_audit": [],
+  "explanation": "The model input dump adds exactly four zero trailer bytes. Compiled T preserves that actual input payload when replacing the six-byte timer header with its eight-byte ladder header. The captured blocker remains unchanged."
+}

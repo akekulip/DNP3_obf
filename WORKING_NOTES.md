@@ -10,13 +10,17 @@ Philip approved root `plan.md` and requested implementation. This supersedes the
   never release early/unshaped. Commit just before expiry retains its complete D interval.
 - **Preserved:** c52 and evidence, READ91→141/134→158, SBO49→60, FIN/RST repairs, identity loss targeting.
   No software outstation, synthetic ACK, piggyback feature, TCP reassembly, newbuffer, tap/mirror/recorder.
-- **Candidate:** c60 source618724c6 compiled within all limits (N/E/T0..10,P1egress0..3), artifacts pinned;
-  no compiled-model or hardware qualification yet. Earlier c53–c57 failures and c58/c59 over-limit results retained.
-  Final source188passed/dedicated18passed; protocol887passed/4skipped; reviewed harness fixes118passed.
-- **Review:** harness fixes independently approved (readable zero bypass gate, exact option spelling,
-  absolute manifest paths/tagged references). Model review requires restoring invalid-child probes and adding
-  prior-generation isolation coverage; those changes are underway. Delayed held-OPERATE expiry bug reproduced
-  in source and repaired before hardware. Physical testbed remains untouched.
+- **Candidate:** c62 source569f6461 compiles/pinsSDK9.13.2, N/E/T0..10/P1E0..3. All12Tstatefulobjects
+  haveonephysicalbank. Source191tests pass withactualcontext. No successorhardwarehasrun.
+- **Critical compiled replay repair:** c60physicallyduplicatedresp_done_reg acrossstages7/8; pre-master-ACK
+  replaydropped. c62unifiesallresponseaccessesstage7; actualcompiledreplaynowpasses. c60isREJECTED.
+- **Current model:** c62strictattempt01passed419/421; boundaryconstructioninjectedresponseat490msbeforeN,
+  so itarrivedTafter500andcorrectlyexpired. Fixingtestconstructionwithouttimerrelaxation. Thelate-response
+  expiry/RSTACK/fresh-handshake casealready passed; all4D/shapes/orders andpreACKreplaypassed.
+- **Gate:** c60sixlegacydriverspassedbutarenotborrowedforc62. Rearmlegacyfixture lackedseparateACKand
+  delayedresponsepast500; newprofilefixtureadaptationpreservescoverage. c62requiresall17freshdrivers.
+- **Review:** sourceandharnessreviewapproved; modelcoveragehas24invalidchild/fullregisterprobes,sixgeneration
+  isolationcases,andautomaticstage/singlebankpreconditions. No hardwaretouched.
 - **Implementation lanes:** generator/P4+source regressions; model/gate coverage; installer/hardware harness.
   Root owns integration, compilation/resource review, gated physical runs, reproduction and close-out.
 - **Hardware plan:** combinedD5 smoke; baselineoff/sizeonce plus timing/combined at4D =1930 planned reference

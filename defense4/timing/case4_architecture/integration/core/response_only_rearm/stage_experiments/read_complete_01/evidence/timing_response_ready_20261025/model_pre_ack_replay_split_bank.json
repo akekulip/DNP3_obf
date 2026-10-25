@@ -1,0 +1,129 @@
+{
+  "scope": "Compiled c60 pre-master-ACK retransmission counterexample; source and compiled artifacts unchanged",
+  "source_sha256": "618724c6a7a4ff44f0bbc7ff99c9adf1fa52cb33248fc15ecd58e4787eb7ec72",
+  "retained_run": "model_response_ready_m12p_c60_sdk9132_03",
+  "point": "duplicate_ack_response",
+  "driver_sha256": "d8baa12dba5c70dfd864df765284ac9e337d636f76f6641491fd440d809dc0c0",
+  "replay_before_master_ACK": [
+    {
+      "line": 633,
+      "text": "                self.post_release_replay(tag, row, rsp, rsp_want)"
+    },
+    {
+      "line": 634,
+      "text": "            self.exchange(tag + '_mapped_complete_ACK', self.v.packet(16, cend, w + len(image)),"
+    }
+  ],
+  "expected_full_master_ack_wire_identity": "e8124e2000249f1a002562de",
+  "matching_full_master_ack_ingress_count": 0,
+  "log_slice_offset": 171044524,
+  "response_release_units": 560810546,
+  "replay_T_ingress_units": 565976562,
+  "actual_SALU_write_and_replay_read": [
+    [
+      ":10-25 09:35:33.085204:        :0x8a2:-:<0,1,7>:\t----- register: t_Ingress.resp_done_reg -----",
+      ":10-25 09:35:33.085398:        :0x8a2:-:<0,1,7>:\t    Output Destination Field: md.done_diff = 0x13",
+      ":10-25 09:35:33.085413:        :0x8a2:-:<0,1,7>:\t   Register Index: 0x40000",
+      ":10-25 09:35:33.085421:        :0x8a2:-:<0,1,7>:\t     Before stateful alu execution: 0x00000042",
+      ":10-25 09:35:33.085428:        :0x8a2:-:<0,1,7>:\t     After stateful alu execution: 0x00000051"
+    ],
+    [
+      ":10-25 09:35:34.142528:        :0x8a7:-:<0,1,8>:\t----- register: t_Ingress.resp_done_reg -----",
+      ":10-25 09:35:34.142611:        :0x8a7:-:<0,1,8>:\t    Output Destination Field: md.done_diff = 0x51",
+      ":10-25 09:35:34.142631:        :0x8a7:-:<0,1,8>:\t   Register Index: 0x40000",
+      ":10-25 09:35:34.142639:        :0x8a7:-:<0,1,8>:\t     Before stateful alu execution: 0x00000000",
+      ":10-25 09:35:34.142646:        :0x8a7:-:<0,1,8>:\t     After stateful alu execution: 0x00000000"
+    ]
+  ],
+  "compiled_context_sha256": "9738e35968a4ea275a8960c94a29decddca3faac7f81a1f7188ba19ef7db6b46",
+  "logical_register": {
+    "name": "t_Ingress.resp_done_reg",
+    "handle": 100728842,
+    "physical_allocations": [
+      {
+        "stage_number": 7,
+        "logical_table_id": 1,
+        "meter_alu_index": 3,
+        "memory_resource_allocation": {
+          "memory_type": "sram",
+          "memory_units_and_vpns": [
+            {
+              "memory_units": [
+                90
+              ],
+              "vpns": [
+                0
+              ]
+            }
+          ],
+          "spare_bank_memory_unit": 91
+        }
+      },
+      {
+        "stage_number": 8,
+        "logical_table_id": 4,
+        "meter_alu_index": 3,
+        "memory_resource_allocation": {
+          "memory_type": "sram",
+          "memory_units_and_vpns": [
+            {
+              "memory_units": [
+                90
+              ],
+              "vpns": [
+                0
+              ]
+            }
+          ],
+          "spare_bank_memory_unit": 91
+        }
+      }
+    ]
+  },
+  "all_T_state_audit": {
+    "banks_by_register": {
+      "t_Ingress.ack_commit_at_reg": [
+        6
+      ],
+      "t_Ingress.ack_commit_gen_reg": [
+        6
+      ],
+      "t_Ingress.ack_done_reg": [
+        5
+      ],
+      "t_Ingress.child_seen0_reg": [
+        2
+      ],
+      "t_Ingress.cur_epoch_reg": [
+        0
+      ],
+      "t_Ingress.gen_alloc_reg": [
+        1
+      ],
+      "t_Ingress.op_done_reg": [
+        8
+      ],
+      "t_Ingress.op_gen_alloc_reg": [
+        2
+      ],
+      "t_Ingress.op_t0_reg": [
+        3
+      ],
+      "t_Ingress.outcomes": [
+        10
+      ],
+      "t_Ingress.resp_done_reg": [
+        7,
+        8
+      ],
+      "t_Ingress.t0_reg": [
+        2
+      ]
+    },
+    "problems": [
+      "t_Ingress.resp_done_reg: logical state occupies physical stages [7, 8]; exactly one required"
+    ],
+    "context_sha256": "9738e35968a4ea275a8960c94a29decddca3faac7f81a1f7188ba19ef7db6b46"
+  },
+  "conclusion": "N accepts first_response_dup and emits to T; release writes resp_done_reg=0x51 in stage7, while replay reads0 fromstage8 and drops as duplicate. This is already a pre-master-ACK replay; no fixture-order change is warranted."
+}

@@ -17,6 +17,7 @@ DRIVERS = {'fin_busy': HERE / 'model_fin_busy.py', 'relay_sbo': HERE / 'model_re
            'contention': HERE / 'model_contention.py', 'abort': HERE / 'model_abort.py', 'egress_diag': HERE / 'model_egress_diag.py', 'isolation_cleanup': HERE / 'model_isolation_cleanup.py',
            'half_rst': HERE / 'model_half_rst.py',  # diagnostic counterexample, not a required gate driver
            'hw_replay': HERE / 'model_hw_replay.py',  # diagnostic: exact silicon frames, not a gate driver
+           'response_ready': HERE / 'model_response_ready.py',  # required for the declared response-ready contract
            'mau_snapshot': HERE / 'model_mau_snapshot.py',  # diagnostic: snapshot tool proof, not a gate driver
            'mau_probe': HERE / 'model_mau_probe.py'}  # diagnostic: snapshot write semantics, not a gate driver
 # wrapper drivers and the driver code they execute; local modules every driver imports
@@ -90,9 +91,18 @@ def main():
     inputs = json.loads(inputs_path.read_text())
     from model_profile import resolve
     profile = resolve(inputs, build / 'response_only.p4', args.milestone)
+    if args.driver == 'response_ready' and profile.get('timing_contract') != 'response_ready_ack_d_v1':
+        raise SystemExit('response_ready requires a source-bound response_ready_ack_d_v1 profile')
+    if args.pb is not None and profile.get('timing_contract') == 'response_ready_ack_d_v1':
+        raise SystemExit('--pb is incompatible with response-ready timing')
     sha = hashlib.sha256((build / 'response_only.p4').read_bytes()).hexdigest()
     manifest = json.loads((build / 'compile_local/manifest.json').read_text())
     assert sha == inputs['source_sha256'] == manifest['source_sha256'] and manifest['exit_code'] == 0
+    if profile.get('timing_contract') == 'response_ready_ack_d_v1':
+        from model_profile import compiled_t_state_of_build
+        audit = compiled_t_state_of_build(build)
+        if audit['problems']:
+            raise SystemExit('compiled T state precondition failed: ' + '; '.join(audit['problems']))
     if inputs.get('milestone') and args.milestone != inputs['milestone']:
         raise SystemExit('--milestone %s does not match the build (%s)' % (args.milestone, inputs['milestone']))
     out = HERE / ('evidence/model_%s_%s_%02d' % (args.driver, build.name, args.attempt))

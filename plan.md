@@ -77,3 +77,9 @@ Source18/full188 tests pass; independent source and harness reviews approved. Ac
 SRAM61→58,TCAM63→61,SALU13→13,crossbar403→396,T PHVcapacity1344→1152bits. No whole-stage saving claimed.
 Strict compiled response_ready_01 retainedfail: driver log parsing delayed SELECT ACK to496ms and response576ms;
 T correctly expired500ms. Correcting model stimulus timing, not changing500ms. No hardware touched.
+
+2026-10-25: c60replaycounterexampleprovedresp_done duplicatedatstages7/8, so c60isREJECTED despitecompilefit.
+c62source569f6461 unifiesallresponseaccessesstage7,OPdiffmetadataearly; compile/layout/bank checksPASS,
+source191PASS. Strictcompiledc62_01preACKreplay andlate-response expiry/RSTACK/fresh READPASS;419/421cases,
+boundaryconstructionfailedbecauseNlatency pushed490msinjectionpast500. Harnessfixunderway,timernotrelaxed.
+All17c62finaldrivers+physicalcampaignsremainrequired. No hardwaretouched. Currentdocumentsupdated.

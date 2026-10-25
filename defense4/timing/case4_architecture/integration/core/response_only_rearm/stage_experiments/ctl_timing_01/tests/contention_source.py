@@ -61,6 +61,8 @@ def role(text, name):
                               ('HELD_RETURN', 182, 199), ('RELAY_PORT', 9, 64)):
             part, count = re.subn(r'(const PortId_t ' + key + r'\s*=\s*)9w' + str(old) + r';',
                                   r'\g<1>9w' + str(new) + ';', part)
+            if count != 1 and key == 'RELAY_PORT':
+                count = len(re.findall(r'const PortId_t RELAY_PORT\s*=\s*9w64;', part))
             assert count == 1, key
     return '#include <core.p4>\n#include <tna.p4>\n' + part
 
@@ -86,7 +88,22 @@ class LapPipeline(sp.SourcePipeline):
         for p in self._patches:
             p.start()
         try:
-            super().__init__(**timing)
+            response_ready = 'response_wait_timeout' in role(text, 'T')
+            if response_ready:
+                # QueueSim's scheduler stays unchanged; install the generated action's actual five fields.
+                def set_ready_params(queue, **kw):
+                    fields = dict(gap=5_000_000, op_j=2_400_000, response_wait_timeout=500_000_000,
+                                  budget=240_000, enabled=1)
+                    fields.update({k: v for k, v in kw.items() if k in fields})
+                    clock = t_config.t_time_of_source(role(text, 'T'))
+                    fields = t_config.t_units(fields, **clock)
+                    queue.src.controls['Ingress'].tables['params']['runtime'] = []
+                    names = [n for n, _w in queue.src.controls['Ingress'].actions['set_params'][0]]
+                    queue.src.install('params', (), 'set_params', [fields[n] for n in names])
+                with patch.object(qs.QueueSim, 'set_params', set_ready_params):
+                    super().__init__(**timing)
+            else:
+                super().__init__(**timing)
         finally:
             for p in self._patches:
                 p.stop()
@@ -94,6 +111,11 @@ class LapPipeline(sp.SourcePipeline):
         # 256 ns units on a 512 ns grid; earlier T: ns, unchanged). Control-timed T (m3+) takes pb as an 8th argument.
         self.t_time = t_config.t_time_of_source(role(text, 'T'))
         names = ('da', 'readiness', 'cap', 'gap', 'op_j', 'budget', 'enabled')
+        if response_ready:
+            self.t.src.width['ig.parser_err'] = 16
+            self.lap_ns, self.heap, self.order = lap_ns, [], 0
+            self.passes = []
+            return
         values = dict(zip(names, qs.params(**{k: v for k, v in timing.items() if k in names})))
         eight = len(self.t.src.controls['Ingress'].actions['set_params'][0]) == 8
         if eight:

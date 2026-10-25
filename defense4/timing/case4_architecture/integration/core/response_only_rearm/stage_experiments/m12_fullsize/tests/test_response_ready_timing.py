@@ -245,6 +245,35 @@ class ResponseReadyTiming(unittest.TestCase):
         self.assertEqual(len(s.emissions(RSP_FRAME)), 1)
         self.assertEqual(s.counter(8), 1)
 
+    def test_response_completion_has_one_global_access_before_port_dispatch(self):
+        # A source interpreter has one cell per register and cannot reproduce
+        # bf-p4c's bank replication across two independently placed accesses.
+        # Require one named access point, then validate its actual bank below.
+        code = re.sub(r'//[^\n]*|/\*.*?\*/', '', role(self.text), flags=re.S)
+        self.assertEqual(code.count('response_completion_access.apply();'), 1)
+        self.assertLess(code.index('response_completion_access.apply();'), code.index('if (hdr.clone.isValid())'))
+        self.assertNotIn('read_resp_done();', code)
+
+    @unittest.skipUnless(os.environ.get('RESPONSE_READY_CONTEXT'), 'compiled context supplied by compiler gate')
+    def test_compiled_completion_domains_each_have_one_physical_bank(self):
+        context = json.loads(Path(os.environ['RESPONSE_READY_CONTEXT']).read_text())
+        for name in ('ack_done_reg', 'resp_done_reg', 'op_done_reg'):
+            with self.subTest(register=name):
+                registers = [table for table in context['tables'] if table.get('table_type') == 'stateful'
+                             and table['name'].endswith('.' + name)]
+                self.assertEqual(len(registers), 1)
+                self.assertEqual(len(registers[0]['stage_tables']), 1, registers[0]['stage_tables'])
+
+    def test_response_replay_after_release_passes_before_any_master_completion_ack(self):
+        s = self.sim(); s.request(T0); s.ack(T0 + 50000); s.response(T0 + 100000)
+        s.run(T0 + 10_000_000)
+        self.assertEqual(len(s.emissions(RSP_FRAME)), 1)
+        # No master ACK is injected between original release and this replay.
+        s.response(T0 + 11_000_000); s.run(T0 + 12_000_000)
+        self.assertEqual(len(s.emissions(RSP_FRAME)), 2)
+        self.assertEqual(s.counter(3), 1, 'replay must not create a second original release')
+        self.assertEqual(s.counter(4), 0)
+
     def test_operate_request_retains_independent_j(self):
         s = self.sim(); s.operate(T0); s.run(T0 + 5_000_000)
         emitted = s.emissions(OP_FRAME, RELAY)

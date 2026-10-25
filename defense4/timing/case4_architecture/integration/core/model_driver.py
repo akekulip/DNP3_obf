@@ -54,7 +54,15 @@ def t_params_for_build(values_ns):
     if not port_map:
         return values_ns
     inputs = Path(port_map)
-    declared = json.loads(inputs.read_text()).get('t_time') or dict(t_config.T_TIME_NS)
+    document = json.loads(inputs.read_text())
+    declared = document.get('t_time') or dict(t_config.T_TIME_NS)
+    supplied_ns = dict(values_ns)
+    if (document.get('supported_profile') or {}).get('timing_contract') is not None:
+        sys.path.insert(0, str(Path(__file__).resolve().parent /
+            'response_only_rearm/stage_experiments/ctl_timing_01'))
+        import model_profile
+        profile = model_profile.resolve(document, inputs.parent / 'response_only.p4')
+        values_ns = model_profile.model_params(profile, values_ns)
     source = inputs.parent / 'response_only.p4'
     actual = t_config.t_time_of_source(source.read_text()) if source.is_file() else None
     if actual is not None and (actual['unit_ns'], actual['grid_ns']) != (declared['unit_ns'], declared['grid_ns']):
@@ -63,7 +71,7 @@ def t_params_for_build(values_ns):
     if os.environ.get('OUT'):
         log = Path(os.environ['OUT']) / 't_params_written.json'
         rows = json.loads(log.read_text()) if log.is_file() else []
-        rows.append(dict(values_ns=values_ns, t_time=declared, written=written))
+        rows.append(dict(supplied_ns=supplied_ns, values_ns=values_ns, t_time=declared, written=written))
         log.write_text(json.dumps(rows, indent=1) + '\n')
     return written
 

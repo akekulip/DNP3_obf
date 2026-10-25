@@ -1,0 +1,56 @@
+[
+  {
+    "source_sha256": "01e17381e8cfdd811cf0a33c6e8306a4320942e9acca738c8bd51af4aa746eb6",
+    "exit_code": 3,
+    "compile_log_sha256": "f4428c601b7e611e3c172f87851c0a59f41aff6bfc4eeb5b6ba1d04b1c6aa940",
+    "elapsed_seconds": 54.114,
+    "candidate": "c53",
+    "errors": [
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c53_sdk9132/compile_local/source/response_only.p4(1711): [--Werror=target-error] error: slice of register value in condition is not supported",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c53_sdk9132/compile_local/source/response_only.p4(1709): [--Werror=overlimit] error: : RegisterAction ack_state_step.apply needs 4 comparisons but the device only has 2 comparison units. To make the action compile, reduce the number of comparisons."
+    ]
+  },
+  {
+    "source_sha256": "04add755ca66ce9be43616d6198c7885b5f539e1df4265aef75cd004352e1476",
+    "exit_code": 2,
+    "compile_log_sha256": "bd15cb3b5e52080828374dc33f61d8436738452ad87188fb1a3a3a6c3526d73c",
+    "elapsed_seconds": 77.125,
+    "candidate": "c54",
+    "errors": [
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c54_sdk9132/compile_local/source/response_only.p4(2135): [--Werror=target-error] error: table t_Ingress.resp_go_check is applied in multiple places, and the next-table information cannot correctly propagate through this multiple application"
+    ]
+  },
+  {
+    "source_sha256": "d6f73477e5b56747b724334414565c97d0597abd660a1357ad18e032d754bf43",
+    "exit_code": 3,
+    "compile_log_sha256": "fa46285022a74576402f2c08ad6c1c9f6eed7df9213062a3a128faae7dce5f1b",
+    "elapsed_seconds": 79.917,
+    "candidate": "c55",
+    "errors": [
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c55_sdk9132/compile_local/source/response_only.p4(1662): [--Werror=duplicate] error: At most one stateful ALU operation with a given address is allowed per action. Writing to ingress::md.new_gen is not allowed here.",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c55_sdk9132/compile_local/source/response_only.p4(1663): [--Werror=duplicate] error: At most one stateful ALU operation with a given address is allowed per action. Writing to ingress::md.new_gen is not allowed here."
+    ]
+  },
+  {
+    "source_sha256": "39f8d09379cb338ef9a8c5e47811c4a8377a2aa89fa4f6084371b8c23b93655a",
+    "exit_code": 2,
+    "compile_log_sha256": "82e5c23d72105598f475d58ec94d69a99e111cf19857905f5bf59b28f1f9e211",
+    "elapsed_seconds": 93.295,
+    "candidate": "c56",
+    "errors": [
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c56_sdk9132/compile_local/out/p1/response_only.bfa:7727: error: tofino supports up to 12 stages, using 14",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c56_sdk9132/compile_local/out/p1/response_only.bfa:0: error: Due to errors, no binary will be generated"
+    ]
+  },
+  {
+    "source_sha256": "7e2e945c440240d86104e165c4b36f3db8f83c615c93aba1575c0f1f6710ee57",
+    "exit_code": 3,
+    "compile_log_sha256": "43483f14e83d789a83915d4e3d79495e5fd3dd2667fe4fa94d0cc182918dcf17",
+    "elapsed_seconds": 48.103,
+    "candidate": "c57",
+    "errors": [
+      "[--Werror=unsupported] error: Two or more assignments of out_value inside the register action ack_state_step are not mutually exclusive and thus cannot be implemented in Tofino Stateful ALU.",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c57_sdk9132/compile_local/source/response_only.p4(1709): [--Werror=unsupported] error: Incompatible outputs in RegisterAction: mem_lo and alu_hi"
+    ]
+  }
+]

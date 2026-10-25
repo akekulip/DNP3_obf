@@ -1,0 +1,62 @@
+{
+  "scope": "Offline synthetic coverage-auditor regression; no compiled-model or hardware claim",
+  "pytest": {
+    "command": [
+      "/usr/bin/python3",
+      "-m",
+      "pytest",
+      "-q",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_response_ready_profile.py",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_response_ready_adapter.py",
+      "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_model_summary.py"
+    ],
+    "exit_code": 0,
+    "stdout": "........................................................................ [ 54%]\n.............................................................            [100%]\n133 passed in 1.22s\n"
+  },
+  "audit_problems": {
+    "complete_24_child_probes": [],
+    "missing_child_matrix": [
+      "missing or duplicate invalid-child proof: response roleNone child1",
+      "missing or duplicate invalid-child proof: response roleNone child2",
+      "missing or duplicate invalid-child proof: response roleNone child255",
+      "missing or duplicate invalid-child proof: held role14 child1",
+      "missing or duplicate invalid-child proof: held role14 child2",
+      "missing or duplicate invalid-child proof: held role14 child255",
+      "missing or duplicate invalid-child proof: held role15 child1",
+      "missing or duplicate invalid-child proof: held role15 child2",
+      "missing or duplicate invalid-child proof: held role15 child255",
+      "missing or duplicate invalid-child proof: held role16 child1",
+      "missing or duplicate invalid-child proof: held role16 child2",
+      "missing or duplicate invalid-child proof: held role16 child255",
+      "missing or duplicate invalid-child proof: blocker role11 child0",
+      "missing or duplicate invalid-child proof: blocker role11 child1",
+      "missing or duplicate invalid-child proof: blocker role11 child2",
+      "missing or duplicate invalid-child proof: blocker role11 child255",
+      "missing or duplicate invalid-child proof: blocker role12 child0",
+      "missing or duplicate invalid-child proof: blocker role12 child1",
+      "missing or duplicate invalid-child proof: blocker role12 child2",
+      "missing or duplicate invalid-child proof: blocker role12 child255",
+      "missing or duplicate invalid-child proof: blocker role13 child0",
+      "missing or duplicate invalid-child proof: blocker role13 child1",
+      "missing or duplicate invalid-child proof: blocker role13 child2",
+      "missing or duplicate invalid-child proof: blocker role13 child255",
+      "unexpected or missing invalid-child probe rows"
+    ],
+    "complete_six_generation_cases": [],
+    "missing_generation_matrix": [
+      "missing or duplicate generation A-to-B proof: generation_A_late_ACK_waiting_B",
+      "missing or duplicate generation A-to-B proof: generation_A_late_ACK_committed_B",
+      "missing or duplicate generation A-to-B proof: generation_A_stale_response_waiting_B",
+      "missing or duplicate generation A-to-B proof: generation_A_stale_response_committed_B",
+      "missing or duplicate generation A-to-B proof: generation_A_expired_token_waiting_B",
+      "missing or duplicate generation A-to-B proof: generation_A_expired_token_committed_B"
+    ]
+  },
+  "file_sha256": {
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_response_ready.py": "4005b342fee099898897c0e0b2c012eae19bc9464b74108ad77498bb3395fe6f",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_summary.py": "a07372753063666f545eccd47c35ba2432d37ae38ae9728fba188175c2d65dc6",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_response_ready_profile.py": "505410cdabe7ba958ceb17f3942981aa75d0ee14a042d322060f28d12350da61",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_response_ready_adapter.py": "eff17d048868c2b7601b84ea48d4124f56ba32e2028695a95ad719153a1115d5",
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/tests/test_model_summary.py": "d7cc5748866202dc8d2245d1330412198faa31e147bf483739ddfdc6df5955e8"
+  }
+}

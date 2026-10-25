@@ -9,8 +9,11 @@ import hashlib
 import importlib.util
 import json
 import os
+import select
+import socket
 import struct
 import sys
+import time
 import traceback
 from pathlib import Path
 
@@ -71,6 +74,44 @@ PM, MASTER, RELAY = helpers.PM, helpers.MASTER, helpers.OUTSTATION
 PKTGEN_RETURN = helpers.PKTGEN_RETURN
 
 
+
+def timing_params_for_profile(profile):
+    contract = profile.get('timing_contract')
+    if contract == 'response_ready_ack_d_v1':
+        timing = profile['timing_ns']
+        return dict(gap=timing['D_release_budget'], op_j=timing['J_operate_hold'],
+                    response_wait_timeout=timing['response_wait_timeout'], budget=240000, enabled=0)
+    if contract is not None:
+        raise ValueError('unknown rearm timing contract: %r' % contract)
+    return dict(da=50_000_000, readiness=400_000_000, cap=16_000_000,
+                gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=0)
+
+
+def response_ready_operate(send, collect, master_port, relay_port, operate, relayed_operate,
+                           ack, response, complete_response, timeout=10):
+    """A genuine relay-bound command causes an immediate genuine ACK/response burst.
+
+    No counter/report/log work can consume the fixed response-wait budget between
+    observing command delivery and sending its relay packets. Wall timeout only bounds I/O.
+    """
+    captured, relayed = [], False
+    send(master_port, operate)
+    end = time.monotonic() + timeout
+    while time.monotonic() < end:
+        captured.extend(collect(.003))
+        if any(port == relay_port and same_frame(frame, relayed_operate, operate) for port, frame in captured):
+            relayed = True
+            send(relay_port, ack)
+            send(relay_port, response)
+            break
+    if relayed:
+        end = time.monotonic() + timeout
+        while time.monotonic() < end:
+            captured.extend(collect(.003))
+            if any(port == master_port and same_frame(frame, complete_response, response) for port, frame in captured):
+                break
+    return captured, relayed
+
 def main():
     report = Report(os.environ['PROG'], physical=False,
                     scope='E61 compiled protected reconnect; actual N/E/T; all 61 reverse distances and stale isolation',
@@ -109,8 +150,13 @@ def main():
         if rp.POLICY:   # pipe-1 READ padder's size enable, mirroring E's fwd_conn row (cp.p1_pad_rows)
             for table, key, action, data, priority in cp.p1_pad_rows(RELAY, MASTER, True):
                 m.add(table, dict(key), action, dict(data), priority)
-        params = dict(da=50_000_000, readiness=400_000_000, cap=16_000_000,
-                      gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=0)
+        inputs = json.loads(Path(os.environ['PORT_MAP']).read_text())
+        timing_profile = inputs.get('supported_profile') or {}
+        if timing_profile.get('timing_contract') is not None:
+            timing_profiles = load('_rearm_timing_contract', Path(__file__).resolve().parent.parent / 'ctl_timing_01/model_profile.py')
+            timing_profile = timing_profiles.resolve(inputs, Path(os.environ['PORT_MAP']).with_name('response_only.p4'))
+        response_ready = timing_profile.get('timing_contract') == 'response_ready_ack_d_v1'
+        params = timing_params_for_profile(timing_profile)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
         mirror = m.table('$mirror.cfg', raw=True)
         mirror.entry_add(gc.Target(device_id=0, pipe_id=0xffff),
@@ -131,7 +177,6 @@ def main():
                     for role, names in registers.items()}
 
         # relay_sbo replaces the object/on-time pair register with the guarded fixed command constants.
-        inputs = json.loads(Path(os.environ['PORT_MAP']).read_text())
         pairs = ('pair_real_links_real_tcp_src', 'pair_real_tcp_dst_real_tcp_ports') + (
             () if 'relay_sbo' in inputs.get('transforms_applied', []) else ('pair_real_object_real_on',)) + (
             'pair_real_off_native_start', 'pair_native_end_server_start')
@@ -303,14 +348,116 @@ def main():
              vectors.packet(24, (7001 + READ_IMAGE_LEN), c + rp.CONTROL_REQUEST_LEN, reverse=True, payload=image), master=False)
         params['enabled'] = 1
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
-        operate = vectors.packet(24, c + rp.CONTROL_REQUEST_LEN, (7001 + READ_IMAGE_LEN + IMAGE_LEN), payload=vectors.native_select(1, 4))
-        step('new_OPERATE_hold_native', operate,
-             vectors.packet(24, c + rp.CONTROL_REQUEST_LEN, n + CONTROL_NATIVE, payload=vectors.native_select(1, 4)))
-        report.add('OPERATE_release_count', 1, scalar(m.register_read('p1.t_Ingress.outcomes', 5, pipe=1)))
-        response = helpers.native_response37(1, 4)
-        image = encode61.ctl61(response)
-        step('new_OPERATE_response_61', vectors.packet(24, n + CONTROL_NATIVE, c + 2 * rp.CONTROL_REQUEST_LEN, reverse=True, payload=response),
-             vectors.packet(24, (7001 + READ_IMAGE_LEN + IMAGE_LEN), c + 2 * rp.CONTROL_REQUEST_LEN, reverse=True, payload=image), master=False)
+        if response_ready:
+            # Retain the same SELECT/OPERATE bytes and native/wire frontiers. The new
+            # contract additionally requires a genuine relay ACK before the shaped response.
+            ctl = Path(__file__).resolve().parent.parent / 'ctl_timing_01'
+            sys.path.insert(0, str(ctl))
+            import model_log_view as log_view
+            import reset_application_check as rac
+            import model_response_ready as timing_proof
+            from model_driver import veth_for
+            log = log_view.log_path()
+            if log is None:
+                raise ValueError('rearm response-ready proof requires the model T-clock log')
+            written = json.loads((Path(os.environ['OUT']) / 't_params_written.json').read_text())[-1]['written']
+            rp.advance_timestamp()
+            operate = vectors.packet(24, c + rp.CONTROL_REQUEST_LEN, 7001 + READ_IMAGE_LEN + IMAGE_LEN,
+                                     payload=vectors.native_select(1, 4))
+            want_operate = rp.preserve_options(operate, vectors.packet(24, c + rp.CONTROL_REQUEST_LEN,
+                n + CONTROL_NATIVE, payload=vectors.native_select(1, 4)))
+            rp.advance_timestamp()
+            relay_ack = vectors.packet(16, n + CONTROL_NATIVE, c + 2 * rp.CONTROL_REQUEST_LEN, reverse=True)
+            want_ack = rp.preserve_options(relay_ack, vectors.packet(16, 7001 + READ_IMAGE_LEN + IMAGE_LEN,
+                c + 2 * rp.CONTROL_REQUEST_LEN, reverse=True))
+            rp.advance_timestamp()
+            response = helpers.native_response37(1, 4)
+            image = encode61.ctl61(response)
+            native_packet = vectors.packet(24, n + CONTROL_NATIVE, c + 2 * rp.CONTROL_REQUEST_LEN,
+                                           reverse=True, payload=response)
+            want_response = rp.preserve_options(native_packet, vectors.packet(24, 7001 + READ_IMAGE_LEN + IMAGE_LEN,
+                c + 2 * rp.CONTROL_REQUEST_LEN, reverse=True, payload=image))
+            outcomes = lambda: {name: scalar(m.register_read('p1.t_Ingress.outcomes', index, pipe=1))
+                for name, index in (('ACK_COMMIT', 2), ('RESP_RELEASE', 3), ('OP_RELEASE', 5), ('WAIT_EXPIRED', 8), ('EXPIRED_DROP', 9))}
+            before_t = outcomes()
+            receive = {m._listen(port): port for port in ports}
+            fast = {}
+            for port in ports:
+                sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
+                sock.bind((veth_for(port), 0))
+                fast[port] = sock
+
+            def collect(duration):
+                ready, _, _ = select.select(list(receive), [], [], duration)
+                packets = []
+                for sock in ready:
+                    while True:
+                        try:
+                            frame, address = sock.recvfrom(4096)
+                        except BlockingIOError:
+                            break
+                        if address[2] != 4:
+                            packets.append((receive[sock], frame))
+                return packets
+
+            m.drain(ports)
+            offset = log_view.size(log)
+            try:
+                captured, relayed = response_ready_operate(lambda port, frame: fast[port].send(frame), collect,
+                    MASTER.dev_port, RELAY.dev_port, operate, want_operate, relay_ack, native_packet, want_response)
+            finally:
+                for sock in fast.values():
+                    sock.close()
+            tail = m.capture(ports, timeout=.6, quiet=.15)
+            captured.extend((port, frame) for port, frames in tail.items() for frame in frames)
+            after_t = outcomes()
+            arrivals = [frame for port, frame in captured if port == RELAY.dev_port]
+            master_frames = [frame for port, frame in captured if port == MASTER.dev_port]
+            request_exact = relayed and len(arrivals) == 1 and same_frame(arrivals[0], want_operate, operate)
+            response_exact = len(master_frames) == 2 and same_frame(master_frames[1], want_response, native_packet)
+            report.add('new_OPERATE_hold_native', 'one exact frame', len(arrivals), ok=request_exact,
+                       received=[frame.hex() for frame in arrivals])
+            report.add('OPERATE_release_count', 1, after_t['OP_RELEASE'])
+            report.add('new_OPERATE_response_61', 'one exact frame',
+                       sum(same_frame(frame, want_response, native_packet) for frame in master_frames), ok=response_exact,
+                       received=[frame.hex() for frame in master_frames], want=want_response.hex())
+            records = rac.ingress_records(log_view.lines_since(log, offset))
+            for ordinal, record in enumerate(records):
+                record['ordinal'] = ordinal
+                if record['t_units'] is not None:
+                    record['t_units'] &= ~1
+            trecs = [record for record in records if record['pipe'] == 1]
+            find = lambda action: next((record for record in trecs if 't_Ingress.' + action in record['actions']), None)
+            stamp = lambda action: find(action)['t_units'] if find(action) else None
+            ack_record, response_record = find('hold_ack'), find('admit_response')
+            point = dict(tag='new_OPERATE_response_ready', order='ack_first', t0_units=stamp('admit_t0'),
+                held_ack_units=stamp('hold_ack'), response_arrival_units=stamp('admit_response'),
+                ack_release_units=stamp('release_ack_commit'), response_release_units=stamp('release_response_counted'),
+                ack_arrival_ordinal=ack_record['ordinal'] if ack_record else None,
+                response_arrival_ordinal=response_record['ordinal'] if response_record else None,
+                lane={name: after_t[name] - before_t[name] for name in ('ACK_COMMIT', 'RESP_RELEASE', 'WAIT_EXPIRED', 'EXPIRED_DROP')},
+                master_frames=['ack' if same_frame(frame, want_ack, relay_ack) else
+                               'response' if same_frame(frame, want_response, native_packet) else 'other' for frame in master_frames],
+                operate_anchor_units=stamp('arm_operate_anchor'), operate_release_units=stamp('release_operate_counted'),
+                written_units=written, native_octets=len(response), image_octets=len(image))
+            problems = timing_proof.committed_problems(point, written['gap'], written['response_wait_timeout'])
+            hold = timing_proof.delta(point['operate_release_units'], point['operate_anchor_units'])
+            if hold is None or hold < written['op_j'] or after_t['OP_RELEASE'] - before_t['OP_RELEASE'] != 1:
+                problems.append('independent OPERATE J hold/single release not proved on T clock')
+            report.record['meta']['timing_contract'] = timing_profile['timing_contract']
+            report.record['meta']['response_ready_operate'] = point
+            report.add('new_OPERATE_genuine_ACK_full_D_and_J_on_T_clock', [], problems, point=point)
+            if not request_exact or not response_exact or problems:
+                raise AssertionError('timed OPERATE incomplete; do not derive a reset ACK from an undelivered image')
+        else:
+            operate = vectors.packet(24, c + rp.CONTROL_REQUEST_LEN, (7001 + READ_IMAGE_LEN + IMAGE_LEN), payload=vectors.native_select(1, 4))
+            step('new_OPERATE_hold_native', operate,
+                 vectors.packet(24, c + rp.CONTROL_REQUEST_LEN, n + CONTROL_NATIVE, payload=vectors.native_select(1, 4)))
+            report.add('OPERATE_release_count', 1, scalar(m.register_read('p1.t_Ingress.outcomes', 5, pipe=1)))
+            response = helpers.native_response37(1, 4)
+            image = encode61.ctl61(response)
+            step('new_OPERATE_response_61', vectors.packet(24, n + CONTROL_NATIVE, c + 2 * rp.CONTROL_REQUEST_LEN, reverse=True, payload=response),
+                 vectors.packet(24, (7001 + READ_IMAGE_LEN + IMAGE_LEN), c + 2 * rp.CONTROL_REQUEST_LEN, reverse=True, payload=image), master=False)
         step('qualified_RST', vectors.packet(20, c + 2 * rp.CONTROL_REQUEST_LEN, (7001 + READ_IMAGE_LEN + 2 * IMAGE_LEN)),
              vectors.packet(20, c + 2 * rp.CONTROL_REQUEST_LEN, n + 2 * CONTROL_NATIVE))
         report.add('RST_retired', 0x200, scalar(snapshot()['N']['owner']) >> 16)

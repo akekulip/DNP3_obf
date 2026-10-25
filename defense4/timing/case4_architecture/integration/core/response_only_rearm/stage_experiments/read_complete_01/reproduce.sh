@@ -8,6 +8,8 @@
 #   CANDIDATE=c50 bash reproduce.sh                    # bounded FIN owner-phase retry repair
 #   CANDIDATE=c51 bash reproduce.sh                    # qualified half-closed RST admission (physical SEL-751 candidate)
 #   CANDIDATE=c52 bash reproduce.sh                    # relay FIN+PSH+ACK close (current physical SEL-751 candidate)
+#   CANDIDATE=c60 bash reproduce.sh                    # response-ready ACK then D; requires all 17 model drivers
+#   CANDIDATE=c62 bash reproduce.sh                    # single-bank response-ready timing; 17-driver gate
 #   CANDIDATE=c26 bash reproduce.sh                  # c25 + behavior-preserving resource reduction (--reduce)
 #   CANDIDATE=c24 bash reproduce.sh                  # c25's P4 with the uncorrected disposition text (historical)
 #   CANDIDATE=c12 bash reproduce.sh                  # the preserved rotate4 checkpoint
@@ -30,6 +32,7 @@ CANDIDATE="${CANDIDATE:-c30}"
 # seg61_02/read_policy_expect.py gained the per-native SHAPES map for the two-READ builds, and model_profile.py changed
 # with c20 (33e21fd07), so c12 recomputes at the last commit before c20 (83498d4c1) and c20 at c432d195e.
 GATE_PIN=""
+GEN_PIN=""
 # FREEZE_PIN: the commit whose harness tree the candidate's freeze was checked against when its blocks ran. Later
 # edits to frozen harness files (protocol/hw_vepa, rearm_01/hw) would otherwise fail the freeze check of a measured
 # baseline; step 6 then checks the configs in a detached worktree at FREEZE_PIN.
@@ -39,8 +42,16 @@ RELAY_READ=0
 EVIDENCE_TIER="historical software endpoint profile (offline only)"
 BUILD_SUFFIX="$CANDIDATE"
 case "$CANDIDATE" in
+  c62) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing"
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c62_sdk9132
+       SOURCE_SHA=569f6461d7f587e225513623dc953c26b568892300370d074de6b2f2ed341b27
+       EVIDENCE_TIER="single-bank response-ready SEL-751 candidate; requires all 17 models and physical evidence" ;;
+  c60) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing"
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c60_sdk9132; GEN_PIN=a08b52f7d
+       SOURCE_SHA=618724c6a7a4ff44f0bbc7ff99c9adf1fa52cb33248fc15ecd58e4787eb7ec72
+       EVIDENCE_TIER="rejected response-ready candidate: response completion split across stages 7 and 8" ;;
   c52) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts"
-       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c52_sdk9132; FREEZE_PIN=ee7b7f47f
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c52_sdk9132; FREEZE_PIN=ee7b7f47f; GEN_PIN=ee7b7f47f; GATE_PIN=ee7b7f47f
        SOURCE_SHA=8f37f70240ffa03daf887349e5e52a6abf7e32eb4b43ec559e35077902e3dce4
        EVIDENCE_TIER="integrated SEL-751 timestamp profile; qualification requires recorded gates" ;;
   c51) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts"
@@ -73,7 +84,7 @@ case "$CANDIDATE" in
        SOURCE_SHA=1e94c31d80e6708ab31ca117f066d15f5ec23244fc6f7bf7b9ca68dc81a2a27b ;;
   b08) GEN_ARGS="--policy"
        SOURCE_SHA=7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f ;;
-  *) echo "unknown CANDIDATE $CANDIDATE (c52 | c51 | c50 | c49 | c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
+  *) echo "unknown CANDIDATE $CANDIDATE (c62 | c60 | c52 | c51 | c50 | c49 | c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
 esac
 BUILD="$STAGE/ctl_timing_01/evidence/m12p_$BUILD_SUFFIX"
 FREEZE="$BUILD/freeze_v3.json"
@@ -137,11 +148,17 @@ if [ "$TWO_READ" = 1 ]; then
 fi
 
 step "4. P4: make_m12.py $GEN_ARGS regenerates the m12p_$CANDIDATE source byte for byte"
-python3 "$STAGE/m12_fullsize/make_m12.py" "$SCRATCH/m12p" $GEN_ARGS >/dev/null
+GEN_STAGE="$STAGE"
+if [ -n "$GEN_PIN" ]; then
+  git -C "$REPO" worktree add --detach "$SCRATCH/fpin" "$GEN_PIN" >/dev/null
+  GEN_STAGE="$SCRATCH/fpin/${STAGE#$REPO/}"
+  echo "regenerating the frozen baseline with its recorded generator at $GEN_PIN"
+fi
+python3 "$GEN_STAGE/m12_fullsize/make_m12.py" "$SCRATCH/m12p" $GEN_ARGS >/dev/null
 got="$(sha256sum "$SCRATCH/m12p/response_only.p4" | cut -d' ' -f1)"
 [ "$got" = "$SOURCE_SHA" ] || { echo "regenerated source $got != $SOURCE_SHA"; exit 1; }
 echo "source $got"
-if [ "$CANDIDATE" = c48 ] || [ "$CANDIDATE" = c49 ] || [ "$CANDIDATE" = c50 ] || [ "$CANDIDATE" = c51 ] || [ "$CANDIDATE" = c52 ]; then
+if [ "$CANDIDATE" = c48 ] || [ "$CANDIDATE" = c49 ] || [ "$CANDIDATE" = c50 ] || [ "$CANDIDATE" = c51 ] || [ "$CANDIDATE" = c52 ] || [ "$CANDIDATE" = c60 ] || [ "$CANDIDATE" = c62 ]; then
   step "4b. integrated relay generator, checksum, admission and boundary regressions"
   (cd "$STAGE/m12_fullsize" && "$PY312" -m pytest -q tests)
   python3 "$STAGE/m12_fullsize/check_generator_identity.py"
@@ -199,12 +216,15 @@ fi
 
 step "5. model gate: retained logs restored (hash-verified), v3 summary recomputed (no --write)"
 if [ -n "$GATE_PIN" ]; then
-  git -C "$REPO" worktree prune
-  git -C "$REPO" worktree add --detach "$SCRATCH/pin" "$GATE_PIN" >/dev/null
-  PIN_STAGE="$SCRATCH/pin/${STAGE#$REPO/}"
+  if [ "$GATE_PIN" = "$GEN_PIN" ] && [ -d "$SCRATCH/fpin" ]; then
+    PIN_STAGE="$SCRATCH/fpin/${STAGE#$REPO/}"
+  else
+    git -C "$REPO" worktree add --detach "$SCRATCH/pin" "$GATE_PIN" >/dev/null
+    PIN_STAGE="$SCRATCH/pin/${STAGE#$REPO/}"
+  fi
   echo "recomputing at $GATE_PIN (detached worktree, removed on exit)"
   python3 "$PIN_STAGE/read_complete_01/restore_retained_logs.py"
-  (cd "$PIN_STAGE/ctl_timing_01" && python3 model_summary.py "evidence/m12p_$CANDIDATE" --v3 --enforce | tail -1)
+  (cd "$PIN_STAGE/ctl_timing_01" && python3 model_summary.py "evidence/m12p_$BUILD_SUFFIX" --v3 --enforce | tail -1)
 else
   python3 "$HERE/restore_retained_logs.py"
   (cd "$STAGE/ctl_timing_01" && python3 model_summary.py "evidence/m12p_$BUILD_SUFFIX" --v3 --enforce | tail -1)
@@ -213,8 +233,9 @@ fi
 step "6. freeze: every block config belongs to the frozen candidate"
 F_HERE="$HERE"; F_HW="$HW"; F_BUILD="$BUILD"; F_FREEZE="$FREEZE"
 if [ -n "$FREEZE_PIN" ]; then
-  git -C "$REPO" worktree prune
-  git -C "$REPO" worktree add --detach "$SCRATCH/fpin" "$FREEZE_PIN" >/dev/null
+  if [ ! -d "$SCRATCH/fpin" ]; then
+    git -C "$REPO" worktree add --detach "$SCRATCH/fpin" "$FREEZE_PIN" >/dev/null
+  fi
   F_HERE="$SCRATCH/fpin/${HERE#$REPO/}"; F_HW="$SCRATCH/fpin/${HW#$REPO/}"; F_BUILD="$SCRATCH/fpin/${BUILD#$REPO/}"
   F_FREEZE="$F_BUILD/freeze_v3.json"
   echo "checking the measured baseline's freeze at $FREEZE_PIN (detached worktree, removed on exit)"

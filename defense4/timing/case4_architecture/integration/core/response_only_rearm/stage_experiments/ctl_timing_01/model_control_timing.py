@@ -41,6 +41,9 @@ OP_J_S = 0.200                                     # J in model ns; the model cl
 def main():
     from model_profile import from_env
     profile = from_env()
+    if profile.get('timing_contract') == 'response_ready_ack_d_v1':
+        from model_response_ready import main as response_ready_main
+        return response_ready_main(control_only=True)
     milestone = profile['milestone']
     if milestone not in ('m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):          # an unknown milestone would silently take older expectations
         raise SystemExit('unknown MILESTONE %r' % milestone)

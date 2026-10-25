@@ -62,6 +62,17 @@ def required_drivers(build):
                      and encoding.get('output_octets') == 60))
         if relay and declared != {'sel751'}:
             raise ValueError('relay semantics require endpoint_profile=sel751')
+    contracts = {doc['timing_contract'] for doc in documents if doc.get('timing_contract') is not None}
+    if len(contracts) > 1 or contracts - {'response_ready_ack_d_v1'}:
+        raise ValueError('inconsistent or unsupported timing_contract')
+    if contracts:
+        from model_profile import validate_timing_contract
+        for doc in documents:
+            if doc.get('timing_contract') is not None:
+                validate_timing_contract(doc)
+        if declared != {'sel751'}:
+            raise ValueError('response-ready requires the relay gate')
+        return RELAY_REQUIRED + ('response_ready',)
     return RELAY_REQUIRED if declared == {'sel751'} else REQUIRED
 
 
@@ -388,6 +399,198 @@ def _unmeasured_points(run_dir):
     return problems
 
 
+
+
+def _single_child_problems(results):
+    """Retain the full invalid-child state-immutability matrix and policy-off positive controls."""
+    import copy
+    required = {'N': {'owner', 'epoch', 'client', 'server'},
+                'E': {'epoch', 'mode', 'front', 'acct', 'img_end', 'img_start', 'img_wend'},
+                'T': {'cur_epoch_reg', 'gen_alloc_reg', 'op_gen_alloc_reg', 't0_reg', 'op_t0_reg',
+                      'ack_done_reg', 'resp_done_reg', 'op_done_reg', 'child_seen0_reg',
+                      'ack_commit_at_reg', 'ack_commit_gen_reg', 'outcomes'}}
+    rows = (results.get('meta') or {}).get('single_child_probes') or []
+    expected_cases = [('response', None, child) for child in (1, 2, 255)] + [
+        ('held', role, child) for role in (14, 15, 16) for child in (1, 2, 255)] + [
+        ('blocker', role, child) for role in (11, 12, 13) for child in (0, 1, 2, 255)]
+    problems = []
+    for kind, role, child in expected_cases:
+        tag = '%s role%s child%d' % (kind, role, child)
+        matches = [row for row in rows if (row.get('kind'), row.get('role'), row.get('child')) == (kind, role, child)]
+        if len(matches) != 1:
+            problems.append('missing or duplicate invalid-child proof: ' + tag)
+            continue
+        row = matches[0]
+        before, after = row.get('before') or {}, row.get('after') or {}
+        if set(before) != set(required) or any(set(before.get(domain, {})) != names for domain, names in required.items()):
+            problems.append(tag + ': full N/E/T register state not measured')
+            continue
+        if not isinstance(before['T']['outcomes'], list) or len(before['T']['outcomes']) != 25:
+            problems.append(tag + ': all 25 T outcomes not measured')
+            continue
+        expected = copy.deepcopy(before)
+        if kind == 'blocker' and child == 0:
+            expected['T']['outcomes'][12] = (expected['T']['outcomes'][12] + 1) & 0xffffffff
+        if row.get('policy_off') is not (kind == 'blocker'):
+            problems.append(tag + ': missing policy-off blocker construction')
+        if row.get('expected_after') != expected or after != expected or row.get('output_frames') != 0:
+            problems.append(tag + ': register/counter mutation or public output')
+        if any(type(row.get(key)) is not int or not 0 < row[key] < limit
+               for key, limit in (('epoch', 0x80000000), ('read_generation', 0xffff), ('operate_generation', 0xffff))):
+            problems.append(tag + ': no live epoch and both generations')
+    if len(rows) != len(expected_cases):
+        problems.append('unexpected or missing invalid-child probe rows')
+    return problems
+
+
+def _generation_isolation_problems(results):
+    from model_response_ready import generation_isolation_problems, delta, token_source_problems
+    points = (results.get('meta') or {}).get('points') or []
+    problems = []
+    for kind in ('late_ACK', 'stale_response', 'expired_token'):
+        for phase in ('waiting', 'committed'):
+            tag = 'generation_A_%s_%s_B' % (kind, phase)
+            matches = [point for point in points if point.get('tag') == tag]
+            if len(matches) != 1:
+                problems.append('missing or duplicate generation A-to-B proof: ' + tag)
+                continue
+            point = matches[0]
+            if (point.get('stale_probe') or {}).get('kind') != kind or (point.get('stale_probe') or {}).get('phase') != phase:
+                problems.append(tag + ': wrong A artifact or B phase')
+            problems.extend(tag + ': ' + problem for problem in generation_isolation_problems(point))
+            source = (point.get('stale_probe') or {}).get('source_tag')
+            prior = [item for item in points if item.get('tag') == source]
+            if len(prior) != 1:
+                problems.append(tag + ': no unique executed A generation')
+                continue
+            prior = prior[0]
+            probe = point.get('stale_probe') or {}
+            artifact_key = {'late_ACK': 'ack', 'stale_response': 'response', 'expired_token': 'token'}[kind]
+            frame = (prior.get('artifacts') or {}).get(artifact_key)
+            if not frame or probe.get('frame_hex') != frame or                     prior.get('generation_after') != probe.get('source_generation') or prior.get('epoch') != probe.get('source_epoch'):
+                problems.append(tag + ': artifact does not bind the actual prior A packet and generation')
+            if kind == 'expired_token':
+                problems.extend(tag + ': ' + issue for issue in token_source_problems(prior))
+                expiry = prior.get('atomic_expiry_units') or []
+                elapsed = None if len(expiry) != 1 else delta(expiry[0], prior.get('t0_units'))
+                if (prior.get('lane') or {}).get('WAIT_EXPIRED') != 1 or prior.get('master_frames') != [] or                         elapsed is None or elapsed < -(-(500000000 + 512) // 256):
+                    problems.append(tag + ': token does not name a genuinely expired A generation')
+                if frame and (not frame.startswith('0b00') or int(frame[4:8], 16) != probe.get('source_generation')):
+                    problems.append(tag + ': token is not the original A generation ACK blocker')
+            else:
+                units = prior.get('written_units') or {}
+                if not isinstance(units.get('gap'), int) or not isinstance(units.get('response_wait_timeout'), int):
+                    problems.append(tag + ': A has no actual timing parameters')
+                else:
+                    from model_response_ready import committed_problems
+                    problems.extend(tag + ': prior A ' + issue for issue in committed_problems(
+                        prior, units['gap'], units['response_wait_timeout']))
+
+    return problems
+
+def _response_ready_problems(results):
+    """A partial response-ready run cannot qualify from totals alone."""
+    from model_response_ready import committed_problems
+    D_VALUES = (5000000, 10000000, 15000000, 20000000)
+    meta = results.get('meta') or {}
+    problems = []
+    if meta.get('timing_contract') != 'response_ready_ack_d_v1':
+        problems.append('missing response-ready timing contract in executed results')
+    expected = {}
+    for gap in D_VALUES:
+        for order in ('ack_first', 'response_first'):
+            prefix = 'D%d_%s' % (gap // 1000000, order)
+            for cls in ('mixed', 'integrity'):
+                for suffix, native, image in (('', 91 if cls == 'mixed' else 134, 141 if cls == 'mixed' else 158),
+                                               ('_SELECT', 49, 60), ('_OPERATE', 49, 60)):
+                    expected[prefix + '_' + cls + suffix] = (gap, native, image, order)
+    points = meta.get('points') or []
+    for tag, (gap, native, image, order) in expected.items():
+        matches = [point for point in points if point.get('tag') == tag]
+        if len(matches) != 1:
+            problems.append('missing or duplicate response-ready point: ' + tag)
+            continue
+        point = matches[0]
+        if point.get('order') != order:
+            problems.append(tag + ': observed order does not match required ' + order)
+        units = point.get('written_units') or {}
+        gap_units = -(-(gap + 512) // 256)
+        wait_units = -(-(500000000 + 512) // 256)
+        if (point.get('native_octets'), point.get('image_octets')) != (native, image):
+            problems.append(tag + ': wrong relay native/image shape')
+        if set(units) != {'gap', 'op_j', 'response_wait_timeout', 'budget', 'enabled'} or \
+                units.get('gap') != gap_units or units.get('response_wait_timeout') != wait_units:
+            problems.append(tag + ': actual five-field parameter write does not exercise D and 500ms expiry')
+        problems.extend(tag + ': ' + issue for issue in committed_problems(point, gap_units, wait_units))
+    negatives = ('late98ms', 'absent', 'response_without_ACK', 'wrong_response', 'incomplete_response',
+                 'duplicate_ack_response', 'duplicate_over_bound', 'request_retransmission', 'reset_held', 'commit_across_expiry')
+    from model_response_ready import delta
+    for tag in negatives:
+        matches = [point for point in points if point.get('tag') == tag]
+        if len(matches) != 1:
+            problems.append('missing or duplicate response-ready negative/boundary: ' + tag)
+            continue
+        point = matches[0]
+        lane = point.get('lane') or {}
+        if tag in ('absent', 'response_without_ACK', 'wrong_response', 'incomplete_response', 'duplicate_over_bound'):
+            expiry = point.get('atomic_expiry_units') or []
+            elapsed = delta(expiry[0], point.get('t0_units')) if len(expiry) == 1 else None
+            if point.get('master_frames') != [] or lane.get('ACK_COMMIT') != 0 or \
+                    lane.get('RESP_RELEASE') != 0 or lane.get('WAIT_EXPIRED') != 1 or \
+                    elapsed is None or elapsed < -(-(500000000 + 512) // 256):
+                problems.append(tag + ': expiry without forwarding not proved on T clock')
+            if tag == 'duplicate_over_bound':
+                expiry = point.get('forced_expiry_before_response_units')
+                late = delta(point.get('response_arrival_units'), expiry)
+                if expiry is None or late is None or late >= 1 << 31:
+                    problems.append(tag + ': response was not observed after actual expiry')
+                recovery = [row for row in points if row.get('tag') == 'duplicate_over_bound_reconnect']
+                if len(recovery) != 1 or recovery[0].get('recovery_of') != tag or recovery[0].get('epoch') == point.get('epoch'):
+                    problems.append(tag + ': new-handshake recovery not measured')
+                else:
+                    units = recovery[0].get('written_units') or {}
+                    if not isinstance(units.get('gap'), int) or not isinstance(units.get('response_wait_timeout'), int):
+                        problems.append(tag + ': recovery timing parameters not measured')
+                    else:
+                        problems.extend(tag + ': recovery ' + issue for issue in committed_problems(
+                            recovery[0], units['gap'], units['response_wait_timeout']))
+        elif tag == 'reset_held':
+            held, reset = point.get('held_ack_units'), point.get('reset_application_units')
+            if held is None or reset is None or delta(reset, held) >= 1 << 31 or \
+                    point.get('master_frames') != [] or lane.get('ACK_COMMIT') != 0 or lane.get('RESP_RELEASE') != 0:
+                problems.append(tag + ': reset while actual ACK held was not proved')
+        else:
+            units = point.get('written_units') or {}
+            if not isinstance(units.get('gap'), int) or not isinstance(units.get('response_wait_timeout'), int):
+                problems.append(tag + ': no actual parameter units')
+            else:
+                problems.extend(tag + ': ' + issue for issue in committed_problems(
+                    point, units['gap'], units['response_wait_timeout']))
+            if tag == 'duplicate_ack_response':
+                replay = point.get('post_release_replay')
+                if not isinstance(replay, dict):
+                    problems.append(tag + ': missing post-release replay proof')
+                else:
+                    from model_response_ready import post_release_replay_problems
+                    problems.extend(tag + ': ' + issue for issue in post_release_replay_problems(replay))
+            if tag == 'late98ms':
+                age = delta(point.get('response_arrival_units'), point.get('t0_units'))
+                if age is None or age * 256 < 98000000:
+                    problems.append(tag + ': actual late native response was not constructed')
+            if tag == 'commit_across_expiry':
+                age = delta(point.get('response_release_units'), point.get('t0_units'))
+                if age is None or age < -(-(500000000 + 512) // 256):
+                    problems.append(tag + ': full D across expiry was not constructed')
+    priority_edges = ['duplicate_over_bound', 'commit_across_expiry']
+    expected_cases = priority_edges + ['expired_A_token_isolation'] + ['D%d_%s' % (gap // 1000000, order) for gap in D_VALUES
+                      for order in ('ack_first', 'response_first')] + [case for case in negatives if case not in priority_edges] + [
+                          'generation_A_to_B_isolation', 'invalid_child_ids', 'disabled_and_exhaustion']
+    if meta.get('planned_cases') != expected_cases or meta.get('completed_cases') != expected_cases:
+        problems.append('response-ready did not complete every planned connection/case')
+    problems += _single_child_problems(results)
+    problems += _generation_isolation_problems(results)
+    return problems
+
 def summarize_v3(build):
     """summarize_v2() plus mandatory dependency evidence: a driver's latest attempt must carry a verified
     dependency closure (_closure_problems). For a build whose runs predate the closure recorder this blocks, and
@@ -406,6 +609,10 @@ def summarize_v3(build):
             profile = model_profile.resolve(json.loads(inputs_path.read_text()), build / 'response_only.p4')
         except (OSError, ValueError, TypeError) as error:
             reasons.append('unsupported or inconsistent build profile: %s' % error)
+    if profile and profile.get('timing_contract') == 'response_ready_ack_d_v1':
+        state_audit = model_profile.compiled_t_state_of_build(build)
+        base['compiled_t_state_audit'] = state_audit
+        reasons.extend('compiled T state precondition: ' + problem for problem in state_audit['problems'])
     for driver, run in sorted(base['latest_by_driver'].items()):
         r = next(x for x in base['runs'] if x['run'] == run)
         problems = _closure_problems(build, r)
@@ -428,6 +635,18 @@ def summarize_v3(build):
             problems += _unmeasured_points(build.parent / run)
         elif driver == 'abort' and reset_required:
             problems += _unmeasured_points(build.parent / run)
+        if driver == 'control_timing' and run_profile and run_profile.get('timing_contract') == 'response_ready_ack_d_v1':
+            result_files = list((build.parent / run).glob('*_results.json'))
+            if len(result_files) == 1:
+                problems += _single_child_problems(json.loads(result_files[0].read_text()))
+            else:
+                problems.append('response-ready control_timing needs exactly one results file')
+        if driver == 'response_ready':
+            result_files = list((build.parent / run).glob('*_results.json'))
+            if len(result_files) == 1:
+                problems += _response_ready_problems(json.loads(result_files[0].read_text()))
+            else:
+                problems.append('response-ready needs exactly one results file')
         r['dependency_problems'] = problems
         for p in problems:
             reasons.append('%s: latest attempt %s: %s' % (driver, run, p))

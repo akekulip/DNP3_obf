@@ -1,0 +1,59 @@
+{
+  "scope": "Retained c62_01 runtime evidence and bounded stimulus correction; no c62_02 result",
+  "retained_results_sha256": "74c0f40a060cd0ce6fbe530bc8865c6dd8b7bdeea755d5c364535016994ce04d",
+  "boundary": {
+    "t0_units": 631601562,
+    "held_ack_units": 631928710,
+    "expiry_units": [
+      633559570
+    ],
+    "response_arrival_units": 633959960,
+    "response_target_ns": 490000000,
+    "explanation": "The live 12.5ms poll grid advanced from488.75ms to501.25ms, so waitingfor490ms observedexpirybeforeNresponseinjection; response thenreachedT at603.75ms. Newtarget360msleavesroomfortheobservedN-to-Tpath; actualpreexpirycommit/postexpiryDproofunchanged."
+  },
+  "forced_late_drop": {
+    "t0_units": 580112304,
+    "expiry_units": [
+      582075194
+    ],
+    "response_arrival_units": 582480468,
+    "master_frames": [],
+    "lane": {
+      "ACK_COMMIT": 0,
+      "EXPIRED_DROP": 2,
+      "RESP_RELEASE": 0,
+      "WAIT_EXPIRED": 1
+    },
+    "encoding_before": {
+      "commit": 50,
+      "growth": 0,
+      "replay": 1
+    },
+    "encoding_after": {
+      "commit": 50,
+      "growth": 0,
+      "replay": 1
+    },
+    "valid_RST": {
+      "passed": true,
+      "master_seq": 2500026,
+      "last_observed_wire_ACK": 2550001,
+      "relay_native_ACK": 2550001
+    }
+  },
+  "recovery": {
+    "epoch": 279,
+    "recovery_of": "duplicate_over_bound",
+    "lane": {
+      "ACK_COMMIT": 1,
+      "EXPIRED_DROP": 0,
+      "RESP_RELEASE": 1,
+      "WAIT_EXPIRED": 0
+    },
+    "master_frames": [
+      "ack",
+      "response"
+    ]
+  },
+  "next_driver_plan": "Forced late drop / real-frontier RST / fresh-handshake recovery, then cross-expiry, then all48D/order/shape points and all remaining required proofs."
+}

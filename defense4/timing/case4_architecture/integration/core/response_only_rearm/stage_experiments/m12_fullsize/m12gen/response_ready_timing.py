@@ -137,31 +137,36 @@ def transform(src):
                                   ('commit_generation_access', 'mark_ack_commit_gen', 'read_commit_gen')):
         start = t.index('    table ' + table); end = t.index('\n    }', start) + 6
         replacement = ("    table " + table + " {\n"
-            "        key = { hdr.ladder.role : ternary; md.state_old : ternary; }\n"
+            "        key = { ig_intr_md.ingress_port : ternary; hdr.ladder.role : ternary; md.state_old : ternary; }\n"
             "        actions = { " + writer + "; " + reader + "; NoAction; }\n"
             "        const entries = {\n"
-            "            (t_ROLE_ACK_HELD, 32w0x50000 &&& 32w0xffff0000) : " + writer + "();\n"
-            "            (t_ROLE_RESP_HELD, _) : " + reader + "();\n"
-            "            (t_ROLE_RESP_BLK, _) : " + reader + "();\n"
+            "            (t_HELD_RETURN, t_ROLE_ACK_HELD, 32w0x50000 &&& 32w0xffff0000) : " + writer + "();\n"
+            "            (t_HELD_RETURN, t_ROLE_RESP_HELD, _) : " + reader + "();\n"
+            "            (t_HELD_RETURN, t_ROLE_RESP_BLK, _) : " + reader + "();\n"
             "        } default_action = NoAction(); size = 3;\n    }")
         t = t[:start] + replacement + t[end:]
     span('    action set_resp_go(', '    // Release only; resp_done_reg', '''    action response_done_wait() { md.resp_go = 0; md.done_diff = resp_done_read.execute(0); }
     action response_done_blocker_ready() { md.resp_go = 1; md.done_diff = resp_done_read.execute(0); }
     action response_done_commit() { md.resp_go = 1; md.done_diff = resp_done_commit.execute(0); }
-    table resp_go_check {
-        key = { md.e_bad : ternary; md.enabled : ternary; md.lgen_diff : ternary;
+    // One global access point keeps T_IN reads and held commits in one
+    // physical stateful bank; separate call sites may be replicated by bf-p4c.
+    table response_completion_access {
+        key = { ig_intr_md.ingress_port : ternary; md.event_kind : ternary;
+                md.e_bad : ternary; md.enabled : ternary; md.lgen_diff : ternary;
                 md.gap_delta : ternary; md.commit_diff : ternary; md.state_old : ternary;
                 hdr.ladder.role : ternary; }
         actions = { response_done_wait; response_done_blocker_ready; response_done_commit; NoAction; }
         const entries = {
-            (0, 0, _, _, _, _, t_ROLE_RESP_HELD) : response_done_wait();
-            (0, 0, _, _, _, _, t_ROLE_RESP_BLK) : response_done_wait();
-            (0, _, 0, 32w0 &&& 32w0x80000000, 0, 32w0x10000 &&& 32w0x30000, t_ROLE_RESP_HELD) : response_done_commit();
-            (0, _, 0, 32w0 &&& 32w0x80000000, 0, 32w0x10000 &&& 32w0x30000, t_ROLE_RESP_BLK) : response_done_blocker_ready();
-            (_, _, _, _, _, _, t_ROLE_RESP_HELD) : response_done_wait();
-            (_, _, _, _, _, _, t_ROLE_RESP_BLK) : response_done_wait();
+            (t_T_IN, t_KIND_RESPONSE, 0, 0, _, _, _, _, _) : NoAction();
+            (t_T_IN, t_KIND_RESPONSE, 0, _, _, _, _, _, _) : response_done_wait();
+            (t_HELD_RETURN, _, 0, 0, _, _, _, _, t_ROLE_RESP_HELD) : response_done_wait();
+            (t_HELD_RETURN, _, 0, 0, _, _, _, _, t_ROLE_RESP_BLK) : response_done_wait();
+            (t_HELD_RETURN, _, 0, _, 0, 32w0 &&& 32w0x80000000, 0, 32w0x10000 &&& 32w0x30000, t_ROLE_RESP_HELD) : response_done_commit();
+            (t_HELD_RETURN, _, 0, _, 0, 32w0 &&& 32w0x80000000, 0, 32w0x10000 &&& 32w0x30000, t_ROLE_RESP_BLK) : response_done_blocker_ready();
+            (t_HELD_RETURN, _, _, _, _, _, _, _, t_ROLE_RESP_HELD) : response_done_wait();
+            (t_HELD_RETURN, _, _, _, _, _, _, _, t_ROLE_RESP_BLK) : response_done_wait();
         }
-        default_action = NoAction(); size = 6;
+        default_action = NoAction(); size = 8;
     }
 ''')
     # Fuse the response go decision with the one atomic register operation.
@@ -262,7 +267,7 @@ def transform(src):
     # Blockers and held originals share the same gap predicate; no response
     # timeout is consulted after a successful commit.
     t=once(t, '            commit_at_access.apply(); commit_generation_access.apply();',
-             '            commit_at_access.apply(); commit_generation_access.apply(); resp_go_check.apply();')
+             '            commit_at_access.apply(); commit_generation_access.apply(); response_completion_access.apply();')
     t=once(t, '                resp_go_check.apply();\n', '')
     # Expiry is counted exactly once, including when its first pass also drops
     # an original. Later expired originals get EXPIRED_DROP independently.
@@ -279,16 +284,41 @@ def transform(src):
              '        operate_generation_access.apply(); operate_anchor_access.apply();\n'
              '        compute_op_t0_masked(); compute_op_delta();')
     t = once(t, '            compute_op_t0_masked(); compute_op_delta(); op_lgen_diff();', '            op_lgen_diff();')
-    # Both T_IN reads return into done_diff, but their event kinds are
-    # disjoint. Expose that exclusivity so the OP register does not force
-    # the response register and every terminal verdict into a later stage.
-    op_read = '            if (md.event_kind == t_KIND_OPERATE_DUP && md.e_bad == 0 && md.enabled != 0) { read_op_done(); }'
+    # T_IN response reads share the single global completion table. Only
+    # OPERATE_DUP still reads its separate completion register in this branch.
     rsp_read = '            if (md.event_kind == t_KIND_RESPONSE && md.e_bad == 0 && md.enabled != 0) { read_resp_done(); }'
-    t = once(t, op_read + '\n', '')
-    t = once(t, rsp_read, op_read + '\n' + rsp_read.replace('            if (', '            else if (', 1))
+    t = once(t, rsp_read + '\n', '')
+    t = once(t, '    action read_resp_done() { md.done_diff = resp_done_read.execute(0); }\n', '')
     t = once(t, '            if (hdr.ladder.role == t_ROLE_RESP_HELD) {\n'
                 '                try_resp_done();\n'
                 '            } else if (hdr.ladder.role == t_ROLE_RESP_BLK) { read_resp_done(); }\n', '')
+    t = once(t, '            commit_at_access.apply(); commit_generation_access.apply(); response_completion_access.apply();', '')
+    t = once(t, '        read_lgen_diff(); ack_go_check.apply(); ack_status_access.apply();',
+             '        read_lgen_diff(); ack_go_check.apply(); ack_status_access.apply();\n'
+             '        commit_at_access.apply(); commit_generation_access.apply(); response_completion_access.apply();')
+    # OPERATE has its own generation domain. Reusing the response lgen_diff
+    # PHV field forced its overwrite behind the held-response verdict and
+    # serialized the otherwise independent OPERATE deadline path.
+    t = once(t, 'bit<16> lgen_diff;', 'bit<16> lgen_diff; bit<16> op_lgen_diff;')
+    t = once(t, 'action op_lgen_diff() { md.lgen_diff = hdr.ladder.generation ^ (bit<16>)md.op_gen; }',
+             'action op_lgen_diff() { md.op_lgen_diff = hdr.ladder.generation ^ (bit<16>)md.op_gen; }')
+    t = once(t, '        compute_op_t0_masked(); compute_op_delta();',
+             '        compute_op_t0_masked(); compute_op_delta(); op_lgen_diff();')
+    t = once(t, '            op_lgen_diff();\n', '')
+    start = t.index('    table op_go_check'); end = t.index('    action drop_exhausted', start)
+    body = t[start:end]
+    body = once(body, 'key = { ',
+                'key = { ig_intr_md.ingress_port : ternary; hdr.ladder.role : ternary; ')
+    body = once(body, 'md.lgen_diff : ternary;', 'md.op_lgen_diff : ternary;')
+    body = re.sub(r'\(([^()\n]+)\) : set_op_go\(',
+                  lambda m: '(t_HB_RETURN, t_ROLE_OP_HELD, ' + m[1] + ') : set_op_go(', body)
+    t = t[:start] + body + t[end:]
+    start = t.index('    table hb_verdict'); end = t.index('    apply {', start)
+    body = once(t[start:end], 'md.lgen_diff : ternary;', 'md.op_lgen_diff : ternary;')
+    t = t[:start] + body + t[end:]
+    t = once(t, 'ack_go_check.apply(); ack_status_access.apply();',
+             'ack_go_check.apply(); ack_status_access.apply(); op_go_check.apply();')
+    t = once(t, '{ op_go_check.apply(); try_op_done(); }', '{ try_op_done(); }')
     t = direct_state_predicates(t)
     return once(src, old, t)
 
@@ -309,7 +339,7 @@ def direct_state_predicates(t):
         '32w0x10000&&&32w0x30000': [('32w0', '_')],
         '32w0x20000&&&32w0x30000': [(expired, '_'), (waiting, '2')],
     }
-    for name in ('commit_at_access', 'commit_generation_access', 'resp_go_check',
+    for name in ('commit_at_access', 'commit_generation_access', 'response_completion_access',
                  'tin_verdict', 'held_verdict', 'op_go_check', 'hb_verdict', 'outcome_count'):
         start = t.index('    table ' + name + ' {')
         end = t.index('\n    }', start) + 6
