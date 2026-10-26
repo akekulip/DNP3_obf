@@ -159,11 +159,21 @@ class MergeNTerminal(unittest.TestCase):
                                         'tm.bypass_egress'})
         for name in ('abort_work', 'carry_current'):
             old_body = action_body(n69, name)
-            self.assertEqual(action_body(n71, name), 'next_stage();' + old_body)
             self.assertNotIn('hdr.event.event[15:8]', old_body)
             self.assertFalse(re.search(r'hdr\.event\.event(?!\[7:0\])', old_body), old_body)
             self.assertFalse(re.search(r'm\.emit_loop|tm\.', old_body), old_body)
+        self.assertEqual(action_body(n71, 'carry_current'), 'next_stage();' + action_body(n69, 'carry_current'))
+        merged = action_body(n71, 'abort_work')
+        self.assertEqual(merged, 'hdr.event.event=(hdr.event.event[15:8]+8w1)++8w255;' + stage.split(';', 1)[1]
+                         + 'hdr.t0.setInvalid();')
+        # the whole-field write carries next_stage's [15:8]+1 (8-bit wrap) with abort's [7:0]=255, plus next_stage's
+        # routing writes and abort's t0 invalidation, exactly as the two sequential actions did
         self.assertEqual(action_body(n71, 'next_stage'), stage)
+
+    def test_event_field_split_for_the_merged_slice_writes(self):
+        n71 = combined.segment(self.c71, 'N')
+        self.assertIn('@pa_container_size("ingress", "hdr.event.event", 8, 8)', n71)
+        self.assertNotIn('hdr.event.event", 8, 8', combined.segment(self.c69, 'N'))
 
     def test_tables_keep_their_names_and_keyless_shape(self):
         n71 = combined.segment(self.c71, 'N')

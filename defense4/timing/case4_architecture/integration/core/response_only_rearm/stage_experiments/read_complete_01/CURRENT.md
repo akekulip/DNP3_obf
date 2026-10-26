@@ -1,3 +1,17 @@
+# c69 on the SEL-751 — hardware matrix PASS; N/E resource trials not retained (2026-10-26)
+
+Current handover: root `CLAUDE_HANDOVER_20261026_C69_HW.md`; ledger `evidence/c69_hw_ne_20261026/`.
+
+- SEL-751 receiver-visible branch in the shared standards validator; switch gate given the c69 no-J rule.
+- Unchanged c69 (source `5efad5c8…`, freeze_v3_02), runs `rc01_hw_c69_20261026_11..20`: ten blocks rc 0, restoration
+  verified, 2,440/2,440 exchanges OK, application/switch/standards (and loss target) pass in every trial; sizes exact
+  by arm; visible CLRT reported. First smoke `_01` is a retained FAIL (stale switch gate). Emission-side properties
+  NOT EVALUATED.
+- E trial c70 (`--strip-rbad`): compiles, no physical resource change — not retained. N trial c71
+  (`--merge-n-terminal`): three PHV-allocation failures — not retained. No successor candidate or matrix.
+
+## Historical checkpoints below
+
 # c69 — offline milestone complete; fixed OPERATE hold removed (2026-10-26)
 
 Current handover: root `CLAUDE_HANDOVER_20261026_C69.md`. The direct user instruction removes fixed J from the

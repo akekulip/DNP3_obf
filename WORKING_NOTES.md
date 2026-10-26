@@ -3545,3 +3545,13 @@ Offline scope complete. No hardware/relay traffic, new physical-event/SER work, 
 - Live read-only preflight 20:33Z: switch ufispace running case4_response_path; Vision .19 route to .7 via
   enp59s0f0np0; ownership inactive/safe; native READ mixed 91 / integrity 134, IIN 0x80, no problems.
 - 20:34Z smoke campaign rc01_hw_c69_20261026_01 started (detached supervisor).
+- 20:36Z smoke _01 FAIL (switch gate lacked the no-J rule; traffic correct). Philip: "Repair gate, rerun smoke".
+  Gate repair 265d1ffd1 (review: correct per source), freeze_v3_02, smoke _11 PASS 21:01Z.
+- Matrix _12.._20 21:05-~21:58Z: all rc 0, restoration verified, 2,440/2,440 OK, every trial passes
+  application/switch/standards (+ loss target). Evidence 130484434. Driver/monitor session ended during _20; block
+  completed under its detached supervisor (verified after resume).
+- E trial c70: compile PASS, no physical resource change -> not retained. N trial c71: three PHV slicing failures on
+  hdr.event.event -> stopped (3-strike), not retained. No successor matrix.
+- c69 reproduce.sh now pins GEN_PIN=e1c16ecbc; full CANDIDATE=c69 reproduction rerun after the pin (ledger
+  c69_reproduce_after_pin.txt).
+- STATUS: task complete; handover CLAUDE_HANDOVER_20261026_C69_HW.md. Next action: none authorized.

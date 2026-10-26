@@ -7,6 +7,9 @@ their pa_solitary pragmas, the zeroing, their acct_t and classify_fwd key column
 positions (row order kept; every removed value must be 0 or _, which an always-zero field matches), and the unapplied
 producers with their hashes, actions and the in_rb0/in_rb1 fields. Kept: m.in_rt (status_crc_t writes it, cbadt reads
 it) and the badh/cbad0/cbadt CRC checks. Only E changes.
+
+Result (2026-10-26): compiles; final placement shows no physical resource change against c69, so c70 is not
+retained (read_complete_01/evidence/c69_hw_ne_20261026/c70_resource_comparison.json).
 """
 import re
 

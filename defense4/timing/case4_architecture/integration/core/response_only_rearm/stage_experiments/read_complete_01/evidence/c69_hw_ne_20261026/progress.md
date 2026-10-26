@@ -9,10 +9,10 @@ source SHA256 `5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59`
 
 - [x] Phase 1: SEL-751 receiver-visible branch of the shared standards validator + regressions
 - [x] Phase 2: c69 configs, freeze, preflight, dry-runs, 10-block matrix (2,440 planned exchanges), readout
-- [ ] Phase 3: E experiment (rbad0/rbad1/rbadt) — compile + final-resource comparison
-- [ ] Phase 4: N experiment (first_event/abort_t terminal) — compile + final-resource comparison
-- [ ] Phase 5: successor model gate / reproduction / matrix (only if a change is retained)
-- [ ] Phase 6: closeout (notes, handover, commits)
+- [x] Phase 3: E experiment (rbad0/rbad1/rbadt) — compile + final-resource comparison
+- [x] Phase 4: N experiment (first_event/abort_t terminal) — compile + final-resource comparison
+- [x] Phase 5: not applicable — neither experiment produced a retained candidate (no successor matrix)
+- [x] Phase 6: closeout — handover CLAUDE_HANDOVER_20261026_C69_HW.md, notes, c69 reproduction after the pin exit 0 (c69_reproduce_after_pin.txt)
 
 ## Phase 1 record — SEL-751 receiver-visible standards branch
 
@@ -120,6 +120,22 @@ source SHA256 `5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59`
   identity, N-only change, executed-action equivalence over 1,944 branch inputs with all three outcomes reached, field
   disjointness, composition with --strip-rbad, CLI dependency. Expected compiler effect: abort_t may leave stage 10;
   first_event stays, so N's stage count is not expected to drop — the compile decides.
+
+## Experiment results (final compiler placement, SDK 9.13.2 local, compare_trial.py rule fixed beforehand)
+
+- c70 (E, source aebcd5f14022…): compile PASS 96.1 s. Versus c69: p0 ingress/egress 11/11 and p1 8/4 unchanged;
+  SRAM, TCAM, Map RAM, Meter ALU, stateful tables and PHV containers/bits used unchanged in both pipes; only p0
+  Ternary Match Input xbar -2 and PHV bits allocated -3 (non-deciding). **Not retained** (`c70_resource_comparison.json`).
+  The compiler already absorbed the constant-zero bits; removing them frees no physical resource.
+- c71 (N, base c69): **did not compile; not retained**. attempt_01 (a97bb35e2b29…) and attempt_02 (f2ad3574cd32…,
+  whole-field abort write) failed PHV allocation: "Unable to slice ... ingress::hdr.event.event, ingress::m.direction";
+  attempt_03 (c331bee6f014…, @pa_container_size(hdr.event.event, 8, 8)) failed "Cannot find a slicing to satisfy
+  @pa_container_size". Folding next_stage into abort puts event[15:8] (+1) and event[7:0] (=255) in one stage/action,
+  which the current PHV packing (hdr.event.event grouped with m.direction) cannot slice; c69 keeps them in separate
+  stages. Stopped after three attempts (3-strike rule; brief: no redesign). Attempts retained under
+  m12p_c71_sdk9132/compile_attempt_0{1,2,3} and `c71_compile_attempt_0*.json`.
+- No final candidate: no successor model gate, freeze or hardware matrix (brief §3). The opt-in transforms stay in the
+  generator as the experiment record (c69 output unchanged without their flags).
 
 ## Scope-drift records
 

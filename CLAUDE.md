@@ -8,6 +8,14 @@ tables indexed in
 `campaign_v2` is the record of the earlier timing-only paper and is no longer the manuscript authority. The
 manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
 
+## Completed c69 hardware verification + N/E trials (2026-10-26)
+
+Philip authorized the hardware scope of root `CLAUDE_NEXT_TASK_C69_HW_NE.md` ("Yes, as written") and the switch-gate
+repair. Unchanged c69 passed the ten-block SEL-751 matrix (`rc01_hw_c69_20261026_11..20`, 2,440/2,440 OK, restoration
+verified); the first smoke `_01` is a retained switch-gate FAIL. The E trial (c70) gave no physical resource change and
+the N trial (c71) did not compile; neither is retained. Handover: `CLAUDE_HANDOVER_20261026_C69_HW.md`. The task is
+complete; no further hardware work is authorized by it. The c69-offline statements below are historical.
+
 ## Completed c69 offline task — fixed OPERATE J retired (2026-10-26)
 
 The user approved c69: c68 plus `--strip-operate-hold`, with OPERATE forwarded through common request
@@ -73,15 +81,16 @@ Existing guarded SEL-751 authorization/restoration remain in force (the 100us cr
 
 ## Agent start
 
-0. Read root `CLAUDE_HANDOVER_20261026_C69.md`, then `plan.md`. c69 is the new offline candidate without fixed
-   OPERATE J; compile, full 17-driver model gate, retention and clean-checkout reproduction PASS. The offline task is complete. No hardware operation belongs to this task.
+0. Read root `CLAUDE_HANDOVER_20261026_C69_HW.md` (current), then `CLAUDE_HANDOVER_20261026_C69.md` and `plan.md`. c69 is the
+   candidate without fixed OPERATE J; compile, 17-driver model gate and clean-checkout reproduction PASS, and the
+   ten-block SEL-751 matrix PASS (2026-10-26). Both tasks are complete; neither authorizes further hardware work.
    `CLAUDE_HANDOVER_20261026.md` is the completed c68 physical/repair record; the October25/24 handovers and c67
    are historical. c68's recovery failure and old measurements remain preserved, and c52 is immutable.
 1. Read `defense4/timing/case4_architecture/ACTIVE_CODE_MAP.md`: the active code path with commands.
 2. Read the run's status file `.../stage_experiments/read_complete_01/CURRENT.md` (history in `STATUS.md`,
    full record in `COMPLETION_RECORD.md`).
-3. The current c69 task permits no testbed operations. The historical hardware authorization below records
-   completed earlier tasks and does not extend this task beyond compile/model verification.
+3. No testbed operation is authorized beyond the completed c69 hardware task. The historical hardware authorization
+   below records completed earlier tasks and authorizes nothing new.
 4. `REPOSITORY_MAP.md` classifies every area; `HISTORY_MAP.md` lists what is historical, the superseded
    authorizations, the removed documents and the proposed moves.
 
