@@ -1,0 +1,854 @@
+{
+  "schema": "c68-d20-recovery-readonly-independent-audit-v1",
+  "campaign": "rc01_hw_c68_20261026_06",
+  "run_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_06_loss_full_950",
+  "campaign_root": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/rc01_hw_c68_20261026_06",
+  "verified_at_unix": 1793028107.1369026,
+  "ok": false,
+  "failures": [
+    "supervised campaign not COMPLETE",
+    "supervised block did not complete rc=0",
+    "supervisor reports failed/unexecuted blocks",
+    "campaign/gate verdict is not success",
+    "packet replay missing completed successful block",
+    "packet checker mismatch or failed rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t3",
+    "master planned/success counts differ rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t3",
+    "application record failed or exceeded budget rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t3",
+    "independent raw application decode failed rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t3: ['point 1 status TIMEOUT', 'point 3 status TIMEOUT']",
+    "two-point CROB response status mismatch rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t3 OPERATE",
+    "trial/application/wire verdict failed rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t3"
+  ],
+  "campaign_result": "INCOMPLETE",
+  "block_rc": 1,
+  "candidate_source": {
+    "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c68_sdk9132/response_only.p4",
+    "sha256": "825b7e6da3c24dd1705d43f1d921dbd2184a99fe47f75f4de1d2d372e160b289",
+    "unchanged": true
+  },
+  "frozen_files": {
+    "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c68_sdk9132/freeze_v3_04.json",
+    "verified": 176,
+    "failures": []
+  },
+  "config": {
+    "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_c68_sdk9132_sel751_d20repair_loss_full_950.json",
+    "sha256": "2929612e7b83129389647c29193b5b2f1ca2543f56a1e5823bc33dd99990c51e"
+  },
+  "trials": [
+    {
+      "label": "rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t0",
+      "directory": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_06_loss_full_950/physical_relay/combined/rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t0",
+      "master_port": 59970,
+      "frozen_target": {
+        "class": "request_full",
+        "n": 3,
+        "target": "identity"
+      },
+      "expected_spec": {
+        "text": "request_full:3:identity",
+        "schedule": "full",
+        "padding": 1,
+        "class": "request_full",
+        "n": 3,
+        "dir": "M>O",
+        "ip_len": 79,
+        "flags": "ACK,PSH",
+        "occurrence": 1,
+        "chain": "OUTPUT",
+        "base": "request_full",
+        "operation": "READ",
+        "index": 2,
+        "frontier": "request",
+        "length_only": false,
+        "target": "identity",
+        "match": "SEQ",
+        "response_payload": null
+      },
+      "target_frontier": {
+        "key": "SEQ",
+        "value": 1055226217
+      },
+      "kernel_packet": {
+        "LEN": 79,
+        "SPT": 59970,
+        "DPT": 20000,
+        "SEQ": 1055226217,
+        "ACK": 3504643320,
+        "SRC": "192.168.10.1",
+        "DST": "192.168.10.7"
+      },
+      "drop_packets": 1,
+      "counter_proof": [
+        {
+          "pos": 1,
+          "target": "LOG",
+          "pkts": 1,
+          "bytes": 79
+        },
+        {
+          "pos": 2,
+          "target": "DROP",
+          "pkts": 1,
+          "bytes": 79
+        }
+      ],
+      "target_check_failures": [],
+      "planned_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "successful_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "recorded_trial_ok": true,
+      "recorded_trial_failures": [],
+      "crob_responses": [
+        {
+          "operation": "SELECT",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        },
+        {
+          "operation": "OPERATE",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        }
+      ],
+      "exchanges": 22,
+      "wire_schema": "sel751-wire-v2",
+      "all_raw_application_responses_independently_decoded": true,
+      "max_application_elapsed_ms": 241.78330297581851
+    },
+    {
+      "label": "rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t1",
+      "directory": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_06_loss_full_950/physical_relay/combined/rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t1",
+      "master_port": 59971,
+      "frozen_target": {
+        "class": "ack_sep",
+        "n": 3,
+        "target": "identity"
+      },
+      "expected_spec": {
+        "text": "ack_sep:3:identity",
+        "schedule": "full",
+        "padding": 1,
+        "class": "ack_sep",
+        "n": 3,
+        "dir": "O>M",
+        "ip_len": 52,
+        "flags": "ACK",
+        "occurrence": 1,
+        "chain": "INPUT",
+        "base": "ack_sep",
+        "operation": "READ",
+        "index": 2,
+        "frontier": "request_ack",
+        "length_only": false,
+        "target": "identity",
+        "match": "ACK",
+        "response_payload": null
+      },
+      "target_frontier": {
+        "key": "ACK",
+        "value": 176376061
+      },
+      "kernel_packet": {
+        "LEN": 52,
+        "SPT": 20000,
+        "DPT": 59971,
+        "SEQ": 3523540841,
+        "ACK": 176376061,
+        "SRC": "192.168.10.7",
+        "DST": "192.168.10.1"
+      },
+      "drop_packets": 1,
+      "counter_proof": [
+        {
+          "pos": 1,
+          "target": "LOG",
+          "pkts": 1,
+          "bytes": 52
+        },
+        {
+          "pos": 2,
+          "target": "DROP",
+          "pkts": 1,
+          "bytes": 52
+        }
+      ],
+      "target_check_failures": [],
+      "planned_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "successful_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "recorded_trial_ok": true,
+      "recorded_trial_failures": [],
+      "crob_responses": [
+        {
+          "operation": "SELECT",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        },
+        {
+          "operation": "OPERATE",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        }
+      ],
+      "exchanges": 22,
+      "wire_schema": "sel751-wire-v2",
+      "all_raw_application_responses_independently_decoded": true,
+      "max_application_elapsed_ms": 56.18437100201845
+    },
+    {
+      "label": "rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t2",
+      "directory": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_06_loss_full_950/physical_relay/combined/rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t2",
+      "master_port": 59972,
+      "frozen_target": {
+        "class": "read_resp_padded",
+        "n": 3,
+        "target": "identity"
+      },
+      "expected_spec": {
+        "text": "read_resp_padded:3:identity",
+        "schedule": "full",
+        "padding": 1,
+        "class": "read_resp_padded",
+        "n": 3,
+        "dir": "O>M",
+        "ip_len": 210,
+        "flags": "ACK,PSH",
+        "occurrence": 1,
+        "chain": "INPUT",
+        "base": "read_resp_padded",
+        "operation": "READ",
+        "index": 2,
+        "frontier": "response",
+        "length_only": false,
+        "target": "identity",
+        "match": "SEQ",
+        "response_payload": null
+      },
+      "target_frontier": {
+        "key": "SEQ",
+        "value": 3542390363
+      },
+      "kernel_packet": {
+        "LEN": 210,
+        "SPT": 20000,
+        "DPT": 59972,
+        "SEQ": 3542390363,
+        "ACK": 243103409,
+        "SRC": "192.168.10.7",
+        "DST": "192.168.10.1"
+      },
+      "drop_packets": 1,
+      "counter_proof": [
+        {
+          "pos": 1,
+          "target": "LOG",
+          "pkts": 1,
+          "bytes": 210
+        },
+        {
+          "pos": 2,
+          "target": "DROP",
+          "pkts": 1,
+          "bytes": 210
+        }
+      ],
+      "target_check_failures": [],
+      "planned_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "successful_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "recorded_trial_ok": true,
+      "recorded_trial_failures": [],
+      "crob_responses": [
+        {
+          "operation": "SELECT",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        },
+        {
+          "operation": "OPERATE",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        }
+      ],
+      "exchanges": 22,
+      "wire_schema": "sel751-wire-v2",
+      "all_raw_application_responses_independently_decoded": true,
+      "max_application_elapsed_ms": 1017.0850480208173
+    },
+    {
+      "label": "rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t3",
+      "directory": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_06_loss_full_950/physical_relay/combined/rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t3",
+      "master_port": 59973,
+      "frozen_target": {
+        "class": "select_resp_padded",
+        "n": 1,
+        "target": "identity"
+      },
+      "expected_spec": {
+        "text": "select_resp_padded:1:identity",
+        "schedule": "full",
+        "padding": 1,
+        "class": "select_resp_padded",
+        "n": 1,
+        "dir": "O>M",
+        "ip_len": 112,
+        "flags": "ACK,PSH",
+        "occurrence": 1,
+        "chain": "INPUT",
+        "base": "select_resp_padded",
+        "operation": "SELECT",
+        "index": 0,
+        "frontier": "response",
+        "length_only": false,
+        "target": "identity",
+        "match": "SEQ",
+        "response_payload": null
+      },
+      "target_frontier": {
+        "key": "SEQ",
+        "value": 3561458825
+      },
+      "kernel_packet": {
+        "LEN": 112,
+        "SPT": 20000,
+        "DPT": 59973,
+        "SEQ": 3561458825,
+        "ACK": 1770358925,
+        "SRC": "192.168.10.7",
+        "DST": "192.168.10.1"
+      },
+      "drop_packets": 1,
+      "counter_proof": [
+        {
+          "pos": 1,
+          "target": "LOG",
+          "pkts": 1,
+          "bytes": 112
+        },
+        {
+          "pos": 2,
+          "target": "DROP",
+          "pkts": 1,
+          "bytes": 112
+        }
+      ],
+      "target_check_failures": [],
+      "planned_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "successful_counts": {
+        "READ": 20,
+        "SELECT": 1
+      },
+      "recorded_trial_ok": false,
+      "recorded_trial_failures": [
+        "single: master records/counts/plan differ from frozen expected denominators",
+        "single: complete planned master denominators missing or failed",
+        "single: master transaction failed: OPERATE",
+        "physical relay Vision workload failed"
+      ],
+      "crob_responses": [
+        {
+          "operation": "SELECT",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        },
+        {
+          "operation": "OPERATE",
+          "points": [
+            [
+              1,
+              "TIMEOUT"
+            ],
+            [
+              3,
+              "TIMEOUT"
+            ]
+          ],
+          "statuses": {
+            "1": 1,
+            "3": 1
+          }
+        }
+      ],
+      "exchanges": 22,
+      "wire_schema": "sel751-wire-v2",
+      "all_raw_application_responses_independently_decoded": true,
+      "max_application_elapsed_ms": 1015.2384280227125
+    },
+    {
+      "label": "rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t4",
+      "directory": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_06_loss_full_950/physical_relay/combined/rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t4",
+      "master_port": 59974,
+      "frozen_target": {
+        "class": "operate_req",
+        "n": 1,
+        "target": "identity"
+      },
+      "expected_spec": {
+        "text": "operate_req:1:identity",
+        "schedule": "full",
+        "padding": 1,
+        "class": "operate_req",
+        "n": 1,
+        "dir": "M>O",
+        "ip_len": 97,
+        "flags": "ACK,PSH",
+        "occurrence": 1,
+        "chain": "OUTPUT",
+        "base": "operate_req",
+        "operation": "OPERATE",
+        "index": 0,
+        "frontier": "request",
+        "length_only": false,
+        "target": "identity",
+        "match": "SEQ",
+        "response_payload": null
+      },
+      "target_frontier": {
+        "key": "SEQ",
+        "value": 1194823639
+      },
+      "kernel_packet": {
+        "LEN": 97,
+        "SPT": 59974,
+        "DPT": 20000,
+        "SEQ": 1194823639,
+        "ACK": 3580604306,
+        "SRC": "192.168.10.1",
+        "DST": "192.168.10.7"
+      },
+      "drop_packets": 1,
+      "counter_proof": [
+        {
+          "pos": 1,
+          "target": "LOG",
+          "pkts": 1,
+          "bytes": 97
+        },
+        {
+          "pos": 2,
+          "target": "DROP",
+          "pkts": 1,
+          "bytes": 97
+        }
+      ],
+      "target_check_failures": [],
+      "planned_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "successful_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "recorded_trial_ok": true,
+      "recorded_trial_failures": [],
+      "crob_responses": [
+        {
+          "operation": "SELECT",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        },
+        {
+          "operation": "OPERATE",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        }
+      ],
+      "exchanges": 22,
+      "wire_schema": "sel751-wire-v2",
+      "all_raw_application_responses_independently_decoded": true,
+      "max_application_elapsed_ms": 247.19122203532606
+    },
+    {
+      "label": "rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t5",
+      "directory": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_06_loss_full_950/physical_relay/combined/rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t5",
+      "master_port": 59975,
+      "frozen_target": {
+        "class": "operate_resp_padded",
+        "n": 1,
+        "target": "identity"
+      },
+      "expected_spec": {
+        "text": "operate_resp_padded:1:identity",
+        "schedule": "full",
+        "padding": 1,
+        "class": "operate_resp_padded",
+        "n": 1,
+        "dir": "O>M",
+        "ip_len": 112,
+        "flags": "ACK,PSH",
+        "occurrence": 1,
+        "chain": "INPUT",
+        "base": "operate_resp_padded",
+        "operation": "OPERATE",
+        "index": 0,
+        "frontier": "response",
+        "length_only": false,
+        "target": "identity",
+        "match": "SEQ",
+        "response_payload": null
+      },
+      "target_frontier": {
+        "key": "SEQ",
+        "value": 3599486929
+      },
+      "kernel_packet": {
+        "LEN": 112,
+        "SPT": 20000,
+        "DPT": 59975,
+        "SEQ": 3599486929,
+        "ACK": 329693752,
+        "SRC": "192.168.10.7",
+        "DST": "192.168.10.1"
+      },
+      "drop_packets": 1,
+      "counter_proof": [
+        {
+          "pos": 1,
+          "target": "LOG",
+          "pkts": 1,
+          "bytes": 112
+        },
+        {
+          "pos": 2,
+          "target": "DROP",
+          "pkts": 1,
+          "bytes": 112
+        }
+      ],
+      "target_check_failures": [],
+      "planned_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "successful_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "recorded_trial_ok": true,
+      "recorded_trial_failures": [],
+      "crob_responses": [
+        {
+          "operation": "SELECT",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        },
+        {
+          "operation": "OPERATE",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        }
+      ],
+      "exchanges": 22,
+      "wire_schema": "sel751-wire-v2",
+      "all_raw_application_responses_independently_decoded": true,
+      "max_application_elapsed_ms": 1000.1737340353429
+    },
+    {
+      "label": "rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t6",
+      "directory": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_06_loss_full_950/physical_relay/combined/rc01_hw_c68_20261026_06_loss_full_950_physical_relay_combined_t6",
+      "master_port": 59976,
+      "frozen_target": {
+        "class": "master_ack_of_padded_data",
+        "n": 1,
+        "target": "identity"
+      },
+      "expected_spec": {
+        "text": "master_ack_of_padded_data:1:identity",
+        "schedule": "full",
+        "padding": 1,
+        "class": "master_ack_of_padded_data",
+        "n": 1,
+        "dir": "M>O",
+        "ip_len": 52,
+        "flags": "ACK",
+        "occurrence": 1,
+        "chain": "OUTPUT",
+        "base": "master_ack_of_padded_data",
+        "operation": "READ",
+        "index": 0,
+        "frontier": "response_ack",
+        "length_only": false,
+        "target": "identity",
+        "match": "ACK",
+        "response_payload": 158
+      },
+      "target_frontier": {
+        "key": "ACK",
+        "value": 3618541644
+      },
+      "kernel_packet": {
+        "LEN": 52,
+        "SPT": 59976,
+        "DPT": 20000,
+        "SEQ": 141327105,
+        "ACK": 3618541644,
+        "SRC": "192.168.10.1",
+        "DST": "192.168.10.7"
+      },
+      "drop_packets": 1,
+      "counter_proof": [
+        {
+          "pos": 1,
+          "target": "LOG",
+          "pkts": 1,
+          "bytes": 52
+        },
+        {
+          "pos": 2,
+          "target": "DROP",
+          "pkts": 1,
+          "bytes": 52
+        }
+      ],
+      "target_check_failures": [],
+      "planned_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "successful_counts": {
+        "READ": 20,
+        "SELECT": 1,
+        "OPERATE": 1
+      },
+      "recorded_trial_ok": true,
+      "recorded_trial_failures": [],
+      "crob_responses": [
+        {
+          "operation": "SELECT",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        },
+        {
+          "operation": "OPERATE",
+          "points": [
+            [
+              1,
+              "SUCCESS"
+            ],
+            [
+              3,
+              "SUCCESS"
+            ]
+          ],
+          "statuses": {
+            "1": 0,
+            "3": 0
+          }
+        }
+      ],
+      "exchanges": 22,
+      "wire_schema": "sel751-wire-v2",
+      "all_raw_application_responses_independently_decoded": true,
+      "max_application_elapsed_ms": 32.842561951838434
+    }
+  ],
+  "totals": {
+    "planned_trials": 7,
+    "verified_trials": 7,
+    "single_drops": 7,
+    "READ": 140,
+    "SELECT": 7,
+    "OPERATE": 6,
+    "exchanges": 154
+  },
+  "packet_replay": {
+    "path": "/tmp/rc01_hw_c68_20261026_06_packet_replay.json",
+    "report_matches_retained": true,
+    "checker_revision": "working-tree",
+    "schema": "sel751-wire-v2",
+    "sha256": "9091d2c878513fbc18d2516892657d984d84f78abcab15f61cdca96034b7f0f0"
+  },
+  "artifact_manifest": {
+    "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_06_loss_full_950/artifact_manifest.json",
+    "sha256": "1036c9fce32910263c2680d9367e801e82bd2f3661d741c1d1773b8fe3b04748",
+    "files_verified": 116,
+    "failures": []
+  },
+  "restoration": {
+    "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_06_loss_full_950/restore_verify.json",
+    "sha256": "a883ae2277860f1c13b87fb99b3f3a269f9eccc452b950c40916d81c6cbd5489",
+    "independent_record_ok": true,
+    "snapshot_pre": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_06_loss_full_950/rc01_hw_c68_20261026_06_loss_full_950_prerun.json",
+    "snapshot_post": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_06_loss_full_950/restore_verify_postrun.json",
+    "tables_independently_compared": 399,
+    "snapshot_errors": [],
+    "loss_ownership_restored": true
+  },
+  "claim_boundary": "The new c68 D20 recovery block does not satisfy all requested pass conditions; failures are explicitly recorded. Observed at the master host only. A new c68 result does not alone prove the old c67 device-side defect fixed, switch residence, OPERATE J, independent packet-boundary calibration, or CLRT precision. Historical failures remain retained; no old evidence was modified.",
+  "side_effects": "Offline file reads plus outputs under /tmp only; no remote commands, network traffic, source/evidence mutations, hardware/model runs, commits, or child agents."
+}

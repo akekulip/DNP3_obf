@@ -18,6 +18,19 @@ under new IDs and the normal freeze, guarded-command, ownership and independent-
 “nothing further authorized” language is not authority by itself. Current direct instructions take precedence.
 Execution and verification evidence: `read_complete_01/evidence/c68_repair_20261026/` under the stage directory.
 
+## Repair execution result — 2026-10-26
+
+Repairs are implemented. Source/model helpers are unchanged. Fresh c68 and pinned c67 reproductions pass,
+including every current/historical freeze check and packet replay. Current binding: freeze04. Normal before/after
+references remain at freeze03/789092c2d.
+
+The two requested D20 recovery blocks ran in full: campaign05 mixed loss PASS (7/7); campaign06 full loss FAIL (6/7),
+with a genuine OPERATE TIMEOUT after the intended SELECT-response drop. Both restoration checks passed; final
+ownership inactive, unsafe_restoration=false, production baseline verified. Exact evidence and a directive audit are
+in `read_complete_01/evidence/c68_repair_20261026/`. Neither READ history nor master-side SELECT recovery duration
+alone explains the outcome. The candidate still has an unresolved recovery failure; the bounded repair/execution
+scope is complete. No additional hardware or instrumentation was run.
+
 ## Claude takeover scope — Philip, 2026-10-25
 
 Philip requested updated working notes and handover, and explicitly said to keep Claude from expanding scope.

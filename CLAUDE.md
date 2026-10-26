@@ -18,13 +18,18 @@ and the additional piggyback latency criterion ungated; repair event-clear and r
 existing c68 D20 mixed/full recovery workloads under new IDs, freeze and independent restoration. No new dataplane
 feature or switch telemetry is part of this work. See stage `read_complete_01/evidence/c68_repair_20261026/`.
 
+Repair execution is finished: fresh c68/c67 reproduction and current/historical freeze checks pass; D20 mixed
+loss campaign05 passed 7/7, while full loss campaign06 passed 6/7 and failed overall (SELECT-response drop followed by OPERATE TIMEOUT
+on both points). All planned trials were attempted, both restorations passed, ownership is inactive and unsafe
+flag false. These outcomes are preserved in the current handover and repair evidence; recovery is not fully passing.
+
 ## Current state — c68 on the physical SEL-751 (Philip, 2026-10-25/26)
 
 There is no CLRT precision criterion. The former "p99 |CLRT − D| ≤ 100 us" rule was agent-written (rearm_01/PLAN.md,
 2026-10-12), never Philip's; he ruled on 2026-10-25 that it does not matter and must not appear or be reported. What
 the defense hides is the CLRT (ACK -> response, for READ, SELECT and OPERATE) that an adversary between the master
-and the switch sees; it is reported per class as data, never gated. Holding the ACK until the response is ready
-rules out an early or missing response release. Write-only switch measurement state was removed: candidate
+and the switch sees; it is reported per class as data, never gated. Holding the ACK until the response is ready is the intended release contract; source/model tests and the bounded
+physical runs are evidence for tested cases, not an exhaustive physical-departure guarantee. Write-only switch measurement state was removed: candidate
 `m12p_c68_sdk9132` (c67 + `make_m12.py --strip-telemetry`; T 9 stages, less SRAM). c68 passed the 17-driver model
 gate and ran on the SEL-751 at D=5/10/15/20 (`rc01_hw_c68_20261026_01..04`), before (no obfuscation) vs after
 (timing+size), every block rc 0 with restoration verified; before/after visible CLRT in

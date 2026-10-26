@@ -1,65 +1,71 @@
-# Active repair checkpoint — 2026-10-26
+# c68 handover — reviewed repair, 2026-10-26
 
-Current direct instruction: implement the reviewed correction plan. The earlier handover below is a historical
-record, not authority by itself. The user selected restored software J enforcement and piggyback fixture identity,
-kept the extra piggyback latency criterion removed, and included the two existing c68 D20 mixed/full recovery
-blocks after offline verification. Evidence and directive review: stage `read_complete_01/evidence/c68_repair_20261026/`.
+Paths prefixed `SE/` are relative to
+`defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/`.
 
-The code repairs are complete pending final clean-checkout verification. P4, model helpers and old evidence remain
-unchanged. New `freeze_v3_04.json` binds the repaired current harness/configs; original normal-reference runs retain
-their `789092c2d`/freeze03 binding. Recovery results are pending and must be recorded before describing them as done.
+## Current execution
 
-# Handover — 2026-10-26 (c68 on the physical SEL-751; CLRT criterion removed)
+The user requested review of Claude's reports, code, runs and evidence, warned that every directive attributed
+to him must be reviewed, selected the three bounded decisions below, and then said “do it”. Agent summaries and
+handover labels are records, not authority by themselves. The directive audit is in stage
+`read_complete_01/evidence/c68_repair_20261026/authority_review.md`.
 
-This replaces `CLAUDE_HANDOVER_20261025.md` as the start point. That file and its closeout stay as the c67 record.
-Paths below are relative to
-`defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/` (`SE/`) unless they
-start at the repository root.
+- Restore software OPERATE hold >= configured J and piggyback fixture identity.
+- Keep visible CLRT and the additional piggyback latency criterion ungated.
+- After offline repairs, run only the existing c68 D20 mixed/full recovery workloads with new IDs and normal
+  guarded authorization, freeze, ownership and independent restoration.
 
-## State in one paragraph
+Code commits: `f12458308` (repairs and retention), `a4aa1f330` (required-freeze refusal). The final evidence commit
+records both recovery blocks and this handover. P4 and core model helpers are unchanged. No new model attempts or
+P4 compile were necessary.
 
-c68 (`m12p_c68_sdk9132`) is the current candidate. It ran on the physical SEL-751 through the Tofino at
-D = 5, 10, 15 and 20 ms, each block with the before arm (`off`: no obfuscation in the switch) and the after arm
-(`combined`: timing + size). All four blocks (`rc01_hw_c68_20261026_01..04`) finished rc 0, with every READ, SELECT
-and OPERATE OK, exact sizes, and restoration verified. Everything is committed and pushed (`b576d34e9` on
-origin/main). The testbed is idle: ownership `active=false`, `unsafe_restoration=false`. This was the state at the earlier handover; the current user has now directed the bounded repairs and recovery retests below.
+| Item | Current evidence |
+|---|---|
+| c68 model gate | Fresh `model_gate_passed`, all 17 required drivers |
+| Source/compile | Unchanged source 825b7e6da3c24dd1705d43f1d921dbd2184a99fe47f75f4de1d2d372e160b289; existing SDK 9.13.2 compile retained |
+| Normal before/after | Four historical blocks, eight trials, 1544 exchanges reproduce exactly |
+| D20 mixed loss | New campaign05 PASS (7/7); 154 application responses independently validated; restoration PASS |
+| D20 full loss | New campaign06 FAIL; six of seven trials passed, all seven attempted; t3 OPERATE TIMEOUT on both points; restoration PASS |
+| Physical J | Unproven; no relay-side timing observation |
+| c67 mixed-loss failure | Preserved; c68 passing observations do not prove a cause or that the old defect is fixed |
 
-## Historical requirement record — audit before using as authority
+Campaign06 finished rc 1 after its application failure, with independent restoration PASS. Its record is under `read_complete_01/evidence/hw_campaigns/rc01_hw_c68_20261026_06`.
+Both planned recovery blocks are finished. Ownership is inactive and unsafe_restoration=false; production baseline verified live. Unverified restoration stops hardware work.
 
-- **The 100 µs p99 |CLRT − D| rule is not his.** It came from an agent-written `rearm_01/PLAN.md` (commit 190a4c603,
-  2026-10-12). It does not matter and must not appear anywhere, nor be reported. It has been removed from the live
-  harness, the config generator and the live documents. Historical records keep their text.
-- **What the defense hides is the visible CLRT.** That is the ACK → response interval an adversary sees between the
-  master and the switch, for READ, SELECT and OPERATE. It is reported per class as data and is never gated.
-- **No early or missing response release.** Holding the ACK until the response is ready rules out both.
-- **Before and after.** Before means no obfuscation in the switch; after means timing + size on.
-- **Out-of-scope measures and criteria go.** That includes the write-only switch measurement state, which was taking
-  switch resources. The result is c68.
-- **Relay class-2 events.** When the relay raises them: "I poll and confirm it once".
-- **Unsafe flag.** "Extend reconcile, reviewed".
+## Repairs and reproduction
 
-## What c68 is
+- Software J and piggyback fixture identity are restored with the original software loss/reconnect/runner
+  exemptions. Standards recomputes applicable J from bound captures; an artifact cannot supply its own exemption.
+- Event-clear now checks FIN rather than FIR, binds solicited response sequences, and requires completed class-0
+  verification. Unit tests cover fragmentation and stale/missing replies. No event-clear operation was run in this
+  repair; READ-only preflights returned expected 91/134-byte responses and wire IIN8000.
+- One retention helper restores pinned completed or aborted logs without inventing execution closures. All 83 c68
+  archives are integrated; all 30 existing compiler artifacts/logs/resource reports are retained byte-exactly.
+- The current wire report is `sel751-wire-v2`. Historical analysis uses isolated pinned checkers; original results
+  remain unchanged. Replay success means recorded verdicts reproduced, including failures.
+- Full fresh-checkout c68 and c67 reproduction both exited 0. Current c68 freeze04 checks all seven configs. Original
+  c68 freeze03 checks run at 789092c2d for its four successful references; c67 source/gate/freeze use a4ebbecbe.
+- `freeze_v3_04.json` binds the repaired current harness. Do not substitute it for old runs' original freezes.
+- Reproduce: `CANDIDATE=c68 bash read_complete_01/reproduce.sh` or `CANDIDATE=c67 ...` from the stage directory.
+  Full logs, counts and postcommit guard verification are in `read_complete_01/evidence/c68_repair_20261026/`.
 
-- **What it is.** c67 plus `SE/m12_fullsize/make_m12.py --strip-telemetry`, implemented by the transform
-  `m12gen/strip_telemetry.py`. The transform:
-  - removes the T outcome register, the counting table and all `count()` calls;
-  - removes N's three count registers and `retry_dup_t`;
-  - removes E's outcome Counter;
-  - removes the p1-egress `p1_outcome`;
-  - splits `drop_timer_stale` into two data-free actions.
-- **The test.** `m12_fullsize/tests/test_strip_telemetry.py` proves the generator reproduces c67 byte for byte
-  without the flag. It also proves c68 is c67 minus telemetry and nothing else.
-- **Resources.**
-  - The source sha256 is 825b7e6d…, compiled with bf-p4c 9.13.2.
-  - The stages are N 11, E 11 and T 9 (c67 has T 10).
-  - SRAM falls from 179 to 170 on p0 and from 52 to 47 on p1.
-- **Model gate.** It passes 17/17 (attempt 04, `model_gate_passed`).
-  - The removed counters are recounted from the model log by `integration/core/telemetry_from_log.py`.
-  - `model_driver.Model.register_read` applies it when the profile says `switch_telemetry: false`.
-  - The recount was verified against real c67 registers in the `diag_shim_*` runs.
-- **Freeze.** `SE/ctl_timing_01/evidence/m12p_c68_sdk9132/freeze_v3_03.json`.
-  - Freezes v3_01 and v3_02 are stale.
-  - Any edit to the harness closure stales the freeze again. Re-freeze before the next hardware run.
+Local restoration validated 348 logs. The clean Git checkout contains 328 helper candidates, including all 83 c68;
+the pinned historical c67 checkout contains 245. These distinct inventories are recorded in verification audits.
+Do not describe the local inventory count as the number of Git-published logs.
+
+## Dataplane and claim boundaries
+
+c68 is c67 with write-only measurement state removed by `--strip-telemetry`. Mechanical source comparisons
+support that transformation; they are not an exhaustive hardware-equivalence proof. Existing resource reports
+show N/E 11 stages, T 9 and pipe1 egress 4, SRAM 170/47 on p0/p1.
+
+Removed counter values in model tests are derived from action logs. Functional register state is read through
+BFRT. The 16 disclosed live HELD_REWAIT sampling differences are not synchronized-register parity. Holding the ACK
+until the response is ready is the required behavior; quoting it does not prove every physical departure.
+
+The original normal reference data follows. It remains a receiver-observed CLRT report, without a pass/fail
+precision criterion. The off arm disables obfuscation in the candidate pipeline; general relay compatibility,
+loss recovery and physical J are separate claims.
 
 ## Results (visible CLRT at the master NIC, median ms, before → after; 193 exchanges per arm)
 
@@ -81,60 +87,22 @@ origin/main). The testbed is idle: ownership `active=false`, `unsafe_restoration
 - **Campaign records** are in `SE/read_complete_01/evidence/hw_campaigns/rc01_hw_c68_20261026_0N/`, including the
   authorization `.md` files.
 
-## Things the next agent must know
+## Testbed and open verification
 
-1. **The relay can break the integrity READ on its own.**
-   - Normal responses carry IIN `80 00`. With `84 00` (IIN1.2, class-2 events pending), the integrity READ
-     (g60v2/v3/v4 + g60v1) returns event data. It then no longer matches the 134-octet shape, and every build
-     loses it. This happened between 16:10 and 22:25 on 2026-10-25 with no traffic.
-   - Check the IIN first when an integrity READ times out after an OPERATE.
-   - The cure is `defense4/timing/active_harness/event_clear.py`, run through `vision_run.py --event-clear`. It sends
-     READ and CONFIRM only.
-   - Config: `protocol/hw_vepa/config/sel751_event_clear_20261026.json`. Do not use the `_20261025` config, which
-     names the dead Vision host.
-   - Last clear: `relay_event_clear_20261025_03`, final IIN `80 00`.
-2. **Vision's management address is `decps@10.10.54.19`.** `.166` is dead. A config naming `.166` fails at its first
-   Vision step and sets `unsafe_restoration`. That is how campaign `relay_event_clear_20261025_02` set the flag.
-3. **New reconcile class `vision_never_reached`** (in `integration/evidence/rearm_01/hw/evaluation_campaign.py`,
-   tests `tests/test_vision_never_reached.py`).
-   - It clears the flag only for a block that ran nothing but pre-contact steps and failed to connect to the
-     configured Vision.
-   - It requires a Vision identity re-proof, a named latest baseline, and a full fresh `restore_verify` with Vision
-     remapped.
-   - It was reviewed twice before use. The record of its one live use is under
-     `hw_campaigns/relay_event_clear_20261025_02/steps/…/reconcile_20261026T052057Z/`.
-4. **Hardware path, unchanged.** Run these in order:
-   - `freeze_gate.py write` and `check`;
-   - an authorization record;
-   - `run_block_frozen.sh … --dry-run` with the exact manifest argv;
-   - `make_hw_manifest.py`;
-   - `evaluation_campaign.py init`/`start`/`status`;
-   - `restore_verify`.
-   An unverified restoration stops all hardware work.
-5. **Large logs live on disk only.** Three raw model logs of about 4.6 GB each are on disk, uncommitted, in
-   `SE/ctl_timing_01/evidence/diag_shim_contention_m12p_c67_sdk9132_0{1,2,3}/model_*.log`. Their hashes are in each
-   directory's committed `RAW_SHA256SUMS`. Other model logs are committed as `.xz`.
+Vision is currently `decps@10.10.54.19`, verified as `vision` with data MAC 3c:fd:fe:cc:5d:c0. Switch is
+`decps@10.10.54.81`, production baseline `case4_response_path`. Re-prove identities and current state before a run;
+the shared historical topology map also contains stale addresses.
 
-## Open items for Philip (none started)
+Pending class-2 events can change the fixed integrity response shape. The observed A/B establishes this for c67
+and c68 under this profile, not “every build”. If pending events invalidate a precondition, report it; do not
+silently clear events or change the workload. The earlier one-time clear and narrow vision_never_reached
+reconciliation have recorded question answers and evidence; neither is general ownership-edit authority.
 
-1. **Two non-relay checks to decide.** The precision cleanup also removed two checks on the software-outstation
-   path: the "OPERATE transit ≥ op_j" gate in `hold_check`, and the piggyback-fraction range check (with the standards
-   `_recompute_hold` and the piggyback latency bound). Neither affects the SEL-751 runs. Restore them only if Philip
-   says so.
-2. **c67's mixed-loss SBO recovery failure** (handover 2026-10-25 closeout) was not retested on c68. c68 changes no
-   forwarding logic, so the failure is expected to persist. Any retest needs a direction from Philip.
-3. **Pre-existing test failures**, also failing on HEAD before this work: `test_candidate_series[response_ready_ack_d_v1]`
-   and `test_profile_contract…mixed_timing_or_source_abi` (rearm_01). `test_readiness_configs.py` is an untracked
-   leftover and was not committed.
+The bounded repair and both planned recovery blocks are finished. Full loss remains a genuine application failure after SELECT-response loss. Independent packet replay, raw application/CRC checks, loss targets, artifact hashes and restoration all validate the recorded outcomes. The cause remains unlocated; mixed versus integrity history alone is not an explanation.
+The two old v1 test-fixture failures remain documented baseline debt. Do not broaden this repair into historical
+cleanup, new relay profiles, instrumentation, production defaults or a queue redesign.
 
-## Standing constraints (from repository CLAUDE.md)
+Preserve c52/c67 evidence, old freezes, `paper/`, and the two pre-existing deleted root files. Use explicit task
+paths and the required author/committer identity; no history rewrite or force push.
 
-- **Commits.** Author and committer are `akekulip <akekulip@gmail.com>`. Use explicit paths, never `git add -A`.
-- **Do not stage** `BRANCH_PRUNE_20260915.txt` or `DNP3_Implementation_Directive_492013014.md`. Their deletions
-  pre-date this work.
-- **Pushing.** Push only on instruction. No force push and no history rewrite.
-- **Never modify** `defense4/timing/implementation/` or the listed raw_pcaps directories. c52 evidence is immutable.
-  Do not touch `paper/`.
-- **Testbed.** No Vision reboot, no OS, kernel or firmware change, no keepalive, no manual ownership edits, and no
-  weakened restoration checks. Guarded points are {1,3}.
-- **No CLRT threshold anywhere.** The visible CLRT is data, not a gate.
+New full-loss t3: SELECT OK after 1015.238 ms; OPERATE TIMEOUT status 1 on points 1 and 3. New mixed-loss t3 passed after 1021.670 ms. These master-side durations do not measure the relay selection window or establish a switch re-hold. No additional hardware or instrumentation was run.

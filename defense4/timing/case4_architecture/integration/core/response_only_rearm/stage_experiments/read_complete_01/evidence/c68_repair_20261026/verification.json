@@ -1,0 +1,106 @@
+{
+  "repair_commit": "f12458308ded6a2a2965599463e4ade4252e0504",
+  "source_sha256": "825b7e6da3c24dd1705d43f1d921dbd2184a99fe47f75f4de1d2d372e160b289",
+  "dataplane_changed": false,
+  "model_helper_changed": false,
+  "current_model_gate": "model_gate_passed",
+  "protocol_tests": {
+    "passed": 886,
+    "privileged_deselected": 4,
+    "recursive_export_test_excluded": true
+  },
+  "independent_code_review": {
+    "verdict": "APPROVE",
+    "focused_tests_passed": 266
+  },
+  "architecture_review": {
+    "verdict": "CLEAR",
+    "historical_freeze_isolated": true
+  },
+  "direct_verification": {
+    "analysis_and_entry_tests_passed": 62,
+    "analysis_subtests_passed": 4,
+    "active_harness_tests_passed": 126,
+    "model_summary_tests_passed": 69,
+    "sealed_profile_reconcile_teardown_tests_passed": 53,
+    "telemetry_and_abort_tests_passed": 15
+  },
+  "retention": {
+    "archives_validated": 348,
+    "c68_archives": 83,
+    "c68_archive_bytes": 744068076,
+    "c68_raw_bytes": 15689497692
+  },
+  "compiler_retention": {
+    "files": 30,
+    "bytes": 35667390
+  },
+  "current_freeze": {
+    "file": "freeze_v3_04.json",
+    "files": 176,
+    "untracked": 0,
+    "configs_checked": 7
+  },
+  "limitations": [
+    "Physical J remains unproven.",
+    "Two obsolete-v1 hardware test fixtures have documented baseline failures; no new dataplane regression is claimed.",
+    "c68 removed counters are model-log observations, not synchronized BFRT counters; live HELD_REWAIT parity drift remains disclosed.",
+    "Mixed READ history passed and integrity READ history failed in these c68 runs; neither READ history nor master-side SELECT duration alone explains the observations."
+  ],
+  "hardware_recovery": {
+    "mixed": {
+      "campaign": "rc01_hw_c68_20261026_05",
+      "exit_code": 0,
+      "trials_passed": 7,
+      "restoration_ok": true,
+      "trials_attempted": 7,
+      "select_drop_trial": "t3",
+      "select_elapsed_ms": 1021.67,
+      "operate_point_status": {
+        "point1": "SUCCESS",
+        "point3": "SUCCESS"
+      }
+    },
+    "full": {
+      "campaign": "rc01_hw_c68_20261026_06",
+      "exit_code": 1,
+      "trials_attempted": 7,
+      "trials_passed": 6,
+      "failed_trial": "t3",
+      "select_elapsed_ms": 1015.238,
+      "operate_point_status": {
+        "point1": "TIMEOUT",
+        "point3": "TIMEOUT"
+      },
+      "exact_target_dropped_packets": 1,
+      "restoration_ok": true
+    }
+  },
+  "clean_checkout": {
+    "commit": "f12458308",
+    "c68_exit": 0,
+    "c67_exit": 0,
+    "c68_restored_logs": 328,
+    "c67_pinned_restored_logs": 245,
+    "c68_current_freezes": 7,
+    "c68_historical_freezes": 4,
+    "c67_historical_freezes": 10,
+    "c68_reference_exchanges": 1544,
+    "c67_reference_exchanges": 1930,
+    "postcommit_guard": {
+      "commit": "a4aa1f330",
+      "tests_passed": 9,
+      "subtests_passed": 4
+    }
+  },
+  "final_testbed": {
+    "active": false,
+    "campaign_dir": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_campaigns/rc01_hw_c68_20261026_06",
+    "step_id": "rc01_hw_c68_20261026_06_loss_full_950",
+    "terminal_sha256": "964e0f036a4f5ed2d44fcfecb5ed5135263f14b72c482f615b3ad8b5fdb19d2e",
+    "unit": "dnp3-eval-rc01_hw_c68_20261026_06-fec84ec6e079-step-rc01_hw_c68_20261026_06_loss_full_950.service",
+    "unsafe_restoration": false
+  },
+  "scope_complete": true,
+  "recovery_qualification": "FAIL: full-loss SELECT-response-drop trial returns OPERATE TIMEOUT; cause unlocated"
+}

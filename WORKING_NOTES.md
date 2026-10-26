@@ -3491,8 +3491,17 @@ recovery FAIL | physical J unproven. c67 has NOT passed hardware qualification. 
   and live in ctl_timing_01/evidence/diag_shim_contention_m12p_c67_sdk9132_0{1,2,3}/ (c67 verification runs).
 
 
-## 2026-10-26 — reviewed c68 repairs (in progress)
+## 2026-10-26 — reviewed c68 repairs (superseded checkpoint; completed below)
 
 Direct current user decisions: audit all purported directives; restore software J and piggyback fixture identity, keep extra piggyback latency ungated, include existing D20 mixed/full c68 recovery after offline verification; then “do it”. Root baseline 789092c2d, historical c67 reproduction a4ebbecbe. Detailed authority review and execution ledger under stage read_complete_01/evidence/c68_repair_20261026/.
 
 Repairs: event-clear FIR/FIN and response matching; restored software J/fixture checks with original loss/reconnect/specialized-runner exemptions; one restoration helper with83 c68 archive pins and aborted-attempt retention;30 compiler artifacts/reports retained; c68 reproduction and historical checker/freeze isolation. P4, core model helper and old results/freezes unchanged. Fresh c68 model gate passes; no new model attempts required. Read-only native preflight mixed91/integrity134 OK, IIN8000. Newfreeze04 has176files,0untracked. Hardware recovery not yet run.
+
+
+### 2026-10-26 — c68 reviewed repair and bounded recovery comparison complete
+- Code: f12458308 repairs/artifact retention; a4aa1f330 rejects missing active freeze. P4 and core model helpers unchanged; source825b7e6da3c24dd1705d43f1d921dbd2184a99fe47f75f4de1d2d372e160b289, existing SDK9.13.2 compile. Software J+fixture identity restored with original recovery/runner exemptions; extra latency criteria remain removed. Event-clear fragmentation/request-matching fixed in software only; no event-clear operation was performed.
+- Fresh-checkout reproduction: c68 exit0 (model17/17; seven currentfreeze04 + four historicalfreeze03 checks;1544 reference exchanges), c67 exit0 (a4ebbecbe source/gate/freeze; ten configs;1930 exchanges). No freeze skipped. Postcommit guard:9 tests+4subtests passed. All83 c68 archives and30 compiler files retained; localhelper348logs, publishedcleancheckout328, pinnedc67245. The20local-only logs are pre-existing c60 retention, preserved and not staged by this repair.
+- Hardware new05 mixed loss D20: PASS7/7,140READ+7SELECT+7OPERATE OK. t3 exact SELECTresponse drop: SELECT1021.670ms, then OPERATE SUCCESS on bothpoints. Independent restoration PASS.
+- Hardware new06 full loss D20: FAIL overall; six of seven trials passed, all seven attempted. t3 exact SELECT-response drop: SELECT SUCCESS after 1015.238 ms, then OPERATE TIMEOUT on points 1 and 3 (raw status 1). Block rc 1; independent restoration PASS. No attempt to rerun until pass or relax the application verdict.
+- Independent verification: all14 intended identity targets singly dropped; packet reports, linkCRCs, transport reassembly, raw guarded-CROB objects and artifact/freeze hashes match retained evidence. 308 exchanges captured; 307 successful application exchanges, one genuine OPERATE failure. Oldc67 failures preserved. Read history and master-side recovery duration alone do not locate the cause or measure the relay select window.
+- Final live state: ownershipactive=false, unsafe_restoration=false; switch running case4_response_path production baseline. Both planned blocks finished. No further hardware is running. Detailed authorityreview, tests, cleanreproduction, recoveryaudits and rawcaptures are under stage read_complete_01/evidence/c68_repair_20261026 and hw_blocks/hw_campaigns new05/new06.

@@ -20,3 +20,5 @@ The current user asked to audit reports, code, runs and evidence, warned that ev
 - Normal before/after reference success does not close mixed-loss recovery, physical J, or general relay compatibility.
 - The class-2 event A/B supports this c67/c68 fixed-shape profile, not “every build”.
 - Counter observations for c68 come from model action logs; functional register state still comes from BFRT. Sixteen disclosed live HELD_REWAIT parity differences are not exact synchronized-register equivalence. Original result bytes are preserved.
+
+Publication authority was separately checked: the recorded native plan approval at 2026-10-25T22:55:07Z includes Step 6, explicit task-file commits and “Push (authorized for task work)”. The current “do it” continues this same c68 task; no force push or unrelated changes are included.

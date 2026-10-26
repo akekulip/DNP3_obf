@@ -1,3 +1,27 @@
+# Reviewed c68 repair — completed execution, 2026-10-26
+
+Root handover: `CLAUDE_HANDOVER_20261026.md`. Direct current user decisions restore software OPERATE hold >= J
+and piggyback fixture identity, keep additional latency criteria ungated, and include the two existing D20 recovery
+blocks. Directive provenance and all verification are in `evidence/c68_repair_20261026/`.
+
+- P4 and core model helpers unchanged; source 825b7e6d…b289, existing SDK 9.13.2 compile, fresh model 17/17 PASS.
+- Software checks, bounded event-clear fix, retention and reproduction repairs committed as f12458308;
+  missing-freeze refusal as a4aa1f330. No event-clear operation performed during these repairs.
+- Fresh c68 reproduction: seven current freeze04 checks, four historical freeze03 checks, 1544 reference exchanges,
+  exit 0. Historical c67: ten a4ebbecbe-pinned freeze checks, 1930 reference exchanges, exit 0. No freeze skipped.
+- Existing 30 compiler artifacts/reports and 83 c68 archives retained byte-exactly. Clean published restoration has
+  328 candidates; historical c67 checkout 245; local 348 includes additional local retention. Audits preserve counts.
+- New D20 mixed loss: rc01_hw_c68_20261026_05 PASS (7/7),154 application responses and exact one-shot loss targets
+  independently verified, restoration PASS. t3 SELECT recovered after 1021.67 ms; OPERATE SUCCESS on both points.
+- New D20 full loss: rc01_hw_c68_20261026_06 FAIL overall; six of seven trials passed, all seven attempted. In t3 the exact SELECT-response
+  drop was followed by SELECT OK after 1015.238 ms and OPERATE TIMEOUT on both guarded points. Block rc 1;
+  independent restoration PASS. Packet replay and raw application/CRC checks preserve this failure.
+- Both campaigns are finished; ownership inactive, unsafe_restoration=false; production baseline verified live.
+- The older c67 TIMEOUT evidence is preserved. A new pass does not establish its cause or prove it fixed. Physical
+  J and general relay compatibility remain unproven. Visible CLRT is reported data, without a precision gate.
+
+## Historical checkpoints below
+
 # Current status — c68 on the physical SEL-751, before vs after at every D (2026-10-26)
 
 Continue from `WORKING_NOTES.md` (2026-10-25/26 entries) and root `plan.md`.
