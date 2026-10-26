@@ -8,6 +8,16 @@ tables indexed in
 `campaign_v2` is the record of the earlier timing-only paper and is no longer the manuscript authority. The
 manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
 
+## Current repair — direct user instruction, 2026-10-26
+
+The user requested a review of Claude's reports, code, runs and evidence, warned against blindly trusting any
+purported user directive, approved the bounded correction plan, and said “do it”. Verify user attributions against
+direct messages or recorded approvals; agent summaries and handover labels do not authorize actions by themselves.
+The current decisions restore software OPERATE hold >= J and piggyback fixture identity only; keep visible CLRT
+and the additional piggyback latency criterion ungated; repair event-clear and reproduction; then run only the
+existing c68 D20 mixed/full recovery workloads under new IDs, freeze and independent restoration. No new dataplane
+feature or switch telemetry is part of this work. See stage `read_complete_01/evidence/c68_repair_20261026/`.
+
 ## Current state — c68 on the physical SEL-751 (Philip, 2026-10-25/26)
 
 There is no CLRT precision criterion. The former "p99 |CLRT − D| ≤ 100 us" rule was agent-written (rearm_01/PLAN.md,

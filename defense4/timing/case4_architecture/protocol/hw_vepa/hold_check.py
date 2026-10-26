@@ -10,12 +10,13 @@ first arrival minus the first transmission. The interval includes path and captu
 residency timestamp. Timestamps are the pcap's microsecond records read as float seconds and rounded to 0.1 us
 (the convention seg61_02/analysis/repeat_sbo_report.py has always reported, which imports this helper).
 
-operate_hold() is the verdict: every OPERATE sent is observed at the outstation side, at least as many as the
-complete OPERATE exchanges and the configured SBO count. The transit (and how many fall below op_j) is reported as
-data, never a pass/fail criterion.
+operate_hold() is the software-path verdict: every OPERATE sent is observed at the outstation side, at least as
+many as the complete OPERATE exchanges and the configured SBO count, and every observed transit is at least op_j.
+This observation does not establish physical relay J.
 """
 import argparse
 import json
+import math
 import os
 import sys
 
@@ -76,12 +77,12 @@ def analyze(out_pcap, in_pcap, master_port, outstation_port=OUTSTATION_PORT):
 
 
 def _number(value):
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
 def operate_hold(hold, op_j_ns, complete_operates, expected_operates):
-    """Delivery verdict over analyze() output: every OPERATE sent was observed at the outstation side, as many as
-    completed and as configured. The minimum transit and the rows below op_j are reported, never gated."""
+    """Software hold verdict: every OPERATE is delivered, as many as completed/configured, with transit >= op_j.
+    sufficient describes delivery evidence independently of whether the transit meets J."""
     op_j_us = op_j_ns / 1000.0
     rows = (hold or {}).get('operates') if isinstance(hold, dict) else None
     if not isinstance(rows, list) or any(not isinstance(r, dict) for r in rows):
@@ -102,6 +103,9 @@ def operate_hold(hold, op_j_ns, complete_operates, expected_operates):
         reasons.append('%d OPERATE transits observed for %d complete OPERATE exchanges'
                        % (len(observed), complete_operates))
     sufficient = not reasons
+    if below:
+        reasons.append('%d OPERATE transits below configured op_j %s us (app_seq %s)'
+                       % (len(below), op_j_us, [r.get('app_seq') for r in below][:8]))
     minimum = min((r['transit_us'] for r in observed), default=None)
     return {'op_j_us': op_j_us, 'observation': (hold or {}).get('observation') or OBSERVATION, 'sent': len(rows),
             'observed': len(observed), 'complete_operates': complete_operates, 'expected_operates': expected_operates,

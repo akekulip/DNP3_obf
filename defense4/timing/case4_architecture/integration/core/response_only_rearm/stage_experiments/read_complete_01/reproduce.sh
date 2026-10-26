@@ -43,8 +43,13 @@ RELAY_READ=0
 EVIDENCE_TIER="historical software endpoint profile (offline only)"
 BUILD_SUFFIX="$CANDIDATE"
 case "$CANDIDATE" in
+  c68) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing --strip-telemetry"
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c68_sdk9132
+       SOURCE_SHA=825b7e6da3c24dd1705d43f1d921dbd2184a99fe47f75f4de1d2d372e160b289
+       EVIDENCE_TIER="SEL-751 candidate without switch telemetry; visible CLRT is reported data" ;;
   c67) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing"
        TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c67_sdk9132
+       GEN_PIN=a4ebbecbe; GATE_PIN=a4ebbecbe; FREEZE_PIN=a4ebbecbe
        SOURCE_SHA=e8565de7c317124b2c3377ce02fc2a932d4f86e1625ed224ec9fed550d6d2ec1
        EVIDENCE_TIER="deadline-free response-ready SEL-751 candidate; qualification requires all 17 models and physical evidence" ;;
   c62) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing"
@@ -89,17 +94,18 @@ case "$CANDIDATE" in
        SOURCE_SHA=1e94c31d80e6708ab31ca117f066d15f5ec23244fc6f7bf7b9ca68dc81a2a27b ;;
   b08) GEN_ARGS="--policy"
        SOURCE_SHA=7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f ;;
-  *) echo "unknown CANDIDATE $CANDIDATE (c67 | c62 | c60 | c52 | c51 | c50 | c49 | c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
+  *) echo "unknown CANDIDATE $CANDIDATE (c68 | c67 | c62 | c60 | c52 | c51 | c50 | c49 | c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
 esac
 BUILD="$STAGE/ctl_timing_01/evidence/m12p_$BUILD_SUFFIX"
 FREEZE="$BUILD/freeze_v3.json"
+if [ "$CANDIDATE" = c68 ]; then FREEZE="$BUILD/freeze_v3_04.json"; fi
 if [ "${1:-}" = --candidate-info ]; then
   [ $# = 1 ] || { echo "--candidate-info takes no other arguments" >&2; exit 2; }
-  python3 - "$CANDIDATE" "$BUILD" "$SOURCE_SHA" "$GEN_ARGS" "$EVIDENCE_TIER" "$FREEZE_PIN" <<'EOF'
+  python3 - "$CANDIDATE" "$BUILD" "$SOURCE_SHA" "$GEN_ARGS" "$EVIDENCE_TIER" "$FREEZE_PIN" "$GEN_PIN" "$GATE_PIN" <<'EOF'
 import json, shlex, sys
 print(json.dumps(dict(candidate=sys.argv[1], build=sys.argv[2], source_sha256=sys.argv[3],
                      generator_args=shlex.split(sys.argv[4]), evidence_tier=sys.argv[5],
-                     freeze_pin=sys.argv[6] or None), indent=2))
+                     freeze_pin=sys.argv[6] or None, generator_pin=sys.argv[7] or None, gate_pin=sys.argv[8] or None), indent=2))
 EOF
   exit 0
 fi
@@ -110,7 +116,7 @@ fi
 SCRATCH="$(mktemp -d)"
 REPO="$(git -C "$HERE" rev-parse --show-toplevel)"
 cleanup() {
-  for w in pin fpin; do
+  for w in pin fpin hpin; do
     if [ -d "$SCRATCH/$w" ]; then git -C "$REPO" worktree remove --force "$SCRATCH/$w" >/dev/null 2>&1 || true; fi
   done
   rm -rf "$SCRATCH"
@@ -163,7 +169,7 @@ python3 "$GEN_STAGE/m12_fullsize/make_m12.py" "$SCRATCH/m12p" $GEN_ARGS >/dev/nu
 got="$(sha256sum "$SCRATCH/m12p/response_only.p4" | cut -d' ' -f1)"
 [ "$got" = "$SOURCE_SHA" ] || { echo "regenerated source $got != $SOURCE_SHA"; exit 1; }
 echo "source $got"
-if [ "$CANDIDATE" = c48 ] || [ "$CANDIDATE" = c49 ] || [ "$CANDIDATE" = c50 ] || [ "$CANDIDATE" = c51 ] || [ "$CANDIDATE" = c52 ] || [ "$CANDIDATE" = c60 ] || [ "$CANDIDATE" = c62 ] || [ "$CANDIDATE" = c67 ]; then
+if [ "$CANDIDATE" = c48 ] || [ "$CANDIDATE" = c49 ] || [ "$CANDIDATE" = c50 ] || [ "$CANDIDATE" = c51 ] || [ "$CANDIDATE" = c52 ] || [ "$CANDIDATE" = c60 ] || [ "$CANDIDATE" = c62 ] || [ "$CANDIDATE" = c67 ] || [ "$CANDIDATE" = c68 ]; then
   step "4b. integrated relay generator, checksum, admission and boundary regressions"
   (cd "$STAGE/m12_fullsize" && "$PY312" -m pytest -q tests)
   python3 "$STAGE/m12_fullsize/check_generator_identity.py"
@@ -269,6 +275,48 @@ if [ -f "$F_FREEZE" ] && ls "$F_HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json >/
   done
 else
   echo "no freeze yet for m12p_$CANDIDATE (configs present: $(ls "$F_HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json 2>/dev/null | wc -l)); skipping"
+fi
+
+if [ "$CANDIDATE" = c68 ]; then
+  step "6b. original c68 before/after freeze at its recorded revision 789092c2d"
+  git -C "$REPO" worktree add --detach "$SCRATCH/hpin" 789092c2d >/dev/null
+  python3 - "$REPO" "$SCRATCH/hpin" "${STAGE#$REPO/}" "${HW#$REPO/}" <<'EOF'
+import hashlib, json, os, pathlib, shutil, subprocess, sys
+live, pinned = map(pathlib.Path, sys.argv[1:3])
+stage = pathlib.Path(sys.argv[3])
+build = stage / 'ctl_timing_01/evidence/m12p_c68_sdk9132'
+freeze = json.loads((pinned / build / 'freeze_v3_03.json').read_text())
+# The original commit omitted these compiler artifacts. Supply only the exact
+# frozen bytes now retained by this checkout; never substitute code files.
+for name, record in freeze['files'].items():
+    destination = pinned / name
+    if destination.exists():
+        continue
+    if '/compile_local/out/' not in name:
+        raise SystemExit('missing historical source: ' + name)
+    source = live / name
+    if hashlib.sha256(source.read_bytes()).hexdigest() != record['sha256']:
+        raise SystemExit('historical compiler artifact hash differs: ' + name)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, destination)
+# Step 5 verified these raw bytes against Git-retained archives and manifests.
+# Link them into this disposable checkout for the original gate's read-only checks.
+summary = json.loads((pinned / build / 'model_summary_v3.json').read_text())
+for run in summary['latest_by_driver'].values():
+    directory = stage / 'ctl_timing_01/evidence' / run
+    for source in [live / directory / 'model.out'] + sorted((live / directory).glob('model_*.log')):
+        destination = pinned / directory / source.name
+        if not destination.exists():
+            os.link(source, destination)
+for name in freeze['candidate']['configs']:
+    subprocess.run([sys.executable, str(pinned / sys.argv[4] / 'freeze_gate.py'), 'check',
+                    str(pinned / build / 'freeze_v3_03.json'), '--config', str(pinned / name)], check=True)
+EOF
+fi
+
+if [ "$CANDIDATE" = c67 ] || [ "$CANDIDATE" = c68 ]; then
+  step "7. physical evidence: reproduce recorded wire reports, including recorded failures"
+  "$PY312" "$HERE/analysis/replay_physical.py" --candidate "$CANDIDATE" --out "$SCRATCH/physical_replay.json"
 fi
 
 if [ "${1:-}" = "--readout" ]; then

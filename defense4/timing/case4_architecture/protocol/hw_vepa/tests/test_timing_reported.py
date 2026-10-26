@@ -1,9 +1,9 @@
-"""Host-observed timing is reported, never gated (Philip, 2026-10-25).
+"""CLRT is reported; the software OPERATE transit must meet configured J.
 
 Derived-evidence mutation tests: each starts from a COPY (tmp_path) of a retained passing ctl_timing m3 trial,
 derives the evidence the campaign gate reads (timing.json rows; hold_check.analyze of the copied captures), shifts
 one derived timing metric, and checks that checks.evaluate still passes and reports the CLRT, and that the standards
-artifact carries no timing block. Correctness checks (OPERATE delivery, generation exhaustion) still fail the trial.
+artifact carries no CLRT precision block. OPERATE hold, fixture identity and generation exhaustion still gate.
 Retained evidence is read only.
 """
 import copy
@@ -150,10 +150,10 @@ def test_unmodified_piggyback_trial_passes_and_counts_piggybacks_apart(tmp_path)
 def test_control_clrt_shift_is_reported_not_failed(tmp_path):
     t = Trial(tmp_path, 'separate_ack')
     _, before = t.evaluate()
-    fails, obs = t.evaluate(shift_control_clrt(t.ev, 2000))
+    fails, obs = t.evaluate(shift_control_clrt(t.ev, 1000000))
     assert fails == []
     for kind in ('SELECT', 'OPERATE'):
-        assert obs['visible_clrt'][kind]['min_us'] == before['visible_clrt'][kind]['min_us'] + 2000
+        assert obs['visible_clrt'][kind]['min_us'] == before['visible_clrt'][kind]['min_us'] + 1000000
     assert obs['visible_clrt']['READ'] == before['visible_clrt']['READ']
 
 
@@ -167,17 +167,19 @@ def test_piggyback_latency_shift_is_not_a_failure(tmp_path):
     assert fails == []
 
 
-def test_operate_transit_below_op_j_is_reported_not_failed(tmp_path):
+@pytest.mark.parametrize('transit_us,passes', [(2399.0, False), (2400.0, True)])
+def test_software_operate_transit_must_meet_configured_op_j(tmp_path, transit_us, passes):
     t = Trial(tmp_path, 'separate_ack')
     mutated = copy.deepcopy(t.ev)
-    mutated['hold']['operates'][10]['transit_us'] = t.cfg['timing_params_ns']['op_j'] / 1000.0 - 1
+    mutated['hold']['operates'][10]['transit_us'] = transit_us
     fails, obs = t.evaluate(mutated)
-    assert fails == []
-    assert obs['operate_hold']['pass'] is True
-    assert obs['operate_hold']['below_op_j'] == [{'seq': mutated['hold']['operates'][10]['seq'],
+    assert (fails == []) is passes
+    assert obs['operate_hold']['pass'] is passes
+    assert obs['operate_hold']['sufficient'] is True
+    assert obs['operate_hold']['below_op_j'] == ([] if passes else [{'seq': mutated['hold']['operates'][10]['seq'],
                                                   'app_seq': mutated['hold']['operates'][10]['app_seq'],
-                                                  'transit_us': 2399.0}]
-    assert obs['operate_hold']['min_transit_us'] == 2399.0
+                                                  'transit_us': 2399.0}])
+    assert obs['operate_hold']['min_transit_us'] == transit_us
 
 
 def test_unobserved_operate_or_missing_hold_evidence_still_fails(tmp_path):

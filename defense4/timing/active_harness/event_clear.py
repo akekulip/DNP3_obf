@@ -21,7 +21,7 @@ FUNC_CONFIRM, FUNC_READ, FUNC_RESPONSE = 0x00, 0x01, 0x81
 CLASS2 = bytes([60, 3, 0x06])
 CLASS0 = bytes([60, 1, 0x06])
 IIN1_CLASS2 = 0x04
-APP_CON = 0x20
+APP_FIR, APP_FIN, APP_CON, APP_UNS = 0x80, 0x40, 0x20, 0x10
 MAX_POLLS = 3
 
 
@@ -44,9 +44,15 @@ def _send(sock, frame: bytes, sent: list) -> None:
     sent.append(dict(t=time.monotonic(), function=_function(frame), hex=frame.hex()))
 
 
-def _fragments(sock, budget_s: float, sent: list):
-    """Yield (app_control, function, iin, application_hex) for every response fragment until FIN or the budget."""
+def _fragments(sock, budget_s: float, sent: list, expect_seq: int):
+    """Yield matching solicited fragments until application FIN or the budget.
+
+    The first fragment must have FIR and the READ's sequence; continuations must
+    clear FIR and increment the application sequence. A partial response may be
+    yielded, so its final fragment must have FIN before its IIN can verify a clear.
+    """
     rx, asm, end = Reassembler(verify_crc=True), TransportAssembler(), time.monotonic() + budget_s
+    first = True
     while time.monotonic() < end:
         sock.settimeout(max(0.01, end - time.monotonic()))
         try:
@@ -58,14 +64,20 @@ def _fragments(sock, budget_s: float, sent: list):
         rx.feed(chunk)
         for frame in rx.frames():
             application = asm.add(frame.user_data)
-            if application is None:
+            if application is None or len(application) < 4:
                 continue
             ctrl, func = application[0], application[1]
-            iin = int.from_bytes(application[2:4], 'big') if len(application) >= 4 else None
+            if func != FUNC_RESPONSE or ctrl & APP_UNS or (ctrl & 0x0F) != expect_seq:
+                continue
+            if bool(ctrl & APP_FIR) != first:
+                continue
+            first = False
+            expect_seq = (expect_seq + 1) & 0x0F
+            iin = int.from_bytes(application[2:4], 'big')
             yield ctrl, func, iin, application.hex()
             if ctrl & APP_CON:
                 _send(sock, confirm_frame(ctrl & 0x0F), sent)
-            if ctrl & 0x80 and func == FUNC_RESPONSE:     # FIN of the solicited response
+            if ctrl & APP_FIN:
                 return
 
 
@@ -74,16 +86,18 @@ def clear(session, budget_ms: float = 3000.0) -> dict:
     for _ in range(MAX_POLLS):
         _send(sock, _read_frame(seq, CLASS2), sent)
         fragments = [dict(control=c, function=f, iin='%04x' % i if i is not None else None, application_hex=a)
-                     for c, f, i, a in _fragments(sock, budget_ms / 1000, sent)]
+                     for c, f, i, a in _fragments(sock, budget_ms / 1000, sent, seq)]
         polls.append(dict(app_seq=seq, fragments=fragments))
+        if fragments:
+            seq = fragments[-1]['control'] & 0x0F
         seq = (seq + 1) & 0x0F
-        last = fragments[-1]['iin'] if fragments else None
+        last = fragments[-1]['iin'] if fragments and fragments[-1]['control'] & APP_FIN else None
         if last is not None and not (int(last, 16) >> 8) & IIN1_CLASS2:
             break
     _send(sock, _read_frame(seq, CLASS0), sent)
     check = [dict(control=c, function=f, iin='%04x' % i if i is not None else None, application_hex=a)
-             for c, f, i, a in _fragments(sock, budget_ms / 1000, sent)]
-    final = check[-1]['iin'] if check else None
+             for c, f, i, a in _fragments(sock, budget_ms / 1000, sent, seq)]
+    final = check[-1]['iin'] if check and check[-1]['control'] & APP_FIN else None
     cleared = final is not None and not (int(final, 16) >> 8) & IIN1_CLASS2
     return dict(schema='sel751-event-clear-v1', ok=cleared, polls=polls, class0_check=check, final_iin=final,
                 sent=sent, functions_sent=sorted({item['function'] for item in sent}))

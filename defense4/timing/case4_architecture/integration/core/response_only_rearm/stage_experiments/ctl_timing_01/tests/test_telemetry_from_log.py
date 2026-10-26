@@ -3,6 +3,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 CORE = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(CORE))
 import telemetry_from_log as t  # noqa: E402
@@ -63,6 +65,25 @@ def test_profile_switch(tmp_path, monkeypatch):
     assert t.build_has_telemetry() is False
     inputs.write_text(json.dumps({'supported_profile': {}}))
     assert t.build_has_telemetry() is True
+
+
+@pytest.mark.parametrize('trace', ['', 'unrecognized simulator output\n', LOG.splitlines()[2]])
+def test_unusable_trace_cannot_qualify_the_surviving_response(tmp_path, trace):
+    # Exercise the real parser and the real abort response verdict. Even valid
+    # packet output cannot stand in for the required observed commit/release.
+    from test_abort_response_ready import judge
+    log = tmp_path / 'model_incomplete.log'
+    log.write_text(trace)
+    counts = t.counts(log, t.action_map())
+    assert not judge(deltas={
+        'ACK_COMMIT': counts.get(('p1.t_Ingress.outcomes', 2), 0),
+        'RESP_RELEASE': counts.get(('p1.t_Ingress.outcomes', 3), 0)})
+
+
+def test_missing_trace_cannot_supply_a_counter_value(tmp_path, monkeypatch):
+    monkeypatch.setenv('OUT', str(tmp_path))
+    with pytest.raises(ValueError, match='expected one model log'):
+        t.register_value('p1.t_Ingress.outcomes', 2)
 
 
 E_LOG = """\

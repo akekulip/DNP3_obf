@@ -3489,3 +3489,10 @@ recovery FAIL | physical J unproven. c67 has NOT passed hardware qualification. 
   on c68 (not retested; c68 changes no forwarding logic).
 - Correction to the entry above: the three uncommitted diag_shim_contention raw logs are ~4.6 GB each (not ~8.5 GB)
   and live in ctl_timing_01/evidence/diag_shim_contention_m12p_c67_sdk9132_0{1,2,3}/ (c67 verification runs).
+
+
+## 2026-10-26 — reviewed c68 repairs (in progress)
+
+Direct current user decisions: audit all purported directives; restore software J and piggyback fixture identity, keep extra piggyback latency ungated, include existing D20 mixed/full c68 recovery after offline verification; then “do it”. Root baseline 789092c2d, historical c67 reproduction a4ebbecbe. Detailed authority review and execution ledger under stage read_complete_01/evidence/c68_repair_20261026/.
+
+Repairs: event-clear FIR/FIN and response matching; restored software J/fixture checks with original loss/reconnect/specialized-runner exemptions; one restoration helper with83 c68 archive pins and aborted-attempt retention;30 compiler artifacts/reports retained; c68 reproduction and historical checker/freeze isolation. P4, core model helper and old results/freezes unchanged. Fresh c68 model gate passes; no new model attempts required. Read-only native preflight mixed91/integrity134 OK, IIN8000. Newfreeze04 has176files,0untracked. Hardware recovery not yet run.

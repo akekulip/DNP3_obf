@@ -21,6 +21,7 @@ import run as runmod  # noqa: E402
 import vision_run as vr  # noqa: E402
 from test_campaign_bindings import cfg_for, H64  # noqa: E402
 from test_checks import evidence as ideal_evidence  # noqa: E402
+import pcaptk as tk  # noqa: E402
 
 ARMS = {a['name']: a for a in json.load(open(HERE.parent / 'campaign.json'))['arms']}
 
@@ -73,13 +74,7 @@ def fake_standards_observed(self, ev, failures, *, transport_ok, select_ok, oper
     return observed
 
 
-def fake_hold_analyzer(self, out_pcap, in_pcap, master_port, outstation_port):
-    """The placeholder captures cannot be parsed; the validator's recomputation reads the FakeRunner's hold.json."""
-    return json.loads((Path(out_pcap).parent / 'hold.json').read_text())
-
-
 cp.Campaign._load_standards_checker = fake_load_standards_checker
-cp.Campaign.hold_analyzer = fake_hold_analyzer
 cp.Campaign.standards_observed = fake_standards_observed
 
 class FakeRunner:
@@ -92,6 +87,7 @@ class FakeRunner:
         self.wire_rc, self.clrt_rc, self.vision_out, self.vision_rc = wire_rc, clrt_rc, vision_out, vision_rc
         self.fail_on = fail_on or []                      # substrings that make a command return rc 1
         self.reads = {}
+        self.master_ports = {}
 
     def run(self, where, cmd, cwd=None, timeout=None, label=None):
         self.calls.append((where, cmd))
@@ -112,14 +108,25 @@ class FakeRunner:
             else:
                 out = '%s  -\n' % H64
         elif 'vision_run.py run' in cmd:
-            self.reads[re.search(r'run (\S+)', cmd).group(1)] = int(re.search(r'--reads (\d+)', cmd).group(1))
+            run_label = re.search(r'run (\S+)', cmd).group(1)
+            self.reads[run_label] = int(re.search(r'--reads (\d+)', cmd).group(1))
+            self.master_ports[run_label] = int(re.search(r'--master-port (\d+)', cmd).group(1))
             rc, out = self.vision_rc, self.vision_out
         elif cmd.startswith('scp') and '/runs/' in cmd:
             dest = Path(shlex_last(cmd))
             dest.mkdir(parents=True, exist_ok=True)
             ev = self.evidence(cmd)
-            for f in ('out.pcap', 'in.pcap'):
-                (dest / f).write_bytes(b'x')
+            run_label = re.search(r'c1_\w+?_t\d+', cmd).group(0)
+            outgoing, incoming = [], []
+            for i, row in enumerate((ev.get('hold') or {}).get('operates', [])):
+                packet = tk.frame('192.168.10.61', '192.168.10.62', self.master_ports[run_label], 20000,
+                                  row['seq'], 2000, tk.PSH | tk.ACK, tk.read_request(row['app_seq'], func=4))
+                sent_us = 100000 + i * 10000
+                outgoing.append((sent_us, packet))
+                if row.get('observed') and row.get('transit_us') is not None:
+                    incoming.append((sent_us + int(row['transit_us']), packet))
+            tk.write_pcap(dest / 'out.pcap', outgoing)
+            tk.write_pcap(dest / 'in.pcap', incoming)
             (dest / 'master.json').write_text(json.dumps(ev['master']))
             (dest / 'outstation.json').write_text(json.dumps(ev['outstation']))
         elif cmd.startswith('scp') and '@10.10.54.81:' in cmd:       # one file fetched back from the switch
@@ -236,6 +243,24 @@ class Sequence(Base):
         self.assertFalse(obs['aggregate_verdict'])
         self.assertFalse({'precision', 'objectives'} & set(obs))
 
+    def test_runner_without_hold_observation_retains_its_exemption(self):
+        campaign = self.campaign(FakeRunner(), arms=('combined',))
+        arm = next(a for a in self.cfg['arms'] if a['name'] == 'combined')
+        dest = Path(self.tmp) / 'standards-only'
+        dest.mkdir()
+        captures = {}
+        for name in ('out', 'in'):
+            path = dest / (name + '.pcap')
+            path.write_bytes(b'capture without a hold observation')
+            captures[name] = {'path': str(path)}
+        trial = {'label': 'standards-only', 'reads': 20, 'master_port': 54500}
+        observed = campaign.standards_observed(
+            ideal_evidence(reads=20), [], transport_ok=True, select_ok=True, operate_ok=True,
+            aggregate_ok=True, checker_result=campaign.run_standards_checker(str(dest), trial, arm))
+        failures = campaign.validate_standards_file(str(dest), trial, arm, captures, observed)
+        self.assertEqual(failures, [])
+        self.assertNotIn('operate_hold', json.load(open(dest / 'standards.json'))['observed'])
+
     def _artifacts(self, root='c1'):
         out = []
         for path in sorted((Path(self.tmp) / 'ev' / root).rglob('standards.json')):
@@ -255,6 +280,8 @@ class Sequence(Base):
             self.assertNotIn('qualification', verdict)
             self.assertNotIn('qualification', trial)
             self.assertIn('READ', trial['observed']['visible_clrt'])
+            if arm == 'combined':
+                self.assertTrue(artifact['observed']['operate_hold']['pass'])
         record = json.load(open(Path(self.tmp) / 'ev' / 'c1' / 'campaign_run.json'))
         self.assertTrue(record['ok'] and record['gate_ok'])
 

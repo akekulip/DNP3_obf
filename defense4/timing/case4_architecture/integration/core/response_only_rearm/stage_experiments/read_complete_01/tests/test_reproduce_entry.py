@@ -85,6 +85,24 @@ class ReproduceEntry(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn('unknown CANDIDATE', result.stdout + result.stderr)
 
+    def test_c68_selects_the_telemetry_free_source(self):
+        result = self.info('c68')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        info = json.loads(result.stdout)
+        build = Path(info['build'])
+        self.assertEqual(build.name, 'm12p_c68_sdk9132')
+        profile = json.loads((build / 'supported_profile.json').read_text())
+        self.assertEqual(info['source_sha256'], profile['candidate']['source_sha256'])
+        self.assertIn('--strip-telemetry', info['generator_args'])
+
+    def test_c67_uses_its_historical_generator_gate_and_freeze(self):
+        result = self.info('c67')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        info = json.loads(result.stdout)
+        self.assertEqual(info['generator_pin'], 'a4ebbecbe')
+        self.assertEqual(info['gate_pin'], 'a4ebbecbe')
+        self.assertEqual(info['freeze_pin'], 'a4ebbecbe')
+
 
 if __name__ == '__main__':
     unittest.main()

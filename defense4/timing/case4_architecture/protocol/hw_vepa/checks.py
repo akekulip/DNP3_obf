@@ -390,10 +390,9 @@ def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stal
              gen_exhausted_outcome=None, read_classes=None):
     """mirror_k: the installer --k when the build is flagged mirror_fix (adds the generator-trigger checks), else None.
 
-    Timing is reported, never gated: observed.visible_clrt (per DNP3 function, see visible_clrt) and the READ
-    piggyback fraction. The OPERATE delivery check (op_j_ns given, timed arm with SBO, over ev['hold'] from
-    hold_check.analyze of the trial's own captures) gates only that every OPERATE sent reached the outstation side;
-    its transit against op_j is reported as data. Missing hold evidence fails that check.
+    CLRT is reported without a threshold. The READ piggyback fraction must identify the configured fixture.
+    The software OPERATE hold check (op_j_ns given, timed arm with SBO, over ev['hold'] from hold_check.analyze
+    of the trial's own captures) requires delivery and every transit >= op_j. Missing hold evidence fails.
     """
     allowed = allowed or {}
     fails, obs = [], {}
@@ -408,7 +407,10 @@ def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stal
     rd = rd if isinstance(rd, dict) else {}
     if isinstance(rd, dict) and isinstance(rd.get('complete'), int) and isinstance(rd.get('piggyback'), int):
         frac = rd['piggyback'] / rd['complete'] if rd['complete'] else 0.0
-        obs['piggyback_fraction'] = round(frac, 4)       # reported, never gated
+        obs['piggyback_fraction'] = round(frac, 4)
+        lo, hi = exp['fixture'][fixture]['piggyback_fraction']
+        if not lo <= frac <= hi:
+            fails.append('piggyback fraction %.3f outside %s for fixture %s' % (frac, [lo, hi], fixture))
     if isinstance(t, dict):
         native = exp['native_len']
         first = {cls: (e.get('native_segments') or [e['native']])[0]

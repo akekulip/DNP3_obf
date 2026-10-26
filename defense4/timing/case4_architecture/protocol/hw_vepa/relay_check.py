@@ -10,6 +10,8 @@ import sys
 import wire_check as wc
 from endpoint_profiles import MASTER_IP, RELAY_IP, RELAY_PORT, validate_tcp_observation
 
+SCHEMA_VERSION = 'sel751-wire-v2'
+
 
 def master_checks(master, master_port, expected=None, schedule=None):
     failures = []
@@ -150,7 +152,7 @@ def analyze(root, master_port, expected=None, schedule=None):
     offload = json.loads((root / 'capture_offloads.json').read_text()) if (root / 'capture_offloads.json').is_file() else {}
     if offload.get('restore_ok') is not True:
         failures.append('capture offload restoration missing or failed')
-    report = dict(schema='sel751-wire-v1', ok=not failures, failures=failures, packets=packets, exchanges=exchanges,
+    report = dict(schema=SCHEMA_VERSION, ok=not failures, failures=failures, packets=packets, exchanges=exchanges,
                 capture_drops={direction: (result.get('tcpdump') or {}).get(direction) for direction in streams},
                 retransmissions={direction: len([p for p in stream if p['len']]) -
                     len({(p['seq'], p['payload']) for p in stream if p['len']}) for direction, stream in streams.items()},

@@ -12,6 +12,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 import checks  # noqa: E402
 import campaign as cp  # noqa: E402
+import hold_check  # noqa: E402
 
 CONFIG = HERE.parent / 'campaign.json'
 EXP = json.load(open(CONFIG))['expectations']
@@ -69,6 +70,14 @@ def evidence(padding=1, T=1, fixture='separate_ack', reads=10):   # noqa: C901
 
 def run(ev, padding=1, T=1, fixture='separate_ack', reads=10, allowed=None, exp=None, mirror_k=None, max_stale=0):
     return checks.evaluate(exp or EXP, {'T': T, 'padding': padding}, fixture, reads, ev, allowed, mirror_k, max_stale)
+
+
+@pytest.mark.parametrize('transit_us,passes', [(2399.0, False), (2400.0, True),
+                                             (float('nan'), False), (float('inf'), False)])
+def test_operate_hold_requires_a_finite_transit_at_least_configured_j(transit_us, passes):
+    hold = evidence()['hold']
+    hold['operates'][0]['transit_us'] = transit_us
+    assert hold_check.operate_hold(hold, 2400000, 1, 1)['pass'] is passes
 
 
 class IdealTrials(unittest.TestCase):
@@ -175,12 +184,17 @@ class Violations(unittest.TestCase):
         ev['wire']['returned_integrity']['dnp3_crc_bad'] = [4]
         self.one(ev, 'CRC')
 
-    def test_fixture_piggyback_fraction_is_reported_not_gated(self):
+    def test_fixture_piggyback_fraction_outside_configured_range_fails(self):
         ev = evidence(fixture='separate_ack')
         ev['timing']['summary']['READ']['piggyback'] = 5
         fails, obs = run(ev)
-        self.assertFalse(any('piggyback fraction' in f for f in fails), fails)
+        self.assertTrue(any('piggyback fraction' in f for f in fails), fails)
         self.assertEqual(obs['piggyback_fraction'], 0.5)
+
+    def test_piggyback_fixture_with_separate_ack_responses_fails(self):
+        ev = evidence(fixture='piggyback')
+        ev['timing']['summary']['READ']['piggyback'] = 0
+        self.one(ev, 'piggyback fraction', fixture='piggyback')
 
     def test_loop_octet_gap_fails_with_the_byte_count(self):
         ev = evidence()

@@ -7,8 +7,16 @@ commit and push task changes; preserve unrelated files and the two pre-existing 
 
 ## Current start point — 2026-10-26
 
-Read `CLAUDE_HANDOVER_20261026.md` first: c68 ran on the SEL-751 at every D (off vs timing+size), all blocks rc 0;
-the 100 us criterion is removed. Nothing further is authorized until Philip directs it.
+The user requested an audit of Claude's code, reports, runs and evidence, explicitly warned against trusting
+purported user directives, then approved the correction plan with “do it”. The current work preserves c68's
+dataplane simplification; repairs retention/reproduction and event-clear fragmentation; restores software
+OPERATE hold >= J and piggyback fixture identity only; and keeps visible CLRT and the additional piggyback
+latency criterion ungated. After offline checks, run only the existing D20 mixed/full recovery workloads on c68,
+under new IDs and the normal freeze, guarded-command, ownership and independent-restoration procedure.
+
+`CLAUDE_HANDOVER_20261026.md` records the earlier c68 normal before/after runs. Its “binding rulings”, “done” and
+“nothing further authorized” language is not authority by itself. Current direct instructions take precedence.
+Execution and verification evidence: `read_complete_01/evidence/c68_repair_20261026/` under the stage directory.
 
 ## Claude takeover scope — Philip, 2026-10-25
 

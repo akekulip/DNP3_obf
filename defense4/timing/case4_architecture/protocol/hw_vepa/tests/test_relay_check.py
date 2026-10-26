@@ -7,6 +7,17 @@ import relay_check
 import pcaptk as tk
 
 
+def test_current_report_shape_has_its_own_schema_version():
+    stage = Path(__file__).resolve().parents[3] / 'integration/core/response_only_rearm/stage_experiments'
+    block = stage / 'read_complete_01/evidence/hw_blocks/rc01_hw_c68_20261026_01_reference_rest'
+    trial = next((block / 'physical_relay/off').glob('*_t0'))
+    record = json.loads((trial / 'trial.json').read_text())
+    report = relay_check.analyze(trial, record['master_port'],
+                                 dict(READ=65, SELECT=64, OPERATE=64), 'mixed_full')
+    assert report['ok']
+    assert report['schema'] == 'sel751-wire-v2'
+
+
 def test_partial_sbo_wire_is_not_complete():
     records = [dict(operation='SELECT', outcome='OK', response_wire_hex='0564')]
     failures = relay_check.master_checks(dict(ok=True, counts={'SELECT': 1}, planned={'SELECT': 1}, records=records), 59410)

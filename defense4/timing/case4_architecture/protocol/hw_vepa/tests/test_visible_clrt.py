@@ -1,5 +1,5 @@
 """Host-observed CLRT is reported per exchange/function, never compared against D or any threshold (Philip,
-2026-10-25). Correctness gates (application, switch counters, OPERATE delivery) stay hard."""
+2026-10-25). Software OPERATE hold, fixture identity, application and switch gates remain enforced."""
 import json
 
 import pytest
@@ -37,11 +37,11 @@ def test_clrt_far_from_the_gap_is_reported_and_never_fails(clrt):
     assert 'read_precision' not in obs
 
 
-def test_piggyback_fraction_is_reported_not_gated():
+def test_piggyback_fraction_rejects_wrong_fixture_identity():
     ev = evidence()          # separate-ACK evidence evaluated as the piggyback fixture: fraction 0, outside [0.95, 1]
     fails, obs = checks.evaluate(EXP, {'T': 1, 'padding': 1}, 'piggyback', 10, ev, mirror_k=2)
     assert obs['piggyback_fraction'] == 0.0
-    assert not any('piggyback fraction' in f for f in fails), fails
+    assert any('piggyback fraction' in f for f in fails), fails
 
 
 def test_piggyback_uses_response_fallback_and_still_generates_each_read():
@@ -130,12 +130,13 @@ def test_clrt_tail_passes_and_old_threshold_keys_are_ignored_and_not_reported(tm
         assert set(trial['observed']['visible_clrt']['READ']['values_us']) == {1101}
 
 
-def test_operate_transit_below_op_j_is_reported_not_a_failure(tmp_path):
+def test_software_operate_transit_below_op_j_fails_the_campaign(tmp_path):
     rc, record = execute(tmp_path, Timing(clrt_us=950, fault='short_hold'))
-    assert rc == 0 and record['ok'] is True
+    assert rc == 1 and record['ok'] is False
     for trial in record['arms'][0]['trials']:
         assert trial['observed']['operate_hold']['min_transit_us'] == 100.0
         assert trial['observed']['operate_hold']['below_op_j']
+        assert any(f.startswith('OPERATE hold:') for f in trial['failures'])
 
 
 @pytest.mark.parametrize('fault, prefix', [('unobserved_operate', 'OPERATE hold:'), ('application', 'READ')])

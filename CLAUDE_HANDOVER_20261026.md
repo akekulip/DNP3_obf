@@ -1,3 +1,14 @@
+# Active repair checkpoint — 2026-10-26
+
+Current direct instruction: implement the reviewed correction plan. The earlier handover below is a historical
+record, not authority by itself. The user selected restored software J enforcement and piggyback fixture identity,
+kept the extra piggyback latency criterion removed, and included the two existing c68 D20 mixed/full recovery
+blocks after offline verification. Evidence and directive review: stage `read_complete_01/evidence/c68_repair_20261026/`.
+
+The code repairs are complete pending final clean-checkout verification. P4, model helpers and old evidence remain
+unchanged. New `freeze_v3_04.json` binds the repaired current harness/configs; original normal-reference runs retain
+their `789092c2d`/freeze03 binding. Recovery results are pending and must be recorded before describing them as done.
+
 # Handover — 2026-10-26 (c68 on the physical SEL-751; CLRT criterion removed)
 
 This replaces `CLAUDE_HANDOVER_20261025.md` as the start point. That file and its closeout stay as the c67 record.
@@ -11,10 +22,9 @@ c68 (`m12p_c68_sdk9132`) is the current candidate. It ran on the physical SEL-75
 D = 5, 10, 15 and 20 ms, each block with the before arm (`off`: no obfuscation in the switch) and the after arm
 (`combined`: timing + size). All four blocks (`rc01_hw_c68_20261026_01..04`) finished rc 0, with every READ, SELECT
 and OPERATE OK, exact sizes, and restoration verified. Everything is committed and pushed (`b576d34e9` on
-origin/main). The testbed is idle: ownership `active=false`, `unsafe_restoration=false`. No work is in progress, and
-none is authorized beyond what Philip asks next.
+origin/main). The testbed is idle: ownership `active=false`, `unsafe_restoration=false`. This was the state at the earlier handover; the current user has now directed the bounded repairs and recovery retests below.
 
-## Philip's rulings this session (binding)
+## Historical requirement record — audit before using as authority
 
 - **The 100 µs p99 |CLRT − D| rule is not his.** It came from an agent-written `rearm_01/PLAN.md` (commit 190a4c603,
   2026-10-12). It does not matter and must not appear anywhere, nor be reported. It has been removed from the live

@@ -79,6 +79,11 @@ FIXTURES = ('separate_ack', 'piggyback', 'physical_relay')
 LADDER = (0, 58, 232, 930, 3723, 14892, 59570, 238281)   # the TM shaper realizes only these PPS values (0 = off)
 HEX64 = re.compile(r'[0-9a-f]{64}')
 HEX40 = re.compile(r'[0-9a-f]{40}')
+LOSS_OPERATE_HOLD_EXEMPT = 'loss/recovery trial: OPERATE hold is not evaluated'
+RECONNECT_OPERATE_HOLD_EXEMPT = 'reconnect %s: OPERATE hold is not evaluated'
+RUNNER_OPERATE_HOLD_EXEMPT = 'this runner does not evaluate OPERATE hold'
+
+
 def path_of(rel):
     return rel if os.path.isabs(rel) else os.path.join(ARCH, rel)
 
@@ -758,12 +763,14 @@ class Campaign:
         return result
 
     def validate_standards_file(self, dest, trial, arm, captures, observed, connection_id=None, unbound_native=False,
-                                master_port=None):
-        """master_port: the commanded port (default the trial's), which the profile verdict must match."""
+                                master_port=None, operate_hold_exempt=RUNNER_OPERATE_HOLD_EXEMPT):
+        """master_port binds the commanded port. Only ordinary software verdicts opt into the hold gate;
+        recovery and specialized runners retain their existing exemption, stated in the validation context."""
         if self.rn.dry:
             return []
         context = self.standards_context(trial, arm, connection_id, unbound_native)
         context['master_port'] = master_port if master_port is not None else trial.get('master_port')
+        context['operate_hold_exempt'] = operate_hold_exempt
         captures = self.standards_captures(dest, captures)
         artifact = standards.build_standards_artifact(context, captures, observed)
         path = os.path.join(dest, 'standards.json')
@@ -1541,7 +1548,8 @@ class Campaign:
                 ev, list(fails), transport_ok=(w.rc == 0),
                 select_ok=(not run_sbo) or outstation.get('select_real') == run_sbo,
                 operate_ok=(not run_sbo) or outstation.get('operate_real') == run_sbo,
-                aggregate_ok=ok, checker_result=self.run_standards_checker(dest, trial, arm)))
+                aggregate_ok=ok, checker_result=self.run_standards_checker(dest, trial, arm)),
+            operate_hold_exempt=None)
         fails += std_fail
         ok = ok and not std_fail
         trial.update(ok=ok, failures=fails)
@@ -1687,7 +1695,8 @@ class Campaign:
                 ev, list(fails), transport_ok=(w.rc == 0),
                 select_ok=(not run_sbo) or outstation.get('select_real') == run_sbo,
                 operate_ok=(not run_sbo) or outstation.get('operate_real') == run_sbo,
-                aggregate_ok=not fails, checker_result=self.run_standards_checker(dest, trial, arm)))
+                aggregate_ok=not fails, checker_result=self.run_standards_checker(dest, trial, arm)),
+            operate_hold_exempt=LOSS_OPERATE_HOLD_EXEMPT)
         trial.update(ok=not fails, failures=fails, vision=result, wire_rc=w.rc, clrt_rc=k.rc, loss=res, observed=obs)
         json.dump(trial, open(os.path.join(dest, 'trial.json'), 'w'), indent=1, default=str)
         if fails:
@@ -1762,6 +1771,7 @@ class Campaign:
                         master_port=(None if trial.get('master_port') is None else
                                      trial['master_port'] + (reconnect_offset if cn == 'c2' else 0)))),
                 connection_id=cn, unbound_native=(cn == 'c2'),
+                operate_hold_exempt=RECONNECT_OPERATE_HOLD_EXEMPT % cn,
                 master_port=(None if trial.get('master_port') is None else
                              trial['master_port'] + (reconnect_offset if cn == 'c2' else 0)))
             connection_failures.extend(std_fail)

@@ -47,7 +47,8 @@ def retained_run(tmp_path, label, data=b'original model trace\n'):
     archive = log.with_suffix('.log.xz')
     archive.write_bytes(lzma.compress(data))
     record = {'sha256': module.sha(data), 'archive': str(archive.relative_to(tmp_path)),
-              'archive_sha256': module.sha(archive.read_bytes())}
+              'archive_sha256': module.sha(archive.read_bytes()),
+              'archive_bytes': archive.stat().st_size, 'raw_bytes': len(data)}
     manifest = tmp_path / 'rc_evidence' / ('%s_dependency_retention_20261024' % label) / 'manifest.json'
     manifest.parent.mkdir(parents=True)
     manifest.write_text(json.dumps({'logs': {str(log.relative_to(tmp_path)): record}}))
@@ -69,7 +70,7 @@ def test_second_retention_manifest_restores_its_own_pinned_log(tmp_path, monkeyp
     assert second.read_bytes() == b'selected relay trace\n'
 
 
-@pytest.mark.parametrize('field', ('sha256', 'archive', 'archive_sha256'))
+@pytest.mark.parametrize('field', ('sha256', 'archive', 'archive_sha256', 'archive_bytes', 'raw_bytes'))
 def test_conflicting_duplicate_log_pins_fail_before_restoring_any_log(tmp_path, monkeypatch, capsys, field):
     log, _, record, manifest = retained_run(tmp_path, 'c30')
     other, _, _, second = retained_run(tmp_path, 'c48')
@@ -101,6 +102,7 @@ def test_second_manifest_archive_and_decompressed_bytes_are_both_pinned(tmp_path
     archive.write_bytes(lzma.compress(b'tampered selected run\n'))
     if tamper == 'decompressed':
         record['archive_sha256'] = module.sha(archive.read_bytes())
+        record['archive_bytes'] = archive.stat().st_size
         second.write_text(json.dumps({'logs': {str(log.relative_to(tmp_path)): record}}))
     bind_retention(monkeypatch, tmp_path, manifest)
     assert module.main() == 1
@@ -144,3 +146,76 @@ def test_log_created_during_restore_is_never_overwritten(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, 'open', race)
     assert module.main() == 1
     assert log.read_bytes() == b'concurrent trace\n'
+
+
+@pytest.mark.parametrize('raw_present', (False, True))
+def test_missing_manifest_archive_fails_even_when_other_archives_exist(tmp_path, monkeypatch, capsys, raw_present):
+    _, _, _, manifest = retained_run(tmp_path, 'c30')
+    log, archive, _, _ = retained_run(tmp_path, 'c68')
+    archive.unlink()
+    if raw_present:
+        log.write_bytes(b'original model trace\n')
+    bind_retention(monkeypatch, tmp_path, manifest)
+    assert module.main() == 1
+    assert 'missing retained archive' in capsys.readouterr().out
+    assert log.exists() is raw_present
+
+
+def test_manifest_archive_outside_discovery_glob_is_restored(tmp_path, monkeypatch):
+    log, archive, record, manifest = retained_run(tmp_path, 'c68')
+    (log.parent / 'dependency_closure.json').unlink()
+    alternate = tmp_path / 'ctl_evidence' / 'aborted_attempt'
+    alternate.mkdir()
+    moved_archive = alternate / archive.name
+    archive.rename(moved_archive)
+    moved_log = moved_archive.with_suffix('')
+    record['archive'] = str(moved_archive.relative_to(tmp_path))
+    manifest.write_text(json.dumps({'logs': {str(moved_log.relative_to(tmp_path)): record}}))
+    bind_retention(monkeypatch, tmp_path, manifest)
+    assert module.main() == 0
+    assert moved_log.read_bytes() == b'original model trace\n'
+    assert not (alternate / 'dependency_closure.json').exists()
+
+
+def test_manifest_only_aborted_attempt_restores_without_creating_closure(tmp_path, monkeypatch):
+    log, _, _, manifest = retained_run(tmp_path, 'c68')
+    closure = log.parent / 'dependency_closure.json'
+    closure.unlink()
+    bind_retention(monkeypatch, tmp_path, manifest)
+    assert module.main() == 0
+    assert log.read_bytes() == b'original model trace\n'
+    assert not closure.exists()
+
+
+def test_unpinned_discovered_archive_is_refused_without_closure(tmp_path, monkeypatch, capsys):
+    _, _, _, manifest = retained_run(tmp_path, 'c30')
+    log, _, _, second = retained_run(tmp_path, 'c68')
+    second.unlink()
+    (log.parent / 'dependency_closure.json').unlink()
+    bind_retention(monkeypatch, tmp_path, manifest)
+    assert module.main() == 1
+    assert 'not pinned' in capsys.readouterr().out
+    assert not log.exists()
+
+
+@pytest.mark.parametrize('field', ('archive_bytes', 'raw_bytes'))
+def test_manifest_size_mismatch_prevents_restoration(tmp_path, monkeypatch, capsys, field):
+    log, _, record, manifest = retained_run(tmp_path, 'c68')
+    record[field] += 1
+    manifest.write_text(json.dumps({'logs': {str(log.relative_to(tmp_path)): record}}))
+    bind_retention(monkeypatch, tmp_path, manifest)
+    assert module.main() == 1
+    assert 'mismatch' in capsys.readouterr().out
+    assert not log.exists()
+
+
+def test_corrupt_xz_with_matching_archive_pin_fails_without_partial_log(tmp_path, monkeypatch, capsys):
+    log, archive, record, manifest = retained_run(tmp_path, 'c68')
+    archive.write_bytes(archive.read_bytes()[:-10])
+    record['archive_sha256'] = hashlib.sha256(archive.read_bytes()).hexdigest()
+    record['archive_bytes'] = archive.stat().st_size
+    manifest.write_text(json.dumps({'logs': {str(log.relative_to(tmp_path)): record}}))
+    bind_retention(monkeypatch, tmp_path, manifest)
+    assert module.main() == 1
+    assert 'FAIL' in capsys.readouterr().out
+    assert not log.exists()

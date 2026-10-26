@@ -179,6 +179,14 @@ class ConfigAndPlan(Base):
 
 
 class LossTrials(Base):
+    def test_software_loss_recovery_does_not_require_operate_hold_evidence(self):
+        # This recovery path has always omitted the J observation; it must not acquire a new hold gate.
+        self.assertEqual(self.execute(LossFake()), 0)
+        artifacts = list((Path(self.tmp) / 'ev').rglob('standards.json'))
+        self.assertTrue(artifacts)
+        for path in artifacts:
+            self.assertNotIn('operate_hold', json.load(open(path))['observed'])
+
     def test_a_recovered_loss_passes_and_records_the_packet_and_recovery(self):
         r = LossFake()
         self.assertEqual(self.execute(r), 0)
@@ -226,6 +234,14 @@ class LossTrials(Base):
 
 
 class Reconnect(Base):
+    def test_software_reconnect_transit_below_j_is_exempt(self):
+        # The retained synthetic reconnect observation is 50 us, below configured J=2400 us.
+        self.assertEqual(self.execute(LossFake(), scenario='reconnect'), 0)
+        artifacts = list((Path(self.tmp) / 'ev').rglob('standards.json'))
+        self.assertEqual(len(artifacts), 3)
+        for path in artifacts:
+            self.assertNotIn('operate_hold', json.load(open(path))['observed'])
+
     def test_each_connection_is_checked_on_its_own_master_port(self):
         """candidate61_reconnect_950_01: c2 (the unknown port) was checked on c1's port and found no stream."""
         r = LossFake()

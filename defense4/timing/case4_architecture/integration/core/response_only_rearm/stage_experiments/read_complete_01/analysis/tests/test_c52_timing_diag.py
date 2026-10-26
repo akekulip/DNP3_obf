@@ -45,6 +45,10 @@ def fixture_rows():
     return [row for row in block['transactions'] if row['arm'] == 'timing_only']
 
 
+def test_historical_diagnosis_uses_the_recorded_checker_revision():
+    assert load_tool().relay_check.source_revision == 'a4ebbecbe'
+
+
 def test_fixture_has_193_transactions_by_function_code():
     rows = fixture_rows()
     assert len(rows) == 193

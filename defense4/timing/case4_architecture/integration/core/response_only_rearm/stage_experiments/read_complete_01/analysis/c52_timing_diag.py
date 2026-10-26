@@ -7,7 +7,7 @@ either one connection (in.pcap, out.pcap, master.json, result.json, trial.json) 
 with the trial.json one level up. in.pcap is what the master NIC received, out.pcap what it sent.
 
 The TCP spans, the first master-visible ACK of each request and the complete CLRT come from
-protocol/hw_vepa/relay_check.analyze (imported, not copied), so the CLRT here is the one the campaign verdict used.
+the recorded a4ebbecbe relay checker, so this historical diagnosis keeps the campaign's original calculations.
 Checksums are not validated (TX captures carry partial checksums under offload).
 
 Everything is observed at ONE point: the master NIC. A delay seen there can sit in the relay, the switch or the
@@ -27,10 +27,11 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 STAGE = ROOT.parent
-ARCH = STAGE.parents[3]
-sys.path.insert(0, str(ARCH / 'protocol/hw_vepa'))
-import relay_check  # noqa: E402
-import wire_check as wc  # noqa: E402
+sys.path.insert(0, str(HERE))
+from historical_checker import load_checker  # noqa: E402
+
+relay_check = load_checker('a4ebbecbe')
+wc = relay_check.wc
 
 T_ON = {'off': False, 'size_only': False, 'timing_only': True, 'combined': True}
 FUNCTIONS = {1: 'READ', 3: 'SELECT', 4: 'OPERATE'}

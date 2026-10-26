@@ -8,6 +8,7 @@ success verdicts, and packet-boundary proof.
 import hashlib
 import json
 import os
+import struct
 from pathlib import Path
 
 import capture_boundary
@@ -15,8 +16,9 @@ import read_classes
 
 # v2 and v3 are retained artifacts written by earlier checkers; they also carried host-observed timing blocks
 # (observed.precision, observed.objectives), which this checker ignores. v4 (everything build_standards_artifact
-# writes now) is conformance only: timing is reported in the trial record, never gated here. An artifact labelled
-# v2/v3 that claims the current checker is rejected (the current checker only writes v4).
+# writes now) has no CLRT precision or piggyback latency criterion. Applicable software OPERATE hold evidence is
+# derived from the bound captures and checked against configured J. An artifact labelled v2/v3 that claims the
+# current checker is rejected (the current checker only writes v4).
 SCHEMA_VERSION = 'dnp3-standards-v2'
 SCHEMA_VERSION_V3 = 'dnp3-standards-v3'
 SCHEMA_VERSION_V4 = 'dnp3-standards-v4'
@@ -399,6 +401,16 @@ def validate_standards(artifact, context, captures):
         for failure in boundary_result.get('failures', []):
             failures.append('packet_boundary: ' + failure)
 
+    if _software_hold_required(context):
+        derived = _bound_operate_hold(context, captures)
+        stated = observed.get('operate_hold') if isinstance(observed, dict) else None
+        if not isinstance(stated, dict):
+            failures.append('OPERATE hold evidence missing or malformed')
+        elif stated != derived:
+            failures.append('OPERATE hold evidence differs from the bound captures')
+        if not derived['pass']:
+            failures.append('OPERATE hold from bound captures: ' + '; '.join(derived['reasons']))
+
     return {'ok': not failures, 'failures': failures, 'expected': expected['expected'],
             'capture_hashes': capture_hashes}
 
@@ -477,6 +489,40 @@ def _current_checker(context):
     return any(Path(str(f)).resolve() == here for f in ((context or {}).get('checker_files') or []))
 
 
+def _software_hold_required(context):
+    """Timed software SBO gates J where the calling path evaluates hold; recovery/runner exemptions persist."""
+    config = (context or {}).get('config') or {}
+    arm = (context or {}).get('arm') or _first_config_arm(config) or {}
+    return bool(config.get('endpoint_profile', 'software') == 'software' and
+                (context.get('trial') or {}).get('fixture') != 'physical_relay' and
+                arm.get('T') and not context.get('unbound_native') and
+                not context.get('operate_hold_exempt') and
+                expected_counts(context).get('OPERATE') and
+                'op_j' in (config.get('timing_params_ns') or {}))
+
+
+def _bound_operate_hold(context, captures):
+    """Recompute the software hold from the same out/in files whose hashes bind the artifact."""
+    import hold_check
+    config = context.get('config') or {}
+    op_j = config['timing_params_ns']['op_j']
+    count = expected_counts(context)['OPERATE']
+    paths = {name: _get_path((captures or {}).get(name)) for name in ('out', 'in')}
+    port = context.get('master_port')
+    if port is None:
+        port = (context.get('trial') or {}).get('master_port')
+    try:
+        if not all(paths.values()) or not isinstance(port, int) or isinstance(port, bool) or not 0 < port < 65536:
+            raise ValueError('out/in capture paths or master_port missing or malformed')
+        outstation_port = (config.get('endpoints') or {}).get('outstation_port', 20000)
+        hold = hold_check.analyze(paths['out'], paths['in'], port, outstation_port)
+    except (OSError, ValueError, IndexError, struct.error) as error:
+        result = hold_check.operate_hold(None, op_j, count, count)
+        result['reasons'] = ['cannot recompute from bound captures: %s' % error]
+        return result
+    return hold_check.operate_hold(hold, op_j, count, count)
+
+
 def build_standards_artifact(context, captures, observed=None):
     observed = dict(observed or {})
     expected = expected_identity(context)
@@ -495,6 +541,8 @@ def build_standards_artifact(context, captures, observed=None):
             'aggregate_verdict': observed.get('aggregate_verdict') is True,
         },
     }
+    if _software_hold_required(context):
+        artifact['observed']['operate_hold'] = _bound_operate_hold(context, captures)
     return artifact
 
 
