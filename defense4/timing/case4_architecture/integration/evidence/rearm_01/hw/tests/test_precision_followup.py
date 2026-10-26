@@ -16,13 +16,10 @@ def test_clean_restored_run_can_advance():
     assert module.admissible(record())
 
 
-def test_precision_failure_requires_explicit_runner_continuation():
-    assert module.admissible(record(['READ precision: p99 exceeds100']))
-    assert not module.admissible(record(['READ precision: missing samples'], allowed=False))
-
-
-def test_app_failure_never_advances():
-    assert not module.admissible(record(['READ precision: p99 exceeds100', 'application failure']))
+def test_any_trial_failure_never_advances():
+    # no failure kind is excused: a former timing-threshold string blocks like any other failure
+    assert not module.admissible(record(['READ precision: legacy failure string']))
+    assert not module.admissible(record(['application failure']))
 
 
 def test_incomplete_restore_never_advances():

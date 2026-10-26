@@ -11,11 +11,14 @@ or response is retained. Otherwise allow TCP recovery without new admission/grow
 ownership. J remains 2.4 ms and physically unproven. SDK9.13.2 compilation passes N/E0..10,T0..9,pipe1egress0..3;
 all 11 T objects have one physical bank. 2026-10-25 closeout: the 17-driver model gate PASSES (abort02 with the
 genuine-ACK survivor fixture, contention03, abandon01); freeze `freeze_v3_02.json`; physical SEL-751 campaigns
-`rc01_hw_c67_20261025_01..07`. Smoke PASS; FIN recovery PASS (graceful/RST/reconnect, all three connections); timing
-FAIL (1,930 reference exchanges, 0/32 timed cells within 100 us, p99 error 1.722-44.104 ms, cause unresolved);
-mixed-loss SBO recovery FAIL (t3 OPERATE CROB TIMEOUT, an application failure); physical J unproven. c67 has not
-passed hardware qualification. Further work: bounded hypothesis-specific debugging of those two failures only.
-c52 is the immutable measured baseline; c62's deadline-based v1 is historical. Keep the 100 us physical criterion.
+`rc01_hw_c67_20261025_01..07`. Smoke PASS; FIN recovery PASS (graceful/RST/reconnect, all three connections);
+1,930 reference exchanges observed; mixed-loss SBO recovery FAIL (t3 OPERATE CROB TIMEOUT, an application failure);
+physical J unproven. c52 is the immutable measured baseline; c62's deadline-based v1 is historical.
+2026-10-26: the current candidate is `m12p_c68_sdk9132` (c67 without write-only switch measurement state,
+`make_m12.py --strip-telemetry`); 17-driver model gate passed (removed counters recounted from the model log by
+`integration/core/telemetry_from_log.py`); freeze `freeze_v3_03.json`; physical SEL-751 before (off) vs after
+(combined) at D=5/10/15/20, `rc01_hw_c68_20261026_01..04`, every block rc 0 with restoration verified. There is no
+CLRT criterion (removed 2026-10-25, Philip); the visible CLRT is reported by `read_complete_01/analysis/visible_clrt.py`.
 
 One page for finding the code that is in use now. Status as of 2026-10-25. The single
 status file for the current run is `STAGE/read_complete_01/CURRENT.md`; the dated history is `STATUS.md` in
@@ -34,9 +37,10 @@ PY312=${RESEARCH_PYTHON:-$HOME/.venvs/research/bin/python}   # Python 3.12; syst
 
 | build | what it is | state |
 |---|---|---|
-| `m12p_c67_sdk9132` | deadline-free response-ready ACK+D, retained-original retry suppression | selected; SDK9.13.2 compile/review passed; 17-driver model gate PASS; freeze_v3_02; physical: smoke/FIN PASS, timing FAIL, mixed-loss FAIL, J unproven (not qualified) |
-| `m12p_c52_sdk9132` | c51 plus relay FIN+PSH+ACK accepted as FIN (FIN flag terms 8w17&&&8w0xf7, parser row, short_shapes twins) | model_gate_passed (16 drivers); physical 23-31: reference 772/772 (blocks 24+31, ledger), smoke/loss_mixed/graceful/held OPERATE pass; loss_full t0 target miss; RST/reconnect fail switch gate on late-first-READ fallbacks; timing fails 100 us; J unproven |
-| `m12p_c51_sdk9132` | c50 plus 8 qualified half-closed RST first_event rows | model_gate_passed (16 drivers); physical smoke rc0, reference 772/772 rc0, loss_full rc0, loss_mixed 4/7, persistence aborted (Vision outage); timing fails 100 us |
+| `m12p_c68_sdk9132` | c67 without write-only measurement state (T outcomes, N count registers, E/p1 counters) | current; SDK9.13.2 compile (T 9 stages); 17-driver model gate PASS (attempt 04); freeze_v3_03; physical rc01_hw_c68_20261026_01..04 off+combined at D=5/10/15/20, all rc 0, restoration verified |
+| `m12p_c67_sdk9132` | deadline-free response-ready ACK+D, retained-original retry suppression | predecessor; 17-driver model gate PASS; freeze_v3_02; physical: smoke/FIN PASS, mixed-loss FAIL, J unproven |
+| `m12p_c52_sdk9132` | c51 plus relay FIN+PSH+ACK accepted as FIN (FIN flag terms 8w17&&&8w0xf7, parser row, short_shapes twins) | model_gate_passed (16 drivers); physical 23-31: reference 772/772 (blocks 24+31, ledger), smoke/loss_mixed/graceful/held OPERATE pass; loss_full t0 target miss; RST/reconnect fail switch gate on late-first-READ fallbacks; J unproven |
+| `m12p_c51_sdk9132` | c50 plus 8 qualified half-closed RST first_event rows | model_gate_passed (16 drivers); physical smoke rc0, reference 772/772 rc0, loss_full rc0, loss_mixed 4/7, persistence aborted (Vision outage) |
 | `m12p_c50_sdk9132` | c49 plus guarded bounded FIN owner-phase restart | compiled/reviewed within limits; exact fin_busy193/193 across3connections; final16-driver gate and all padded physical runs pending |
 | `m12p_c49_sdk9132` | timestamp relay45/49 control profile with canonical constant keys | installed-row readback exact; diagnostic30/30; relay_sbo1085/1085; busy-FIN62/70 failure retained |
 | `m12p_c30_sdk9132` | relay READ91/134→141/158; legacy software SBO37→61 | READ compiled-model1332/1332; corrected control_timing415/415; no padded physical relay qualification |

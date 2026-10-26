@@ -1,4 +1,4 @@
-"""Offline installer and qualification contracts for response-ready timing."""
+"""Offline installer and evidence contracts for response-ready timing (timing reported, never gated)."""
 import importlib.util
 import json
 from pathlib import Path
@@ -31,18 +31,24 @@ def test_response_ready_rejects_mixed_parameter_contract(obsolete):
         tc.params_op(values)
 
 
-def test_response_ready_precision_qualifies_read_workloads_separately():
-    rows = [dict(operation=op, workload=workload, piggyback=False, complete_clrt_us=5001)
+def test_visible_clrt_reports_each_class_as_data_without_a_verdict():
+    rows = [dict(operation=op, workload=workload, piggyback=False, complete_clrt_us=5000 + i)
             for op, workload, n in [('READ', 'mixed', 33), ('READ', 'integrity', 32),
-                                    ('SELECT', None, 64), ('OPERATE', None, 64)] for _ in range(n)]
-    result = relay_check.precision(dict(exchanges=rows), 5_000_000, split_reads=True)
+                                    ('SELECT', None, 64), ('OPERATE', None, 64)] for i in range(n)]
+    rows.append(dict(operation='SELECT', workload=None, piggyback=True, complete_clrt_us=None))
+    rows.append(dict(operation='OPERATE', workload=None, piggyback=False, complete_clrt_us=None))
+    result = relay_check.visible_clrt(dict(exchanges=rows))
     assert set(result) == {'READ mixed', 'READ integrity', 'SELECT', 'OPERATE'}
-    assert all(v['pass_'] for v in result.values())
-    assert result['READ integrity']['planned'] == 32
-    # Combining READ classes must never hide an undersampled class.
-    rows = [row for row in rows if row['workload'] != 'integrity'] + [
-        dict(operation='READ', workload='integrity', piggyback=False, complete_clrt_us=5001)]
-    assert not relay_check.precision(dict(exchanges=rows), 5_000_000, split_reads=True)['READ integrity']['pass_']
+    for name, n in (('READ mixed', 33), ('READ integrity', 32), ('SELECT', 64), ('OPERATE', 64)):
+        v = result[name]
+        assert set(v) == {'n', 'piggyback', 'min_us', 'median_us', 'max_us', 'values_us'}
+        assert v['n'] == n == len(v['values_us'])
+        assert v['values_us'] == sorted(v['values_us']) == [5000 + i for i in range(n)]
+        assert (v['min_us'], v['max_us']) == (5000, 5000 + n - 1)
+        assert v['median_us'] == 5000 + (n - 1) / 2
+    assert result['SELECT']['piggyback'] == 1 and result['OPERATE']['piggyback'] == 0
+    empty = relay_check.visible_clrt(dict(exchanges=[]))['READ mixed']
+    assert empty == dict(n=0, piggyback=0, min_us=None, median_us=None, max_us=None, values_us=[])
 
 
 def test_response_ready_load_config_and_installer_command(tmp_path):
@@ -103,8 +109,9 @@ def test_response_ready_configs_preserve_references_smoke_and_identity_loss():
         mod.response_ready_config(cfg, block, 20 if block != 'smoke' else 5)
         assert cfg['timing_contract'] == 'response_ready_ack_d_v2'
         assert set(cfg['timing_params_ns']) == set(tc.RESPONSE_READY_KEYS)
-        assert cfg['evaluation']['host_precision_gated'] is True
-        assert cfg['qualification_dimensions']['operate_j'] == 'unproven_by_user_choice'
+        assert not {'purpose', 'read_precision', 'host_precision_gated'} & set(cfg['evaluation'])
+        assert 'precision_reference' not in cfg['evaluation'].get('campaign_block', {})
+        assert 'qualification_dimensions' not in cfg
         if block == 'smoke':
             assert [a['name'] for a in cfg['arms']] == ['combined']
             assert cfg['traffic']['sbo_cycles'] == 1
@@ -166,25 +173,15 @@ def test_response_ready_manifest_defaults_exclude_superseded_stress(tmp_path, mo
     assert all(Path(s['argv'][4]).is_absolute() for s in result['steps'])
 
 
-def test_precision_retains_frozen_plan_and_both_response_boundaries():
-    rows = [dict(operation='READ', workload='mixed', piggyback=False, first_clrt_us=4999,
-                 complete_clrt_us=5001) for _ in range(32)]
-    result = relay_check.precision(dict(exchanges=rows), 5000000, split_reads=True,
-                                   planned={'READ mixed': 33, 'READ integrity': 32, 'SELECT': 64, 'OPERATE': 64})
-    assert result['READ mixed']['planned'] == 33
-    assert result['READ mixed']['eligible'] == 32
-    assert not result['READ mixed']['pass_']
-    assert result['READ mixed']['first_clrt_us']['max'] == 4999
-    assert result['READ mixed']['complete_clrt_us']['max'] == 5001
-
-
 @pytest.mark.parametrize('reference', [True, False])
-def test_physical_verdict_keeps_j_unproven_and_limits_sample_gate_to_reference(tmp_path, monkeypatch, reference):
+@pytest.mark.parametrize('clrt_us', [5050, 54104])
+def test_physical_verdict_reports_visible_clrt_and_never_fails_on_timing(tmp_path, monkeypatch, reference, clrt_us):
+    """CLRT far from D (54.104 ms against D=5 ms) is reported per class and never becomes a failure; a config that
+    still carries the retired precision_reference key is tolerated and ignored."""
     import campaign
     import checks
     cfg = json.loads((ARCH / 'integration/core/response_only_rearm/stage_experiments/read_complete_01/hw/config/rc01_m12p_c52_sdk9132_sel751_reference.json').read_text())
     cfg['timing_contract'] = 'response_ready_ack_d_v2'
-    cfg['qualification_dimensions'] = dict(operate_j='unproven_by_user_choice')
     cfg['evaluation']['campaign_block']['precision_reference'] = reference
     cfg['timing_params_ns'] = dict(tc.RESPONSE_READY_DEFAULTS)
     reads, sbo = (65, 64) if reference else (2, 1)
@@ -193,8 +190,7 @@ def test_physical_verdict_keeps_j_unproven_and_limits_sample_gate_to_reference(t
     for operation, n in [('READ', reads), ('SELECT', sbo), ('OPERATE', sbo)]:
         for i in range(n):
             workload = ('mixed' if i % 2 == 0 else 'integrity') if operation == 'READ' else None
-            rows.append(dict(operation=operation, workload=workload, piggyback=False, first_clrt_us=5050,
-                             complete_clrt_us=5050))
+            rows.append(dict(operation=operation, workload=workload, piggyback=False, complete_clrt_us=clrt_us))
             size = (141 if workload == 'mixed' else 158) if operation == 'READ' else 60
             records.append(dict(operation=operation, workload=workload, response_wire_hex='00' * size))
     (tmp_path / 'master.json').write_text(json.dumps(dict(ok=True, records=records,
@@ -209,14 +205,16 @@ def test_physical_verdict_keeps_j_unproven_and_limits_sample_gate_to_reference(t
     trial = dict(reads=reads, master_port=59410)
     from types import SimpleNamespace
     runner.relay_verdict(trial, {}, 'offline', str(tmp_path), SimpleNamespace(rc=0), arm, 'physical_relay')
-    assert trial['ok'] and not trial['failures']
-    assert trial['dimension_verdicts']['operate_j'] == 'unproven'
-    assert trial['observed']['connections']['single']['timing_gated'] is reference
-    if reference:
-        assert trial['dimension_verdicts']['timing'] is True
-    else:
-        assert trial['dimension_verdicts']['timing'] == 'not_qualified_recovery_or_smoke'
-        assert not trial['observed']['connections']['single']['precision']['OPERATE']['pass_']
+    assert trial['ok'] and trial['failures'] == []
+    assert trial['dimension_verdicts'] == dict(application=True, switch=True)
+    single = trial['observed']['connections']['single']
+    assert not {'timing_gated', 'precision'} & set(single)
+    clrt = single['visible_clrt']
+    assert clrt['READ mixed']['n'] + clrt['READ integrity']['n'] == reads
+    assert clrt['SELECT']['n'] == clrt['OPERATE']['n'] == sbo
+    assert all(v['min_us'] == v['max_us'] == clrt_us for v in clrt.values())
+    saved = json.loads((tmp_path / 'trial.json').read_text())
+    assert saved['observed']['connections']['single']['visible_clrt'] == clrt
 
 
 @pytest.mark.parametrize('bad_snapshot,bad_value', [('before', None), ('after', None), ('after', True),

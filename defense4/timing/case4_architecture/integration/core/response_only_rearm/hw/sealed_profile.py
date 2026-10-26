@@ -216,6 +216,11 @@ def select(build_out):
 def read_diagnostics(read_outcome, outcomes, expected=False):
     blocker = outcomes.get('OUT_TOKEN_STALE')
     op, read = read_outcome(23), read_outcome(24)
+    if all(value is None for value in list(outcomes.values()) + [op, read]):
+        # c68: the build has no T outcomes register at all (write-only measurement state removed); a build that
+        # has it and reads back partly None still fails below, and evaluate_switch refuses absent counters
+        return dict(present=False, layout='no_switch_telemetry', rewait={}, blocker_laps={}, stale={},
+                    read_errors=[], stale_sources={}, stale_total=None)
     if any(type(value) is not int or value < 0 for value in (blocker, op, read)):
         raise ValueError('missing or malformed raw timer/blocker rejection counters')
     outcomes.update(STALE_BLOCKER=blocker, RAW_OPERATE_TIMER_STALE=op, RAW_READ_TIMER_STALE=read,

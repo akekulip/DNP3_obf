@@ -52,9 +52,12 @@ class RelayNative(cp.Campaign):
                     raise cp.StepFailed('slot does not prove dev9/dev64 pure forwarding without mapper/padding entries')
                 (Path(self.root) / 'slot.json').write_text(json.dumps(slot, indent=2) + '\n')
             label = self.run_id + '_native'
+            event_clear = self.cfg['traffic'].get('event_clear') is True
             cmd = cp.RELAY_PYTHON + (' %s/vision_run.py run %s --master-port %d '
                    '--reads %d --range 8 --gap-ms 0 --qualify-capture' %
                    (cp.q(self.V), label, port, self.cfg['trials']['reads_per_trial'])) + self.endpoint_control_args()
+            if event_clear:   # one-time class-2 poll + CONFIRM (Philip, 2026-10-25); READ/CONFIRM only
+                cmd += ' --event-clear'
             traffic = self.step('vision', 'physical relay native master and capture', cmd, check=False)
             self.record['traffic'] = dict(command=cmd, rc=traffic.rc, stdout=traffic.out, stderr=traffic.err)
             self.save(self.root, 'vision_run.out', traffic)
@@ -62,6 +65,12 @@ class RelayNative(cp.Campaign):
                 (Path(self.root) / 'traffic_result.json').write_text(json.dumps(self.record['traffic'], indent=2) + '\n')
             self.collect(label, 'native master evidence', 'local', 'scp -qr %s:%s/runs/%s/* %s/' %
                          (self.cfg['hosts']['vision'], cp.q(self.V), label, cp.q(self.root)))
+            if event_clear:
+                if not self.rn.dry:
+                    cleared = json.loads((Path(self.root) / 'event_clear.json').read_text())
+                    if traffic.rc or cleared.get('ok') is not True or not set(cleared.get('functions_sent') or [9]) <= {0, 1}:
+                        raise cp.StepFailed('relay class-2 event clear failed or sent a function other than READ/CONFIRM')
+                return
             checked = self.step('local', 'native relay wire and complete-response evidence',
                                 '%s %s %s --master-port %d --reads %d --sbo %d --read-schedule %s' % (cp.runner.PY,
                                 cp.q(ARCH / 'protocol/hw_vepa/relay_check.py'), cp.q(self.root), port,

@@ -1,0 +1,36 @@
+{
+  "command": [
+    "bash",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/launch_model.sh",
+    "-p",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c68_sdk9132/compile_local/out",
+    "-o",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/model_select_lifecycle_m12p_c68_sdk9132_04",
+    "-P",
+    "9 48 64 68 180 181 182 196",
+    "-d",
+    "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/record_closure.py"
+  ],
+  "PORT_MAP": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c68_sdk9132/response_only.inputs.json",
+  "PAD_ENABLE": "1",
+  "MILESTONE": "m12",
+  "pb_injected": null,
+  "timeline": false,
+  "hardware": false,
+  "source_sha256": "825b7e6da3c24dd1705d43f1d921dbd2184a99fe47f75f4de1d2d372e160b289",
+  "driver_sha256": "35e0d4444dfc12dec9a674f7ccb6a81099c5e5f6b7749f6b27d1049c6b1752d8",
+  "library_sha256": {
+    "model_driver.py": "1aacc766c7c8055571ceda7520511197ddd1babdd0b2070a2c677d5617f27755",
+    "../core/response_only/hw/t_config.py": "5f13c999c262b2148f6af98af442b86911873f55d43c1c85dc13127c90ce55f6"
+  },
+  "dependency_sha256": {
+    "response_only_rearm/stage_experiments/seg61_02/model_repeat.py": "4d259036e3bd0e74a812b67c7fd8d770a52d95c436090c77bca685bc14a773bb",
+    "response_only/model_drive_composite.py": "8940ae8486d235d1ee2cec72daff01a57716ef299846f5e88558b5151fc3d836"
+  },
+  "closure_target": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_select_lifecycle.py",
+  "dependency_closure_sha256": "c582748217e270ed399b6002afd333c3aaf5ff3af6af6f4a0812991ad85880a8",
+  "timing_contract": "response_ready_ack_d_v2",
+  "reset_restart_required": true,
+  "supported_profile_sha256": "cc2aab565b352e1647da1c6291cf17110c7d30c1b3d7b73c7e3c04d4547d9a9a",
+  "exit_code": 0
+}

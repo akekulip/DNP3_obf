@@ -27,7 +27,7 @@ LEG_FILES = ('out.pcap', 'in.pcap', 'master.json', 'outstation.json', 'result.js
 
 def native_rst_config(path, out):
     cfg = nr.native_config(path, out)
-    cfg['evaluation'] = dict(purpose='native-rst-replay-archive', read_precision=False)
+    cfg['evaluation'] = dict(purpose='native-rst-replay-archive')
     cfg['trials'] = dict(reads_per_trial=1, trials_per_arm=3)
     cfg['traffic'].update(master_port_range=dict(first=PORT, last=PORT), close_grace_ms=1000)
     return cfg

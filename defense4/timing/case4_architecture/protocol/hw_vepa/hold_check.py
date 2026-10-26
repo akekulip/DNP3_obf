@@ -11,7 +11,8 @@ residency timestamp. Timestamps are the pcap's microsecond records read as float
 (the convention seg61_02/analysis/repeat_sbo_report.py has always reported, which imports this helper).
 
 operate_hold() is the verdict: every OPERATE sent is observed at the outstation side, at least as many as the
-complete OPERATE exchanges and the configured SBO count, and the minimum transit is at least op_j.
+complete OPERATE exchanges and the configured SBO count. The transit (and how many fall below op_j) is reported as
+data, never a pass/fail criterion.
 """
 import argparse
 import json
@@ -79,8 +80,8 @@ def _number(value):
 
 
 def operate_hold(hold, op_j_ns, complete_operates, expected_operates):
-    """Verdict over analyze() output. `sufficient` is true when the evidence is complete (every OPERATE sent was
-    observed, as many as completed and as configured) so that only the op_j threshold can have failed."""
+    """Delivery verdict over analyze() output: every OPERATE sent was observed at the outstation side, as many as
+    completed and as configured. The minimum transit and the rows below op_j are reported, never gated."""
     op_j_us = op_j_ns / 1000.0
     rows = (hold or {}).get('operates') if isinstance(hold, dict) else None
     if not isinstance(rows, list) or any(not isinstance(r, dict) for r in rows):
@@ -102,8 +103,6 @@ def operate_hold(hold, op_j_ns, complete_operates, expected_operates):
                        % (len(observed), complete_operates))
     sufficient = not reasons
     minimum = min((r['transit_us'] for r in observed), default=None)
-    if below:
-        reasons.append('minimum OPERATE transit %s us below op_j %s us (%d below)' % (minimum, op_j_us, len(below)))
     return {'op_j_us': op_j_us, 'observation': (hold or {}).get('observation') or OBSERVATION, 'sent': len(rows),
             'observed': len(observed), 'complete_operates': complete_operates, 'expected_operates': expected_operates,
             'min_transit_us': minimum, 'below_op_j': below, 'sufficient': sufficient, 'reasons': reasons,

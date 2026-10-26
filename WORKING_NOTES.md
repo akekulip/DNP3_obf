@@ -3395,3 +3395,85 @@ recovery FAIL | physical J unproven. c67 has NOT passed hardware qualification. 
 - Git: branch `main`, 3484 uncommitted file(s): BRANCH_PRUNE_20260915.txt DNP3_Implementation_Directive_492013014.md .drawio-tmp/ .scratch_p4/ .scratch_repo/ PlainObfus bf_drivers.log defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md defense4/ieee-standard-for-electric-power-systems-communicationsdistribut.pdf defense4/timing/audit_current/MEETING_20261005_DIRECTION.md defense4/timing/case4_architecture/FOUR_ARM_DESIGN_REVIEW.md defense4/timing/case4_architecture/integration/core/ordinary/transport_model_select.py 
 - Last verification run recorded: 2026-10-25T20:11:28Z	cd /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-10-25T22:17:46Z -->
+### Compaction handoff — 2026-10-25T22:17:46Z
+- Git: branch `main`, 3485 uncommitted file(s): BRANCH_PRUNE_20260915.txt DNP3_Implementation_Directive_492013014.md .drawio-tmp/ .scratch_p4/ .scratch_repo/ PlainObfus bf_drivers.log defense4/DNP3_Claude_Completion_and_IEEE1815_Prompt_f813bc089.md defense4/ieee-standard-for-electric-power-systems-communicationsdistribut.pdf defense4/timing/audit_current/MEETING_20261005_DIRECTION.md defense4/timing/case4_architecture/FOUR_ARM_DESIGN_REVIEW.md defense4/timing/case4_architecture/integration/core/ordinary/transport_model_select.py 
+- Last verification run recorded: 2026-10-25T21:23:21Z	cd /home/philip/Projects/DNP3 && R=defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experim
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+### 2026-10-25 (late) — c68: out-of-scope measures removed; off vs timing+size on the SEL-751 at every D (Philip)
+- Philip: the 100 us p99 |CLRT-D| criterion is not his rule, does not matter, and must not appear or be reported.
+  What the defense hides is the CLRT an adversary between the master and the switch sees (ACK -> response, READ,
+  SELECT, OPERATE). Holding the ACK until the response is ready rules out early/missing response release. Remove
+  every other out-of-scope measure/criterion too (measurement state may be using switch resources), then run on
+  the physical SEL-751: before = no obfuscation, after = timing+size, at D=5/10/15/20; keep pcaps; report the
+  visible CLRT before and after. Done means it runs on the hardware. Plan: ~/.claude/plans/wobbly-skipping-pond.md.
+- Origin of the 100 us rule: agent-written rearm_01/PLAN.md (commit 190a4c603, 2026-10-12); the implementation
+  directive called it "provisional"; later documents hardened it. Never Philip's.
+- c68 = c67 + generator transform m12gen/strip_telemetry.py (--strip-telemetry): removes T outcomes /
+  outcome_count / md.outcome_code / all count() calls, N count_first/count_busy/count_term + retry_dup_t, E outcome
+  Counter + count_t, p1 egress p1_outcome; drop_timer_stale(index) split into two data-free actions. Generator
+  reproduces c67 byte-exactly without the flag (e8565de7). c68 source 825b7e6d; bf-p4c 9.13.2 exit 0; stages
+  N11/E11/T9 (c67 T10); SRAM p0 179->170, p1 52->47; map RAM p0 50->42.
+- Model: core/telemetry_from_log.py recounts the removed counters from the model log (action map from the pinned
+  c67 source); model_driver.Model.register_read uses it for a build whose profile says switch_telemetry=false.
+  Verified against real c67 registers (TELEMETRY_SHIM_VERIFY=1, diag_shim_* runs): relay_sbo 480/480 match.
+- Harness: relay_check.precision -> visible_clrt (reported, never gated); campaign.relay_verdict has no timing
+  gate; builds with switch_telemetry=false skip switch counter expectations; teardown settles on T loop-port
+  frames when T outcomes are absent; sealed_profile diagnostics accept a build with no outcomes register.
+  Config generator drops purpose/host_precision_gated/read_precision/precision_reference/qualification_dimensions.
+  c68 configs: rc01_m12p_c68_sdk9132_sel751_d{5,10,15,20}oc_reference_rest.json (off + combined, 386 exchanges).
+- 2026-10-25 22:2x-22:46 — c68 model gate PASS (attempt 04, 17/17; model_gate_passed) after three shim fixes, all
+  verified against real c67 registers/counters (diag_shim_*): (1) "Execute Default Action" lines; (2) shim reads
+  were slow (2 s idle wait) and starved model_packets' finite busy-retry poll -> 10/50 ms wait; (3) E's outcome
+  Counter is read via the table API by four drivers -> CounterTable stand-in; E results from executed action names
+  too, because c68's compiler drops m.result writes nothing reads (rev_translate). Remaining c67 verify mismatch:
+  16 reads of T cell 1 during live recirculation (log sampled after the register; final totals equal).
+- c68 freeze_v3_01 (4 configs) and freeze_v3_02 (+ d5c). Hardware: rc01_hw_c68_20261025_01 (D5 off+combined) and
+  _05 (identical rerun) failed in the off arm; _06 (D5 combined only) failed the same way: exchange 3, the first
+  integrity READ after an OPERATE, TIMEOUT; after the relay's ACK no relay frame reached the master (port 64 RX 23,
+  port 9 TX 10). Restoration verified every time; ownership inactive, unsafe=false.
+- Model cannot reproduce (diag_offarm_sequence, diag_offarm_replay with the exact silicon frames: pass on c68 and c67).
+- A/B: rc01_hw_c67_20261025_09 (unchanged c67 binary, d10ab = c67 D10 config + purpose diagnostic, diagnostic freeze
+  freeze_v3_diag_ab_20261025.json) fails IDENTICALLY -> not a c68 defect.
+- ROOT CAUSE (relay state): every relay response carried IIN 80 00 through 16:10; from 22:25 they carry 84 00
+  (IIN1.2 CLASS_2_EVENTS available; no test traffic in between). The "integrity" READ requests g60v2/v3/v4 + g60v1
+  (classes 1,2,3,0), so with a pending class-2 event the relay's response is no longer the admitted 134-octet
+  class-0 shape and the switch drops it (and the connection's later relay frames). Blocked on clearing the relay's
+  pending event(s) — a relay action outside the established workloads -> Philip's decision.
+- 2026-10-25 22:52-23:09 — Philip chose "I poll and confirm it once" for the relay class-2 event. Built the one-time
+  clear: active_harness/event_clear.py (READ class 2 + application CONFIRM per CON fragment, <=3 polls, then READ
+  class 0; asserts only functions 0x01/0x00; 4 unit tests), vision_run.py --event-clear (plain sel751 run only),
+  candidate_relay_native.py event_clear mode, config protocol/hw_vepa/config/sel751_event_clear_20261025.json,
+  production-baseline freeze relay_event_clear_20261025/native_freeze_event_clear_01.json, dry-run rc 0.
+- relay_event_clear_20261025_01: refused by the supervisor before any contact (manifest in the evidence dir made the
+  campaign dir equal the run root). Reissued as _02 (manifest under hw_campaigns/).
+- relay_event_clear_20261025_02: rc 2, UNSAFE_RESTORATION SET. My error: the config was copied from the 2026-10-24
+  native config, whose hosts.vision is decps@10.10.54.166 (old Vision address; current is .19, as in the c68
+  configs). The block failed at its first Vision step (ssh: No route to host) after only read-only switch checks and
+  tool copies; no program swap, no slot change, no Vision change, no relay traffic. restore_verify: switch program
+  case4_response_path, 399 tables equal the pre-run snapshot (0 errors); every failure is a Vision check against
+  .166. Per the standing rule all hardware work is STOPPED pending Philip. Proposed: the reviewed reconcile class
+  vision_unreachable_repair.py with --vision-host decps@10.10.54.19 (re-proves Vision identity, runs the runner's
+  Vision restore and ping, immutable record), then fix hosts.vision in the event-clear config and re-freeze.
+- 2026-10-26 01:0x-05:2x — reconcile: the reviewed vision_unreachable_repair class did not fit (restore never ran).
+  Philip (autonomous): "Extend reconcile, reviewed". Added `vision_never_reached()` + routing in
+  evaluation_campaign.reconcile -> reconcile_no_contact(never_reached=HOST): pure proof (only pre-contact steps rc 0,
+  one [vision] rc 255, ssh connect failure to the configured host; runner record empty; run output and campaign_run
+  hash-bound to the artifact manifest), Vision identity re-proof, --vision-host validated before any ssh, named
+  baseline (last good block, baseline_is_latest), hosts may differ only in vision, production may add only identity
+  pins, fresh restore_verify UNCHANGED with the step config (vision remapped) and the baseline's inputs; must pass in
+  full. Two independent reviews (first found the offload-baseline gap -> redesign; second: safe, production-pin gap
+  -> fixed). Tests: tests/test_vision_never_reached.py 17 (pure + end-to-end). Live reconcile 05:20:57Z: fresh
+  restore_verify passed, flag cleared (reconciliation.json under hw_campaigns/relay_event_clear_20261025_02/steps/).
+- relay_event_clear_20261025_03 (config sel751_event_clear_20261026.json, Vision .19, freeze native_freeze_event_clear_03):
+  one class-2 READ -> fragment ctrl E0 (CON) with event data -> one CONFIRM -> class-0 READ IIN 80 00. Functions sent
+  READ/CONFIRM only. rc 0, restoration verified.
+- c68 freeze_v3_03 (v3_01/02 stale after the evaluation_campaign.py change). rc01_hw_c68_20261026_01..04
+  (D5/10/15/20, off + combined): ALL rc 0, both arms ok in every block, restoration verified, ownership inactive.
+  Visible CLRT table: read_complete_01/CURRENT.md; evidence/c68_visible_clrt_20261026.json. Before: class medians
+  2.2-3.9 ms (relay-native). After: every class centred on D (medians within ~0.25 ms of D), sizes 141/158/60/60.
+- Docs updated (CLAUDE.md current-state section, plan.md, CURRENT.md, STATUS.md, ACTIVE_CODE_MAP.md, handover
+  addendum). Model logs xz-compressed with RAW_SHA256SUMS; the three ~8.5 GB diag_shim_contention logs stay on disk
+  (hashes recorded, not committed).

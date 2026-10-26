@@ -22,6 +22,12 @@ DRIVERS = {'fin_busy': HERE / 'model_fin_busy.py', 'relay_sbo': HERE / 'model_re
            'mau_probe': HERE / 'model_mau_probe.py'}  # diagnostic: snapshot write semantics, not a gate driver
 # diagnostics outside the gate: evidence/diag_<name>_<build>_NN, which model_summary's model_* glob never reads
 DIAGNOSTICS = {'select_retransmit': HERE / 'model_select_retransmit.py'}  # H-M1b, WORKING_NOTES 2026-10-25
+# c68 log-derived counters, checked against the real c67 registers (TELEMETRY_SHIM_VERIFY=1)
+DIAGNOSTICS.update(shim_relay_sbo=HERE / 'model_relay_sbo.py', shim_control_timing=HERE / 'model_control_timing.py',
+                   shim_contention=HERE / 'model_contention.py',
+                   shim_policy_boundary=HERE.parent / 'seg61_02' / 'model_policy_boundary.py')
+DIAGNOSTICS['offarm_sequence'] = HERE / 'model_offarm_sequence.py'   # rc01_hw_c68_20261025_01 off-arm READ loss
+DIAGNOSTICS['offarm_replay'] = HERE / 'model_offarm_replay.py'
 # wrapper drivers and the driver code they execute; local modules every driver imports
 WRAPPED = {name: {'model_contention.py': HERE / 'model_contention.py'} for name in ('abort', 'egress_diag')}
 WRAPPED['half_rst'] = {'model_packets.py': HERE.parent / 'seg61_02' / 'model_packets.py'}

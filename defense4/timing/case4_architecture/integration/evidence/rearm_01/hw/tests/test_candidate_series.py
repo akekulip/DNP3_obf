@@ -366,9 +366,6 @@ def test_verdict_fails_the_trial_when_the_standards_validator_rejects(monkeypatc
         (tmp_path / cn / 'verdict.json').write_text(json.dumps({'ok': True}))
     # Every other collaborator passes, so the standards wrapper is the only possible failure.
     monkeypatch.setattr(module.checks, 'application_checks', lambda *a, **kw: [])
-    monkeypatch.setattr(module.checks, 'read_precision_gate',
-                        lambda *a, **kw: {'pass': True, 'eligible': 20, 'absolute_error_us': {},
-                                          'p99_nearest_rank_abs_error_us': 0})
     monkeypatch.setattr(module.wc, 'parse', lambda path: ([], []))
     monkeypatch.setattr(module, 'freshness_gate', lambda *a, **kw: {'server_isn': 1})
     monkeypatch.setattr(module, 'series_switch_gate', lambda *a, **kw: ([], {}))

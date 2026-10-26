@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Serial precision follow-up; retain threshold failures and require complete rollback."""
+"""Serial timing follow-up block; advances only on a passed run with complete rollback (timing is reported,
+never an excuse for a failure)."""
 import argparse
 import json
 import os
@@ -21,10 +22,7 @@ def admissible(record):
     trials = [trial for arm in record.get('arms', []) for trial in arm.get('trials', [])]
     if not trials:
         return False
-    failures = [failure for trial in trials for failure in trial.get('failures', [])]
-    return record.get('ok') is True or (bool(failures) and all(f.startswith('READ precision:') for f in failures)
-                                       and all(t.get('ok') or t.get('continuation', {}).get('allowed') is True
-                                               for t in trials))
+    return record.get('ok') is True
 
 
 def main():

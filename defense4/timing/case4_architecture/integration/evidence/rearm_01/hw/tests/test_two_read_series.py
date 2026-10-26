@@ -378,9 +378,6 @@ def test_series_verdict_uses_per_class_checks_padding_and_read_policy(monkeypatc
     monkeypatch.setattr(campaign, 'step', lambda where, what, cmd, **kw: commands.append(cmd) or
                         real_step(where, what, cmd, **kw))
     monkeypatch.setattr(module.checks, 'application_checks', lambda *a, **kw: app_kwargs.append(kw) or [])
-    monkeypatch.setattr(module.checks, 'read_precision_gate',
-                        lambda *a, **kw: {'pass': True, 'eligible': 20, 'absolute_error_us': {},
-                                          'p99_nearest_rank_abs_error_us': 0})
     monkeypatch.setattr(module.wc, 'parse', lambda path: ([], []))
     monkeypatch.setattr(module, 'freshness_gate', lambda *a, **kw: {'server_isn': 1})
     monkeypatch.setattr(module, 'series_switch_gate', lambda *a, **kw: ([], {}))

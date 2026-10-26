@@ -59,16 +59,10 @@ _ORIG_STANDARDS_OBSERVED = cp.Campaign.standards_observed
 
 
 def fake_standards_observed(self, ev, failures, *, transport_ok, select_ok, operate_ok, aggregate_ok,
-                            checker_result=None, **precision_kwargs):
-    standards_failures = list(failures)
-    standards_aggregate = aggregate_ok
-    if standards_failures and all(str(f).startswith('READ precision:') for f in standards_failures):
-        standards_failures = []
-        standards_aggregate = True
+                            checker_result=None):
     observed = _ORIG_STANDARDS_OBSERVED(
-        self, ev, standards_failures, transport_ok=transport_ok, select_ok=select_ok,
-        operate_ok=operate_ok, aggregate_ok=standards_aggregate, checker_result=checker_result,
-        **precision_kwargs)
+        self, ev, list(failures), transport_ok=transport_ok, select_ok=select_ok,
+        operate_ok=operate_ok, aggregate_ok=aggregate_ok, checker_result=checker_result)
     if checker_result:
         counts = checker_result.get('expected_counts') or {}
         lengths = checker_result.get('expected_lengths') or {}
@@ -233,34 +227,14 @@ class Sequence(Base):
         self.assertTrue(r.runs('ping -c'))
         self.assertGreater(r.swaps()[-1], r.runs('vision_run.py run')[-1])
 
-    def test_real_standards_observed_leaves_a_precision_only_failure_to_the_precision_gate(self):
-        """candidate61_compare_14892_950_01: a p99 precision exceedance in a timing-characterization run became a
-        hard standards failure ('observed.failures is non-empty') and stopped the campaign after one trial.
-        The precision outcome is now serialized as observed.precision, not dropped."""
-        cfg = copy.deepcopy(self.cfg)
-        cfg['evaluation'] = {'purpose': 'timing_precision_characterization', 'read_precision': True}
-        campaign = self.campaign(FakeRunner(), arms=('combined',), cfg=cfg)
-        message = 'READ precision: eligible=50 (minimum20), p99 absolute CLRT error=144.0 us (maximum100)'
-        evidence = {'pass': False, 'gated': True, 'eligible': 50, 'absolute_error_us': {'p99': 144.0}}
-        obs = _ORIG_STANDARDS_OBSERVED(campaign, {}, [message], transport_ok=True, select_ok=True,
-                                       operate_ok=True, aggregate_ok=False, precision_required=True,
-                                       precision=evidence)
-        self.assertEqual(obs['failures'], [])
-        self.assertTrue(obs['aggregate_verdict'])
-        self.assertEqual(obs['precision']['status'], 'deferred')
-        self.assertIn('144.0', obs['precision']['reasons'][0])
-        other = _ORIG_STANDARDS_OBSERVED(campaign, {}, [message, 'wire: bad CRC'], transport_ok=True,
-                                         select_ok=True, operate_ok=True, aggregate_ok=False,
-                                         precision_required=True, precision=evidence)
-        self.assertEqual(other['failures'], [message, 'wire: bad CRC'])
-        self.assertFalse(other['aggregate_verdict'])
-        qual = _ORIG_STANDARDS_OBSERVED(self.campaign(FakeRunner(), arms=('combined',)), {}, [message],
-                                        transport_ok=True, select_ok=True, operate_ok=True, aggregate_ok=False,
-                                        precision_required=True, precision=evidence)
-        self.assertEqual(qual['precision']['status'], 'fail')       # qualification purpose: never deferred
-        missing = _ORIG_STANDARDS_OBSERVED(campaign, {}, [], transport_ok=True, select_ok=True, operate_ok=True,
-                                           aggregate_ok=True, precision_required=True, precision=None)
-        self.assertEqual(missing['precision']['status'], 'fail')
+    def test_real_standards_observed_is_conformance_only(self):
+        """Every failure handed to the standards artifact stays a failure; no timing block is added."""
+        campaign = self.campaign(FakeRunner(), arms=('combined',))
+        obs = _ORIG_STANDARDS_OBSERVED(campaign, {}, ['wire: bad CRC'], transport_ok=True, select_ok=True,
+                                       operate_ok=True, aggregate_ok=False)
+        self.assertEqual(obs['failures'], ['wire: bad CRC'])
+        self.assertFalse(obs['aggregate_verdict'])
+        self.assertFalse({'precision', 'objectives'} & set(obs))
 
     def _artifacts(self, root='c1'):
         out = []
@@ -269,62 +243,20 @@ class Sequence(Base):
                         json.load(open(path.parent / 'standards_verdict.json'))))
         return out
 
-    def test_standards_json_carries_precision_and_trial_carries_qualification(self):
+    def test_standards_json_carries_no_timing_block_and_trial_reports_visible_clrt(self):
         with contextlib.redirect_stdout(io.StringIO()):
             rc = self.campaign(FakeRunner(), arms=('size_only', 'combined')).execute()
         self.assertEqual(rc, 0)
         found = self._artifacts()
         self.assertEqual(sorted(arm for arm, *_ in found), ['combined', 'size_only'])
         for arm, artifact, trial, verdict in found:
-            precision = artifact['observed']['precision']
-            want = ('not_applicable', False) if arm == 'size_only' else ('pass', True)
-            self.assertEqual((precision['status'], precision['required']), want, arm)
-            self.assertEqual(verdict['qualification'], 'qualified', arm)
-            self.assertEqual(trial['qualification'], {'trial': 'qualified'})
+            self.assertFalse({'precision', 'objectives'} & set(artifact['observed']), arm)
+            self.assertTrue(verdict['ok'], arm)
+            self.assertNotIn('qualification', verdict)
+            self.assertNotIn('qualification', trial)
+            self.assertIn('READ', trial['observed']['visible_clrt'])
         record = json.load(open(Path(self.tmp) / 'ev' / 'c1' / 'campaign_run.json'))
-        quals = [t.get('qualification') for a in record['arms'] for t in a['trials']]
-        self.assertEqual(quals, [{'trial': 'qualified'}] * 2)            # reaches the run record downstream
-
-    def _failing_precision(self):
-        # the READ gate of every new evaluation is read_precision_gate (nearest-rank p99, v3 artifacts)
-        failing = {'pass': False, 'eligible': 50, 'minimum_eligible': 20, 'maximum_p99_absolute_error_us': 100,
-                   'absolute_error_us': {'p99': 144.0}, 'p99_nearest_rank_abs_error_us': 144.0,
-                   'signed_error_us': None, 'excluded': {}, 'tails': []}
-        original = cp.checks.read_precision_gate
-        cp.checks.read_precision_gate = lambda *a, **kw: dict(failing)
-        self.addCleanup(setattr, cp.checks, 'read_precision_gate', original)
-
-    def test_precision_failure_in_qualification_is_rejected_and_still_restores(self):
-        self._failing_precision()
-        r = FakeRunner()
-        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-            self.assertNotEqual(self.campaign(r, arms=('combined',)).execute(), 0)
-        (arm, artifact, trial, verdict), = self._artifacts()
-        self.assertEqual(artifact['observed']['precision']['status'], 'fail')
-        self.assertEqual(artifact['observed']['failures'], [])               # conformance kept separate
-        self.assertEqual(verdict['qualification'], 'rejected')
-        self.assertFalse(trial['ok'])
-        self.assertTrue(r.runs('ping -c'))
-        self.assertGreater(r.swaps()[-1], r.runs('vision_run.py run')[-1])
-
-    def test_failing_rate_characterization_finishes_as_measurement_only(self):
-        self._failing_precision()
-        cfg = copy.deepcopy(self.cfg)
-        cfg['evaluation'] = {'purpose': 'timing_precision_characterization', 'read_precision': True}
-        cfg['trials']['trials_per_arm'] = 2
-        r = FakeRunner()
-        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-            self.campaign(r, arms=('combined',), cfg=cfg).execute()
-        found = self._artifacts()
-        self.assertEqual(len(found), 2)                                      # did not stop after the first trial
-        for arm, artifact, trial, verdict in found:
-            self.assertEqual(artifact['observed']['precision']['status'], 'deferred')
-            self.assertEqual(verdict['qualification'], 'measurement_only')
-            self.assertTrue(verdict['ok'])
-            self.assertFalse(trial['ok'])                                    # the precision failure stays recorded
-            self.assertTrue(trial['continuation']['allowed'])
-            self.assertFalse(any(f.startswith(('standards: ', 'qualification: ')) for f in trial['failures']))
-        self.assertTrue(r.runs('ping -c'))
+        self.assertTrue(record['ok'] and record['gate_ok'])
 
     def test_standards_checker_system_exit_becomes_structured_failure(self):
         class ExitingChecker:

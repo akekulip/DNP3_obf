@@ -120,6 +120,15 @@ def run_relay_connection(run_dir, label, master_port, reads, gap_ms=0, read_paus
                                                      capture=os.path.join(run_dir, 'in.pcap'))
                 loss_owner[0].install()
             time.sleep(start_delay_ms(start_delay_max, start_seed) / 1000)
+            if os.environ.get('RELAY_EVENT_CLEAR') == '1':
+                # one-time class-2 poll + application CONFIRM (Philip 2026-10-25); READ/CONFIRM only
+                import event_clear
+                from session import Session
+                with Session(RELAY_IP, 20000, source_address=(MASTER_IP, master_port)) as session:
+                    master = event_clear.clear(session)
+                json.dump(master, open(os.path.join(run_dir, 'event_clear.json'), 'w'), indent=2)
+                result.update(ok=master['ok'], master_rc=0 if master['ok'] else 1, event_clear=True)
+                return result
             master = workload(master_port, reads, schedule=read_schedule or 'mixed_full', sbo_cycles=sbo_cycles,
                               run_sbo=run_sbo, gap_ms=gap_ms, read_pause_ms=read_pause_ms,
                               close_grace_ms=close_grace_ms, close_mode=close_mode,
@@ -750,6 +759,8 @@ def main():
     ap.add_argument('--drop', metavar='CLASS[:N]',
                     help='drop exactly the Nth packet of a class at the receiving namespace ingress (see loss.py); '
                          'classes: ' + ', '.join(loss.names()))
+    ap.add_argument('--event-clear', action='store_true',
+                    help='physical SEL-751 only: poll class-2 events and confirm them once, then check IIN (READ/CONFIRM)')
     ap.add_argument('--qualify-capture', action='store_true',
                     help='opt-in physical packet-boundary qualification evidence for this run')
     ap.add_argument('--read-schedule', choices=READ_SCHEDULES,
@@ -759,6 +770,10 @@ def main():
     ap.add_argument('--pad-expect', help='read-schedule endpoint, padded arm: CASE4_PAD_EXPECT for the master only '
                                          '(<class>=<n>[,...]; needs --read-schedule)')
     a = ap.parse_args()
+    if a.event_clear:
+        if a.endpoint_profile != 'sel751' or a.mode != 'run' or a.drop or a.scenario:
+            sys.exit('--event-clear is only for one plain physical SEL-751 run')
+        os.environ['RELAY_EVENT_CLEAR'] = '1'
     if a.apply and (a.endpoint_profile != 'sel751' or a.mode != 'run'):
         sys.exit('--apply is only supported for the physical SEL-751 run entrypoint')
     if a.endpoint_profile == 'sel751' and a.mode == 'run':

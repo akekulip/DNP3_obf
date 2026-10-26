@@ -369,9 +369,9 @@ class ReviewTwoFindings(unittest.TestCase):
 
     def test_gate_never_excuses_an_invalid_diagnostic(self):
         import campaign as cp
-        self.assertTrue(cp.gate_ok({'ok': True}, False))
-        self.assertTrue(cp.gate_ok({'ok': False}, True))                     # precision-only reported path
-        self.assertFalse(cp.gate_ok({'ok': False, 'host_diagnostic_invalid': True}, True))
-        self.assertFalse(cp.gate_ok({'ok': True, 'host_diagnostic_invalid': True}, False))
+        self.assertTrue(cp.gate_ok({'ok': True}))
+        self.assertFalse(cp.gate_ok({'ok': False}))                          # no failure is excused
+        self.assertFalse(cp.gate_ok({'ok': False, 'host_diagnostic_invalid': True}))
+        self.assertFalse(cp.gate_ok({'ok': True, 'host_diagnostic_invalid': True}))
         src = Path(cp.__file__).read_text()
-        self.assertIn("self.record['gate_ok'] = gate_ok(self.record, precision_reported)", src)
+        self.assertIn("self.record['gate_ok'] = gate_ok(self.record)", src)

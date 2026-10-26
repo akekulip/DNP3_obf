@@ -12,8 +12,7 @@ A missing or unreadable piece of evidence is a failure, never a crash and never 
 """
 import json
 import math
-
-import clrt_check
+import statistics
 
 LOOP_ROLES = ('n_ack_return', 't_in', 'hb_return', 'held_return')
 RX, RX_GOOD = '$OctetsReceived', '$OctetsReceivedinGoodFrames'
@@ -277,122 +276,24 @@ def application_checks(exp, padding, reads, ev, run_sbo=True, repeated=False, re
     return fails
 
 
-PRECISION_MINIMUM_ELIGIBLE = 20
-PRECISION_MAXIMUM_P99_US = 100
-# Failure-entry prefixes of the timing objectives. Each is gated on its own entry; a timing-characterization run
-# continues past them (campaign.py) and the standards artifact serializes each as its own objective block.
-OBJECTIVE_PREFIXES = ('READ precision:', 'SELECT precision:', 'OPERATE precision:', 'PIGGYBACK latency:',
-                      'OPERATE hold:')
-
-
 def _finite(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
-def nearest_rank(values, q):
-    """Nearest-rank percentile: the ceil(q*n)-th smallest value (None for no values). Every timing objective
-    gates on this; clrt_check.stats' round(q*(n-1)) index lets the single worst of 64 samples escape p99."""
-    v = sorted(values)
-    return v[max(0, math.ceil(q * len(v)) - 1)] if v else None
-
-
-def kind_precision(timing, gap_ns, kind):
-    """Absolute CLRT error of one DNP3 function against the configured gap, clrt_check's declared percentile
-    convention. Eligible rows: complete, not piggybacked, one attempt, finite clrt_us. Pass: at least 20 eligible
-    and p99 absolute error <= 100 us. `over_bound` lists every eligible row whose absolute error exceeds 100 us."""
-    excluded = dict(incomplete=0, piggyback=0, multiple_attempts=0, missing_clrt=0)
-    errors, tails, total = [], [], 0
-    for row in timing.get('exchanges', []):
-        if not isinstance(row, dict) or row.get('kind') != kind:
-            continue
-        total += 1
-        reason = ('incomplete' if row.get('complete') is not True else
-                  'piggyback' if row.get('piggyback') else
-                  'multiple_attempts' if row.get('attempts') != 1 else None)
-        value = row.get('clrt_us')
-        if reason is None and not _finite(value):
-            reason = 'missing_clrt'
-        if reason:
-            excluded[reason] += 1
-            continue
-        error = value - gap_ns / 1000.0
-        errors.append(error)
-        tails.append(dict(t_req=row.get('t_req'), app_seq=row.get('app_seq'), clrt_us=value, error_us=error))
-    absolute = clrt_check.stats([abs(e) for e in errors])
-    p99 = nearest_rank([abs(e) for e in errors], 0.99)
-    return dict(kind=kind, gap_us=gap_ns / 1000.0, rows=total, eligible=len(errors), excluded=excluded,
-                minimum_eligible=PRECISION_MINIMUM_ELIGIBLE, maximum_p99_absolute_error_us=PRECISION_MAXIMUM_P99_US,
-                p99=p99, p99_convention='nearest rank: ceil(0.99 n)-th smallest absolute error',
-                absolute_error_us=absolute, signed_error_us=clrt_check.stats(errors),
-                stats_convention='absolute_error_us/signed_error_us are clrt_check.stats (index round(q(n-1))), '
-                                 'reported only; the gate is p99',
-                max_absolute_error_us=absolute['max'] if absolute else None,
-                tails=sorted(tails, key=lambda row: abs(row['error_us']), reverse=True)[:5],
-                over_bound=[t for t in tails if abs(t['error_us']) > PRECISION_MAXIMUM_P99_US],
-                sufficient=len(errors) >= PRECISION_MINIMUM_ELIGIBLE,
-                **{'pass': len(errors) >= PRECISION_MINIMUM_ELIGIBLE and p99 is not None
-                   and p99 <= PRECISION_MAXIMUM_P99_US})
-
-
-def read_precision(timing, gap_ns):
-    """READ-only absolute error using clrt_check's declared percentile convention (kind_precision for READ, in
-    the shape the READ precision block has always serialized)."""
-    p = kind_precision(timing, gap_ns, 'READ')
-    return dict(gap_us=p['gap_us'], read_rows=p['rows'], eligible=p['eligible'], excluded=p['excluded'],
-                minimum_eligible=p['minimum_eligible'], maximum_p99_absolute_error_us=p['maximum_p99_absolute_error_us'],
-                absolute_error_us=p['absolute_error_us'], signed_error_us=p['signed_error_us'],
-                tails=[dict(t_req=t['t_req'], clrt_us=t['clrt_us'], error_us=t['error_us']) for t in p['tails']],
-                **{'pass': p['eligible'] >= PRECISION_MINIMUM_ELIGIBLE and p['absolute_error_us'] is not None
-                   and p['absolute_error_us']['p99'] <= PRECISION_MAXIMUM_P99_US})
-
-
-def read_precision_gate(timing, gap_ns):
-    """read_precision plus the nearest-rank p99 the READ gate uses for every new evaluation (v3 artifacts):
-    `p99_nearest_rank_abs_error_us`, with `pass` decided by it. The legacy fields keep their meaning."""
-    out = read_precision(timing, gap_ns)
-    p = kind_precision(timing, gap_ns, 'READ')
-    out['p99_nearest_rank_abs_error_us'] = p['p99']
-    out['pass'] = p['pass']
+def visible_clrt(timing):
+    """The CLRT (ACK -> response, clrt_check's clrt_us) the master side shows per DNP3 function, reported as data and
+    never compared against a threshold: n, min, median, max and every value in microseconds over complete,
+    non-piggybacked exchanges with a finite CLRT. Piggybacked exchanges have no separate CLRT and are counted apart."""
+    out = {}
+    for kind in ('READ',) + SBO:
+        rows = [r for r in (timing or {}).get('exchanges', []) if isinstance(r, dict) and r.get('kind') == kind]
+        values = sorted(r['clrt_us'] for r in rows
+                        if r.get('complete') is True and not r.get('piggyback') and _finite(r.get('clrt_us')))
+        out[kind] = dict(n=len(values), piggyback=sum(bool(r.get('piggyback')) for r in rows),
+                         min_us=values[0] if values else None,
+                         median_us=statistics.median(values) if values else None,
+                         max_us=values[-1] if values else None, values_us=values)
     return out
-
-
-PIGGYBACK_MINIMUM_SAMPLES = 20
-PIGGYBACK_MARGIN_US = 250
-PIGGYBACK_NOTE = ('provisional objective: nearest-rank p99 of request-to-response (rt_us, master request on '
-                  'out.pcap to response on in.pcap, the same Vision NIC clock) over piggybacked exchanges <= '
-                  'pb + margin; up to 1% of samples may exceed it, so it is not a maximum guarantee. Response '
-                  'availability at the outstation is not observed by this verdict.')
-
-
-def piggyback_latency(timing, pb_ns, margin_us=PIGGYBACK_MARGIN_US):
-    """Request-to-response latency (rt_us) of every complete exchange clrt_check classified as piggybacked from
-    the capture (never from the fixture name), all kinds. Pass: at least 20 samples and p99 <= pb + margin."""
-    target = pb_ns / 1000.0 + margin_us
-    values, over, missing = [], [], 0
-    for row in timing.get('exchanges', []):
-        if not isinstance(row, dict) or row.get('complete') is not True or not row.get('piggyback'):
-            continue
-        value = row.get('rt_us')
-        if not _finite(value):
-            missing += 1
-            continue
-        values.append(value)
-        if value > target:
-            over.append(dict(kind=row.get('kind'), app_seq=row.get('app_seq'), t_req=row.get('t_req'), rt_us=value))
-    s = clrt_check.stats(values)
-    n = len(values)
-    p99 = nearest_rank(values, 0.99)
-    reasons = []
-    if n < PIGGYBACK_MINIMUM_SAMPLES:
-        reasons.append('insufficient piggyback samples: %d < %d' % (n, PIGGYBACK_MINIMUM_SAMPLES))
-    elif p99 > target:
-        reasons.append('nearest-rank p99 request-to-response %s us exceeds pb + margin %s us' % (p99, target))
-    return dict(pb_us=pb_ns / 1000.0, margin_us=margin_us, target_us=target, n=n, missing_rt=missing,
-                minimum_samples=PIGGYBACK_MINIMUM_SAMPLES, p50=nearest_rank(values, 0.5), p99=p99,
-                p99_convention='nearest rank: ceil(0.99 n)-th smallest rt_us',
-                max=s['max'] if s else None, rt_us_stats_round_index=s, above_target=over,
-                sufficient=n >= PIGGYBACK_MINIMUM_SAMPLES, reasons=reasons, note=PIGGYBACK_NOTE,
-                **{'pass': not reasons})
 
 
 def _delta_outcomes(before, after, timing_contract=None, require_no_bypass=False):
@@ -465,6 +366,9 @@ def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0, 
             if d[app]['pkts'] != pkts:
                 fails.append('T on: generated %s packets delta %d, expected %d (2k = %d per trigger)'
                              % (app, d[app]['pkts'], pkts, 2 * k))
+        if not isinstance(obs.get('outcomes'), dict):
+            obs['token_stale_bound'] = 'unknown: no switch telemetry in this build'
+            return
         stale = (obs.get('outcomes') or {}).get('OUT_TOKEN_STALE') or 0
         # control-timed builds: the OPERATE opens the next READ-lane generation milliseconds after its SELECT's
         # response, so at most the SELECT's 2k blocker tokens are stranded and rejected as stale per cycle
@@ -481,18 +385,15 @@ def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0, 
                              % (app, d[app]['triggers'], d[app]['pkts']))
 
 
-def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stale=0, diagnostic=False, gap_ns=None, precision=True, run_sbo=True,
-             repeated=False, control_timed=False, piggyback_bound=False, pb_ns=None, op_j_ns=None,
+def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stale=0, diagnostic=False, run_sbo=True,
+             repeated=False, control_timed=False, piggyback_bound=False, op_j_ns=None,
              gen_exhausted_outcome=None, read_classes=None):
     """mirror_k: the installer --k when the build is flagged mirror_fix (adds the generator-trigger checks), else None.
 
-    Timing objectives, each gated on its own failure entry (OBJECTIVE_PREFIXES) and observed under its own key:
-      read_precision      gap_ns given; gated on a timed arm, separate-ACK fixture, precision enabled
-      select_precision,   gap_ns given; gated additionally only on a control_timed build with SBO
-      operate_precision
-      piggyback_latency   pb_ns given; gated on a piggyback_bound build, timed arm, piggyback fixture
-      operate_hold        op_j_ns given; gated on a timed arm with SBO, over ev['hold'] (hold_check.analyze of the
-                          trial's own captures); missing hold evidence fails the gate
+    Timing is reported, never gated: observed.visible_clrt (per DNP3 function, see visible_clrt) and the READ
+    piggyback fraction. The OPERATE delivery check (op_j_ns given, timed arm with SBO, over ev['hold'] from
+    hold_check.analyze of the trial's own captures) gates only that every OPERATE sent reached the outstation side;
+    its transit against op_j is reported as data. Missing hold evidence fails that check.
     """
     allowed = allowed or {}
     fails, obs = [], {}
@@ -507,10 +408,7 @@ def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stal
     rd = rd if isinstance(rd, dict) else {}
     if isinstance(rd, dict) and isinstance(rd.get('complete'), int) and isinstance(rd.get('piggyback'), int):
         frac = rd['piggyback'] / rd['complete'] if rd['complete'] else 0.0
-        obs['piggyback_fraction'] = round(frac, 4)
-        lo, hi = exp['fixture'][fixture]['piggyback_fraction']
-        if not lo <= frac <= hi:
-            fails.append('piggyback fraction %.3f outside %s for fixture %s' % (frac, [lo, hi], fixture))
+        obs['piggyback_fraction'] = round(frac, 4)       # reported, never gated
     if isinstance(t, dict):
         native = exp['native_len']
         first = {cls: (e.get('native_segments') or [e['native']])[0]
@@ -527,27 +425,7 @@ def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stal
             fails.append('padding off but master-visible response growth is %d B' % obs['growth_bytes'])
         if pad['growth'] == 'positive' and obs['growth_bytes'] <= 0:
             fails.append('padding on but master-visible response growth is %d B (expected > 0)' % obs['growth_bytes'])
-        if gap_ns is not None:
-            obs['read_precision'] = read_precision_gate(t, gap_ns)
-            obs['read_precision']['gated'] = bool(precision and arm['T'] and fixture == 'separate_ack')
-            if obs['read_precision']['gated'] and not obs['read_precision']['pass']:
-                fails.append('READ precision: eligible=%d (minimum20), p99 absolute CLRT error=%s us (maximum100)' %
-                             (obs['read_precision']['eligible'], obs['read_precision']['p99_nearest_rank_abs_error_us']))
-            # control-timed builds also claim SELECT and OPERATE ACK->response CLRT at the gap, each gated alone
-            for kind in SBO:
-                key = '%s_precision' % kind.lower()
-                obs[key] = kind_precision(t, gap_ns, kind)
-                obs[key]['gated'] = bool(control_timed and run_sbo and precision and arm['T']
-                                         and fixture == 'separate_ack')
-                if obs[key]['gated'] and not obs[key]['pass']:
-                    fails.append('%s precision: eligible=%d (minimum%d), nearest-rank p99 absolute CLRT error=%s us '
-                                 '(maximum%d)' % (kind, obs[key]['eligible'], PRECISION_MINIMUM_ELIGIBLE,
-                                                  obs[key]['p99'], PRECISION_MAXIMUM_P99_US))
-        if pb_ns is not None:
-            obs['piggyback_latency'] = piggyback_latency(t, pb_ns)
-            obs['piggyback_latency']['gated'] = bool(piggyback_bound and arm['T'] and fixture == 'piggyback')
-            if obs['piggyback_latency']['gated'] and not obs['piggyback_latency']['pass']:
-                fails.append('PIGGYBACK latency: %s' % '; '.join(obs['piggyback_latency']['reasons']))
+        obs['visible_clrt'] = visible_clrt(t)
     if op_j_ns is not None:
         import hold_check     # campaign-side only: checks.py is also deployed alone beside vision_candidate.py
         operate = summary.get('OPERATE') if isinstance(summary.get('OPERATE'), dict) else {}
@@ -566,10 +444,12 @@ def evaluate(exp, arm, fixture, reads, ev, allowed=None, mirror_k=None, max_stal
 
 def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=0, diagnostic=False,
                     sbo_count=1, complete_reads=None, piggyback_reads=0, control_timed=False, piggyback_bound=False,
-                    piggyback_controls=0, gen_exhausted_outcome=None, timing_contract=None):
+                    piggyback_controls=0, gen_exhausted_outcome=None, timing_contract=None, telemetry=True):
     """Switch deltas for installed traffic; callers supply the number of installed READs and SBOs.
 
     Reconnect's unknown-port connection is native and contributes no installed generator/release counts.
+    telemetry=False (c68: the build has no T outcomes or N count registers): the outcome expectations are skipped;
+    the snapshot-presence, generator and loop-port checks, which read SDE and port state, still gate.
     """
     allowed = allowed or {}
     fails, obs = [], {}
@@ -579,7 +459,9 @@ def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=
     b, a = ev.get('before'), ev.get('after')
     require_no_bypass = bool(timing_contract == 'response_ready_ack_d_v2' and arm['T'] and
                              (reads > 0 or control_timed and sbo_count > 0))
-    if a and b:
+    if a and b and not telemetry:
+        obs['outcomes'] = 'no switch telemetry in this build'
+    if a and b and telemetry:
         try:
             d = _delta_outcomes(b, a, timing_contract, require_no_bypass)
         except (KeyError, TypeError) as err:
@@ -648,6 +530,7 @@ def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=
                 for k in set(exp['T']['0']['zero_outcomes']) | {'OUT_ACK_FALLBACK', 'OUT_RESP_FALLBACK'}:
                     if d.get(k):
                         fails.append('T off but %s=%s (expected 0)' % (k, d[k]))
+    if a and b:
         if mirror_k is not None:
             _mirror_checks(exp['mirror_fix'], arm, reads, sbo_count, b, a, mirror_k, fails, obs, max_stale, control_timed)
         gaps = _loop_gap(b, a)

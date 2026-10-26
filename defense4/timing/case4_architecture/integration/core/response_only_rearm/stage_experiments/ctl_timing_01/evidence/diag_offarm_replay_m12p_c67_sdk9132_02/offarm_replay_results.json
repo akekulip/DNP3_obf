@@ -1,0 +1,58 @@
+{
+ "cases": [
+  {
+   "expected": [
+    7,
+    9
+   ],
+   "name": "tight_all_frames_forwarded",
+   "observed": [
+    1,
+    0
+   ],
+   "ok": false,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003cf7e740004006ad7bc0a80a01c0a80a07ea604e20657fd36600000000a002faf0b7580000020405b40402080a42324cc40000000001030307"
+    ],
+    "9": []
+   }
+  }
+ ],
+ "meta": {
+  "driver_sha256": "4c570145f0b4bbc952d48ef894ff49077ec843ebf01b1ec8423e24f5370d2d06",
+  "endpoint_profile": {
+   "alternate_tcp_port_fixture": "Unconfigured-connection probes use master source port 59411",
+   "dnp_master": 1,
+   "dnp_relay": 0,
+   "master_dev": 9,
+   "master_ip": "192.168.10.1",
+   "master_mac": "3c:fd:fe:cc:5d:c0",
+   "master_tcp_port": 59410,
+   "master_window_scale": 7,
+   "name": "sel751",
+   "relay_dev": 64,
+   "relay_ip": "192.168.10.7",
+   "relay_mac": "00:30:a7:02:4c:a2",
+   "relay_tcp_port": 20000,
+   "relay_window_scale": 0,
+   "syn_tcp_header_octets": 40,
+   "synack_tcp_header_octets": 44,
+   "tcp_header_octets": 32,
+   "tcp_profile": "sel751_ts",
+   "timestamp_policy": "monotonic logical steps; exact options retained across seq/ack mapping"
+  },
+  "frames_sha256": "bd6c184b44a3f4f0a61aa1588f2baa90fa7d39372e7d1785b2d99d38d2ceeedc",
+  "physical": false,
+  "qualification_driver": false,
+  "scope": "diagnostic: c68 off-arm silicon frames replayed on the model (tight=True)"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "tight_all_frames_forwarded"
+  ],
+  "passed": 0,
+  "total": 1
+ }
+}

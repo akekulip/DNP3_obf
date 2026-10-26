@@ -146,7 +146,7 @@ class NativeRstCapture(unittest.TestCase):
         self.assertEqual([entry['step'] for entry in campaign.record['restore']], ['restore relay slot', 'restore Vision', 'restore ping'])
         retained = json.loads((Path(campaign.root) / 'native_rst_capture.json').read_text())
         self.assertTrue(retained['ok']); self.assertEqual(len(retained['series']['connections']), 3)
-        self.assertFalse(retained['effective_config']['evaluation']['read_precision'])
+        self.assertEqual(retained['effective_config']['evaluation'], {'purpose': 'native-rst-replay-archive'})
         self.assertTrue(retained['source_hashes']); self.assertTrue(retained['hashes'])
 
     def test_failed_traffic_or_restore_attempts_every_restore(self):

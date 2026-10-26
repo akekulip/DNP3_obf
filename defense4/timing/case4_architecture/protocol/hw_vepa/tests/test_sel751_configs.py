@@ -142,7 +142,8 @@ def test_generator_refuses_unbound_source_and_pins_selected_compile(tmp_path, mo
                              'persistence_graceful_950', 'persistence_rst_950', 'reconnect_950']) == 0
     ready_configs = [json.loads(p.read_text()) for p in ready_output.glob('*.json')]
     assert len(ready_configs) == 10
-    references = [c for c in ready_configs if c['evaluation']['campaign_block'].get('precision_reference')]
+    assert not any('precision_reference' in c['evaluation']['campaign_block'] for c in ready_configs)
+    references = [c for c in ready_configs if c['evaluation']['campaign_block']['phase'] == 'reference']
     assert sum(c['evaluation']['campaign_block']['expected_exchanges'] for c in references) == 1930
     assert all(set(c['timing_params_ns']) == {'gap', 'op_j', 'budget', 'enabled'} for c in ready_configs)
     smoke = next(c for c in ready_configs if c['evaluation']['campaign_block']['phase'] == 'smoke')

@@ -949,7 +949,7 @@ def comparable_hosts(hosts):
 
 
 def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline_run_root, baseline_terminal,
-                         preflight=False):
+                         preflight=False, never_reached=None, identity=None):
     """Clear an unverified-restoration flag for a block with NO hardware-run evidence.
 
     Records are written to the campaign's steps/<step>/reconcile_<ts>/ (created exclusively, never reused):
@@ -961,10 +961,16 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
     testbed is checked afresh against a named baseline: the last block that ran (run_block.log), bound to its
     campaign terminal record, whose config has the same hosts and production as this step's. Its restore record and
     pre-run snapshot (and a physical-relay baseline's receive-offload record) are copied in and restore_verify.py
-    runs unchanged with its config. Only exit 0, ok and no
+    runs unchanged with its config (never_reached: with this step's config, hosts.vision remapped). Only exit 0, ok and no
     failures, with units and ownership unchanged afterwards, clear the flag; anything else leaves a refusal.
     preflight=True: the run root exists, and the proof is classify_preflight_failure instead (a runner that failed in
-    its pre-contact deploy steps); the baseline may then be followed in run_block.log only by this block's own START."""
+    its pre-contact deploy steps); the baseline may then be followed in run_block.log only by this block's own START.
+    never_reached=USER@HOST: the proof is vision_never_reached (failed at its first Vision command, configured Vision
+    host unreachable, after only pre-contact steps; run output hash-retained); as for preflight, only this block's
+    own START may follow the baseline; the step's hosts may differ from the baseline's only in hosts.vision, which
+    must be the baseline's and this USER@HOST, re-proven to be Vision under the lock; the step's production may add
+    only PRODUCTION_IDENTITY_PINS to the baseline's; the fresh check uses the step's config with hosts.vision remapped,
+    so those pins are verified on the switch."""
     step_id = step['id']
     records = directory / 'steps' / step_id
     out = records / ('reconcile_%s' % stamp)
@@ -999,7 +1005,31 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
         except (KeyError, TypeError, ValueError, OSError) as error:
             problems.append('step config/run root not derivable: %s' % error)
         bound['run_block_log'] = digest(RUN_BLOCK_LOG.read_bytes()) if RUN_BLOCK_LOG.is_file() else None
-        if preflight:
+        if never_reached is not None:
+            proof, proof_problems = vision_never_reached(step['run_root'], (step_cfg.get('hosts') or {}).get('vision'))
+            try:
+                manifest_ref = terminal['artifact_manifest']
+                if digest(Path(manifest_ref['path']).read_bytes()) != manifest_ref['sha256']:
+                    raise ValueError('artifact manifest changed')
+                retained = read_json(Path(manifest_ref['path']))['files']
+                for name, key in (('run_block_run.out', 'run_output_sha256'), ('campaign_run.json', 'campaign_run_sha256')):
+                    if proof is None or retained.get(name, {}).get('sha256') != proof[key]:
+                        proof_problems.append('%s differs from the retained artifact hash' % name)
+            except (KeyError, TypeError, ValueError, OSError, Refused) as error:
+                proof_problems.append('retained artifact manifest unusable: %s' % error)
+            try:
+                seen = identity(never_reached)
+            except Exception as error:      # noqa: BLE001 - an unreachable host is a refusal, never a pass
+                seen = {'error': str(error)}
+            bound['vision_identity'] = seen
+            if seen.get('rc') != 0 or seen.get('hostname') != 'vision' or seen.get('data_mac') != VISION_DATA_MAC:
+                proof_problems.append('vision host %s is not Vision now: %r' % (never_reached, seen))
+            log = records / 'command.log'
+            evidence = dict(classification='vision_never_reached' if not proof_problems else 'ambiguous',
+                            reasons=proof_problems, proof=proof, vision_host=never_reached,
+                            corroborating=dict(command_log_sha256=digest(log.read_bytes()) if log.is_file() else None))
+            wanted = 'vision_never_reached'
+        elif preflight:
             evidence = classify_preflight_failure(step['run_root'], run_id, RUN_BLOCK_LOG)
             log = records / 'command.log'
             evidence['corroborating']['command_log_sha256'] = digest(log.read_bytes()) if log.is_file() else None
@@ -1017,14 +1047,29 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
         if inputs:
             try:
                 base_cfg = json.loads(Path(base_config).read_text())
-                if (comparable_hosts(step_cfg.get('hosts')) != comparable_hosts(base_cfg.get('hosts')) or
+                step_hosts = dict(step_cfg.get('hosts') or {})
+                if never_reached is not None:
+                    if (base_cfg.get('hosts') or {}).get('vision') != never_reached:
+                        problems.append('baseline Vision host differs from --vision-host')
+                    step_hosts['vision'] = never_reached       # the only host difference allowed, recorded
+                step_production, base_production = step_cfg.get('production'), base_cfg.get('production')
+                if never_reached is not None and isinstance(step_production, dict) and isinstance(base_production, dict):
+                    # the step may carry extra identity pins (verified on the switch by its own fresh check); every
+                    # shared key must be equal; _note is prose
+                    extra = set(step_production) - set(base_production) - {'_note'}
+                    if extra - set(PRODUCTION_IDENTITY_PINS):
+                        problems.append('step production has keys beyond identity pins: %s' % sorted(extra))
+                    step_production = {k: v for k, v in step_production.items() if k in base_production and k != '_note'}
+                    base_production = {k: v for k, v in base_production.items() if k != '_note'}
+                if (comparable_hosts(step_hosts) != comparable_hosts(base_cfg.get('hosts')) or
                         'hosts' not in step_cfg or 'production' not in step_cfg or
-                        step_cfg['production'] != base_cfg.get('production')):
+                        step_production != base_production):
                     problems.append('step config hosts/production differ from the baseline config')
             except (OSError, ValueError) as error:
                 problems.append('baseline config unreadable: %s' % error)
             try:
-                baseline_is_latest(RUN_BLOCK_LOG, base_run_id, problems, preflight_run_id=run_id if preflight else None)
+                baseline_is_latest(RUN_BLOCK_LOG, base_run_id, problems,
+                                   preflight_run_id=run_id if preflight or never_reached is not None else None)
             except OSError as error:
                 problems.append('baseline run_block.log unreadable: %s' % error)
         busy = units()
@@ -1063,8 +1108,13 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
         bound['copied_inputs'] = {path.name: digest((out / path.name).read_bytes()) for path in inputs}
         if bound['copied_inputs'] != {path.name: bound['baseline'][path.name] for path in inputs}:
             refuse(['baseline inputs changed while copied'])
-        command = (verifier(base_config, out) if verifier is not None else
-                   [sys.executable, str(RESTORE_VERIFY), '--config', base_config, '--run-root', str(out)])
+        check_config = base_config
+        if never_reached is not None:
+            # this block's own config (stricter production identity pins), only hosts.vision remapped, recorded
+            check_config, record['vision_remap'] = remap_vision_host(config, out, never_reached)
+            record['check_config'] = str(check_config)
+        command = (verifier(check_config, out) if verifier is not None else
+                   [sys.executable, str(RESTORE_VERIFY), '--config', str(check_config), '--run-root', str(out)])
         rc = command_to_log(command, out / 'restore_verify.log', out)
         fresh_path = out / 'restore_verify.json'
         try:
@@ -1088,9 +1138,11 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
         if late:
             refuse(late)
         reconciliation = out / 'reconciliation.json'
-        atomic_json(reconciliation, dict(record, result='no hardware contact proven and restoration verified afresh '
-                                                        'against the baseline; ownership update follows (the clear is '
-                                                        'proven by reconciliation_sha256 in ownership.json)'),
+        atomic_json(reconciliation, dict(record, result=(
+            'the block never reached Vision (configured host %s unreachable) and made only pre-contact steps; '
+            % (step_cfg.get('hosts') or {}).get('vision') if never_reached is not None else 'no hardware contact proven and ') +
+            'restoration verified afresh against the baseline; ownership update follows (the clear is '
+            'proven by reconciliation_sha256 in ownership.json)'),
                     exclusive=True)
         atomic_json(state_path, dict(active=False, unsafe_restoration=False, campaign_dir=str(directory),
                                      step_id=step_id, previous_terminal_sha256=ownership.get('terminal_sha256'),
@@ -1224,6 +1276,62 @@ def vision_unreachable_acceptance(records, terminal_sha, campaign_run_sha, fresh
     return dict(path=str(path), sha256=digest(raw), vision_host=repair.get('vision_host')), problems
 
 
+# Steps a runner takes before it changes any switch or Vision state (campaign.py deploy_switch / switch_toolkit and the
+# native baseline's identity checks): copying and hashing tools, read-only observation and snapshot, identity hashes.
+PRE_CONTACT_STEPS = re.compile(
+    r'^\[(switch|local) *\] (make remote directories|copy the switch tools .*|copy the installer source tree .*'
+    r'|verify every deployed tool and installer source file by sha256|observe the running program \(read-only, from ps\)'
+    r"|snapshot the running program's \$PORT table \(read-only\) for every later replay|copy the pre-run snapshot back"
+    r'|verify running production conf identity|verify production (launch_sha256|conf_sha256|artifact \S+)) -> rc 0$')
+VISION_CONNECT_FAILED = re.compile(r'ssh: connect to host (?P<host>\S+) port 22: (No route to host|Connection timed out|'
+                                   r'Connection refused|Network is unreachable)')
+
+
+# production keys a native-baseline config pins in addition to a candidate config's (validate_baseline)
+PRODUCTION_IDENTITY_PINS = ('artifact_sha256', 'conf', 'conf_sha256', 'launch_sha256')
+
+
+def vision_never_reached(run_root, configured_host):
+    """Pure, read-only (Philip, 2026-10-26: "Extend reconcile, reviewed"): proof that a block failed at its first Vision
+    command because the configured Vision host never answered, after only pre-contact switch/local steps. Returns
+    (proof, problems). Required: run_block_run.out is the pre-contact step lines (all rc 0), then exactly one [vision]
+    line with rc 255, then the runner's JSON record; campaign_run.json is not ok, has no arms, bring-ups,
+    collections or restore steps, no candidate loaded, and its failure names that Vision step with an ssh connect
+    failure to the configured host."""
+    run_root, problems = Path(run_root), []
+    try:
+        record = read_json(run_root / 'campaign_run.json')
+        lines = [l for l in (run_root / 'run_block_run.out').read_text(errors='replace').splitlines() if l.strip()]
+    except (OSError, ValueError, Refused) as error:
+        return None, ['runner record unreadable: %s' % error]
+    steps = [l for l in lines if l.startswith('[')]
+    tail = lines[len(steps):]
+    vision = [l for l in steps if l.startswith('[vision')]
+    if not steps or len(vision) != 1 or steps[-1] != vision[0] or not vision[0].endswith('-> rc 255'):
+        problems.append('run output does not end in exactly one [vision] step with rc 255')
+    bad = [l for l in steps[:-1] if not PRE_CONTACT_STEPS.match(l)]
+    if bad:
+        problems.append('run output has steps beyond the pre-contact set: %s' % bad[:3])
+    if not tail or not tail[0].startswith('{'):
+        problems.append('run output does not end in the runner record')
+    if record.get('ok') is not False or any(record.get(key) for key in ('arms', 'bringups', 'collections', 'restore')):
+        problems.append('runner record shows work beyond a pre-contact failure')
+    if record.get('candidate_loaded') not in (False, None) or record.get('state_touched') not in (None, {'switch': False, 'vision': False}):
+        problems.append('runner record shows a candidate load or touched state')
+    failure = record.get('failure') or ''
+    match = VISION_CONNECT_FAILED.search(failure)
+    configured = configured_host.split('@', 1)[-1] if configured_host else None
+    if not match or match.group('host') != configured:
+        problems.append('failure is not an ssh connect failure to the configured Vision host %s' % configured)
+    if vision and failure and not failure.startswith(vision[0][vision[0].index(']') + 1:].strip().rsplit(' -> ', 1)[0]):
+        problems.append('runner failure does not name the failed Vision step')
+    proof = dict(configured_vision_host=configured_host, vision_step=vision[0] if vision else None,
+                 pre_contact_steps=len(steps) - 1, failure=failure,
+                 run_output_sha256=digest((run_root / 'run_block_run.out').read_bytes()),
+                 campaign_run_sha256=digest((run_root / 'campaign_run.json').read_bytes()))
+    return proof, problems
+
+
 def remap_vision_host(config, out, host):
     """Write out/config_vision_remap.json: the block's config with ONLY hosts.vision replaced. (path, record)."""
     if not VISION_HOST.fullmatch(host or ''):
@@ -1248,7 +1356,8 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
     the block. restore_verify.py then runs afresh, unchanged, into a new directory. Only if it exits 0 with
     ok and no failures is an immutable reconciliation record written and the ownership record updated
     atomically; any other outcome writes an immutable refusal record and leaves the flag set. Original
-    failure evidence is read, never modified."""
+    failure evidence is read, never modified. A block with no hardware-run evidence, a proven preflight failure, or
+    (with --vision-host) a proven never-reached-Vision failure takes reconcile_no_contact instead."""
     directory, manifest, _ = load(Path(directory).resolve(strict=True))
     step = next((s for s in manifest['steps'] if s['id'] == step_id and s['kind'] == 'block'), None)
     if step is None:
@@ -1270,6 +1379,20 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
             classify_preflight_failure(step['run_root'], step_run_id, RUN_BLOCK_LOG)['classification'] == 'preflight_no_contact'):
         return reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline_run_root, baseline_terminal,
                                     preflight=True)
+    if vision_host is not None and not VISION_HOST.fullmatch(vision_host):
+        raise Refused('vision host %r is not user@host' % (vision_host,))
+    # A block that failed at its first Vision command because its configured Vision host never answered, after only
+    # pre-contact steps (Philip, 2026-10-26): no-contact path against a named baseline; the fresh check runs with this
+    # block's own config with only hosts.vision remapped to the (re-proven) Vision host.
+    if (vision_host is not None and hardware and step_run_id is not None and
+            not sorted((directory / 'steps' / step_id).glob('vision_unreachable_repair_*/repair.json'))):
+        try:
+            configured = json.loads(Path(frozen_argv(step)[0]).read_text())['hosts']['vision']
+        except (ValueError, OSError, KeyError, TypeError):
+            configured = None
+        if not vision_never_reached(step['run_root'], configured)[1]:
+            return reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline_run_root,
+                                        baseline_terminal, never_reached=vision_host, identity=identity)
     if baseline_run_root is not None or baseline_terminal is not None:
         raise Refused('block has hardware-run evidence; reconcile it without --baseline-run-root/--baseline-terminal')
     if vision_host is not None and not hardware:

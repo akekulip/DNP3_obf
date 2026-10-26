@@ -80,13 +80,12 @@ def make_run(root, trials_by_arm, pairs=None, gap_ns=800000):
 
 
 class Metrics(unittest.TestCase):
-    def test_absolute_precision_stats_and_eligible_denominator_are_reported(self):
-        self.assertEqual(self.m['read_precision']['eligible'], 6)
-        self.assertEqual(self.m['read_precision']['absolute_error_us']['p99'], 100)
-        self.assertFalse(self.m['read_precision']['pass'])
+    def test_no_error_against_the_gap_is_computed_or_rendered(self):
+        for key in ('read_precision', 'gap_error_median_us', 'gap_error_p95_us'):
+            self.assertNotIn(key, self.m)
         text = report.render(self.root)
-        self.assertIn('p99 absolute error', text)
-        self.assertIn('eligible READs', text)
+        for row in ('absolute error', 'eligible READs', 'gap error', 'precision'):
+            self.assertNotIn(row, text)
 
     def setUp(self):
         td = tempfile.TemporaryDirectory()
@@ -128,10 +127,8 @@ class Metrics(unittest.TestCase):
         self.assertEqual(self.m['ack']['median'], cc.stats([5500, 5510])['median'])
         self.assertEqual(self.m['rt']['p95'], cc.stats([6300, 6320])['p95'])
 
-    def test_intended_gap_error_uses_t_gap_from_the_run_record(self):
+    def test_intended_gap_is_reported_from_the_run_record(self):
         self.assertEqual(self.m['gap_us'], 800)
-        self.assertEqual(self.m['gap_error_median_us'], cc.stats(self.clrt)['median'] - 800)
-        self.assertEqual(self.m['gap_error_p95_us'], cc.stats(self.clrt)['p95'] - 800)
 
     def test_completion_and_retransmissions(self):
         self.assertEqual((self.m['logical'], self.m['complete'], self.m['incomplete'], self.m['retransmitted']),
@@ -215,7 +212,7 @@ class Tables(unittest.TestCase):
         for row in ('loop packets', 'loop bytes', 'port 48', 'port 182', 'orig re-waits', 'blocker laps',
                     'CLRT median', 'CLRT IQR', 'CLRT p95', 'CLRT p99', 'CLRT SD (population)', 'CLRT SD (sample)',
                     'req->ACK median', 'req->ACK p95', 'req->resp median', 'req->resp p95',
-                    'gap error median', 'READs complete', 'retransmitted', 'padding coverage', 'growth bytes',
+                    'intended gap', 'READs complete', 'retransmitted', 'padding coverage', 'growth bytes',
                     'READ triggers', 'READ gen pkts', 'stale tokens', 'bad octets'):
             self.assertIn(row, self.text, row)
 

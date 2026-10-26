@@ -8,7 +8,22 @@ tables indexed in
 `campaign_v2` is the record of the earlier timing-only paper and is no longer the manuscript authority. The
 manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
 
-## Active timing correction — Philip, 2026-10-25
+## Current state — c68 on the physical SEL-751 (Philip, 2026-10-25/26)
+
+There is no CLRT precision criterion. The former "p99 |CLRT − D| ≤ 100 us" rule was agent-written (rearm_01/PLAN.md,
+2026-10-12), never Philip's; he ruled on 2026-10-25 that it does not matter and must not appear or be reported. What
+the defense hides is the CLRT (ACK -> response, for READ, SELECT and OPERATE) that an adversary between the master
+and the switch sees; it is reported per class as data, never gated. Holding the ACK until the response is ready
+rules out an early or missing response release. Write-only switch measurement state was removed: candidate
+`m12p_c68_sdk9132` (c67 + `make_m12.py --strip-telemetry`; T 9 stages, less SRAM). c68 passed the 17-driver model
+gate and ran on the SEL-751 at D=5/10/15/20 (`rc01_hw_c68_20261026_01..04`), before (no obfuscation) vs after
+(timing+size), every block rc 0 with restoration verified; before/after visible CLRT in
+`read_complete_01/evidence/c68_visible_clrt_20261026.json`. Correctness gates (exact sizes, DNP3 application success
+incl. SELECT->OPERATE, TCP, generator/loop-port checks, guard {1,3}, freeze, ownership, restoration) are unchanged.
+The relay can raise class-2 events on its own (IIN1.2); the integrity READ then stops matching the 134-octet shape —
+see WORKING_NOTES 2026-10-25/26 and `active_harness/event_clear.py`.
+
+## Earlier: timing correction — Philip, 2026-10-25 (historical; superseded by the section above)
 
 Current handover: [CLAUDE_HANDOVER_20261025.md](CLAUDE_HANDOVER_20261025.md). Philip requested takeover by
 Claude and explicitly prohibited scope expansion. The c67 model gate and all planned physical blocks are done
@@ -25,7 +40,7 @@ D=5/10/15/20ms qualification is now authorized for READ and SBO, superseding the
 exclusion only for this bounded qualification. J remains2.4ms; physicalJ measurement is explicitlyunproven.
 No exchange deadline: suppress retries only while an original request/response is retained; otherwise allow TCP recovery. FIN/RST/epoch clean up ownership. r150 is superseded. c52 evidence is immutable.
 No new attacker/J-codebook campaign, relay observer, syntheticACK, generalreassembly or sizing redesign.
-Existing guarded SEL-751 authorization/restoration and100us criterion remain in force. c62 v1 passed its strict model but is superseded; c67 v2 passed its 17-driver model gate and ran every planned physical block; it failed timing (100 us) and mixed-loss SBO recovery; WORKING_NOTES tracks progress.
+Existing guarded SEL-751 authorization/restoration remain in force (the 100us criterion was removed 2026-10-25). c62 v1 passed its strict model but is superseded; c67 v2 passed its 17-driver model gate and ran every planned physical block; its mixed-loss SBO recovery failed; WORKING_NOTES tracks progress.
 
 ## Agent start
 
@@ -45,7 +60,8 @@ Existing guarded SEL-751 authorization/restoration and100us criterion remain in 
   (`.../stage_experiments/m12_fullsize/make_m12.py` with `m12gen/`), builds and model gate
   (`.../ctl_timing_01`), the manuscript evaluation (`.../seg61_02`), the current run (`.../read_complete_01`),
   the hardware supervisor (`integration/evidence/rearm_01/hw`) and the endpoint library (`protocol/hw_vepa`).
-  Current candidate: `m12p_c67_sdk9132` (model gate passed; physical qualification failed on timing and mixed loss). The measured
+  Current candidate: `m12p_c68_sdk9132` (c67 without write-only measurement state; model gate passed; ran on the SEL-751
+  at every D, before vs after). c67 (`m12p_c67_sdk9132`) is its predecessor. The measured
   `m12p_c52_sdk9132` baseline remains immutable; see CURRENT.md and the October 25 handover.
 - `defense4/timing/` (outside `case4_architecture/`) — the timing-only record: the P4 that ran
   (`implementation/`), the campaigns (`evidence/campaign_v2/`, which corrects the acknowledgment-anchored
@@ -101,8 +117,8 @@ Latest continuation: root `plan.md` and `CLAUDE_HANDOVER_20261024.md`; older loc
 - Current run (2026-10-24, SEL-751 directive): a new relay-shape candidate, its READ/SBO shapes derived from
   decoded relay captures, model gate on one SDK-9.13.2 bundle, then the four-arm and recovery blocks against the
   SEL-751. The IEEE 1815 audit and paper writing remain OUT OF SCOPE. No Vision reboot, kernel/firmware change,
-  keep-alive traffic, D/J or attacker campaign, manual ownership edits, weaker restoration checks, or relaxed
-  timing thresholds (100 us unchanged). Keep three evidence tiers distinct in every record: software-reference
+  keep-alive traffic, D/J or attacker campaign, manual ownership edits, or weaker restoration checks (there is no
+  CLRT threshold; the visible CLRT is reported only). Keep three evidence tiers distinct in every record: software-reference
   encoding; software master/outstation through the switch; physical SEL-751 through the switch (only the third
   qualifies the relay deliverable).
 - Implementation work (separate candidate code, offline tests, protocol-aware padding and response carving,

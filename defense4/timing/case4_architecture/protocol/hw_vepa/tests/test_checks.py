@@ -175,13 +175,12 @@ class Violations(unittest.TestCase):
         ev['wire']['returned_integrity']['dnp3_crc_bad'] = [4]
         self.one(ev, 'CRC')
 
-    def test_fixture_piggyback_fraction(self):
+    def test_fixture_piggyback_fraction_is_reported_not_gated(self):
         ev = evidence(fixture='separate_ack')
         ev['timing']['summary']['READ']['piggyback'] = 5
-        self.one(ev, 'piggyback fraction')
-        ev = evidence(fixture='piggyback')
-        ev['timing']['summary']['READ']['piggyback'] = 0
-        self.one(ev, 'piggyback fraction', fixture='piggyback')
+        fails, obs = run(ev)
+        self.assertFalse(any('piggyback fraction' in f for f in fails), fails)
+        self.assertEqual(obs['piggyback_fraction'], 0.5)
 
     def test_loop_octet_gap_fails_with_the_byte_count(self):
         ev = evidence()

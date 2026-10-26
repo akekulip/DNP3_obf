@@ -105,14 +105,16 @@ def test_protected_c3_uses_the_selected_arm_padding_policy(tmp_path):
     assert trial['scenario']['policy'] == 'protected'
 
 
-def test_protected_timing_only_c3_native_lengths_do_not_prove_timing(tmp_path):
+def test_protected_c3_clrt_far_from_the_gap_is_reported_never_failed(tmp_path):
     def mutate(entries):
         for row in entries['c3']['timing']['exchanges']:
             if row['kind'] == 'READ':
                 row['clrt_us'] = 5000
     trial = verdict(tmp_path, padding=0, policy='protected', mutate=mutate)
-    assert not trial['ok']
-    assert any('c3' in f and 'precision' in f for f in trial['failures'])
+    assert trial['ok'], trial['failures']
+    c3 = trial['scenario']['connections']['c3']
+    assert 'read_precision' not in c3
+    assert set(c3['visible_clrt']['READ']['values_us']) == {5000}
 
 
 def test_reconnect_policy_cli_is_exposed():

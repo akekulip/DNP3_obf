@@ -237,8 +237,8 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
         if self.fixtures!=['separate_ack'] or self.cfg.get('trial_mode')!='per_trial_cold' or \
                 self.cfg['trials']!={'reads_per_trial':1,'trials_per_arm':1}:
             raise ValueError('isolation requires exactly one cold one-READ separateACK block')
-        if self.cfg.get('evaluation')!={'purpose':'stale_source_characterization','read_precision':False}:
-            raise ValueError('isolation is explicit source characterization, never precision qualification')
+        if (self.cfg.get('evaluation') or {}).get('purpose')!='stale_source_characterization':
+            raise ValueError('isolation is explicit stale_source_characterization')
         traffic=self.cfg['traffic']
         if (traffic['range'],traffic['gap_ms'],traffic['start_delay_ms'],traffic.get('read_pause_ms'),
                 traffic.get('run_sbo'),self.cfg['seeds']['rng_seed'])!=(8,0,0,25,True,12345):
@@ -776,8 +776,7 @@ class TokenIsolationCampaign(cs.CandidateSeriesCampaign):
                     ev, list(cfail), transport_ok=(not any(f.startswith('wire_check.py failed rc') for f in cfail)),
                     select_ok=outstation.get('select_real') == 1,
                     operate_ok=outstation.get('operate_real') == 1,
-                    aggregate_ok=not cfail, precision_required=False,
-                    precision_reason='isolation: stale_source_characterization, never precision qualification',
+                    aggregate_ok=not cfail,
                     checker_result=self.run_standards_checker(str(root), trial, arm, cn)),
                 connection_id=cn))
             connections[cn]=dict(ok=not cfail,failures=cfail,fresh_mapping=fresh)

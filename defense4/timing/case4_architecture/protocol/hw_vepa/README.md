@@ -86,8 +86,7 @@ Reconnect scenario. `campaign.py run --scenario reconnect --reconnect-policy cha
 c1 on the installed port, c2 on a new port with no switch rows, and c3 on the same installed tuple after
 TIME-WAIT clears. Each connection has its own endpoint JSON and captures; the switch is not reset between
 connections. The compatibility default `characterize` requires c1/c2 and retains c3 failures. `protected`
-also requires c3 to pass the selected arm's endpoint, extractor, integrity, padding and applicable READ
-precision checks. Config `scenarios.reconnect.policy` can select the policy; the CLI overrides it.
+also requires c3 to pass the selected arm's endpoint, extractor, integrity and padding checks. Config `scenarios.reconnect.policy` can select the policy; the CLI overrides it.
 
 Every required connection must have successful extractors, readable evidence, all 23 correct seed points
 per READ, exactly one real SELECT and OPERATE, zero decoys, and clean returned CRC/checksums. Lengths are
@@ -98,8 +97,8 @@ Report. `python3 hw_vepa/campaign.py report --run-dir <evidence_dir>/<run_id>` (
 prints one table per fixture/arm/preset, one column per trial, from `campaign_run.json` and the trial files: loop
 packets and bytes (sum over ports 48/180/181/182 of the `$FramesTransmittedAll` / `$OctetsTransmittedTotal` deltas,
 plus per port), original re-waits, blocker laps (only if the build's snapshot has diag counters), READ CLRT
-median/IQR/p95/p99 with population and sample SD, request->ACK and request->response median/p95, the error against
-the intended gap (`timing_params_ns.gap`), completion/retransmission counts, padding coverage and growth, READ
+median/IQR/p95/p99 with population and sample SD, request->ACK and request->response median/p95, the intended gap
+(`timing_params_ns.gap`), completion/retransmission counts, padding coverage and growth, READ
 triggers, generated packets, stale tokens and the received-vs-good octet gap. All deltas are after minus before, as in
 `evidence/mirror_fix_silicon_01`. For a paired run it adds A-B per condition.
 
@@ -130,21 +129,20 @@ lives in `campaign.json` under `expectations` (this is its only copy; README res
 | padding off | responses native (READ 49 B, SELECT/OPERATE 37 B); growth 0 |
 | T on | For R complete READs and P piggyback responses: `ACK_COMMIT=R-P`, `ACK_FALLBACK=0`, `RESP_RELEASE=R-P`, `RESP_FALLBACK=P`; `OP_RELEASE=1` with SBO, otherwise0. READ generator triggers remainR and generated tokens2kR, including piggyback |
 | T off | ACK commit/fallback, response release/fallback and OPERATE release deltas are0 |
-| fixture `separate_ack` | READ piggyback fraction in [0, 0.05] (the request is ACKed separately) |
-| fixture `piggyback` | READ piggyback fraction in [0.95, 1] |
+| every fixture | READ piggyback fraction recorded (reported, never gated) |
 | builds flagged `mirror_fix` (T on) | READ generator trigger delta equals the READs; generated READ packets equal 2k per trigger (`service.k`, the installer `--k`); OPERATE trigger delta equals the SBOs run; `OUT_TOKEN_STALE` delta is at most the build's `max_token_stale` (default 0; the observed value is recorded in every trial). Builds before the compiler-mirror fix selected T's deparser mirror entry 0, which gave several triggers per READ and thousands of stale tokens, so the counts only hold, and are only checked, on the flagged build (`mirror_fix_01`) |
 | builds flagged `mirror_fix` (T off) | READ and OPERATE generator trigger and packet deltas are 0 (as the T-off silicon evidence shows) |
 | loop ports 48 / 180 / 181 / 182 | delta of (`$OctetsReceived` - `$OctetsReceivedinGoodFrames`) is 0, or the build's `allowed_loop_octet_gap[role]` (default 0; the pre-RESET-fix build shows 80 on `t_in`). A larger gap fails with the byte count |
 
-READ precision qualification applies to T1 separate-ACK clean blocks, including c1/c3 in protected
-reconnect mode. Use `timing_params_ns.gap` as the target; there is no campaign `--t-gap` override.
-At least20 READ rows must be complete, non-piggyback and single-attempt. `clrt_check.stats` computes the
-p99 of the absolute CLRT error, which must be at most100us. Reports retain the denominator, mutually
-exclusive exclusions (incomplete, piggyback, multiple attempts, missing CLRT), signed/absolute distributions
-and worst tails. Loss, piggyback and T0 trials do not qualify this timing claim. An explicit
-`evaluation={"purpose":"stale_source_characterization","read_precision":false}` profile can run short
-attribution probes; their failures are retained and subsequent probes continue, with campaign exit1 if
-any trial failed. One eligible READ never establishes timing precision.
+Timing is reported, never gated (Philip, 2026-10-25). Each trial records `observed.visible_clrt`: per DNP3
+function, the CLRT (ACK to response) the master side shows, as n/min/median/max and every value, over complete,
+non-piggybacked exchanges; piggybacked exchanges are counted apart. The physical-relay path records the same per
+class (`relay_check.visible_clrt`). No CLRT value is compared against the configured gap or any threshold. Old
+configurations may still carry the retired timing-threshold keys under `evaluation` (see
+`campaign.RETIRED_EVALUATION_KEYS`); they are ignored and not reported, except that an explicit
+`evaluation={"purpose":"stale_source_characterization"}` still makes short attribution probes retain their failures
+and continue, with campaign exit1 if any trial failed. The OPERATE check gates only that every OPERATE sent reached
+the outstation-side capture; its transit against `op_j` is recorded as data.
 
 On builds marked `diagnostic:true`, every snapshot must report indices19..24. Their sum replaces
 production `OUT_TOKEN_STALE` index6 for the strict bound (default0); a missing value fails. The diagnostic
@@ -174,7 +172,7 @@ Profiles under `config/` are Case4 engineering evidence, separate from frozen pa
 | `stale_diag_sbo_14892.json`, `stale_diag_sbo_3723_grace250.json`, `stale_diag_read_only_3723.json` | one READ,3ms fixture, source attribution; strict0 and explicit precision exemption |
 | `precision_5ms_gap800us_14892.json`, `precision_5ms_gap950us_14892.json`, `precision_10ms_gap950us_14892.json`, `precision_25ms_gap800us_14892.json` | three cold trials of50 READs each; combined arm,14892PPS; last profile readiness35ms |
 | `fourarm_separate_ack_14892.json` | all four arms,3x20 READs per arm |
-| `fourarm_piggyback_14892.json` | all four arms,1x20 READs per arm; precision not qualified |
+| `fourarm_piggyback_14892.json` | all four arms,1x20 READs per arm |
 
 Precision/four-arm profiles preserve the immutable `mirror_fix_01` baseline artifact hashes. The hardware
 owner creates a separately bound config copy for any lifecycle candidate. Readiness is30ms except35ms in
@@ -223,11 +221,3 @@ retained in effective traffic settings. Configurations omitting these controls s
 with the frozen binary's older JSON. Explicit control profiles, or JSON exposing any control
 field, require all three effective fields to match.
 
-An explicit `evaluation={"purpose":"timing_precision_characterization","read_precision":true}`
-profile retains strict failed trial verdicts and continues subsequent clean blocks only when every
-failure is the READ p99 absolute-error threshold, at least20 READs remain eligible, and the precision
-gate was enabled. Campaign exit remains1 if any block fails; the original failure strings, precision
-distributions, and per-trial continuation decision/reason are retained alongside effective evaluation
-purpose and config/source identities. Missing or insufficient timing evidence, application/integrity
-failures, stale bounds, and infrastructure failures stop the campaign. This purpose cannot disable the
-precision gate. It supports bounded timing characterization without changing qualification profiles.

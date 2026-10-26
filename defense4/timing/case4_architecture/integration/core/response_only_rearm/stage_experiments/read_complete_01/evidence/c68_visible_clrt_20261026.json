@@ -1,0 +1,421 @@
+{
+ "observation": "master NIC (adversary vantage between master and switch); CLRT = first ACK of the request -> complete response",
+ "blocks": {
+  "rc01_hw_c68_20261026_01_reference_rest": {
+   "D_ms": 5.0,
+   "block_ok": true,
+   "before": {
+    "arm": "off",
+    "trial": "evidence/hw_blocks/rc01_hw_c68_20261026_01_reference_rest/physical_relay/off/rc01_hw_c68_20261026_01_reference_rest_physical_relay_off_t0",
+    "classes": {
+     "READ mixed": {
+      "n": 33,
+      "min_ms": 0.004,
+      "median_ms": 2.325,
+      "max_ms": 15.57,
+      "piggyback": 0,
+      "response_bytes": [
+       91
+      ],
+      "exchanges": 33
+     },
+     "READ integrity": {
+      "n": 32,
+      "min_ms": 0.005,
+      "median_ms": 2.961,
+      "max_ms": 9.383,
+      "piggyback": 0,
+      "response_bytes": [
+       134
+      ],
+      "exchanges": 32
+     },
+     "SELECT": {
+      "n": 64,
+      "min_ms": 0.004,
+      "median_ms": 2.2185,
+      "max_ms": 17.559,
+      "piggyback": 0,
+      "response_bytes": [
+       49
+      ],
+      "exchanges": 64
+     },
+     "OPERATE": {
+      "n": 64,
+      "min_ms": 0.064,
+      "median_ms": 3.0975,
+      "max_ms": 12.936,
+      "piggyback": 0,
+      "response_bytes": [
+       49
+      ],
+      "exchanges": 64
+     }
+    }
+   },
+   "after": {
+    "arm": "combined",
+    "trial": "evidence/hw_blocks/rc01_hw_c68_20261026_01_reference_rest/physical_relay/combined/rc01_hw_c68_20261026_01_reference_rest_physical_relay_combined_t0",
+    "classes": {
+     "READ mixed": {
+      "n": 33,
+      "min_ms": 2.599,
+      "median_ms": 4.851,
+      "max_ms": 8.994,
+      "piggyback": 0,
+      "response_bytes": [
+       141
+      ],
+      "exchanges": 33
+     },
+     "READ integrity": {
+      "n": 32,
+      "min_ms": 3.132,
+      "median_ms": 5.0845,
+      "max_ms": 8.951,
+      "piggyback": 0,
+      "response_bytes": [
+       158
+      ],
+      "exchanges": 32
+     },
+     "SELECT": {
+      "n": 64,
+      "min_ms": 2.981,
+      "median_ms": 4.92,
+      "max_ms": 6.817,
+      "piggyback": 0,
+      "response_bytes": [
+       60
+      ],
+      "exchanges": 64
+     },
+     "OPERATE": {
+      "n": 64,
+      "min_ms": 2.216,
+      "median_ms": 4.9995,
+      "max_ms": 7.104,
+      "piggyback": 0,
+      "response_bytes": [
+       60
+      ],
+      "exchanges": 64
+     }
+    }
+   }
+  },
+  "rc01_hw_c68_20261026_02_reference_rest": {
+   "D_ms": 10.0,
+   "block_ok": true,
+   "before": {
+    "arm": "off",
+    "trial": "evidence/hw_blocks/rc01_hw_c68_20261026_02_reference_rest/physical_relay/off/rc01_hw_c68_20261026_02_reference_rest_physical_relay_off_t0",
+    "classes": {
+     "READ mixed": {
+      "n": 33,
+      "min_ms": 0.008,
+      "median_ms": 2.758,
+      "max_ms": 10.053,
+      "piggyback": 0,
+      "response_bytes": [
+       91
+      ],
+      "exchanges": 33
+     },
+     "READ integrity": {
+      "n": 32,
+      "min_ms": 0.19,
+      "median_ms": 2.526,
+      "max_ms": 12.532,
+      "piggyback": 0,
+      "response_bytes": [
+       134
+      ],
+      "exchanges": 32
+     },
+     "SELECT": {
+      "n": 64,
+      "min_ms": 0.008,
+      "median_ms": 2.2775,
+      "max_ms": 14.435,
+      "piggyback": 0,
+      "response_bytes": [
+       49
+      ],
+      "exchanges": 64
+     },
+     "OPERATE": {
+      "n": 64,
+      "min_ms": 0.008,
+      "median_ms": 2.8075,
+      "max_ms": 12.899,
+      "piggyback": 0,
+      "response_bytes": [
+       49
+      ],
+      "exchanges": 64
+     }
+    }
+   },
+   "after": {
+    "arm": "combined",
+    "trial": "evidence/hw_blocks/rc01_hw_c68_20261026_02_reference_rest/physical_relay/combined/rc01_hw_c68_20261026_02_reference_rest_physical_relay_combined_t0",
+    "classes": {
+     "READ mixed": {
+      "n": 33,
+      "min_ms": 8.131,
+      "median_ms": 10.197,
+      "max_ms": 12.059,
+      "piggyback": 0,
+      "response_bytes": [
+       141
+      ],
+      "exchanges": 33
+     },
+     "READ integrity": {
+      "n": 32,
+      "min_ms": 8.08,
+      "median_ms": 10.046,
+      "max_ms": 11.997,
+      "piggyback": 0,
+      "response_bytes": [
+       158
+      ],
+      "exchanges": 32
+     },
+     "SELECT": {
+      "n": 64,
+      "min_ms": 7.407,
+      "median_ms": 9.9775,
+      "max_ms": 11.99,
+      "piggyback": 0,
+      "response_bytes": [
+       60
+      ],
+      "exchanges": 64
+     },
+     "OPERATE": {
+      "n": 64,
+      "min_ms": 7.951,
+      "median_ms": 9.8835,
+      "max_ms": 11.848,
+      "piggyback": 0,
+      "response_bytes": [
+       60
+      ],
+      "exchanges": 64
+     }
+    }
+   }
+  },
+  "rc01_hw_c68_20261026_03_reference_rest": {
+   "D_ms": 15.0,
+   "block_ok": true,
+   "before": {
+    "arm": "off",
+    "trial": "evidence/hw_blocks/rc01_hw_c68_20261026_03_reference_rest/physical_relay/off/rc01_hw_c68_20261026_03_reference_rest_physical_relay_off_t0",
+    "classes": {
+     "READ mixed": {
+      "n": 33,
+      "min_ms": 0.008,
+      "median_ms": 2.453,
+      "max_ms": 23.817,
+      "piggyback": 0,
+      "response_bytes": [
+       91
+      ],
+      "exchanges": 33
+     },
+     "READ integrity": {
+      "n": 32,
+      "min_ms": 1.169,
+      "median_ms": 3.923,
+      "max_ms": 12.013,
+      "piggyback": 0,
+      "response_bytes": [
+       134
+      ],
+      "exchanges": 32
+     },
+     "SELECT": {
+      "n": 64,
+      "min_ms": 0.008,
+      "median_ms": 2.2965,
+      "max_ms": 11.873,
+      "piggyback": 0,
+      "response_bytes": [
+       49
+      ],
+      "exchanges": 64
+     },
+     "OPERATE": {
+      "n": 64,
+      "min_ms": 0.047,
+      "median_ms": 2.841,
+      "max_ms": 13.161,
+      "piggyback": 0,
+      "response_bytes": [
+       49
+      ],
+      "exchanges": 64
+     }
+    }
+   },
+   "after": {
+    "arm": "combined",
+    "trial": "evidence/hw_blocks/rc01_hw_c68_20261026_03_reference_rest/physical_relay/combined/rc01_hw_c68_20261026_03_reference_rest_physical_relay_combined_t0",
+    "classes": {
+     "READ mixed": {
+      "n": 33,
+      "min_ms": 12.959,
+      "median_ms": 14.774,
+      "max_ms": 16.998,
+      "piggyback": 0,
+      "response_bytes": [
+       141
+      ],
+      "exchanges": 33
+     },
+     "READ integrity": {
+      "n": 32,
+      "min_ms": 12.973,
+      "median_ms": 15.2165,
+      "max_ms": 17.092,
+      "piggyback": 0,
+      "response_bytes": [
+       158
+      ],
+      "exchanges": 32
+     },
+     "SELECT": {
+      "n": 64,
+      "min_ms": 13.044,
+      "median_ms": 14.957,
+      "max_ms": 16.982,
+      "piggyback": 0,
+      "response_bytes": [
+       60
+      ],
+      "exchanges": 64
+     },
+     "OPERATE": {
+      "n": 64,
+      "min_ms": 12.962,
+      "median_ms": 14.778,
+      "max_ms": 17.52,
+      "piggyback": 0,
+      "response_bytes": [
+       60
+      ],
+      "exchanges": 64
+     }
+    }
+   }
+  },
+  "rc01_hw_c68_20261026_04_reference_rest": {
+   "D_ms": 20.0,
+   "block_ok": true,
+   "before": {
+    "arm": "off",
+    "trial": "evidence/hw_blocks/rc01_hw_c68_20261026_04_reference_rest/physical_relay/off/rc01_hw_c68_20261026_04_reference_rest_physical_relay_off_t0",
+    "classes": {
+     "READ mixed": {
+      "n": 33,
+      "min_ms": 0.006,
+      "median_ms": 2.502,
+      "max_ms": 13.574,
+      "piggyback": 0,
+      "response_bytes": [
+       91
+      ],
+      "exchanges": 33
+     },
+     "READ integrity": {
+      "n": 32,
+      "min_ms": 0.034,
+      "median_ms": 2.9415,
+      "max_ms": 16.034,
+      "piggyback": 0,
+      "response_bytes": [
+       134
+      ],
+      "exchanges": 32
+     },
+     "SELECT": {
+      "n": 64,
+      "min_ms": 0.005,
+      "median_ms": 2.1885,
+      "max_ms": 24.595,
+      "piggyback": 0,
+      "response_bytes": [
+       49
+      ],
+      "exchanges": 64
+     },
+     "OPERATE": {
+      "n": 64,
+      "min_ms": 0.045,
+      "median_ms": 2.7405,
+      "max_ms": 12.189,
+      "piggyback": 0,
+      "response_bytes": [
+       49
+      ],
+      "exchanges": 64
+     }
+    }
+   },
+   "after": {
+    "arm": "combined",
+    "trial": "evidence/hw_blocks/rc01_hw_c68_20261026_04_reference_rest/physical_relay/combined/rc01_hw_c68_20261026_04_reference_rest_physical_relay_combined_t0",
+    "classes": {
+     "READ mixed": {
+      "n": 33,
+      "min_ms": 17.736,
+      "median_ms": 20.049,
+      "max_ms": 21.942,
+      "piggyback": 0,
+      "response_bytes": [
+       141
+      ],
+      "exchanges": 33
+     },
+     "READ integrity": {
+      "n": 32,
+      "min_ms": 18.125,
+      "median_ms": 19.944,
+      "max_ms": 21.689,
+      "piggyback": 0,
+      "response_bytes": [
+       158
+      ],
+      "exchanges": 32
+     },
+     "SELECT": {
+      "n": 64,
+      "min_ms": 17.836,
+      "median_ms": 20.1045,
+      "max_ms": 21.946,
+      "piggyback": 0,
+      "response_bytes": [
+       60
+      ],
+      "exchanges": 64
+     },
+     "OPERATE": {
+      "n": 64,
+      "min_ms": 18.157,
+      "median_ms": 20.086,
+      "max_ms": 21.473,
+      "piggyback": 0,
+      "response_bytes": [
+       60
+      ],
+      "exchanges": 64
+     }
+    }
+   }
+  }
+ }
+}

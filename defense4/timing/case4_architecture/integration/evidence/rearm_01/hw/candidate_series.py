@@ -357,8 +357,6 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
             if (traffic.get('range'), traffic.get('gap_ms'), traffic.get('start_delay_ms'),
                     traffic.get('read_pause_ms', 25), self.cfg['seeds']['rng_seed']) != (8, 0, 0, 25, 12345):
                 raise ValueError('physical series requires range8/gap0/start0/pause25/seed12345')
-            if self.cfg.get('evaluation', {}).get('read_precision', True) is not True:
-                raise ValueError('physical series requires READ precision gate')
             return
         series_class = self.cfg['traffic'].get('series_read_class')
         if 'read_schedule' in self.cfg['traffic']:
@@ -394,8 +392,6 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
         if (traffic.get('range'), traffic.get('gap_ms'), traffic.get('start_delay_ms'),
                 traffic.get('read_pause_ms', 25), self.cfg['seeds']['rng_seed']) != (8, 0, 0, 25, 12345):
             raise ValueError('candidate series helper requires range8/gap0/start0/pause25/seed12345')
-        if self.cfg.get('evaluation', {}).get('read_precision', True) is not True:
-            raise ValueError('candidate series requires READ precision gate')
 
     def endpoint_control_args(self):
         return ''
@@ -594,13 +590,6 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
                 previous = fresh
             except (OSError, ValueError, IndexError, KeyError) as error:
                 cfail.append('fresh mapping: ' + str(error))
-            # the nearest-rank gate every new (v3) evaluation uses, as campaign.py does
-            precision = checks.read_precision_gate(ev.get('timing') or {}, self.cfg['timing_params_ns']['gap'])
-            precision['gated'] = bool(arm['T'] and fixture == 'separate_ack' and
-                                      self.cfg.get('evaluation', {}).get('read_precision', True))
-            if precision['gated'] and not precision['pass']:
-                cfail.append('READ precision did not qualify: eligible%d, nearest-rank p99 absolute error%s us' %
-                             (precision['eligible'], precision['p99_nearest_rank_abs_error_us']))
             for name, rc in tool_rcs[cn].items():
                 if rc:
                     cfail.append('%s=%d' % (name, rc))
@@ -616,12 +605,11 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
                     ev, list(cfail), transport_ok=(tool_rcs[cn]['wire_rc'] == 0),
                     select_ok=(not run_sbo) or outstation.get('select_real') == 1,
                     operate_ok=(not run_sbo) or outstation.get('operate_real') == 1,
-                    aggregate_ok=not cfail, precision_required=precision['gated'], precision=precision,
-                    precision_reason='series %s: READ precision not gated (timed=%s, fixture=%s)'
-                                     % (cn, bool(arm['T']), fixture),
+                    aggregate_ok=not cfail,
                     checker_result=self.run_standards_checker(os.path.join(dest, cn), trial, arm, cn)),
                 connection_id=cn))
-            connections[cn] = {'ok': not cfail, 'failures': cfail, 'read_precision': precision,
+            connections[cn] = {'ok': not cfail, 'failures': cfail,
+                               'visible_clrt': checks.visible_clrt(ev.get('timing') or {}),
                                'fresh_mapping': fresh, **tool_rcs[cn]}
             failures.extend('%s: %s' % (cn, failure) for failure in cfail)
         if v.rc or result.get('ok') is not True:

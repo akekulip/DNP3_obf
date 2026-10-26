@@ -39,7 +39,7 @@ def native_config(path, out):
     cfg['program'] = PROGRAM
     cfg['arms'] = [dict(name='native', T=0, padding=0, build=None)]
     cfg['builds'] = {}                         # no N/T composite is selected, copied, or installed
-    cfg['evaluation'] = dict(purpose='native-reference', read_precision=False)
+    cfg['evaluation'] = dict(purpose='native-reference')
     cfg['fixture'].update(modes=['separate_ack'], delay_ms=5, jitter_ms=0)
     cfg['trials'] = dict(reads_per_trial=20, trials_per_arm=3)
     cfg['traffic'].update(master_port_range=dict(first=59400, last=59402), range=8, gap_ms=0,

@@ -274,3 +274,21 @@ Next (revised scope): bounded, hypothesis-specific debugging and retesting of th
 offline discrimination first. A concrete lead is D10 block 04, timing_only exchange 162: the ACK arrived 2.908 ms
 after the request and the response at 57.012 ms, with normal switch counters. This is not yet explained. Any new
 config, freeze or campaign follows the existing guarded path, with its own authorization record.
+
+## Addendum 2026-10-26 — c68, criterion removed, hardware before vs after at every D
+
+This addendum supersedes the timing statements above; the closeout text above is kept as written.
+
+- Philip (2026-10-25): the 100 us p99 |CLRT − D| criterion was agent-written (rearm_01/PLAN.md, 2026-10-12), not his;
+  it does not matter and is not reported. It is removed from the live harness (protocol/hw_vepa, rearm_01/hw), the
+  config generator and the live documents. The CLRT an adversary between master and switch sees (ACK -> response per
+  class) is reported as data only; correctness gates are unchanged.
+- c68 (`m12p_c68_sdk9132`) = c67 with write-only switch measurement state removed (generator
+  `m12gen/strip_telemetry.py`). Model gate 17/17 (attempt 04) with the removed counters recounted from the model log
+  (`integration/core/telemetry_from_log.py`, verified against real c67 registers in `diag_shim_*`).
+- Physical SEL-751: `rc01_hw_c68_20261026_01..04` (D=5/10/15/20), off (before) and combined (after), every block rc 0,
+  restoration verified. Table: `read_complete_01/CURRENT.md`; data `read_complete_01/evidence/c68_visible_clrt_20261026.json`.
+- Found on the way: the relay's spontaneous class-2 event (IIN1.2) broke the integrity READ for every build; cleared
+  once by Philip's choice (`relay_event_clear_20261025_03`). A wrong Vision host in my event-clear config set
+  unsafe_restoration; cleared through a new reviewed reconcile class (`vision_never_reached` in
+  `evaluation_campaign.py`), fresh restore_verify passed in full. Details: WORKING_NOTES 2026-10-25/26.

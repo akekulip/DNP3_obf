@@ -92,13 +92,8 @@ def trial_metrics(root, fixture, arm, trial, gap_ns):
     m['clrt'] = rd and rd.get('clrt_us')
     m['ack'] = rd and rd.get('ack_lat_us')
     m['rt'] = rd and rd.get('rt_us')
-    m['read_precision'] = checks.read_precision(t, gap_ns) if t and gap_ns is not None else None
-    if m['read_precision']:
-        m['read_precision']['gated'] = trial.get('observed', {}).get('read_precision', {}).get('gated')
     m['gap_us'] = gap_ns / 1000.0 if gap_ns else None
     m['gap_us'] = int(m['gap_us']) if m['gap_us'] is not None and m['gap_us'] == int(m['gap_us']) else m['gap_us']
-    for key, stat in (('gap_error_median_us', 'median'), ('gap_error_p95_us', 'p95')):
-        m[key] = (m['clrt'][stat] - m['gap_us']) if m['clrt'] and m['gap_us'] is not None else None
     for k, src in (('logical', 'logical_requests'), ('complete', 'complete'), ('incomplete', 'incomplete'),
                    ('retransmitted', 'retransmitted'), ('piggyback', 'piggyback')):
         m[k] = rd[src] if rd else None
@@ -177,20 +172,7 @@ def _stat(m, key, stat):
     return m[key][stat] if m.get(key) else None
 
 
-def _precision(metric, *keys):
-    value = metric.get('read_precision')
-    for key in keys:
-        value = value.get(key) if isinstance(value, dict) else None
-    return value
-
-
 ROWS = [
-    ('eligible READs', lambda m: _precision(m, 'eligible')),
-    ('excluded incomplete', lambda m: _precision(m, 'excluded', 'incomplete')),
-    ('excluded piggyback', lambda m: _precision(m, 'excluded', 'piggyback')),
-    ('excluded multiple attempts', lambda m: _precision(m, 'excluded', 'multiple_attempts')),
-    ('excluded missing CLRT', lambda m: _precision(m, 'excluded', 'missing_clrt')),
-    ('p99 absolute error (us)', lambda m: _precision(m, 'absolute_error_us', 'p99')),
     ('loop packets', lambda m: m['loop_pkts']), ('loop bytes', lambda m: m['loop_bytes']),
     ] + [('port %d pkts/bytes' % PORT_OF[r], (lambda r: lambda m: '%s/%s' % (_f(m['per_port'][r]['pkts']),
                                                                           _f(m['per_port'][r]['bytes'])))(r))
@@ -203,7 +185,6 @@ ROWS = [
     ('req->ACK median', lambda m: _stat(m, 'ack', 'median')), ('req->ACK p95', lambda m: _stat(m, 'ack', 'p95')),
     ('req->resp median', lambda m: _stat(m, 'rt', 'median')), ('req->resp p95', lambda m: _stat(m, 'rt', 'p95')),
     ('intended gap (us)', lambda m: m['gap_us']),
-    ('gap error median', lambda m: m['gap_error_median_us']), ('gap error p95', lambda m: m['gap_error_p95_us']),
     ('READs complete', lambda m: '%s/%s' % (_f(m['complete']), _f(m['logical']))),
     ('incomplete', lambda m: m['incomplete']), ('retransmitted', lambda m: m['retransmitted']),
     ('piggybacked', lambda m: m['piggyback']), ('duplicate returned', lambda m: m['duplicate_returned']),
@@ -220,8 +201,7 @@ DIFFS = [('loop packets', lambda m: m['loop_pkts']), ('loop bytes', lambda m: m[
          ('orig re-waits', lambda m: m['rewaits']), ('blocker laps', lambda m: m['blocker_laps']),
          ('CLRT median', lambda m: _stat(m, 'clrt', 'median')),
          ('CLRT SD (population)', lambda m: _stat(m, 'clrt', 'sd_population')),
-         ('req->resp median', lambda m: _stat(m, 'rt', 'median')),
-         ('gap error median', lambda m: m['gap_error_median_us'])]
+         ('req->resp median', lambda m: _stat(m, 'rt', 'median'))]
 
 
 def _table(title, ms):
@@ -303,11 +283,6 @@ def render(root):
     for (fx, arm, preset), ms in groups:
         out += _table('fixture %s | arm %s | preset %s' % (fx, arm, preset or '(config default)'), ms) + ['']
         for metric in ms:
-            precision = metric['read_precision']
-            if precision:
-                out.append('%s READ precision: eligible%d/%d, exclusions%s, gated=%s, qualifies=%s; worst tails%s' %
-                           (metric['label'], precision['eligible'], precision['read_rows'], precision['excluded'],
-                            precision.get('gated'), precision['pass'], precision['tails']))
             if metric['stale_sources'] is not None:
                 out.append('%s stale-source deltas19..24: %s (sum%s)' %
                            (metric['label'], metric['stale_sources'], metric['stale']))

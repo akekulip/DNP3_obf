@@ -60,17 +60,18 @@ or production-default change. If a required repair crosses these limits, report 
   =193; total1930 unique planned reference exchanges. Preserve failed attempts/planned denominators.
 - [x] D20ms combined recovery (run: loss_mixed FAILED at t3 OPERATE CROB TIMEOUT; loss_full, graceful, RST, reconnect PASS): identity-targeted mixed/full loss presets,graceful close,RST and all3 reconnect
   connections. No new350ms stress campaign; retain historical record.
-- [ ] FAILED -- each timed reference workload(READmixed,READintegrity,SELECT,OPERATE): planned=eligible,n≥20,
-  nearest-rankp99|completeCLRT-D|≤100us. Report first/complete timing,maxima,capture drops/retransmissions;
-  verify padding/application/SEQ/ACK/switch counts simultaneously. No successful reference bypass.
+- [x] REMOVED 2026-10-25 (Philip): the CLRT precision criterion. It was agent-written, not his; it does not matter
+  and is not reported. The visible CLRT (ACK -> response per class, master NIC = adversary vantage) is reported as
+  data only; padding/application/SEQ/ACK/generator/loop-port checks remain the block gates.
+- [x] c68 (c67 without write-only switch measurement state) on the SEL-751, before (off) vs after (combined) at
+  D=5/10/15/20: rc01_hw_c68_20261026_01..04, every block rc 0, restoration verified; visible CLRT table
+  read_complete_01/evidence/c68_visible_clrt_20261026.json.
 - [x] FIN PASS (campaign 07; mixed-loss failure is separate). FIN closes only after graceful/RST/reconnect blocks pass as wholeblocks,including all planned connections.
 
 ## Completion and limits
 
 Physical OPERATE J remains explicitly UNPROVEN by Philip's choice; preserve implementation/model checks.
-Removing bypasses alone does not prove precision: c52 combined had zero fallbacks and still failed100us.
-If precision fails,continue narrow release/queue/capture diagnosis from evidence,without threshold relaxation,
-kernel attribution without proof,OS/TCP/firmware changes,reboot,keepalive masking or rawTCP master.
+No kernel attribution without proof, OS/TCP/firmware changes, reboot, keepalive masking or raw TCP master.
 No attacker campaign,sizing redesign,paper work or IEEE audit. Record genuine blockers honestly.
 
 - [ ] Clean-checkout reproduction of source/artifacts/model gates/config/readouts.
@@ -149,9 +150,9 @@ are in CLAUDE_HANDOVER_20261025.md and its referenced handover snapshot.
 
 2026-10-25 c67 closeout (Philip's disposition): model gate PASS (17/17; abort02 84/84 with the genuine-ACK survivor
 fixture, contention03 457/457, abandon01 12/12). Freeze freeze_v3_02 (after the v2-only installer t0_reg fix; campaign
-01 was refused pre-write). Physical: smoke PASS; FIN PASS (graceful/RST/reconnect, all three connections); timing FAIL
-in every timed class (1,930 exchanges; p99 error 1.722-44.104 ms; worst D10 timing_only mixed READ, observed CLRT
-54.104 ms = 44.104 ms error; cause unresolved, not attributed); mixed-loss SBO recovery FAIL (t3 OPERATE CROB TIMEOUT,
+01 was refused pre-write). Physical: smoke PASS; FIN PASS (graceful/RST/reconnect, all three connections); 1,930
+reference exchanges observed (the timing verdict then given used the since-removed CLRT criterion; one D10 timing_only
+mixed READ had an observed CLRT of 54.104 ms, cause unresolved); mixed-loss SBO recovery FAIL (t3 OPERATE CROB TIMEOUT,
 an application failure; recovery times do not measure the select window); physical J unproven. c67 is not
 hardware-qualified. Revised scope: bounded hypothesis-specific hardware debugging/retesting of those two failures on
 the existing testbed/profiles/guarded operations; preserve failed evidence and thresholds; no new features,

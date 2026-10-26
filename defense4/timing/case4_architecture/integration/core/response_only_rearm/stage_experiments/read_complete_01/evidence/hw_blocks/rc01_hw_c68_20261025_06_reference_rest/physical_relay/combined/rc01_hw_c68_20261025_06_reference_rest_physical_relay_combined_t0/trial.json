@@ -1,0 +1,171 @@
+{
+  "fixture": "physical_relay",
+  "label": "rc01_hw_c68_20261025_06_reference_rest_physical_relay_combined_t0",
+  "master_port": 60000,
+  "reads": 65,
+  "ok": false,
+  "failures": [
+    "single: master records/counts/plan differ from frozen expected denominators",
+    "single: READ workload sequence differs from frozen schedule",
+    "single: complete planned master denominators missing or failed",
+    "single: master transaction failed: READ",
+    "single: response complete wire/frame/application evidence missing or invalid",
+    "single: complete request/response TCP span missing: READ",
+    "single: response length differs from selected relay image: READ",
+    "T on: READ trigger delta 3, expected 129",
+    "T on: generated READ packets delta 12, expected 516 (2k = 4 per trigger)",
+    "T on: OPERATE trigger delta 1, expected 64",
+    "T on: generated OPERATE packets delta 4, expected 256 (2k = 4 per trigger)",
+    "physical relay Vision workload failed"
+  ],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 0,
+    "gap_ms": 0,
+    "start_delay_ms": 50,
+    "start_seed": 57101
+  },
+  "generation_headroom": {
+    "current": {
+      "operate": 0,
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "operate": "p1.t_Ingress.op_gen_alloc_reg",
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "operate": 65452,
+      "read": 65323
+    },
+    "remaining_before_reserve": {
+      "operate": 65534,
+      "read": 65534
+    },
+    "reserve": {
+      "operate": 82,
+      "read": 211
+    },
+    "reserves": {
+      "operate": 82,
+      "read": 211
+    },
+    "snapshot": {
+      "bfrt_sha256": "d17f059ac13df6c9952d7fffab6b34bec304361c39c08290359d1fc89b34d4f2",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        },
+        "p1.t_Ingress.op_gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.op_gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1792982383.0277312,
+      "valid": true
+    },
+    "time": 1792982383.035449,
+    "budget": {
+      "reads": 65,
+      "sbo_cycles": 64,
+      "cancelled_selects": 0,
+      "connections": 1,
+      "control_timed": true,
+      "timed": true,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "read_lane_per_connection": 193,
+      "operate_per_connection": 64,
+      "source": "T gen_access / operate_generation_access rows and N first_event (workload_reserve)"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c68_20261025_06_reference_rest_physical_relay_combined_t0_before_generation_headroom.json"
+  },
+  "observed": {
+    "connections": {
+      "single": {
+        "application": false,
+        "master_acceptance": false,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 4886.0,
+            "median_us": 4886.0,
+            "max_us": 4886.0,
+            "values_us": [
+              4886.0
+            ]
+          },
+          "READ integrity": {
+            "n": 0,
+            "piggyback": 0,
+            "min_us": null,
+            "median_us": null,
+            "max_us": null,
+            "values_us": []
+          },
+          "SELECT": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 4582.0,
+            "median_us": 4582.0,
+            "max_us": 4582.0,
+            "values_us": [
+              4582.0
+            ]
+          },
+          "OPERATE": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 7074.0,
+            "median_us": 7074.0,
+            "max_us": 7074.0,
+            "values_us": [
+              7074.0
+            ]
+          }
+        }
+      }
+    },
+    "switch": {
+      "outcomes": "no switch telemetry in this build",
+      "pktgen": {
+        "READ": {
+          "triggers": 3,
+          "pkts": 12
+        },
+        "OPERATE": {
+          "triggers": 1,
+          "pkts": 4
+        }
+      },
+      "token_stale_bound": "unknown: no switch telemetry in this build",
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "hb_return": 0,
+        "held_return": 0
+      }
+    }
+  },
+  "endpoint_profile": "sel751",
+  "dimension_verdicts": {
+    "application": false,
+    "switch": false
+  }
+}

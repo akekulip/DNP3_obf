@@ -3,7 +3,7 @@
 import argparse
 import hashlib
 import json
-import math
+import statistics
 from pathlib import Path
 import sys
 
@@ -140,19 +140,13 @@ def analyze(root, master_port, expected=None, schedule=None):
                           request['first_timestamp_ns'] <= packet['timestamp_ns'] <= response['complete_timestamp_ns'] and
                           packet['flags'] & wc.ACK and packet['ack'] == request['sequence_end']]
         first_ack = min(ack_candidates, key=lambda p: p['timestamp_ns']) if ack_candidates else None
-        first_clrt = ((response['first_timestamp_ns'] - first_ack['timestamp_ns']) / 1000
-                      if response and first_ack else None)
+        # the CLRT an on-path adversary sees: first ACK of the request -> complete response
         complete_clrt = ((response['complete_timestamp_ns'] - first_ack['timestamp_ns']) / 1000
                          if response and first_ack else None)
         exchanges.append(dict(operation=record.get('operation'), workload=record.get('workload'),
                               request=request, response=response,
-                              master_rtt_ns=(response['complete_timestamp_ns'] - request['first_timestamp_ns']
-                                             if request and response else None),
                               ack_timestamp_ns=first_ack['timestamp_ns'] if first_ack else None,
-                              first_clrt_us=first_clrt, complete_clrt_us=complete_clrt,
-                              piggyback=bool(first_ack and first_ack['len']),
-                              switch_residence_ns=None, operate_j_ns=None,
-                              null_reason='only master NIC observed'))
+                              complete_clrt_us=complete_clrt, piggyback=bool(first_ack and first_ack['len'])))
     offload = json.loads((root / 'capture_offloads.json').read_text()) if (root / 'capture_offloads.json').is_file() else {}
     if offload.get('restore_ok') is not True:
         failures.append('capture offload restoration missing or failed')
@@ -172,26 +166,20 @@ def analyze(root, master_port, expected=None, schedule=None):
     return report
 
 
-def precision(report, target_ns, split_reads=False, planned=None):
+def visible_clrt(report):
+    """The CLRT each class shows at the master NIC (the adversary's vantage), reported, never gated: n, min, median,
+    max and every value in microseconds. A piggybacked ACK has no separate CLRT and is counted apart."""
     result = {}
-    groups = ('READ mixed', 'READ integrity', 'SELECT', 'OPERATE') if split_reads else ('READ', 'SELECT', 'OPERATE')
-    for operation in groups:
+    for operation in ('READ mixed', 'READ integrity', 'SELECT', 'OPERATE'):
         op, _, workload = operation.partition(' ')
         rows = [row for row in report['exchanges'] if row['operation'] == op and
                 (not workload or row.get('workload') == workload)]
-        eligible = [row for row in rows if not row['piggyback'] and row['complete_clrt_us'] is not None]
-        errors = sorted(abs(row['complete_clrt_us'] - target_ns / 1000) for row in eligible)
-        p99 = errors[max(0, math.ceil(.99 * len(errors)) - 1)] if errors else None
-        count = planned[operation] if planned is not None else len(rows)
-        boundaries = {}
-        for key in ('first_clrt_us', 'complete_clrt_us'):
-            values = sorted(row[key] for row in eligible if row.get(key) is not None)
-            boundaries[key] = dict(n=len(values), min=min(values) if values else None,
-                                   p99=values[math.ceil(.99 * len(values)) - 1] if values else None,
-                                   max=max(values) if values else None)
-        result[operation] = dict(planned=count, observed=len(rows), eligible=len(eligible), **boundaries,
-                                 p99_nearest_rank_abs_error_us=p99, max_abs_error_us=max(errors) if errors else None,
-                                 pass_=len(eligible) == len(rows) == count and count >= 20 and p99 <= 100)
+        values = sorted(row['complete_clrt_us'] for row in rows
+                        if not row['piggyback'] and row['complete_clrt_us'] is not None)
+        result[operation] = dict(n=len(values), piggyback=sum(bool(row['piggyback']) for row in rows),
+                                 min_us=values[0] if values else None,
+                                 median_us=statistics.median(values) if values else None,
+                                 max_us=values[-1] if values else None, values_us=values)
     return result
 
 

@@ -1,0 +1,409 @@
+{
+  "freeze_version": "production-baseline-v1",
+  "source_sha256": null,
+  "production": {
+    "artifact_sha256": {
+      "/home/decps/Philip_repo/dnp3-defense4/case4_response_path_01/out/bfrt.json": "c7b61f6e0b2d35a5128085cfc7eb5c5bc6ec21e1107213f94f542c21ea6f15a1",
+      "/home/decps/Philip_repo/dnp3-defense4/case4_response_path_01/out/pipe/context.json": "5f961d77ab7c55c587454b69cffdfb637dc29105a21e0431b95b9757be2deeac",
+      "/home/decps/Philip_repo/dnp3-defense4/case4_response_path_01/out/pipe/tofino.bin": "cb8b5ff482ee377819abd5642fff48e25e7a39b0e16f50923e5ec7474c8b2f2d"
+    },
+    "conf": "/home/decps/Philip_repo/logs/bringup_20261005/case4_response_path_conf.json",
+    "conf_sha256": "e36ac1006ef2625abe4e082e55ca01ccdbfe8057c2260daf58e8d43dfa1cf5d8",
+    "launch_script": "/home/decps/Philip_repo/logs/bringup_20261005/launch_case4_response_path.sh",
+    "launch_sha256": "4ccd66002849e6cb66a3a09d732649528c56dead9b7a1da9fa5806517fb8e727",
+    "ping": {
+      "count": 2,
+      "dst": "192.168.10.7",
+      "src": "192.168.10.1"
+    },
+    "program": "case4_response_path",
+    "relay_slot": true
+  },
+  "configs": {
+    "defense4/timing/case4_architecture/protocol/hw_vepa/config/sel751_event_clear_20261026.json": "18b0fc17c8ab2f0b3965b6532e9d1e32275aadc037ac4084300fe2615897045c"
+  },
+  "files": {
+    "defense4/timing/active_harness/dnp3_codec.py": {
+      "sha256": "a70da36cbdd7fe0865f51926fac46c51db3511d46ed3d3f35340fb57da44bce8",
+      "tracked": true
+    },
+    "defense4/timing/active_harness/event_clear.py": {
+      "sha256": "8922e576569ab536b6d18972142a0120d6f5c101a38e7bf51fa04c07f887d8b0",
+      "tracked": false
+    },
+    "defense4/timing/active_harness/frozen_builders.py": {
+      "sha256": "12dd425d08c7c86eb4e1f1af4420adc538033af7a506d90d93f061c378d0a079",
+      "tracked": true
+    },
+    "defense4/timing/active_harness/read_driver.py": {
+      "sha256": "4a3c56ab68332221b913b1d81f3df0007f960f00a0cd913f5202a63dc638adb8",
+      "tracked": true
+    },
+    "defense4/timing/active_harness/read_requests.py": {
+      "sha256": "b0bed2bad9b1e6be2a0b628e5c0d991d92096ad30dacbc9e18c3b819dd628a43",
+      "tracked": true
+    },
+    "defense4/timing/active_harness/relay_native_baseline.py": {
+      "sha256": "897c170042793dd5aac010a07084548e6630249ebff5e0481149b097cd2b89d9",
+      "tracked": true
+    },
+    "defense4/timing/active_harness/sbo_driver.py": {
+      "sha256": "161950e99b711d38ae4aefb49a43e2cab2b2201b1488cce93498d63f11c41ee2",
+      "tracked": true
+    },
+    "defense4/timing/active_harness/session.py": {
+      "sha256": "652700dc50daf4cdd52ffa4ecf2d3ca8c70e8ee1a1288c11d19f0ac17a38fa48",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/cp.py": {
+      "sha256": "b868dc5cd5f77cccdbd0b7b482653d93046e2b7f150184b35a77c826c7413656",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/hw/bringup_composite.py": {
+      "sha256": "f7d20597acb6261a8d4431a7a27c205d9758c97b370fd863cca7239e0caf4d71",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/hw/bringup_teardown.py": {
+      "sha256": "5c13bc832c75ff51558c1d6485b375c5ba2e0053d40a3471d16f08e0e3a4dc94",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/hw/build_ports.py": {
+      "sha256": "0d5b604c45b6dcde20d573420f2d1518b6b472601d44cb422652b63de5a13931",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/hw/check_names.py": {
+      "sha256": "bfe9bb168c83bf19a4fe4999c02a566a3446a132696cfaa1c6dbaec279219e78",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/hw/make_conf.py": {
+      "sha256": "f59642ac4c68ed052ef61e2081f79f8744ead4516bc3661a8c69e32e2f79e4b9",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/hw/readback.py": {
+      "sha256": "36a8f2d6fd4a064f561d1d013e5bdf10a3701c37e381cfcc72886d6f428387ae",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/hw/rows.py": {
+      "sha256": "b2fe969683dbe9f1c2d0cc4d6a5f0e56de703e7ff7b616af7de168b22ba883cb",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/hw/set_enabled.py": {
+      "sha256": "394b03bbb622aac41e69fe95fe0e1fad8375d7bfa1280ea868f93e2b9e135a2e",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/hw/snapshot_counters.py": {
+      "sha256": "e9c100a4745efe3b159d14f940c2c074434f132b5974f4094ee743b516fef241",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/hw/switch.py": {
+      "sha256": "3d90facfb959d7ae8c4fffdc94114f0ab2a9ab6121951cfa0dba85b9282f40bf",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/hw/t_config.py": {
+      "sha256": "5f13c999c262b2148f6af98af442b86911873f55d43c1c85dc13127c90ce55f6",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only/port_map.py": {
+      "sha256": "2bd5471ff0965a12eb4d2b59e6479084236612d6ff012ce6182f85cec1c0bee8",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/cp.py": {
+      "sha256": "74ce4da95f438dae5500fa055fcf939868cba9afd5d4ccb7e53f9363d233d75c",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/bringup_composite.py": {
+      "sha256": "2e946d201c26ccfbac18c19d8142d882c16a25721a6fb50ce5c3fc0c7dc8a899",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/generation_headroom.py": {
+      "sha256": "e2ef66698dce9a1c6ae2a9eace37bca1ac5fa5056e61afee23f7c62ae1fb8c2c",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/mau_snapshot.py": {
+      "sha256": "163778145a272a52d686d6e700068f5e4524c520e981f6312cf3aaa2567330f4",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/sealed_profile.py": {
+      "sha256": "5325164e5a4204a0dc8bdc5ae675f8701bcc202ec680e121b7d5244217ed64b6",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/core/response_only_rearm/hw/snapshot_counters.py": {
+      "sha256": "9b46b3f3284f3814838bcc387d810cdbdc15813bcf8485afa364092fcec22a61",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/baseline_queue.py": {
+      "sha256": "1c3610796f47b1b4c8b37cc7d909c111c755cfc7f220516b1fef98fb80311b26",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_campaign.py": {
+      "sha256": "b10e95f69ca7beeb4673d1a45b673445a5aa72a8c318d78849a89a0fb5b74a30",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_external.py": {
+      "sha256": "b8f841b754b5f8c940d6a8da831f614e3d699c4586cc143772908833c722d779",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_interleave.py": {
+      "sha256": "237b78cc023bfddce656884f55c53f5c18575eb86c38ccb487f470081d0c6476",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_isolation.py": {
+      "sha256": "48edaef779528ee9a0c971a3a1d3858c6671b34ccdae3a6d9417201fccda6b70",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_relay_native.py": {
+      "sha256": "d57eef452d3f11886ade91461e5cf5c262bbe2d24c08c55cee4efabade78eaf1",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/candidate_series.py": {
+      "sha256": "724d13b9abb4cecc20edf376a5b7fe51fd3cb0c75d9cfaa2893830c17b2e1b54",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/contention_probe.py": {
+      "sha256": "bfdf7863b2cfdfd564b22bb2ae6fa7d4f5329ebeeecef4249a32dd1924a7cd46",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/delay_read_tokens.py": {
+      "sha256": "3e0ee7b49f10b06b73c0338648cfc2f68b766f1193c4c42d6bf64784ce644d9e",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/diag_poll.py": {
+      "sha256": "889510f437fd938b5288567e414f84cbf670e9edc59fee422c6a975a6a35ac7e",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/evaluation_campaign.py": {
+      "sha256": "18673ce9c157ee84e36ec139a582e43be50acda7d635d9fc64ea19df46e70820",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/freeze_gate.py": {
+      "sha256": "fe123418737a460f4364d2b7c9fb4b01ba63bff7f2bdf231c45984e230e3cbe0",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/guarded_block.py": {
+      "sha256": "d27eca5aa6717df92e901c35ba8456f639b162a3a08e77b85c47c626db0b1788",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/interleave_probe.py": {
+      "sha256": "250639020b1cd6e32a94e5406a9ac12d7ee907063b967f41397c75c983cc8efc",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/isolation_gate.py": {
+      "sha256": "4e2ca13721dc896a51f901595e21f5fa7c902d93abd4f264309c39b6419dc00d",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/native_reference.py": {
+      "sha256": "22a54e1976638b2f8331f65b4f23b72c9ad1b4f751cd7f488d7a15f61286a8de",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/native_rst_capture.py": {
+      "sha256": "803a49837760c835d7861184d6df968f177e24361f7158672987d52708c6aa08",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/nic_repair.py": {
+      "sha256": "98e5d0b3f680f7ed96c627428aed1b5d63dce48a8a06fdb544e1fed398396e5a",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/precision_followup.py": {
+      "sha256": "09fc181ec7708b7d05351d5149d1f13fe8f4552ef7206bbc982a2cc32f61e0c4",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/privileged_python.py": {
+      "sha256": "32f90d5d95bd697ab62c113ee54e85d35636771613be73d0977a2ce078f6a5cf",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/replay_old_packets.py": {
+      "sha256": "bea6bd0269c666ac26a18a8c42e22b2ea87c525354038e6939698e2d556eb1c3",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_baseline/vision_cpu_dma_latency_20261022.json": {
+      "sha256": "fe5448851292dd4394c95b5c9dae3ce7b7e0adb705656c76190f1d8fa7927d65",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_baseline/vision_rx_coalesce_20261022.json": {
+      "sha256": "65b2761cd3e6ed1385ee66ff1612fa93064b60166fa494740d64a247c8571ea8",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_baseline/vision_state_20261015.txt": {
+      "sha256": "81a0ed722fb0efa9c9369c137f30d8baa6283bc72cfbd01fd109e2787d72312f",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/restore_verify.py": {
+      "sha256": "651a0e83b5d321577bfcc5022d8b29fd9170062600430b0f7501c25f158e8137",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block.sh": {
+      "sha256": "30867a67ead7359ef6f2a63c47e898824cfe57b0b23d9ec3c3cce238c63b8892",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/run_block_frozen.sh": {
+      "sha256": "17ff533b45ab14f5be2e831b7ba2445984e77a7c34a779e5c6be5b3aa237d0ac",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/snapshot_lifecycle.py": {
+      "sha256": "dc1cc6c2ba24ec7b66e0d67dcc536d5ba0e06b087a9eeddb671e0a7973806afe",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/tail_factor.py": {
+      "sha256": "c1f3bb379b71642674b5cd314acc39ce3ec13e9785fc56e80451f1ea7f3c8ac1",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/token_diagnosis.py": {
+      "sha256": "488087e6ab177558117b618e6a775f3066fa197982d9524e50859ddcfc902c75",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/token_window.py": {
+      "sha256": "eddb9dda949af0538ef37911958f0e84acd07eced932371660ae640c13ecdbda",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/vision_candidate.py": {
+      "sha256": "a8e820a9ec3150088fee3cfae4b4c7c290dde11e241abfd8fc306cbe79c60a20",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/vision_contention.py": {
+      "sha256": "c8c014393b8e13703f5a26c611234e3003df1a812874ca8770f74bc27f35d9f4",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/vision_isolation.py": {
+      "sha256": "a22e9f06d660bf0fc6cb2955e8419528062726a43153668f13bcb353094b8478",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/vision_replay.py": {
+      "sha256": "84a684e2cd15cbf1d57689bfbbc02b1f620fd078448056e7a38fdd2381c7bcdc",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/integration/evidence/rearm_01/hw/vision_unreachable_repair.py": {
+      "sha256": "ed36992b97553fd09a1dc91c0459bd1ce6fc3b4b06377d1df889bf47f4a0757f",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/campaign.py": {
+      "sha256": "ad36688ba83bdffa1f778f40407e3b3b7abede8ec1a6b29d8bc3ccc2a1a3ba11",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/capture_boundary.py": {
+      "sha256": "03d0877c7003f032654d9b8c6c4203e9c228b3601feaf3b973c78c12c3eae071",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/capture_observation.py": {
+      "sha256": "339e07eba34ef257f8e803fade535f54583b5e3ce0b083057cee2dc2194dd4de",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/checks.py": {
+      "sha256": "7e9b2da484a6504a2f658ef389638760df42d853c0f85c67d8b1b0539c479bbf",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/clrt_check.py": {
+      "sha256": "11e19ec874f18bea47c425c59006a2b1da81c90dc7c4a1697184c20a6b29732f",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/config/sel751_event_clear_20261026.json": {
+      "sha256": "18b0fc17c8ab2f0b3965b6532e9d1e32275aadc037ac4084300fe2615897045c",
+      "tracked": false
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/endpoint_profiles.py": {
+      "sha256": "b8219c7eb9f86fab8d67ca6aac0963b75130d928d9ff787c534a9e0999019eff",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/hold_check.py": {
+      "sha256": "398d6c768d660d48423447da229229707891ae5097d25c43137e8a75356766b2",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/launch_composite.sh": {
+      "sha256": "6894b5da02e88fffffa5d45730b60665b052134ca6e5ad0f33c5904b528bc16b",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/loss.py": {
+      "sha256": "536dd9a6c52b82813e3b5f8cad2f1c41f81d8db0685e13425b5a38e29035b0d4",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/observe_program.py": {
+      "sha256": "0fa2adf4699cc691cb1fc1b2d547ff811c2193e05bb446b0b9a0cb6f46e41887",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/phc_offset.py": {
+      "sha256": "31339eb140829244e9060564585726bf06bc4e23a337cf024efb697b99f798a7",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/read_classes.py": {
+      "sha256": "b62c4798fe35bd3115d8727e2b734f8233d23e0069138c5e39998e2e039cef31",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/relay_anchor_check.py": {
+      "sha256": "357e018d84bc7da900ed9ab5ed2140e8303ad3d88b31bdaac1328533240f7cbf",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/relay_check.py": {
+      "sha256": "056710bd2598390f0b70f13b1a8b7645a3ae958e4637213dce77dda6f736fb8c",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/relay_loss.py": {
+      "sha256": "cf8745656df694d8824f5f0193e54ee55aa5e47ee56a5afecd04e0ec38223885",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/relay_master.py": {
+      "sha256": "e630dedb00d883a1b179f0b739f978098e46fb3b847a67ca6e5c03606ae2a76c",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/report.py": {
+      "sha256": "a3dac2c4eee3297276ac603469f73d327c3c70341c354673a156eb12cc56065c",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/run.py": {
+      "sha256": "06df0d5d5a3ed14997373a2606a36a054820389bd95aecd373a5b430b71e4e49",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/standards.py": {
+      "sha256": "345d037b7ced493eb12c4c029cd2bbe760754587d1dc1f3183ca84d283792618",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/switch_counters.py": {
+      "sha256": "65d9fa10cfebb4121f51ccc7336865b3d522dfcfafe74a6e69c7ece74b9f8e57",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/switch_slot.py": {
+      "sha256": "53f89d8e6a0c098a8983a3bf52feaa05e19e7bc4de761a6f1a894a84f4412d15",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/switch_swap.sh": {
+      "sha256": "1b03bd501fde0ac8d0f5f9e030d38e01f15c90eadba4e8b2f7bd97e6034b664d",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/vepa_namespaces.py": {
+      "sha256": "92d2efe690649d20c6ff0ca32ad499c4402c4b6fbe4ea50d5e23df6b3ee43085",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/vision_run.py": {
+      "sha256": "25329faf4020f18394267f56dc67e603fcc5fc50df2cc48ab25b7ec0f53db493",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/hw_vepa/wire_check.py": {
+      "sha256": "742eded14f7dca1cb30c6d7ff41006e685cd93197ef6e5ead1d60a3a9335c953",
+      "tracked": true
+    },
+    "defense4/timing/case4_architecture/protocol/response_path_cp.py": {
+      "sha256": "bb305f76cb1d479a1768e76daefac47be7214b27476fda4504fa285fcdb38139",
+      "tracked": true
+    },
+    "defense4/timing/framework/control/live_snapshot.py": {
+      "sha256": "c02ddb31dbafd07c9302ead8e33cbb17b1ce15ede1173175990d5a4d1103c3e0",
+      "tracked": true
+    },
+    "defense4/timing/framework/control/restore_ports.py": {
+      "sha256": "e7f66d103d9bef14649fee62790bd20b58a8913fdb66e42cfd9dc7ede8028495",
+      "tracked": true
+    },
+    "defense4/timing/implementation/harness/dnp3_wire.py": {
+      "sha256": "1b3488b2bb2b5e0e6d8ebe697b5fbb15cfa4890a10d97e67c9a44859c294ea6d",
+      "tracked": true
+    },
+    "defense4/timing/implementation/harness/relay_operate_guarded.py": {
+      "sha256": "39642db9049f65bd15d960f9b10d268fc059b3dd52dc9a45a33478172cdd0597",
+      "tracked": true
+    },
+    "defense4/timing/implementation/harness/relay_read_g10_23.py": {
+      "sha256": "feeb6c5cac66900a6e4d7daad1edec66ed57a02be411ebd3ee2d4b48dc8ddfe4",
+      "tracked": true
+    }
+  },
+  "qualifies": false,
+  "purpose": "native observation only; authorizes no candidate load"
+}

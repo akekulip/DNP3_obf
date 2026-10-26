@@ -1,0 +1,29 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS single_child_source_profile_declared expected=1          observed=1
+PASS single_child_ids_SYN               expected=one exact frame observed=1
+PASS single_child_ids_SYNACK            expected=one exact frame observed=1
+PASS single_child_ids_ACK               expected=one exact frame observed=1
+FAIL exception                          expected=none       observed=Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_response_ready.py", line 962, in main
+    gate.configure();gate.run()
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_response_ready.py", line 935, in run
+    self.invalid_child_ids();done.append('invalid_child_ids')
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_response_ready.py", line 849, in invalid_child_ids
+    state = self.exchange_ready('single_child_live_READ', 'mixed', state)
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_response_ready.py", line 487, in exchange_ready
+    before, encoding = self.outcomes(), self.encoding_state()
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_relay_sbo.py", line 89, in encoding_state
+    counter = self.m.table('p0.r_Egress.outcome')
+  File "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py", line 116, in table
+    self._tables[full] = self.info.table_get(full)
+  File "/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 3012, in table_get
+    return self.table_dict[name]
+KeyError: 'p0.r_Egress.outcome'
+
+SUMMARY {'total': 5, 'passed': 4, 'failed': ['exception']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

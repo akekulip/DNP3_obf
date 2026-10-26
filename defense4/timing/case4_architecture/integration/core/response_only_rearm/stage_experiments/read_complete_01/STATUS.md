@@ -1,5 +1,16 @@
 # read_complete_01 — status (newest first)
 
+## 2026-10-26 — c68 runs on the SEL-751 before vs after at D=5/10/15/20; CLRT criterion removed
+
+- Philip (2026-10-25): the p99 |CLRT − D| ≤ 100 us criterion was agent-written, not his; removed from live code and
+  documents, not reported. The CLRT an adversary between master and switch sees is reported per class as data.
+- c68 = c67 without write-only switch measurement state; 17-driver model gate passed; freeze freeze_v3_03.json.
+- rc01_hw_c68_20261026_01..04: off (before) and combined (after), every block rc 0, restoration verified; table in
+  CURRENT.md and evidence/c68_visible_clrt_20261026.json.
+- On the way: the relay's class-2 event (IIN1.2, raised 2026-10-25 16:10-22:25) broke the integrity READ for every
+  build; cleared once (relay_event_clear_20261025_03). Earlier c68 blocks 20261025_01/_05/_06 and c67 A/B _09 kept.
+- Entries below are dated history; their 100 us criterion was removed on 2026-10-25.
+
 ## 2026-10-25 — c67 closeout: model PASS, smoke PASS, FIN PASS; timing FAIL, mixed-loss FAIL; J unproven
 
 **c67 outcome (2026-10-25 closeout; Philip's disposition).** The planned c67 hardware testing is complete, and c67 has

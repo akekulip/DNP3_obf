@@ -5,7 +5,7 @@
 
 Per block (combined arm, separate-ACK fixture): achieved shaping read back from the switch, internal loop RX frames
 and octets per exchange (cost_report.trial_cost: RX counted once across loop roles; pktgen seeds reported apart),
-internal PPS and bit rate over the traffic interval, READ/SELECT/OPERATE CLRT precision (checks.kind_precision,
+internal PPS and bit rate over the traffic interval, READ/SELECT/OPERATE CLRT precision (kind_precision below,
 nearest-rank), the OPERATE hold (hold_check), request->ACK and request->response medians, and the trial verdict.
 Per pair: changes in frames and octets per exchange, and the decision. Correctness is judged on the FULL,
 unfiltered gates (CLRT nearest-rank p99 per kind, the OPERATE hold, every non-precision trial failure); a failure the
@@ -29,7 +29,6 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parents[5] / 'protocol/hw_vepa'))
 import cost_report  # noqa: E402
-import checks  # noqa: E402
 import hold_check  # noqa: E402
 
 ACK_BUDGET_US = 1000.0
@@ -39,6 +38,18 @@ NOISE = 0.05
 def nearest_rank(values, q):
     v = sorted(values)
     return v[math.ceil(q * len(v)) - 1] if v else None
+
+
+def kind_precision(timing, gap_ns, kind):
+    """Historical only: the retired hw_vepa checks.kind_precision (removed 2026-10-25, Philip: no CLRT threshold in the
+    live harness), kept here so this retained M5 pilot decision still reproduces as it was made."""
+    errors = [row['clrt_us'] - gap_ns / 1000.0 for row in timing.get('exchanges', [])
+              if isinstance(row, dict) and row.get('kind') == kind and row.get('complete') is True and
+              not row.get('piggyback') and row.get('attempts') == 1 and isinstance(row.get('clrt_us'), (int, float))
+              and math.isfinite(row['clrt_us'])]
+    p99 = nearest_rank([abs(e) for e in errors], 0.99)
+    return {'p99': p99, 'max_absolute_error_us': max(abs(e) for e in errors) if errors else None,
+            'pass': len(errors) >= 20 and p99 is not None and p99 <= 100}
 
 
 def host_tail(timing, gap_us):
@@ -74,7 +85,7 @@ def block(root):
         ok = [r for r in rows if r['kind'] == kind and not r.get('piggyback') and r.get('attempts') == 1]
         ack = [r['ack_lat_us'] for r in ok if r.get('ack_lat_us') is not None]
         rt = [r['rt_us'] for r in ok if r.get('rt_us') is not None]
-        p = checks.kind_precision(timing, gap, kind)
+        p = kind_precision(timing, gap, kind)
         # retrospective only: the timing outlier of unresolved origin (host_tail) removed; never used in a decision
         errx = [abs(r['clrt_us'] - gap / 1000.0) for i, r in enumerate(timing['exchanges'])
                 if r['kind'] == kind and i not in tail and r.get('complete') is True and not r.get('piggyback')

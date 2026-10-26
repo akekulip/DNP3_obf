@@ -111,7 +111,12 @@ class Model:
     # ---- tables ------------------------------------------------------------------------------
     def table(self, name, raw=False):
         import re
+        import telemetry_from_log
         full = name if raw or name.startswith('pipe.') or re.match(r'p\d+\.', name) else 'pipe.' + name
+        if full == telemetry_from_log.E_COUNTER and not telemetry_from_log.build_has_telemetry():
+            return telemetry_from_log.CounterTable()            # c68: E's removed outcome Counter, from the log
+        if full == telemetry_from_log.E_COUNTER and os.environ.get('TELEMETRY_SHIM_VERIFY'):
+            return telemetry_from_log.CounterTable(self.info.table_get(full))
         if full not in self._tables:
             self._tables[full] = self.info.table_get(full)
         return self._tables[full]
@@ -152,7 +157,18 @@ class Model:
                     [t.make_data([gc.DataTuple(k, v) for k, v in values.items()])])
 
     def register_read(self, name, index, field=None, pipe=None):
-        """Return {field: [value per pipe]} (or one list when field is given). Syncs from the model first."""
+        """Return {field: [value per pipe]} (or one list when field is given). Syncs from the model first.
+        A build without switch telemetry (c68) answers its removed counters from the model log."""
+        import telemetry_from_log
+        if name in telemetry_from_log.REGISTERS and not telemetry_from_log.build_has_telemetry():
+            out = telemetry_from_log.register_value(name, index)
+            return out[field] if field else out
+        out = self._register_read(name, index, pipe)
+        if name in telemetry_from_log.REGISTERS and os.environ.get('TELEMETRY_SHIM_VERIFY'):
+            telemetry_from_log.record_check(name, index, out)
+        return out[field] if field else out
+
+    def _register_read(self, name, index, pipe=None):
         t = self.table(name)
         tgt = self.target if pipe is None else gc.Target(device_id=0, pipe_id=pipe)
         try:
@@ -163,7 +179,7 @@ class Model:
         for data, _key in t.entry_get(tgt, [t.make_key([gc.KeyTuple('$REGISTER_INDEX', index)])],
                                       {'from_hw': True}):
             out.update(data.to_dict())
-        return out[field] if field else out
+        return out
 
     def register_total(self, name, index, field):
         return sum(self.register_read(name, index, field))

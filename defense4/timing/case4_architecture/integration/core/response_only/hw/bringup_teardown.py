@@ -73,8 +73,18 @@ def steps(ops):
     return apps + params + [op for op in reversed(ops) if op['kind'] != 'pktgen_enable']
 
 
+# A build without T's outcome counters (c68, write-only measurement state removed) settles on the frames its T loop
+# ports have sent instead: T ingress (180), the heartbeat/OPERATE-ladder return (181) and the held return (182) stop
+# moving once nothing is held or laddering.
+SETTLE_PORTS = (180, 181, 182)
+
+
 def off_counts(sw):
-    return tuple(sum(sw.register('p1.t_Ingress.outcomes', 0xffff, i)) for i in (OFF_FLUSH, TOKEN_OFF))
+    try:
+        return tuple(sum(sw.register('p1.t_Ingress.outcomes', 0xffff, i)) for i in (OFF_FLUSH, TOKEN_OFF))
+    except KeyError:                    # BF Runtime: the loaded build has no outcomes register
+        return tuple((sw.get('$PORT_STAT', 0xffff, [('$DEV_PORT', port, None)]) or {}).get('$FramesTransmittedAll')
+                     for port in SETTLE_PORTS)
 
 
 def settle(sw, quiet, timeout):
@@ -85,10 +95,10 @@ def settle(sw, quiet, timeout):
         now = off_counts(sw)
         if now != last:
             last, since = now, time.time()
-        elif time.time() - since >= quiet:
-            print('settled: OUT_HELD_OFF_FLUSH=%d OUT_TOKEN_OFF=%d' % last)
+        elif time.time() - since >= quiet and None not in now:     # an unreadable counter never settles
+            print('settled: %r' % (last,))
             return True
-    print('NOT settled after %.1f s: OUT_HELD_OFF_FLUSH=%d OUT_TOKEN_OFF=%d' % ((timeout,) + last))
+    print('NOT settled after %.1f s: %r' % (timeout, last))
     return False
 
 

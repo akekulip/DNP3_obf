@@ -1,0 +1,107 @@
+{
+ "cases": [
+  {
+   "expected": 1,
+   "name": "single_child_source_profile_declared",
+   "observed": 1,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200010c8e000000000a002100061340000020405b40402080a000f42400000000001030307",
+   "name": "single_child_ids_SYN",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200010c8e000000000a002100061340000020405b40402080a000f42400000000001030307"
+    ],
+    "9": []
+   },
+   "sent": "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200010c8e000000000a002100061340000020405b40402080a000f42400000000001030307"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e81200118c300010c8e1b012100059820000020405b401030300010104020101080a000f6951000f4240",
+   "name": "single_child_ids_SYNACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e81200118c300010c8e1b012100059820000020405b401030300010104020101080a000f6951000f4240"
+    ]
+   },
+   "sent": "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e81200118c300010c8e1b012100059820000020405b401030300010104020101080a000f6951000f4240"
+  },
+  {
+   "expected": "one exact frame",
+   "expected_frame": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200010c8e100118c31801010009a4b00000101080a000f4242000f6951",
+   "name": "single_child_ids_ACK",
+   "observed": 1,
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200010c8e100118c31801010009a4b00000101080a000f4242000f6951"
+    ],
+    "9": []
+   },
+   "sent": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200010c8e100118c31801010009a4b00000101080a000f4242000f6951"
+  },
+  {
+   "expected": "none",
+   "name": "exception",
+   "observed": "Traceback (most recent call last):\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_response_ready.py\", line 962, in main\n    gate.configure();gate.run()\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_response_ready.py\", line 935, in run\n    self.invalid_child_ids();done.append('invalid_child_ids')\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_response_ready.py\", line 849, in invalid_child_ids\n    state = self.exchange_ready('single_child_live_READ', 'mixed', state)\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_response_ready.py\", line 487, in exchange_ready\n    before, encoding = self.outcomes(), self.encoding_state()\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/model_relay_sbo.py\", line 89, in encoding_state\n    counter = self.m.table('p0.r_Egress.outcome')\n  File \"/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/model_driver.py\", line 116, in table\n    self._tables[full] = self.info.table_get(full)\n  File \"/home/philip/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py\", line 3012, in table_get\n    return self.table_dict[name]\nKeyError: 'p0.r_Egress.outcome'\n",
+   "ok": false
+  }
+ ],
+ "meta": {
+  "completed_cases": [],
+  "driver_sha256": "c80e0b433886205845be59a8ed45ace27356fbe966cd3a6f9cce87eaa7c2190a",
+  "endpoint_profile": {
+   "alternate_tcp_port_fixture": "Unconfigured-connection probes use master source port 59411",
+   "dnp_master": 1,
+   "dnp_relay": 0,
+   "master_dev": 9,
+   "master_ip": "192.168.10.1",
+   "master_mac": "3c:fd:fe:cc:5d:c0",
+   "master_tcp_port": 59410,
+   "master_window_scale": 7,
+   "name": "sel751",
+   "relay_dev": 64,
+   "relay_ip": "192.168.10.7",
+   "relay_mac": "00:30:a7:02:4c:a2",
+   "relay_tcp_port": 20000,
+   "relay_window_scale": 0,
+   "syn_tcp_header_octets": 40,
+   "synack_tcp_header_octets": 44,
+   "tcp_header_octets": 32,
+   "tcp_profile": "sel751_ts",
+   "timestamp_policy": "monotonic logical steps; exact options retained across seq/ack mapping"
+  },
+  "physical": false,
+  "planned_cases": [
+   "invalid_child_ids",
+   "D5_ack_first",
+   "D5_response_first",
+   "D10_ack_first",
+   "D10_response_first",
+   "D15_ack_first",
+   "D15_response_first",
+   "D20_ack_first",
+   "D20_response_first",
+   "disabled_and_exhaustion"
+  ],
+  "points": [],
+  "scope": "v2 whole response/genuine ACK/full D; retention-qualified retries and cleanup; no exchange age cap",
+  "timing_contract": "response_ready_ack_d_v2"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [
+   "exception"
+  ],
+  "passed": 4,
+  "total": 5
+ }
+}

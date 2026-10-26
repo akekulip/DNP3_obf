@@ -2,7 +2,7 @@
 import hashlib
 import json
 
-from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp, diag_anchor, response_ready_timing as response_ready
+from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp, diag_anchor, response_ready_timing as response_ready, strip_telemetry
 from .common import (CONSTANTS, CONSTANTS_TWO, HERE, M11_09, M11_09_PROFILE, M11_09_SHA, combined)
 
 TRANSFORM = {
@@ -23,6 +23,7 @@ TRANSFORM = {
     'relay_ts': relay_timestamp.transform,
     'diag_anchor': diag_anchor.transform,
     'response_ready_timing': response_ready.transform,
+    'strip_telemetry': strip_telemetry.transform,
 }
 
 
@@ -34,7 +35,7 @@ def generator_files():
 
 def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False,
           reduce=False, ack_retry=False, read_handshake=False, headroom=False, relay=False, relay_sbo=False, relay_ts=False,
-          diag_anchors=False, response_ready_timing=False):
+          diag_anchors=False, response_ready_timing=False, strip_telemetry=False):
     # Select the two-READ shape source for this build (relay only applies to a two-READ build).
     two_read.use_relay_shapes(relay and two_read_build)
     src = M11_09.read_text()
@@ -88,6 +89,10 @@ def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_
         if diag_anchors:
             raise ValueError('response-ready timing excludes diagnostic anchors')
         transforms.append('response_ready_timing')
+    if strip_telemetry:   # c68: write-only measurement state removed (Philip, 2026-10-25)
+        if not response_ready_timing:
+            raise ValueError('telemetry removal requires response-ready timing')
+        transforms.append('strip_telemetry')
     if diag_anchors:   # m12p_c52d: switch-clock transaction anchors, a separate diagnostic evidence tier
         if not relay_ts:
             raise ValueError('diagnostic anchors require the relay timestamp profile')
@@ -231,6 +236,11 @@ def write_outputs(out, a, src, applied):
         profile['timing_contract'] = 'response_ready_ack_d_v2'
         profile['timing_ns'] = {'D_release_budget': 5000000, 'J_operate_hold': 2400000}
         profile['_note'] += '; genuine ACK waits for whole child0; response follows ACK commit by D; retries drop only while a genuine request or response is retained'
+        scope = profile['_note']
+    if getattr(a, 'strip_telemetry', False):
+        required.add('strip_telemetry')
+        profile['switch_telemetry'] = False
+        profile['_note'] += '; no switch measurement state (outcome/count registers and counters removed)'
         scope = profile['_note']
     if getattr(a, 'diag_anchors', False):
         required.add('diag_anchor')

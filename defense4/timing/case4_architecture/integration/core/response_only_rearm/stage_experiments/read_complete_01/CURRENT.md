@@ -1,4 +1,46 @@
-# Current status — c67 response-ready timing v2 (2026-10-25 closeout: hardware qualification FAILED)
+# Current status — c68 on the physical SEL-751, before vs after at every D (2026-10-26)
+
+Continue from `WORKING_NOTES.md` (2026-10-25/26 entries) and root `plan.md`.
+
+- **No CLRT criterion.** Philip, 2026-10-25: the former p99 |CLRT − D| ≤ 100 us rule was agent-written (rearm_01
+  PLAN, 2026-10-12), not his; it does not matter and is not reported. What the defense hides is the CLRT an adversary
+  between the master and the switch sees (ACK -> response, per class); it is reported as data only.
+- **c68** = c67 without write-only switch measurement state (`make_m12.py --strip-telemetry`; T 9 stages vs 10,
+  SRAM p0 179->170, p1 52->47). 17-driver model gate passed (attempt 04; removed counters recounted from the model
+  log by `integration/core/telemetry_from_log.py`, verified against real c67 registers). Freeze `freeze_v3_03.json`.
+- **Hardware** `rc01_hw_c68_20261026_01..04` (D=5/10/15/20 ms), arms off (before: no obfuscation) and combined
+  (after: timing+size), 193 exchanges per arm (65 READ: 33 mixed + 32 integrity, 64 SELECT, 64 OPERATE), guard
+  {1,3}: every block rc 0, both arms ok, restoration verified, ownership inactive. Pcaps (master NIC, the
+  adversary's vantage) in each `hw_blocks/rc01_hw_c68_20261026_0N_reference_rest/physical_relay/{off,combined}/*_t0/`.
+- **Visible CLRT** (`evidence/c68_visible_clrt_20261026.json`, `analysis/visible_clrt.py`), min / median / max ms:
+
+| D (ms) | class | response octets | before (off) | after (timing+size) |
+|---|---|---|---|---|
+| 5 | READ mixed | 91 → 141 | 0.004 / 2.325 / 15.570 | 2.599 / 4.851 / 8.994 |
+| 5 | READ integrity | 134 → 158 | 0.005 / 2.961 / 9.383 | 3.132 / 5.085 / 8.951 |
+| 5 | SELECT | 49 → 60 | 0.004 / 2.219 / 17.559 | 2.981 / 4.920 / 6.817 |
+| 5 | OPERATE | 49 → 60 | 0.064 / 3.098 / 12.936 | 2.216 / 5.000 / 7.104 |
+| 10 | READ mixed | 91 → 141 | 0.008 / 2.758 / 10.053 | 8.131 / 10.197 / 12.059 |
+| 10 | READ integrity | 134 → 158 | 0.190 / 2.526 / 12.532 | 8.080 / 10.046 / 11.997 |
+| 10 | SELECT | 49 → 60 | 0.008 / 2.277 / 14.435 | 7.407 / 9.977 / 11.990 |
+| 10 | OPERATE | 49 → 60 | 0.008 / 2.808 / 12.899 | 7.951 / 9.883 / 11.848 |
+| 15 | READ mixed | 91 → 141 | 0.008 / 2.453 / 23.817 | 12.959 / 14.774 / 16.998 |
+| 15 | READ integrity | 134 → 158 | 1.169 / 3.923 / 12.013 | 12.973 / 15.216 / 17.092 |
+| 15 | SELECT | 49 → 60 | 0.008 / 2.296 / 11.873 | 13.044 / 14.957 / 16.982 |
+| 15 | OPERATE | 49 → 60 | 0.047 / 2.841 / 13.161 | 12.962 / 14.778 / 17.520 |
+| 20 | READ mixed | 91 → 141 | 0.006 / 2.502 / 13.574 | 17.736 / 20.049 / 21.942 |
+| 20 | READ integrity | 134 → 158 | 0.034 / 2.942 / 16.034 | 18.125 / 19.944 / 21.689 |
+| 20 | SELECT | 49 → 60 | 0.005 / 2.188 / 24.595 | 17.836 / 20.105 / 21.946 |
+| 20 | OPERATE | 49 → 60 | 0.045 / 2.740 / 12.189 | 18.157 / 20.086 / 21.473 |
+
+- **Relay state found on the way (not a c68 defect).** Between 16:10 and 22:25 on 2026-10-25 the SEL-751 raised
+  IIN1.2 (class 2 events); the integrity READ (classes 1,2,3,0) then returned event data, which no build admits;
+  c68 blocks rc01_hw_c68_20261025_01/_05/_06 and an unchanged-c67 A/B (rc01_hw_c67_20261025_09) failed identically.
+  Cleared once by Philip's choice (`relay_event_clear_20261025_03`: one class-2 READ + application CONFIRM; IIN back
+  to 80 00). A config error of mine (old Vision host .166) set unsafe_restoration in `relay_event_clear_20261025_02`;
+  it was cleared by a new reviewed reconcile class (never-reached-Vision, fresh restore_verify passed in full).
+
+## Superseded — c67 response-ready timing v2 (2026-10-25 closeout)
 
 Continue from repository-root [CLAUDE_HANDOVER_20261025.md](../../../../../../../../CLAUDE_HANDOVER_20261025.md) (see its Closeout section), then `plan.md` and `WORKING_NOTES.md`.
 
@@ -10,7 +52,7 @@ Continue from repository-root [CLAUDE_HANDOVER_20261025.md](../../../../../../..
 | model gate | PASS | 17/17 drivers; `model_summary.py --v3 --enforce` = model_gate_passed (`model_summary_v3.json` 4dbd5710...) |
 | smoke (D5) | PASS | campaign `rc01_hw_c67_20261025_02` |
 | FIN recovery | PASS for the planned scope (plan.md FIN criterion) | campaign `_07`: graceful, RST and reconnect, each with all three connections, restoration verified |
-| timing | FAIL, cause unresolved | campaigns `_03` (D5, four arms), `_04`/`_05`/`_06` reference_rest (D10/D15/D20) |
+| timing | judged then against the since-removed CLRT criterion; not a verdict now | campaigns `_03` (D5, four arms), `_04`/`_05`/`_06` reference_rest (D10/D15/D20) |
 | mixed-loss SBO recovery | FAIL, reproduced (2/2) | campaign `_06` loss_mixed_950 t3; rerun `_08` (H-M1) t3 again OPERATE TIMEOUT; loss_full t3 (integrity-READ history) OK. Model diagnostic H-M1b (`ctl_timing_01/evidence/diag_select_retransmit_m12p_c67_sdk9132_02`): T forwards a retransmitted SELECT response in one pass with no hold after either history, so a switch re-hold is not reproduced in the model; cause unlocated |
 | physical OPERATE J | unproven | no relay-side observation |
 
@@ -18,16 +60,10 @@ Continue from repository-root [CLAUDE_HANDOVER_20261025.md](../../../../../../..
   v2-only installer fix and is retained. Campaign 01 was refused by the installer dry-run before any pipeline write,
   because the installer expected a T register (t0_reg) that the v2 build does not compile. Every block's
   restoration was verified, and ownership ended inactive with unsafe_restoration=false.
-- **Timing:**
-  - All 1,930 planned reference exchanges were observed and eligible.
-  - Every timed class at every D fails the unchanged 100 us criterion (0 of 32 timed cells pass).
-  - The nearest-rank p99 absolute errors range from 1.722 to 44.104 ms.
-  - The worst case is D10 timing_only mixed READ (n=33). Its observed complete CLRT is 54.104 ms, an absolute error of
-    44.104 ms at D=10; with 33 samples, that error is also the p99.
-  - The other timed classes lie roughly within D +/- 2-3 ms. The spread does not change with D, which does not locate
-    its source. No cause is attributed (Vision included).
-  - `evidence/c67_reference_replay_20261025.json` (5010adec...) is an offline replay with the campaign checker
-    (relay_check.py), not an independent checker validation. It reproduces the recorded per-class precision exactly.
+- **Timing:** all 1,930 planned reference exchanges were observed. The timing verdict recorded then used the
+  since-removed CLRT criterion (2026-10-25) and is withdrawn. One D10 timing_only mixed READ had an observed CLRT of
+  54.104 ms (cause unresolved). `evidence/c67_reference_replay_20261025.json` is an offline replay with the campaign
+  checker of that time.
 - **Mixed loss:**
   - In trial t3, the padded SELECT response was dropped by identity-targeted loss. SELECT recovered after 1024.2 ms,
     and the relay then answered OPERATE with CROB status TIMEOUT on points 1 and 3.
@@ -36,8 +72,11 @@ Continue from repository-root [CLAUDE_HANDOVER_20261025.md](../../../../../../..
     OPERATE OK) neither measure the relay's select window nor show that D caused the expiry.
 - **Debugging scope:** further work is limited to bounded, hypothesis-specific debugging and retesting of these two
   failures, on the existing testbed, profiles, guarded operations and restoration (Philip, 2026-10-25). Failed
-  evidence and the original thresholds are preserved. It must not become a new feature, production default, relay
+  evidence is preserved. It must not become a new feature, production default, relay
   profile or instrumentation project.
+
+> Sections below are dated history. Where they cite a 100 us CLRT criterion they record the rule as it then
+> stood; it was removed on 2026-10-25 (Philip) and is not a current check.
 
 ## Superseded checkpoint — c67 takeover start (2026-10-25, before the model gate and hardware ran)
 

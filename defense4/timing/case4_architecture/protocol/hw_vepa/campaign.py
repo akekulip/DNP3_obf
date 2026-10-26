@@ -79,30 +79,6 @@ FIXTURES = ('separate_ack', 'piggyback', 'physical_relay')
 LADDER = (0, 58, 232, 930, 3723, 14892, 59570, 238281)   # the TM shaper realizes only these PPS values (0 = off)
 HEX64 = re.compile(r'[0-9a-f]{64}')
 HEX40 = re.compile(r'[0-9a-f]{40}')
-# observed key of each timing objective -> its failure prefix (checks.OBJECTIVE_PREFIXES)
-OBJECTIVE_KEYS = {'read_precision': 'READ precision:', 'select_precision': 'SELECT precision:',
-                  'operate_precision': 'OPERATE precision:', 'piggyback_latency': 'PIGGYBACK latency:',
-                  'operate_hold': 'OPERATE hold:'}
-LOSS_OBJECTIVES_EXEMPT = 'loss/recovery trial: timing objectives are not evaluated'
-RECONNECT_OBJECTIVES_EXEMPT = 'reconnect %s: timing objectives beyond READ precision are not evaluated'
-RUNNER_OBJECTIVES_EXEMPT = 'this runner evaluates no timing objectives beyond READ precision'
-# host-observed CLRT precision misses only (not J hold, piggyback latency, or any correctness gate)
-PRECISION_PREFIXES = ('READ precision:', 'SELECT precision:', 'OPERATE precision:')
-
-
-def precision_only_soft(record, evaluation):
-    """True when a block's only failures are host-observed CLRT precision threshold misses that the runner already
-    accepted as timing-characterization continuations, AND the config explicitly reports host precision instead of
-    gating it (evaluation.host_precision_gated is False; Philip, 2026-10-18, evaluation option 1). Any other failure,
-    including a J-hold or piggyback miss, stays a hard failure."""
-    if evaluation.get('host_precision_gated') is not False or \
-            evaluation.get('purpose') != 'timing_precision_characterization':
-        return False
-    soft = [t for a in record.get('arms', []) for t in a.get('trials', []) if t.get('ok') is False]
-    return bool(soft) and all((t.get('continuation') or {}).get('allowed') is True and t.get('failures') and
-                              all(f.startswith(PRECISION_PREFIXES) for f in t['failures']) for t in soft)
-
-
 def path_of(rel):
     return rel if os.path.isabs(rel) else os.path.join(ARCH, rel)
 
@@ -173,10 +149,25 @@ SINGLE_CLASS_LOSS_SELECTORS = frozenset({'ack_sep', 'read_resp_padded', 'select_
                                          'master_ack_of_padded', 'master_ack_of_padded_data'})
 
 
-def gate_ok(record, precision_reported):
-    """The block verdict: strictly ok, or excused as precision-only reported -- but an invalid host diagnostic is
-    never excused (precision_only_soft looks only at trial failures, not at soft-failure strings)."""
-    return bool(record.get('ok') or precision_reported) and not record.get('host_diagnostic_invalid')
+# evaluation keys of the retired host-CLRT threshold: an old config may still carry them; they are ignored, never
+# reported
+RETIRED_EVALUATION_KEYS = ('purpose', 'read_precision', 'host_precision_gated', 'precision_reference')
+
+
+def reported_evaluation(evaluation):
+    """The config's evaluation section as recorded: retired timing-threshold keys dropped (also inside
+    campaign_block); the stale-source diagnostic purpose is kept because it still selects diagnostic soft failures."""
+    out = {k: v for k, v in (evaluation or {}).items() if k not in RETIRED_EVALUATION_KEYS}
+    if (evaluation or {}).get('purpose') == 'stale_source_characterization':
+        out['purpose'] = 'stale_source_characterization'
+    if isinstance(out.get('campaign_block'), dict):
+        out['campaign_block'] = {k: v for k, v in out['campaign_block'].items() if k not in RETIRED_EVALUATION_KEYS}
+    return out
+
+
+def gate_ok(record):
+    """The block verdict: strictly ok, and never with an invalid host diagnostic."""
+    return bool(record.get('ok')) and not record.get('host_diagnostic_invalid')
 
 
 def validate_read_classes(cfg):
@@ -292,15 +283,6 @@ def validate_profile(cfg):
         if not 0 <= int(parts['start']) <= int(parts['end']) <= 11 or {'start', 'end'} & set(names) or \
                 len(set(names)) != len(names) or any(value & ~mask for value, mask in values):
             raise ValueError('diagnostic_mau_snapshot needs start<=end<=11, distinct trigger fields and value within mask')
-    quality = cfg.get('evaluation', {})
-    if quality.get('purpose', 'qualification') not in ('qualification', 'stale_source_characterization',
-                                                      'timing_precision_characterization'):
-        raise ValueError('evaluation.purpose must be qualification, stale_source_characterization, '
-                         'or timing_precision_characterization')
-    if not isinstance(quality.get('read_precision', True), bool):
-        raise ValueError('evaluation.read_precision must be boolean')
-    if quality.get('read_precision') is False and quality.get('purpose') != 'stale_source_characterization':
-        raise ValueError('only explicit stale_source_characterization may disable READ precision qualification')
     for name, scenario in cfg.get('scenarios', {}).items():
         if scenario.get('policy', 'characterize') not in ('characterize', 'protected'):
             raise ValueError('scenario %s: policy must be characterize or protected' % name)
@@ -694,40 +676,9 @@ class Campaign:
                                              self.cfg.get('standards', {}).get('packet_boundary_required')),
         }
 
-    def precision_required(self, arm, fixture):
-        """The trial claims a READ timing target: timed arm, separate-ACK fixture, precision enabled."""
-        return bool(arm.get('T') and fixture == 'separate_ack' and
-                    self.cfg.get('evaluation', {}).get('read_precision', True))
-
-    def hold_analyzer(self, out_pcap, in_pcap, master_port, outstation_port):
-        """The validator's recomputation of the OPERATE hold from the bound captures (hold_check.analyze)."""
-        import hold_check
-        return hold_check.analyze(out_pcap, in_pcap, master_port, outstation_port)
-
-    def objective_blocks(self, trial, arm, observed, exempt=None, connection_id=None, unbound_native=False):
-        """observed.objectives for the standards artifact: SELECT/OPERATE precision, piggyback latency and the
-        OPERATE hold, each required exactly when standards.objective_requirements says so for this trial's
-        context (the validator re-derives the same requirement). exempt: a code-path declaration (loss, reconnect)
-        that the trial evaluates none of them; an objective the build/arm/fixture would require is then recorded
-        exempted, and the trial is measurement_only at best."""
-        context = self.standards_context(trial, arm, connection_id, unbound_native)
-        context['objectives_exempt'] = exempt
-        purpose = self.cfg.get('evaluation', {}).get('purpose', 'qualification')
-        bounds = standards.objective_bounds(self.cfg)
-        return {name: standards.objective_block(name, required, (observed or {}).get(name), purpose, reason, bounds,
-                                                exempted)
-                for name, (required, reason, exempted) in standards.objective_requirements(context).items()}
-
     def standards_observed(self, ev, failures, *, transport_ok, select_ok, operate_ok, aggregate_ok,
-                           precision_required, precision=None, precision_reason=None, checker_result=None,
-                           objectives=None):
-        # The timing objectives (READ precision and checks.OBJECTIVE_PREFIXES) are gated by their own failure
-        # entries (soft in timing characterization); they are not standards properties, so an objective-only
-        # failure must not re-enter here as a hard standards failure. They are serialized separately as
-        # observed.precision and observed.objectives and drive the qualification verdict.
-        if failures and all(str(f).startswith(checks.OBJECTIVE_PREFIXES) for f in failures):
-            failures, aggregate_ok = [], True
-        purpose = self.cfg.get('evaluation', {}).get('purpose', 'qualification')
+                           checker_result=None):
+        # conformance only: host-observed timing is reported in the trial record, never part of this artifact
         observed = {
             'timing': ev.get('timing'),
             'checker_result': checker_result,
@@ -736,10 +687,7 @@ class Campaign:
             'select_authorizes_operate': select_ok,
             'operate_success': operate_ok,
             'aggregate_verdict': aggregate_ok,
-            'precision': standards.precision_block(precision_required, precision, purpose, precision_reason),
         }
-        if objectives is not None:        # None: a caller that evaluates no objectives keeps the pre-objective shape
-            observed['objectives'] = objectives
         return observed
 
     def standards_captures(self, dest, captures):
@@ -810,45 +758,26 @@ class Campaign:
         return result
 
     def validate_standards_file(self, dest, trial, arm, captures, observed, connection_id=None, unbound_native=False,
-                                precision_exempt=None, master_port=None, objectives_exempt=None):
-        """precision_exempt: a code-path declaration (e.g. a loss trial) that this trial claims no READ timing
-        target although its arm is timed; the validator derives the requirement from this context, not from the
-        artifact. master_port: the commanded port (default the trial's), which the profile verdict must match."""
+                                master_port=None):
+        """master_port: the commanded port (default the trial's), which the profile verdict must match."""
         if self.rn.dry:
             return []
         context = self.standards_context(trial, arm, connection_id, unbound_native)
-        if (observed or {}).get('objectives') is None:
-            # a runner that evaluates no timing objectives (rearm_01 external/isolation/series): the artifact is
-            # still v3, with every objective the build would claim recorded exempted (measurement_only at best)
-            objectives_exempt = objectives_exempt or RUNNER_OBJECTIVES_EXEMPT
-            observed = dict(observed or {}, objectives=self.objective_blocks(
-                trial, arm, None, objectives_exempt, connection_id, unbound_native))
-        context['precision_exempt'] = precision_exempt
-        context['objectives_exempt'] = objectives_exempt
         context['master_port'] = master_port if master_port is not None else trial.get('master_port')
         captures = self.standards_captures(dest, captures)
         artifact = standards.build_standards_artifact(context, captures, observed)
         path = os.path.join(dest, 'standards.json')
         with open(path, 'w') as f:
             json.dump(artifact, f, indent=1, default=str)
-        result = standards.validate_standards(path, context, captures, hold_analyzer=self.hold_analyzer)
+        result = standards.validate_standards(path, context, captures)
         failures = ['standards: ' + failure for failure in result['failures']]
         if standards.profile_required(context):
             profile = self.validate_profile_file(dest, context, captures, artifact['expected']['lengths'],
                                                  context['master_port'])
             result['profile'] = profile
             failures += ['profile: ' + failure for failure in profile['failures']]
-            if not profile['ok']:
-                result['qualification'] = 'rejected'
-        if result.get('qualification') == 'rejected' and not failures:
-            # conformant, but the timing claim is not supported (e.g. missing precision evidence): never silent
-            blocks = [result.get('precision') or {}] + list(((observed or {}).get('objectives') or {}).values())
-            reasons = [r for b in blocks if isinstance(b, dict) and b.get('status') != 'pass'
-                       for r in (b.get('reasons') or []) if b.get('status') != 'not_applicable']
-            failures.append('qualification: rejected: %s' % '; '.join(reasons or ['precision status fail']))
         with open(os.path.join(dest, 'standards_verdict.json'), 'w') as f:
             json.dump(result, f, indent=1, default=str)
-        trial.setdefault('qualification', {})[connection_id or 'trial'] = result.get('qualification')
         return failures
 
     def validate_profile_file(self, dest, context, captures, lengths, master_port):
@@ -1094,12 +1023,7 @@ class Campaign:
         self.record['ok'] = (not failed) and restore_ok and not self.soft_failures
         if self.soft_failures:
             self.record['soft_failures'] = self.soft_failures
-        # record['ok'] keeps its strict meaning; gate_ok says the block passed every gate it is configured to apply
-        precision_reported = (not failed) and restore_ok and bool(self.soft_failures) and \
-            precision_only_soft(self.record, self.cfg.get('evaluation', {}))
-        self.record['gate_ok'] = gate_ok(self.record, precision_reported)
-        if precision_reported:
-            self.record['host_precision_reported_not_gated'] = True
+        self.record['gate_ok'] = gate_ok(self.record)
         if not dry:
             self.finish(dry)
         return 0 if self.record['gate_ok'] else 1
@@ -1275,7 +1199,7 @@ class Campaign:
 
     def host_diagnostic_evidence(self, output):
         """The CPU-latency release evidence vision_run.py restore printed, into the record. A diagnostic that was not
-        verified in force at release fails the block (soft failure outside any trial, so never precision-only)."""
+        verified in force at release fails the block (a soft failure outside any trial)."""
         for line in (output or '').splitlines():
             if line.startswith('cpu latency release evidence: '):
                 try:
@@ -1521,27 +1445,11 @@ class Campaign:
                 (Path(directory) / 'relay_wire.json').write_text(json.dumps(report, indent=2) + '\n')
                 reports[name] = report
                 application_failures += [name + ': ' + error for error in report['failures']]
-                planned = None
-                if self.cfg.get('timing_contract') == 'response_ready_ack_d_v2':
-                    schedule = self.cfg['traffic']['read_schedule']
-                    mixed = (trial['reads'] + 1) // 2 if schedule == 'mixed_full' else trial['reads'] if schedule == 'mixed' else 0
-                    planned = {'READ mixed': mixed, 'READ integrity': trial['reads'] - mixed, 'SELECT': sbo, 'OPERATE': sbo}
-                observed[name] = dict(application=report['ok'], preservation='same-packet originals unobserved',
+                # the CLRT the adversary sees at the master NIC, per class: reported, never a pass/fail criterion
+                observed[name] = dict(application=report['ok'],
                                       master_acceptance=master.get('ok') is True and master.get('counts') ==
                                           dict(READ=trial['reads'], SELECT=sbo, OPERATE=sbo),
-                                      timing_gated=bool(arm['T'] and not native_connection and
-                                          (self.cfg.get('timing_contract') != 'response_ready_ack_d_v2' or
-                                           self.cfg['evaluation']['campaign_block'].get('precision_reference') is True)),
-                                      precision=relay_check.precision(report, self.cfg['timing_params_ns']['gap'],
-                                          split_reads=self.cfg.get('timing_contract') == 'response_ready_ack_d_v2', planned=planned),
-                                      switch_residence='unproven: no relay-side observation',
-                                      operate_j='unproven: no relay-side observation')
-                if observed[name]['timing_gated']:
-                    for operation, verdict in observed[name]['precision'].items():
-                        if not verdict['pass_']:
-                            failures.append(name + ': ' + operation + ' complete master CLRT failed 100 us criterion')
-                    if self.cfg.get('qualification_dimensions', {}).get('operate_j') != 'unproven_by_user_choice':
-                        failures.append(name + ': OPERATE J unproven without relay-side observation')
+                                      visible_clrt=relay_check.visible_clrt(report))
             except (OSError, ValueError, KeyError, TypeError) as error:
                 application_failures.append(name + ': missing/malformed physical relay evidence: ' + str(error))
         snapshots = checks.load_evidence_files(
@@ -1553,6 +1461,7 @@ class Campaign:
         read_piggybacks = sum(row['operation'] == 'READ' and row['piggyback'] for report in installed_reports for row in report['exchanges'])
         control_piggybacks = sum(row['operation'] in ('SELECT', 'OPERATE') and row['piggyback']
                                 for report in installed_reports for row in report['exchanges'])
+        # switch_telemetry False (c68): no outcome counters; generator and loop-port checks still gate
         switch_failures, switch_observed = checks.evaluate_switch(
             self.cfg['expectations'], arm, installed * trial['reads'], snapshots,
             checks.allowed_gap(build), self.cfg['service']['k'] if build.get('mirror_fix') else None,
@@ -1560,18 +1469,14 @@ class Campaign:
             sbo_count=installed * sbo, piggyback_reads=read_piggybacks, piggyback_controls=control_piggybacks,
             control_timed=bool(build.get('control_timed')),
             piggyback_bound=bool(build.get('piggyback_bound')), gen_exhausted_outcome=build.get('gen_exhausted_outcome'),
-            timing_contract=self.cfg.get('timing_contract'))
+            timing_contract=self.cfg.get('timing_contract'), telemetry=build.get('switch_telemetry') is not False)
         failures = application_failures + failures + switch_failures
         if v is None or v.rc:
             failures.append('physical relay Vision workload failed')
-        timing_dimension = not arm['T'] or not failures
-        if self.cfg.get('timing_contract') == 'response_ready_ack_d_v2':
-            timing_dimension = not failures if any(c['timing_gated'] for c in observed.values()) else 'not_qualified_recovery_or_smoke'
         trial.update(ok=not failures, failures=failures, observed=dict(connections=observed, switch=switch_observed),
                      endpoint_profile='sel751', dimension_verdicts=dict(application=not application_failures,
-                     switch=not switch_failures, timing=timing_dimension, operate_j='unproven', same_packet_preservation='unproven'))
+                     switch=not switch_failures))
         (Path(dest) / 'trial.json').write_text(json.dumps(trial, indent=2) + '\n')
-        # Timing qualification is retained as failed; continue safely to requested recovery blocks.
         if raise_on_failure and (application_failures or switch_failures or v is None or v.rc):
             raise StepFailed('physical relay application/switch gate failed: ' + '; '.join(failures[:4]))
         return trial
@@ -1616,13 +1521,10 @@ class Campaign:
                                      self.cfg['service']['k'] if self.cfg['builds'][arm['build']].get('mirror_fix') else None,
                                      checks.max_token_stale(self.cfg['builds'][arm['build']]),
                                      diagnostic=self.cfg['builds'][arm['build']].get('diagnostic', False),
-                                     gap_ns=self.cfg['timing_params_ns']['gap'],
-                                     precision=self.cfg.get('evaluation', {}).get('read_precision', True),
                                      run_sbo=checks.sbo_count(self.cfg['traffic']),
                                      repeated='sbo_cycles' in self.cfg['traffic'],
                                      control_timed=bool(self.cfg['builds'][arm['build']].get('control_timed')),
                                      piggyback_bound=bool(self.cfg['builds'][arm['build']].get('piggyback_bound')),
-                                     pb_ns=self.cfg['timing_params_ns'].get('pb'),
                                      op_j_ns=self.cfg['timing_params_ns'].get('op_j'),
                                      gen_exhausted_outcome=self.cfg['builds'][arm['build']].get('gen_exhausted_outcome'),
                                      read_classes=standards.read_class_expectations(self.cfg, arm, trial))
@@ -1639,40 +1541,16 @@ class Campaign:
                 ev, list(fails), transport_ok=(w.rc == 0),
                 select_ok=(not run_sbo) or outstation.get('select_real') == run_sbo,
                 operate_ok=(not run_sbo) or outstation.get('operate_real') == run_sbo,
-                aggregate_ok=ok, precision_required=self.precision_required(arm, fixture),
-                precision=obs.get('read_precision'),
-                precision_reason=('arm %s has no timing target (T=0)' % arm['name'] if not arm.get('T') else
-                                  'fixture %s: READ CLRT undefined or precision disabled' % fixture), checker_result=self.run_standards_checker(dest, trial, arm),
-                objectives=self.objective_blocks(trial, arm, obs)))
+                aggregate_ok=ok, checker_result=self.run_standards_checker(dest, trial, arm)))
         fails += std_fail
         ok = ok and not std_fail
         trial.update(ok=ok, failures=fails)
-        purpose = self.cfg.get('evaluation', {}).get('purpose', 'qualification')
-        timing_continue = False
-        if purpose == 'timing_precision_characterization':
-            # continue only past timing-objective threshold misses over sufficient evidence (each failed objective
-            # is gated and has its minimum sample / complete observation); anything else is a hard gate failure
-            precision = obs.get('read_precision') or {}
-            p99 = precision.get('p99_nearest_rank_abs_error_us')        # the value the READ gate uses
-            failed = {key for key, prefix in OBJECTIVE_KEYS.items() if any(f.startswith(prefix) for f in fails)}
-            read_ok = ('read_precision' not in failed or (
-                precision.get('gated') and precision.get('eligible', 0) >= 20
-                and isinstance(p99, (int, float)) and p99 > 100))
-            timing_continue = bool(fails and all(f.startswith(checks.OBJECTIVE_PREFIXES) for f in fails) and read_ok
-                                   and all((obs.get(key) or {}).get('gated') and (obs.get(key) or {}).get('sufficient')
-                                           for key in failed - {'read_precision'}))
-            trial['continuation'] = {'purpose': purpose, 'allowed': timing_continue,
-                                     'reason': ('READ p99 absolute error threshold only'
-                                                if timing_continue and failed == {'read_precision'} else
-                                                'timing objective thresholds only: %s' % ', '.join(sorted(failed))
-                                                if timing_continue else
-                                                'hard gate failure' if fails else 'trial passed')}
+        purpose = self.cfg.get('evaluation', {}).get('purpose')
         json.dump(trial, open(os.path.join(dest, 'trial.json'), 'w'), indent=1, default=str)
         if not ok:
-            if purpose == 'stale_source_characterization' or timing_continue:
+            if purpose == 'stale_source_characterization':
                 self.soft_failures.append(label)
-                kind = 'TIMING CHARACTERIZATION' if timing_continue else 'DIAGNOSTIC'
-                sys.stderr.write('%s TRIAL %s: %s\n' % (kind, label, '; '.join(fails)))
+                sys.stderr.write('DIAGNOSTIC TRIAL %s: %s\n' % (label, '; '.join(fails)))
             else:
                 raise StepFailed('%s failed: %s' % (label, '; '.join(fails)))
 
@@ -1732,7 +1610,7 @@ class Campaign:
             trial['loss'] = result.get('loss')
             trial['failures'] += failures
             trial['dimension_verdicts']['loss_target'] = not failures
-            trial['observed']['loss_timing'] = 'not qualified: capture includes intentionally dropped attempts'
+            trial['observed']['loss_timing'] = 'capture includes intentionally dropped attempts'
             trial['ok'] = not trial['failures']
             Path(dest, 'trial.json').write_text(json.dumps(trial, indent=2) + '\n')
             # As for the software fixture: a failed recovery is RECORDED and the block goes on to its next
@@ -1809,12 +1687,7 @@ class Campaign:
                 ev, list(fails), transport_ok=(w.rc == 0),
                 select_ok=(not run_sbo) or outstation.get('select_real') == run_sbo,
                 operate_ok=(not run_sbo) or outstation.get('operate_real') == run_sbo,
-                aggregate_ok=not fails, precision_required=False,
-                precision_reason='loss/recovery trial: READ precision is not evaluated',
-                checker_result=self.run_standards_checker(dest, trial, arm),
-                objectives=self.objective_blocks(trial, arm, None, LOSS_OBJECTIVES_EXEMPT)),
-            precision_exempt='loss/recovery trial: READ precision is not evaluated',
-            objectives_exempt=LOSS_OBJECTIVES_EXEMPT)
+                aggregate_ok=not fails, checker_result=self.run_standards_checker(dest, trial, arm)))
         trial.update(ok=not fails, failures=fails, vision=result, wire_rc=w.rc, clrt_rc=k.rc, loss=res, observed=obs)
         json.dump(trial, open(os.path.join(dest, 'trial.json'), 'w'), indent=1, default=str)
         if fails:
@@ -1870,15 +1743,6 @@ class Campaign:
                 connection_failures += checks.read_padding_record_checks(m, {})      # no rows: nothing added
             elif cn != 'c2':
                 connection_failures += self.read_padding_checks(m, arm)
-            precision = checks.read_precision_gate(e['timing'] or {}, self.cfg['timing_params_ns']['gap'])
-            precision['gated'] = bool(self.reconnect_policy == 'protected' and cn != 'c2' and arm['T'] and
-                                      trial.get('fixture', self.fixtures[0]) == 'separate_ack' and
-                                      self.cfg.get('evaluation', {}).get('read_precision', True))
-            if precision['gated'] and not precision['pass']:
-                connection_failures.append('READ precision did not qualify: eligible%d, p99 absolute error%s us' %
-                                           (precision['eligible'], precision['p99_nearest_rank_abs_error_us']))
-            exempt = (None if precision['gated'] or cn == 'c2' else
-                      'reconnect %s: READ precision not gated (policy %s)' % (cn, self.reconnect_policy))
             for tool, status in zip(('wire', 'clrt'), rcs[cn]):
                 if status.rc:
                     connection_failures.append('%s extractor rc=%d' % (tool, status.rc))
@@ -1893,16 +1757,11 @@ class Campaign:
                     select_ok=(not run_sbo) or outstation.get('select_real') == run_sbo,
                     operate_ok=(not run_sbo) or outstation.get('operate_real') == run_sbo,
                     aggregate_ok=not connection_failures,
-                    precision_required=precision['gated'], precision=precision,
-                    precision_reason=exempt or 'reconnect %s: no READ timing target' % cn,
                     checker_result=self.run_standards_checker(
                         d, trial, arm, cn, cn == 'c2',
                         master_port=(None if trial.get('master_port') is None else
-                                     trial['master_port'] + (reconnect_offset if cn == 'c2' else 0))),
-                    objectives=self.objective_blocks(trial, arm, None, RECONNECT_OBJECTIVES_EXEMPT % cn, cn,
-                                                     cn == 'c2')),
-                connection_id=cn, unbound_native=(cn == 'c2'), precision_exempt=exempt,
-                objectives_exempt=RECONNECT_OBJECTIVES_EXEMPT % cn,
+                                     trial['master_port'] + (reconnect_offset if cn == 'c2' else 0)))),
+                connection_id=cn, unbound_native=(cn == 'c2'),
                 master_port=(None if trial.get('master_port') is None else
                              trial['master_port'] + (reconnect_offset if cn == 'c2' else 0)))
             connection_failures.extend(std_fail)
@@ -1915,7 +1774,8 @@ class Campaign:
                        'padded': 58 in lens, 'retransmitted': rd.get('retransmitted'),
                        'complete': rd.get('complete'), 'incomplete': rd.get('incomplete'), 'piggyback': rd.get('piggyback'),
                        'wire_rc': rcs[cn][0].rc, 'clrt_rc': rcs[cn][1].rc,
-                       'failures': connection_failures, 'ok': not connection_failures, 'read_precision': precision}
+                       'failures': connection_failures, 'ok': not connection_failures,
+                       'visible_clrt': checks.visible_clrt(e['timing'] or {})}
             if cn != 'c3' or self.reconnect_policy == 'protected':
                 prefix = '%s%s' % (cn, ' native connection' if cn == 'c2' else '')
                 fails.extend('%s: %s' % (prefix, failure) for failure in connection_failures)
@@ -2035,7 +1895,7 @@ class Campaign:
             'qualification_dimensions': c.get('qualification_dimensions', {}), 'k': c['service']['k'],
             'shaping_requested': resolve_shaping(c), 'fixture': c['fixture'], 'trials': c['trials'],
             'traffic': dict(c['traffic'], **self.endpoint_controls()), 'ports_map': c['ports_map'], 'endpoints': c['endpoints'],
-            'evaluation': dict({'purpose': 'qualification', 'read_precision': True}, **c.get('evaluation', {})),
+            'evaluation': reported_evaluation(c.get('evaluation', {})),
             'reconnect_policy': self.reconnect_policy,
             'max_token_stale': {name: checks.max_token_stale(c['builds'][name]) for name in selected_builds(c, self.arms)},
             'endpoint_identity': c['endpoint'], 'vision_run_dir': self.V}

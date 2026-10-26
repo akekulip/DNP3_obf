@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Derive a READ acceptance smoke and seven qualification blocks for one source-bound SEL-751 candidate."""
+"""Derive a READ acceptance smoke and the evaluation/recovery blocks for one source-bound SEL-751 candidate."""
 import argparse
 import copy
 import hashlib
@@ -81,12 +81,14 @@ def response_ready_config(cfg, block, d_ms):
     cfg['timing_contract'] = 'response_ready_ack_d_v2'
     cfg['timing_params_ns'] = dict(gap=d_ms * 1000000, op_j=2400000,
                                    budget=cfg['timing_params_ns'].get('budget', 240000), enabled=1)
-    cfg['evaluation'].update(purpose='qualification', host_precision_gated=True)
-    cfg['qualification_dimensions'] = dict(operate_j='unproven_by_user_choice')
+    # no timing pass/fail criterion (Philip, 2026-10-25): the visible CLRT is reported per class, never gated
+    for key in ('purpose', 'host_precision_gated', 'read_precision'):
+        cfg['evaluation'].pop(key, None)
+    cfg.pop('qualification_dimensions', None)
     for build in cfg['builds'].values():
         build.update(timing_contract=cfg['timing_contract'], piggyback_bound=False, control_timed=True)
     cb = cfg['evaluation']['campaign_block']
-    cb['precision_reference'] = block == 'reference'
+    cb.pop('precision_reference', None)
     if block == 'smoke':
         cfg['arms'] = [arm for arm in cfg['arms'] if arm['name'] == 'combined']
         cfg['trials'] = dict(reads_per_trial=2, trials_per_arm=1)
@@ -179,7 +181,7 @@ def main(argv=None):
             cfg['traffic'].pop('sbo_cycles', None)  # absence is the existing guarded runner's zero-cycle default
             cfg['traffic']['master_port_note'] = 'One bounded padded mixed/full READ acceptance connection.'
             cfg['scenarios'] = {}
-            cfg['evaluation'].update(arm_order=['size_only'], purpose='qualification')
+            cfg['evaluation'].update(arm_order=['size_only'])
             cfg['evaluation']['campaign_block'].update(arms=['size_only'], expected_exchanges=2, phase='smoke',
                 arguments=['--arms', 'size_only', '--fixtures', 'physical_relay'])
         if ready:
@@ -204,6 +206,11 @@ def main(argv=None):
         old_build.update(source_sha256=source, out_dir=case4_relative(compile_dir / 'out'),
                          manifest=case4_relative(compile_dir / 'manifest.json'),
                          hashes={key: manifest['artifact_sha256'][key] for key in old_build['hashes']})
+        if profile.get('switch_telemetry') is False:
+            # c68: no switch counters to read; correctness rests on the wire and application checks
+            old_build['switch_telemetry'] = False
+            cfg['expectations']['_note'] = 'Complete active-master outcomes and real master NIC packet evidence; ' \
+                                           'the build carries no switch counters.'
         cfg['builds'] = {build.name: old_build}
         for arm in cfg['arms']:
             arm['build'] = build.name

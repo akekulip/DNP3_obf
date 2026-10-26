@@ -211,8 +211,7 @@ class ExternalIsolationCampaign(ci.TokenIsolationCampaign):
                 self.standards_observed(ev,list(cfail),transport_ok=not any('wire_check.py failed' in f for f in cfail),
                                         select_ok=outstation.get('select_real')==1,
                                         operate_ok=outstation.get('operate_real')==1,
-                                        aggregate_ok=not cfail,precision_required=False,
-                                        precision_reason='external replay: stale_source_characterization',
+                                        aggregate_ok=not cfail,
                                         checker_result=self.run_standards_checker(str(analysis),trial,arm,cn)),
                 connection_id=cn))
             connections[cn]=dict(ok=not cfail,failures=cfail,fresh_mapping=fresh)
