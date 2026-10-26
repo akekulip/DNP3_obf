@@ -7,8 +7,8 @@ source SHA256 `5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59`
 
 ## Execution ledger
 
-- [ ] Phase 1: SEL-751 receiver-visible branch of the shared standards validator + regressions
-- [ ] Phase 2: c69 configs, freeze, preflight, dry-runs, 10-block matrix (2,440 planned exchanges), readout
+- [x] Phase 1: SEL-751 receiver-visible branch of the shared standards validator + regressions
+- [x] Phase 2: c69 configs, freeze, preflight, dry-runs, 10-block matrix (2,440 planned exchanges), readout
 - [ ] Phase 3: E experiment (rbad0/rbad1/rbadt) — compile + final-resource comparison
 - [ ] Phase 4: N experiment (first_event/abort_t terminal) — compile + final-resource comparison
 - [ ] Phase 5: successor model gate / reproduction / matrix (only if a change is retained)
@@ -69,6 +69,21 @@ source SHA256 `5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59`
   report.py's own LOOP_ROLES copy (software-path report, gates nothing, would print '-' for c69 loop metrics);
   campaign.json mirror note text; J-era stale-token bound (unobservable without telemetry).
 - Suites: hw_vepa 963 passed / baseline 1; rearm 815 passed / baseline 6 (`tests_post_gate_*.txt`).
+
+## Phase 2 record — baseline matrix result (c69, freeze_v3_02)
+
+- Smoke rerun rc01_hw_c69_20261026_11 21:01:46Z: PASS (application, switch, standards; app0 4 triggers/16 packets).
+- Matrix 12-20 (21:05:10Z-~21:5xZ), one guarded campaign each, sequential driver; every block rc 0, independent
+  restoration ok, ownership inactive/safe after each. Planned = observed = OK outcomes: 772 + 386x3 + 66x3 + 154x2 +
+  smoke 4 = 2,440. Every trial: application, switch and receiver-visible standards True; all 14 loss trials also
+  loss_target True. Sizes exact by arm (native 91/134/49; padded 141/158/60; reconnect c2 native). Visible CLRT
+  (reported only): timing arms centred on D (medians within ~0.7 ms of 5/10/15/20 ms); off and size_only relay-native
+  (medians 2.1-4.1 ms, long tails to ~25 ms). Full table: matrix_readout.md / matrix_readout.json.
+- Not evaluated: switch-emitted boundaries, departure timing, physical-event protection. c68's full-loss t3 OPERATE
+  TIMEOUT did not recur in this run (c69 full-loss 7/7); one passing run does not locate or resolve that cause.
+- Block 01 (first smoke, freeze_v3_01) remains a recorded FAIL on the switch gate's missing no-J rule; campaigns 02-10
+  never ran. The background driver/monitor session ended during block 20; the block ran to completion under its
+  detached supervisor (rc 0, restoration ok), verified after resume.
 
 ## Phase 3 record — E experiment (rbad0/rbad1/rbadt), transform prepared
 

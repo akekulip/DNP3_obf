@@ -1,0 +1,289 @@
+{
+  "fixture": "physical_relay",
+  "label": "rc01_hw_c69_20261026_18_reconnect_950_physical_relay_combined_t0",
+  "master_port": 59959,
+  "reads": 20,
+  "ok": true,
+  "failures": [],
+  "max_token_stale": 0,
+  "reconnect_policy": "protected",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 0,
+    "gap_ms": 0,
+    "start_delay_ms": 0,
+    "start_seed": 12345
+  },
+  "generation_headroom": {
+    "current": {
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "read": 65446
+    },
+    "remaining_before_reserve": {
+      "read": 65534
+    },
+    "reserve": {
+      "read": 88
+    },
+    "reserves": {
+      "read": 88
+    },
+    "snapshot": {
+      "bfrt_sha256": "858947eaf8a39aac2bb41d8166945ebdf74e8b565704ecd329cc338213b260dd",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1793050510.465858,
+      "timing_contract": "response_ready_ack_d_no_j_v3",
+      "valid": true
+    },
+    "time": 1793050510.4734714,
+    "budget": {
+      "reads": 20,
+      "sbo_cycles": 1,
+      "cancelled_selects": 0,
+      "connections": 3,
+      "control_timed": true,
+      "timed": true,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "read_lane_per_connection": 22,
+      "source": "T gen_access and N first_event: common READ/SELECT/OPERATE allocator"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c69_20261026_18_reconnect_950_physical_relay_combined_t0_before_generation_headroom.json"
+  },
+  "observed": {
+    "connections": {
+      "c1": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 10,
+            "piggyback": 0,
+            "min_us": 19071.0,
+            "median_us": 20268.5,
+            "max_us": 22039.0,
+            "values_us": [
+              19071.0,
+              19678.0,
+              19748.0,
+              19856.0,
+              20169.0,
+              20368.0,
+              20706.0,
+              20959.0,
+              21832.0,
+              22039.0
+            ]
+          },
+          "READ integrity": {
+            "n": 10,
+            "piggyback": 0,
+            "min_us": 18306.0,
+            "median_us": 19803.0,
+            "max_us": 21441.0,
+            "values_us": [
+              18306.0,
+              18642.0,
+              18833.0,
+              19470.0,
+              19582.0,
+              20024.0,
+              20326.0,
+              20535.0,
+              20818.0,
+              21441.0
+            ]
+          },
+          "SELECT": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 19179.0,
+            "median_us": 19179.0,
+            "max_us": 19179.0,
+            "values_us": [
+              19179.0
+            ]
+          },
+          "OPERATE": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 19314.0,
+            "median_us": 19314.0,
+            "max_us": 19314.0,
+            "values_us": [
+              19314.0
+            ]
+          }
+        }
+      },
+      "c2": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 10,
+            "piggyback": 0,
+            "min_us": 48.0,
+            "median_us": 2160.0,
+            "max_us": 26056.0,
+            "values_us": [
+              48.0,
+              204.0,
+              2067.0,
+              2106.0,
+              2156.0,
+              2164.0,
+              2640.0,
+              4093.0,
+              4376.0,
+              26056.0
+            ]
+          },
+          "READ integrity": {
+            "n": 10,
+            "piggyback": 0,
+            "min_us": 153.0,
+            "median_us": 2528.5,
+            "max_us": 14765.0,
+            "values_us": [
+              153.0,
+              2030.0,
+              2168.0,
+              2218.0,
+              2521.0,
+              2536.0,
+              3583.0,
+              4530.0,
+              5142.0,
+              14765.0
+            ]
+          },
+          "SELECT": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 11.0,
+            "median_us": 11.0,
+            "max_us": 11.0,
+            "values_us": [
+              11.0
+            ]
+          },
+          "OPERATE": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 5102.0,
+            "median_us": 5102.0,
+            "max_us": 5102.0,
+            "values_us": [
+              5102.0
+            ]
+          }
+        }
+      },
+      "c3": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 10,
+            "piggyback": 0,
+            "min_us": 17961.0,
+            "median_us": 20208.0,
+            "max_us": 21860.0,
+            "values_us": [
+              17961.0,
+              18535.0,
+              18981.0,
+              19641.0,
+              20013.0,
+              20403.0,
+              20692.0,
+              21044.0,
+              21265.0,
+              21860.0
+            ]
+          },
+          "READ integrity": {
+            "n": 10,
+            "piggyback": 0,
+            "min_us": 18063.0,
+            "median_us": 19967.5,
+            "max_us": 21838.0,
+            "values_us": [
+              18063.0,
+              18112.0,
+              19291.0,
+              19534.0,
+              19823.0,
+              20112.0,
+              20501.0,
+              20782.0,
+              21633.0,
+              21838.0
+            ]
+          },
+          "SELECT": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 18761.0,
+            "median_us": 18761.0,
+            "max_us": 18761.0,
+            "values_us": [
+              18761.0
+            ]
+          },
+          "OPERATE": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 20402.0,
+            "median_us": 20402.0,
+            "max_us": 20402.0,
+            "values_us": [
+              20402.0
+            ]
+          }
+        }
+      }
+    },
+    "switch": {
+      "outcomes": "no switch telemetry in this build",
+      "pktgen": {
+        "READ": {
+          "triggers": 44,
+          "pkts": 176
+        }
+      },
+      "token_stale_bound": "unknown: no switch telemetry in this build",
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+      }
+    }
+  },
+  "endpoint_profile": "sel751",
+  "dimension_verdicts": {
+    "application": true,
+    "switch": true,
+    "standards": true
+  }
+}

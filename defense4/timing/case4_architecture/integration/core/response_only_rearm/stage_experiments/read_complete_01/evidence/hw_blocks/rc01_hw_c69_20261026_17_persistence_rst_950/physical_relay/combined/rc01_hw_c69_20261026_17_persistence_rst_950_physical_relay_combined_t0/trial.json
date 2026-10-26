@@ -1,0 +1,382 @@
+{
+  "fixture": "physical_relay",
+  "label": "rc01_hw_c69_20261026_17_persistence_rst_950_physical_relay_combined_t0",
+  "master_port": 59951,
+  "reads": 20,
+  "ok": true,
+  "failures": [],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 0,
+    "gap_ms": 0,
+    "start_delay_ms": 0,
+    "start_seed": 12345
+  },
+  "generation_headroom": {
+    "current": {
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "read": 65446
+    },
+    "remaining_before_reserve": {
+      "read": 65534
+    },
+    "reserve": {
+      "read": 88
+    },
+    "reserves": {
+      "read": 88
+    },
+    "snapshot": {
+      "bfrt_sha256": "858947eaf8a39aac2bb41d8166945ebdf74e8b565704ecd329cc338213b260dd",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1793050331.2421637,
+      "timing_contract": "response_ready_ack_d_no_j_v3",
+      "valid": true
+    },
+    "time": 1793050331.2500758,
+    "budget": {
+      "reads": 20,
+      "sbo_cycles": 1,
+      "cancelled_selects": 0,
+      "connections": 3,
+      "control_timed": true,
+      "timed": true,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "read_lane_per_connection": 22,
+      "source": "T gen_access and N first_event: common READ/SELECT/OPERATE allocator"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c69_20261026_17_persistence_rst_950_physical_relay_combined_t0_before_generation_headroom.json"
+  },
+  "observed": {
+    "connections": {
+      "c1": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 10,
+            "piggyback": 0,
+            "min_us": 19246.0,
+            "median_us": 20474.5,
+            "max_us": 21446.0,
+            "values_us": [
+              19246.0,
+              19631.0,
+              19689.0,
+              20234.0,
+              20460.0,
+              20489.0,
+              20734.0,
+              21059.0,
+              21428.0,
+              21446.0
+            ]
+          },
+          "READ integrity": {
+            "n": 10,
+            "piggyback": 0,
+            "min_us": 18162.0,
+            "median_us": 20133.5,
+            "max_us": 21686.0,
+            "values_us": [
+              18162.0,
+              18611.0,
+              19069.0,
+              19518.0,
+              19907.0,
+              20360.0,
+              20365.0,
+              20761.0,
+              20930.0,
+              21686.0
+            ]
+          },
+          "SELECT": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 21778.0,
+            "median_us": 21778.0,
+            "max_us": 21778.0,
+            "values_us": [
+              21778.0
+            ]
+          },
+          "OPERATE": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 19190.0,
+            "median_us": 19190.0,
+            "max_us": 19190.0,
+            "values_us": [
+              19190.0
+            ]
+          }
+        }
+      },
+      "c2": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 10,
+            "piggyback": 0,
+            "min_us": 19882.0,
+            "median_us": 20628.5,
+            "max_us": 21804.0,
+            "values_us": [
+              19882.0,
+              19916.0,
+              20305.0,
+              20558.0,
+              20595.0,
+              20662.0,
+              20962.0,
+              20966.0,
+              21488.0,
+              21804.0
+            ]
+          },
+          "READ integrity": {
+            "n": 10,
+            "piggyback": 0,
+            "min_us": 18845.0,
+            "median_us": 19277.5,
+            "max_us": 21220.0,
+            "values_us": [
+              18845.0,
+              18860.0,
+              18986.0,
+              18996.0,
+              19077.0,
+              19478.0,
+              19586.0,
+              20008.0,
+              21002.0,
+              21220.0
+            ]
+          },
+          "SELECT": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 21444.0,
+            "median_us": 21444.0,
+            "max_us": 21444.0,
+            "values_us": [
+              21444.0
+            ]
+          },
+          "OPERATE": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 19768.0,
+            "median_us": 19768.0,
+            "max_us": 19768.0,
+            "values_us": [
+              19768.0
+            ]
+          }
+        }
+      },
+      "c3": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 10,
+            "piggyback": 0,
+            "min_us": 18718.0,
+            "median_us": 20096.5,
+            "max_us": 21513.0,
+            "values_us": [
+              18718.0,
+              19221.0,
+              19955.0,
+              19990.0,
+              20089.0,
+              20104.0,
+              20377.0,
+              20394.0,
+              21504.0,
+              21513.0
+            ]
+          },
+          "READ integrity": {
+            "n": 10,
+            "piggyback": 0,
+            "min_us": 18886.0,
+            "median_us": 19947.5,
+            "max_us": 21347.0,
+            "values_us": [
+              18886.0,
+              18905.0,
+              19059.0,
+              19552.0,
+              19904.0,
+              19991.0,
+              20305.0,
+              20601.0,
+              20758.0,
+              21347.0
+            ]
+          },
+          "SELECT": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 18984.0,
+            "median_us": 18984.0,
+            "max_us": 18984.0,
+            "values_us": [
+              18984.0
+            ]
+          },
+          "OPERATE": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 20378.0,
+            "median_us": 20378.0,
+            "max_us": 20378.0,
+            "values_us": [
+              20378.0
+            ]
+          }
+        }
+      }
+    },
+    "switch": {
+      "outcomes": "no switch telemetry in this build",
+      "pktgen": {
+        "READ": {
+          "triggers": 66,
+          "pkts": 264
+        }
+      },
+      "token_stale_bound": "unknown: no switch telemetry in this build",
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+      }
+    },
+    "series_switch": {
+      "outcomes": "no switch telemetry in this build",
+      "pktgen": {
+        "READ": {
+          "triggers": 66,
+          "pkts": 264
+        }
+      },
+      "token_stale_bound": "unknown: no switch telemetry in this build",
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+      },
+      "external_growth_bytes": 762,
+      "external_growth_expected": 762,
+      "unacked": 0,
+      "held_operate_dup_drops": null
+    },
+    "lifecycle": {
+      "n_retry_epoch": 0,
+      "epochs": {
+        "registers": {
+          "N": "p0.n_Ingress.epoch",
+          "E": "p0.r_Egress.epoch",
+          "T": "p1.t_Ingress.cur_epoch_reg"
+        },
+        "values": {
+          "N": 144,
+          "E": 144,
+          "T": 144
+        },
+        "E_raw": 2147483792,
+        "T_raw": 2147483792,
+        "T_sealed": true,
+        "E_FIRST_latched": true
+      },
+      "work": {
+        "register": "p0.n_Ingress.work.work",
+        "phase": 4,
+        "generation": 214
+      },
+      "owner": {
+        "register": "p0.n_Ingress.owner",
+        "value": 33554435,
+        "phase": 512,
+        "generation": 3
+      }
+    },
+    "fresh_mapping": {
+      "c1": {
+        "client_isn": 1476053036,
+        "server_isn": 615723405,
+        "frontiers": {
+          "client": 1476053647,
+          "server": 615726516
+        },
+        "observation_scope": "master TCP coordinates only"
+      },
+      "c2": {
+        "client_isn": 1543102025,
+        "server_isn": 616823930,
+        "frontiers": {
+          "client": 1543102636,
+          "server": 616827041
+        },
+        "observation_scope": "master TCP coordinates only"
+      },
+      "c3": {
+        "client_isn": 1613006339,
+        "server_isn": 617965191,
+        "frontiers": {
+          "client": 1613006950,
+          "server": 617968302
+        },
+        "observation_scope": "master TCP coordinates only"
+      }
+    }
+  },
+  "endpoint_profile": "sel751",
+  "dimension_verdicts": {
+    "application": true,
+    "switch": true,
+    "standards": true
+  },
+  "scenario": {
+    "policy": "physical_same_tuple_protected",
+    "installed_connections_expected": 3,
+    "connections": {
+      "c1": {
+        "master_port": 59951
+      },
+      "c2": {
+        "master_port": 59951
+      },
+      "c3": {
+        "master_port": 59951
+      }
+    }
+  }
+}
