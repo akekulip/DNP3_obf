@@ -1,4 +1,4 @@
-# c69 — fixed OPERATE J retired (offline validation)
+# c69 — fixed OPERATE J retired; offline milestone complete
 
 ## Authority and stop condition
 
@@ -28,11 +28,13 @@ Detailed ledger/reports: `read_complete_01/evidence/c69_no_operate_hold_20261026
 - SDK 9.13.2 compile PASS on attempt2, 99.663 s. Attempt1 parser match-register failure is retained separately.
 - Compiled resources: p0 ingress/egress11/11 unchanged; p1 ingress9→8, egress4 unchanged; p1 SRAM47→36,
   TCAM51→36; stateful tables10→7. Compiler PHV summary also shrinks. Full report is `resource_comparison.json`.
-- All17 fresh required drivers PASS (6339 checks); shared v3 recomputation returns `model_gate_passed`.
-  All23 attempts remain, including6 failures. FIN02 passes193/193 and all3connections after a fixture-only
+- All 17 fresh required drivers PASS (6,339 checks); shared v3 recomputation returns `model_gate_passed`.
+  All 23 attempts remain, including 6 failures. FIN02 passes 193/193 and all 3 connections after a fixture-only
   repair: exact FIN-retry observation replaces slow serial counter sampling while the busy cell is locked.
-  Budget32, both peer packets, zero exhaustion and all3 completion checks remain. All46 logs from all23 attempts are archived and hash/round-trip verified. Clean-checkout
-  reproduction is pending; do not mark the offline milestone complete yet.
+  Budget32, both peer packets, zero exhaustion and all3 completion checks remain. All 46 logs from all 23 attempts are archived and hash/round-trip verified. Clean-checkout
+  reproduction PASS at `6b0b5efa2`: all 374 retained logs restored, all 38 compiler files verified, and the shared
+  17-driver gate recomputed. Original and fresh resource reports match exactly. Full results are
+  `clean_checkout_verification.json` and `clean_checkout_reproduce.txt` in the ledger directory.
 
 ## Reproduction and history
 
@@ -40,7 +42,7 @@ The generator keeps historical c67/c68 P4 identities unchanged. c68 reproduction
 model dependencies and repaired-harness freeze at `51f9c9d18`; older original c68 physical references retain their
 `789092c2d`/freeze03 binding. c67 remains pinned to `a4ebbecbe`. Never rewrite old freezes to make them pass.
 
-Use `CANDIDATE=c69 bash read_complete_01/reproduce.sh` from the stage directory after model retention is complete.
+Reproduce with `CANDIDATE=c69 bash read_complete_01/reproduce.sh` from the stage directory.
 It verifies the offline source/profile, model gate and compiler bundle and explicitly reports hardware unevaluated.
 The build verifier can check an explicitly selected checkout source root without trusting its original absolute path.
 All original artifact and source/include hashes remain required.
@@ -52,7 +54,7 @@ original records remain. Synthetic log observations are not BFRT functional regi
 
 ## Physical-time explanation
 
-SER is a device-recorded event timestamp; unsolicited describes an event report sent without a poll. Formby's
+SER (Sequential Events Recorder) records event timestamps in the device; unsolicited describes an event report sent without a poll. Formby's
 physical metric starts at the observed command, not its TCP ACK. Delaying a command affects the later physical
 event, while delaying its report does not rewrite its recorded timestamp. Fixed J shifts the upstream timing
 distribution; meaningful physical-fingerprint suppression has not been demonstrated. c68's ordinary solicited
@@ -63,3 +65,9 @@ failure and the distinction between application success, transport delivery, mod
 
 Preserve `paper/`, old candidates/captures/freezes, unrelated work and the two pre-existing deleted root files.
 Use explicit staging paths, required author/committer identity and no history rewrite.
+
+## Completion and next action
+
+Implementation and retained evidence are committed as `6b0b5efa2`. The clean-checkout verification used the installed SDK9.13.2 and Python3.12 environment; these external prerequisites are not bundled. Generator checks passed 194 tests plus163 subtests; one optional legacy compiled-context test skipped because RESPONSE_READY_CONTEXT was unset. The separate c69 compiler/resource checks passed.
+
+The approved compile/model milestone is complete. No next implementation, experiment or hardware run is part of this scope. c69 has not been deployed, and physical-event fingerprint suppression and the earlier relay recovery failure remain unresolved. Keep those limitations visible; do not turn them into a new task without a new user instruction. No history was rewritten.

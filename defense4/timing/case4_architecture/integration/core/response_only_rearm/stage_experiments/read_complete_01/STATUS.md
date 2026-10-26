@@ -1,4 +1,4 @@
-# c69 — fixed OPERATE hold removed; model gate PASS (2026-10-26)
+# c69 — offline milestone complete; fixed OPERATE hold removed (2026-10-26)
 
 Current handover: root `CLAUDE_HANDOVER_20261026_C69.md`. The direct user instruction removes fixed J from the
 active candidate, preserves Git/evidence history, and ends this task at compile/model verification. No hardware
@@ -10,7 +10,9 @@ operation or physical-event/SER implementation belongs to this task.
 - SDK 9.13.2 compile PASS: p1 ingress stages9→8, SRAM47→36, TCAM51→36; p0 unchanged. Three stateful banks and
   five J-specific tables removed. Original failed parser-capacity attempt retained.
 - All17 fresh required model drivers pass (6339 checks); shared v3 gate recomputes model_gate_passed,
-  23 attempts including6 retained failures. Archiving and clean-checkout reproduction remain in progress.
+  23 attempts including6 retained failures. All46 logs archived and independently verified. Clean checkout at
+  `6b0b5efa2` reproduces exit0: all374 retained logs restored, all38 compiler files verified, model gate PASS. The
+  approved offline scope is complete; no follow-on hardware work is included.
   Records/resources/log retention: `evidence/c69_no_operate_hold_20261026/`. No c69 hardware qualification.
 - c68 remains the last physical candidate; its application recovery failure is preserved. Removing J does not
   establish that failure's cause or resolution. Physical-fingerprint suppression remains unproven.

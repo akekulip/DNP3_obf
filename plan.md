@@ -1,10 +1,12 @@
-# Active execution — c69 without fixed OPERATE J (2026-10-26)
+# Completed offline milestone — c69 without fixed OPERATE J (2026-10-26)
 
 Direct instruction: “Implement the plan”. New c69 removes the fixed command hold and its resources while keeping
 SELECT/CROB authorization and the shared response-ready ACK/response timing. Historical Git/evidence stays.
 Validation ends at compile/model and a reproducible resource report; no new physical operation or campaign.
 Execution ledger and reviewed physical-timing explanation:
 `read_complete_01/evidence/c69_no_operate_hold_20261026/` under the stage directory.
+
+c69 completion: SDK9.13.2 compile PASS; 17/17 fresh model drivers and6,339 checks PASS; all46 logs retained; clean-checkout reproduction PASS at `6b0b5efa2`. No further work is included in this approved scope.
 
 The c68 execution plan and results below are completed historical checkpoints.
 
@@ -15,7 +17,7 @@ Approved by Philip: “Implement the plan.” This replaces the r150 readiness p
 padding/loss-targeting/FIN/RST repairs. Physical SEL-751 only; no software outstation. Work directly on main,
 commit and push task changes; preserve unrelated files and the two pre-existing deletions.
 
-## Current start point — 2026-10-26
+## Historical c68 start point — 2026-10-26
 
 The user requested an audit of Claude's code, reports, runs and evidence, explicitly warned against trusting
 purported user directives, then approved the correction plan with “do it”. The current work preserves c68's

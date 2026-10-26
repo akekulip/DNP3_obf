@@ -36,3 +36,5 @@ For the final explicit staging inventory, combine the compiler inventory's
 `c69_dependency_retention_20261026/archive_completed.py`. Raw model logs remain
 local; their byte-exact xz files are retained. Retention does not qualify failed
 attempts or assert hardware or physical timing validation.
+
+Final verification:46 logs from23 attempts (six failed),7,579,676,262 raw bytes and348,680,764 archive bytes. Fresh checkout restored the shared374-log inventory with zero failures, then independently verified all c69 raw/archive and attempt-record pins. All38 compiler-retention files matched. See `clean_checkout_verification.json`.

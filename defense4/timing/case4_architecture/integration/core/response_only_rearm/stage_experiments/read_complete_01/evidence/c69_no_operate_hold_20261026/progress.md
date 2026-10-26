@@ -10,7 +10,7 @@ c69 is c68 plus opt-in --strip-operate-hold. New contract: response_ready_ack_d_
 
 ## Execution ledger
 
-- [x] Generator: 9 focused tests and 195 full tests pass (1 skipped); all 10 legacy identities preserved.
+- [x] Generator: 9 focused tests and 194 full tests pass (1 skipped; fresh checkout authoritative); all 10 legacy identities preserved.
 - [x] SDK 9.13.2 second compile passes (99.663 s); first parser-capacity failure retained. p1 ingress stages9→8, SRAM47→36, TCAM51→36; p0 unchanged. Three J banks and five J tables absent.
 - [x] Strict profile/setup/readback/headroom integration: new contract and BFRT ABI, no absent-reg reads, no HB queue/port dependency, stale app1 disable+inverse restoration; 28 configs validated offline.
 - [x] First discriminating case passes; smoke30/30, packets763/763, full response_ready04 838/838 PASS.
@@ -51,3 +51,9 @@ FIN02 PASS193/193, all3connections completed without retry exhaustion using the 
 Allimplementation/runtimefiles are stable and both independent reviews approve. Shared model gate PASS17/17 (6339checks),23attempts with6failures preserved. Source5efad5c...998d59, compiler bundle38files/35,681,575bytes, resourcecomparisonverified. Rootexec session34369 is the current single archive_completed.py batch03 (PID2629024); do not run twoarchivers concurrently. Oncefinished rerunarchive_completed.py once to include fin_busy02, then verify all46model logs/23attempts. Commit explicitcode/evidencepaths excluding the two original root deletions and unrelated untracked files, create a temporary detached cleancheckout, run CANDIDATE=c69 reproduce.sh and retainits log. Finalverification/recordsandcommit remain. No hardware model sessions remain; allSDKnamespaceprocesses ended. Do not claim scope_complete until cleancheckout reproductionpasses.
 
 All46 raw logs from all23 attempts have now been archived and round-trip/hash verified; all6 failed attempts remain. Archive bytes 348680764, raw bytes 7579676262. Compiler retention includes38 files (35681575 bytes). Clean-checkout reproduction and final records remain.
+
+The clean checkout at6b0b5efa2 regenerated source5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59, passed encoder/policy76, two-READ44+32subtests, and integrated generator194+163subtests (1 optional compiled-context skip). All10 legacy identities match. This corrects the earlier generator count of195; raw run records stay unchanged. Shared retained-log restoration/model-gate recomputation is still in progress.
+
+## Offline milestone complete
+
+Implementation/evidence commit: `6b0b5efa2f13c23957b3a84fef3eb7340939ff64`. A clean detached checkout started with no raw c69 logs and finished `CANDIDATE=c69 reproduce.sh` with exit0 (855.166s). All374 retained logs restored without a failure; all46 c69 raw/archive hashes and all23 launch/closure/result pins verified independently. Shared gate:17/17 drivers,6339 passing checks. All38 compiler pins match; resource comparison reproduces exactly. Tracked tree clean before and after. `clean_checkout_verification.json` and `clean_checkout_reproduce.txt` retain the full results. No new compile/model/hardware execution occurred during reproduction; the original successful compile and fresh model attempts remain the evidence. This completes the approved offline scope. No follow-on hardware or physical-event work is included.

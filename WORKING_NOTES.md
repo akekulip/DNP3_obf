@@ -3521,3 +3521,11 @@ c69_no_operate_hold_20261026. No hardware or relay traffic. Earlier c68 physical
 Shared model_gate_passed: all17 required drivers,6339 latest passing checks,23 attempts including6 retained failures.
 All46 model logs archived with raw/compressed hashes and round-trip verification. No hardware or relay traffic.
 Fresh clean-checkout reproduction and final records remain; earlier partial gate status above is superseded.
+
+### 2026-10-26 — c69 offline milestone complete
+
+Fixed OPERATE J and its dedicated resources are removed in c69; common request admission and response-ready ACK/full-D shaping remain. Implementation/evidence commit6b0b5efa2. SourceSHA256 5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59. SDK9.13.2 compile PASS; p0 ingress/egress11/11, p1 ingress/egress8/4. Pipe1 SRAM36, TCAM36, seven stateful tables (previously47/51/10); N/E source unchanged. Shared fresh gate17/17 drivers,6,339 checks. All23 attempts retained, including6 failures;46 logs archived and hash/round-trip verified.
+
+Clean checkout of6b0b5efa2 starts with no raw c69 logs and reproduces exit0 in855.166s:374 shared logs restored without failures; all46 c69 raw/archive and all23 launch/closure/result pins independently verified; all38 compiler files verified and resource comparison byte-identical. Encoder76; two-READ44+32subtests; generator194+163subtests, one optional legacy-context skip. The earlier reported generator count195 is corrected by this fresh log. Code/source dependencies are unchanged after this verification; remaining edits are closeout records.
+
+Offline scope complete. No hardware/relay traffic, new physical-event/SER work, production-default change or history rewrite. Earlier c68 recovery failure remains; c69 physical qualification and physical-fingerprint suppression are unproven. Root CLAUDE/plan/map now mark stale activec67/c68 instructions historical; start at CLAUDE_HANDOVER_20261026_C69.md. No follow-on work is part of this approval.

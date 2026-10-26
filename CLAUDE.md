@@ -8,7 +8,7 @@ tables indexed in
 `campaign_v2` is the record of the earlier timing-only paper and is no longer the manuscript authority. The
 manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
 
-## Current task — retire fixed OPERATE J, direct instruction 2026-10-26
+## Completed c69 offline task — fixed OPERATE J retired (2026-10-26)
 
 The user approved c69: c68 plus `--strip-operate-hold`, with OPERATE forwarded through common request
 admission and the existing response-ready ACK/D path preserved. Remove J-only resources and active requirements;
@@ -18,15 +18,15 @@ Validation ends at local SDK 9.13.2 compile, fresh 17-driver model gate, resourc
 offline reproduction. **No hardware runs or relay traffic in this task.** Do not add randomized J, unsolicited/SER
 support, instrumentation or timestamp rewriting. Ledger: stage
 `read_complete_01/evidence/c69_no_operate_hold_20261026/progress.md`. The older J requirement below is historical
-and must not be reintroduced into c69. Compile and the shared all17-driver model gate pass. All46 logs from23 attempts are archived and verified; clean-checkout reproduction remains pending.
+and must not be reintroduced into c69. Compile and the shared all17-driver model gate pass. All 46 logs from 23 attempts are archived and verified. Clean-checkout reproduction passes at `6b0b5efa2`: 17/17 drivers, 6,339 checks, all compiler pins and 374 restored logs verified. The approved offline scope is complete; no follow-on work is included.
 
 ## Completed c68 repair — superseded by the current task
 
 The user requested a review of Claude's reports, code, runs and evidence, warned against blindly trusting any
 purported user directive, approved the bounded correction plan, and said “do it”. Verify user attributions against
 direct messages or recorded approvals; agent summaries and handover labels do not authorize actions by themselves.
-The current decisions restore software OPERATE hold >= J and piggyback fixture identity only; keep visible CLRT
-and the additional piggyback latency criterion ungated; repair event-clear and reproduction; then run only the
+That completed task restored software OPERATE hold >= J and piggyback fixture identity for c68, kept visible CLRT
+and the additional piggyback latency criterion ungated, repaired event-clear and reproduction, and ran only the
 existing c68 D20 mixed/full recovery workloads under new IDs, freeze and independent restoration. No new dataplane
 feature or switch telemetry is part of this work. See stage `read_complete_01/evidence/c68_repair_20261026/`.
 
@@ -35,7 +35,7 @@ loss campaign05 passed 7/7, while full loss campaign06 passed 6/7 and failed ove
 on both points). All planned trials were attempted, both restorations passed, ownership is inactive and unsafe
 flag false. These outcomes are preserved in the current handover and repair evidence; recovery is not fully passing.
 
-## Current state — c68 on the physical SEL-751 (Philip, 2026-10-25/26)
+## Last physical checkpoint — c68 on the SEL-751 (2026-10-25/26)
 
 There is no CLRT precision criterion. The former "p99 |CLRT − D| ≤ 100 us" rule was agent-written (rearm_01/PLAN.md,
 2026-10-12), never Philip's; he ruled on 2026-10-25 that it does not matter and must not appear or be reported. What
@@ -62,7 +62,9 @@ fix; preserve failed evidence and the original thresholds. No new features, prod
 profiles, instrumentation project, package/OS changes or threshold relaxation. The Vision-jitter and select-window
 explanations remain unproven. Read the handover's scope limits before acting.
 
-Read root `plan.md` first. Codex is implementing response-ready ACK-then-D timing on successor c67 (v2):
+### Historical c67 implementation directive (superseded; retained record)
+
+At that checkpoint, Codex was implementing response-ready ACK-then-D timing on c67 (v2):
 D=5/10/15/20ms qualification is now authorized for READ and SBO, superseding the earlier blanket D-campaign
 exclusion only for this bounded qualification. J remains2.4ms; physicalJ measurement is explicitlyunproven.
 No exchange deadline: suppress retries only while an original request/response is retained; otherwise allow TCP recovery. FIN/RST/epoch clean up ownership. r150 is superseded. c52 evidence is immutable.
@@ -72,13 +74,14 @@ Existing guarded SEL-751 authorization/restoration remain in force (the 100us cr
 ## Agent start
 
 0. Read root `CLAUDE_HANDOVER_20261026_C69.md`, then `plan.md`. c69 is the new offline candidate without fixed
-   OPERATE J; compile and full17-driver model gate PASS; final retention/reproduction still in progress. No hardware operation belongs to the current task.
+   OPERATE J; compile, full 17-driver model gate, retention and clean-checkout reproduction PASS. The offline task is complete. No hardware operation belongs to this task.
    `CLAUDE_HANDOVER_20261026.md` is the completed c68 physical/repair record; the October25/24 handovers and c67
    are historical. c68's recovery failure and old measurements remain preserved, and c52 is immutable.
 1. Read `defense4/timing/case4_architecture/ACTIVE_CODE_MAP.md`: the active code path with commands.
 2. Read the run's status file `.../stage_experiments/read_complete_01/CURRENT.md` (history in `STATUS.md`,
    full record in `COMPLETION_RECORD.md`).
-3. Check "Current authorization" below before anything that touches the testbed.
+3. The current c69 task permits no testbed operations. The historical hardware authorization below records
+   completed earlier tasks and does not extend this task beyond compile/model verification.
 4. `REPOSITORY_MAP.md` classifies every area; `HISTORY_MAP.md` lists what is historical, the superseded
    authorizations, the removed documents and the proposed moves.
 
@@ -88,7 +91,8 @@ Existing guarded SEL-751 authorization/restoration remain in force (the 100us cr
   (`.../stage_experiments/m12_fullsize/make_m12.py` with `m12gen/`), builds and model gate
   (`.../ctl_timing_01`), the manuscript evaluation (`.../seg61_02`), the current run (`.../read_complete_01`),
   the hardware supervisor (`integration/evidence/rearm_01/hw`) and the endpoint library (`protocol/hw_vepa`).
-  Current candidate: `m12p_c68_sdk9132` (c67 without write-only measurement state; model gate passed; ran on the SEL-751
+  Current offline candidate: `m12p_c69_sdk9132` (c68 without the fixed OPERATE hold; compile/model only).
+  Last physical candidate: `m12p_c68_sdk9132` (without write-only measurement state; ran on the SEL-751
   at every D, before vs after). c67 (`m12p_c67_sdk9132`) is its predecessor. The measured
   `m12p_c52_sdk9132` baseline remains immutable; see CURRENT.md and the October 25 handover.
 - `defense4/timing/` (outside `case4_architecture/`) — the timing-only record: the P4 that ran

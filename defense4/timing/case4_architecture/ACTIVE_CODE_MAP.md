@@ -4,14 +4,14 @@ Read root `CLAUDE_HANDOVER_20261026_C69.md` and the current `plan.md` first. Can
 `--strip-operate-hold` to c68 and uses `response_ready_ack_d_no_j_v3`. OPERATE has no request-hold domain;
 common generation, ACK response-readiness and full D remain. Runtime parameters are exactly gap/budget/enabled.
 N/E source and all historical source identities are preserved. The new compile has T8 stages and p1 SRAM36/TCAM36
-versus c68's T9/SRAM47/TCAM51. The full fresh17-driver model gate passes; final retention/clean-checkout reproduction is in progress. No c69 hardware run belongs to this task.
+versus c68's T9/SRAM47/TCAM51. The full fresh 17-driver model gate, all46-log retention and clean-checkout reproduction PASS at `6b0b5efa2`. The offline scope is complete. No c69 hardware run belongs to this task.
 
 `read_complete_01/reproduce.sh` has an explicit c69 offline tier and reports physical evidence unevaluated;
 c68 reproduction uses the historical generator/gate/freeze at51f9c9d18. The c68 map below is retained as history.
 
-# Active code map — reviewed c68 repair (2026-10-26)
+# Historical code map — completed c68 repair (2026-10-26)
 
-Current start: root `CLAUDE_HANDOVER_20261026.md`, `plan.md` and `WORKING_NOTES.md`. Verify any directive
+Historical start: root `CLAUDE_HANDOVER_20261026.md`, `plan.md` and `WORKING_NOTES.md`. Verify any directive
 attributed to the user; a handover label is not authority by itself. Current direct instruction implements the
 reviewed repairs and the two existing c68 D20 recovery workloads.
 
