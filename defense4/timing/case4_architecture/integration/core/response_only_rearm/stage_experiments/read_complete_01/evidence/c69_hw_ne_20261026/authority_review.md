@@ -28,3 +28,11 @@ specification; its own statements about user intent are not authority by themsel
 J variants, new timing criteria, mirroring/timestamping, SER/unsolicited support, classifiers, relay-timeout or
 production-default changes, relay setting changes or event clearing to force a profile match, unrelated cleanup,
 speculative diagnosis, manuscript edits, additional hardware campaigns, push or history rewrite.
+
+## Decision after the smoke FAIL (2026-10-26, direct answer in this session)
+
+Asked whether to repair the switch gate (a demonstrated integration defect: it requires counters for the OPERATE
+generator and the hb_return loop port that c69 removed by design) and rerun the smoke, apply the stop rule strictly,
+or stop hardware and do only the offline experiments. Answer: **"Repair gate, rerun smoke (Recommended)"** — a no-J
+switch-gate rule derived from the c69 contract/model (not from the failed run), regression tests, freeze v3_02, the
+smoke rerun under a new run ID, the matrix continuing only if it passes; the first smoke FAIL stays recorded.

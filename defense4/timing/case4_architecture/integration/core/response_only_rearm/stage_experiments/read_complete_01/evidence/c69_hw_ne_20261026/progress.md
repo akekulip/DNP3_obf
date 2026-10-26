@@ -52,6 +52,24 @@ source SHA256 `5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59`
   present with zero octet gap; hb_return absent. Per the smoke stop rule the matrix and the optimization phase are
   halted pending Philip's decision.
 
+## Phase 2 record — no-J switch-gate repair (Philip: "Repair gate, rerun smoke")
+
+- checks.py: `NO_J_CONTRACT`, `loop_roles()` (= build_ports.loop_names minus the non-loop names); evaluate_switch
+  gates only installed loop roles; `_mirror_checks` under no-J: app0 triggers == reads + 2*SBO (READ, SELECT and
+  OPERATE each pass admit_request once; retries and T-off never clone), 2k packets per trigger, retired app1 idle if
+  reported (one-sided report fails closed); earlier contracts unchanged.
+- candidate_series.series_switch_gate: passes `telemetry=build.switch_telemetry is not False` (as relay_verdict has
+  since c68) and tolerates the "no switch telemetry" outcomes string. Demonstrated offline: on c69-shaped snapshots it
+  failed with "required outcome is unreadable: OUT_ACK_COMMIT" independent of traffic. This also applies to c68
+  telemetry-free series (none were run).
+- Review (approve with warnings): rule correct per the c69 source (admit_request is the only clone setter; only
+  first-copy REQUEST/OPERATE reach it; installer configures app0 only) and consistent with retained c68/c67 counters
+  (c68 loss 21+1 per trial, c68 reference combined 129+64, c67 reconnect 42+2). Acted on: source-pinned premise
+  test, loop-role/build_ports consistency test, distinct one-sided-app1 message, style. Not changed (disclosed):
+  report.py's own LOOP_ROLES copy (software-path report, gates nothing, would print '-' for c69 loop metrics);
+  campaign.json mirror note text; J-era stale-token bound (unobservable without telemetry).
+- Suites: hw_vepa 963 passed / baseline 1; rearm 815 passed / baseline 6 (`tests_post_gate_*.txt`).
+
 ## Scope-drift records
 
 (requirement / observable / mechanism / cheapest falsifying test — added before any new requirement or chase)

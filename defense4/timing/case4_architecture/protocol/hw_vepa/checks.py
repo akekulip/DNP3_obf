@@ -15,6 +15,16 @@ import math
 import statistics
 
 LOOP_ROLES = ('n_ack_return', 't_in', 'hb_return', 'held_return')
+# c69 contract: the fixed OPERATE hold is retired with its HB return port and generator app1; OPERATE is admitted
+# through the common request path, whose E100 clone triggers generator app0 (strip_operate_hold.py, build_ports.py)
+NO_J_CONTRACT = 'response_ready_ack_d_no_j_v3'
+
+
+def loop_roles(timing_contract=None):
+    """Loop ports the build installs (integration/core/response_only/hw/build_ports.loop_names)."""
+    return tuple(r for r in LOOP_ROLES if r != 'hb_return') if timing_contract == NO_J_CONTRACT else LOOP_ROLES
+
+
 RX, RX_GOOD = '$OctetsReceived', '$OctetsReceivedinGoodFrames'
 SBO = ('SELECT', 'OPERATE')
 
@@ -342,13 +352,24 @@ def _loop_gap(before, after):
     return out
 
 
-def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0, control_timed=False):
+def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0, control_timed=False,
+                   timing_contract=None):
     """Generator counters (snapshot pktgen block, after minus before) on a build carrying the compiler-mirror
     fix: T on -> READ triggers == READs, READ packets == 2k per trigger, OPERATE triggers == SBOs, stale == 0;
-    T off -> no generator activity at all (what the T-off silicon evidence shows)."""
+    T off -> no generator activity at all (what the T-off silicon evidence shows). No-J contract: app1 (OPERATE)
+    is retired and disabled; every admitted READ, SELECT and OPERATE triggers app0 (READ) once; an app1 block
+    that is still reported must stay idle."""
+    no_j = timing_contract == NO_J_CONTRACT
     try:
         d = {}
         for app in ('READ', 'OPERATE'):
+            if no_j and app == 'OPERATE':
+                reported = ('OPERATE' in b['pktgen'], 'OPERATE' in a['pktgen'])
+                if not any(reported):
+                    continue
+                if not all(reported):
+                    fails.append('no-J build: retired generator app1 (OPERATE) reported in only one snapshot')
+                    return
             d[app] = {'triggers': a['pktgen'][app]['trigger_counter'] - b['pktgen'][app]['trigger_counter'],
                       'pkts': a['pktgen'][app]['pkt_counter'] - b['pktgen'][app]['pkt_counter']}
     except (KeyError, TypeError):
@@ -357,9 +378,16 @@ def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0, 
     obs['pktgen'] = d
     sbo = sbo_count
     if arm['T']:
-        # control-timed builds (ctl_timing_01) admit each SELECT as a READ-lane request, which seeds READ blockers
-        lane = reads + (sbo if control_timed else 0)
-        want = {'READ': (lane, 2 * k * lane), 'OPERATE': (sbo, 2 * k * sbo)}
+        if no_j:
+            # SELECT and OPERATE both pass the common admission and its app0 trigger; app1 is disabled
+            lane = reads + 2 * sbo
+            want = {'READ': (lane, 2 * k * lane)}
+            if 'OPERATE' in d:
+                want['OPERATE'] = (0, 0)
+        else:
+            # control-timed builds (ctl_timing_01) admit each SELECT as a READ-lane request, which seeds READ blockers
+            lane = reads + (sbo if control_timed else 0)
+            want = {'READ': (lane, 2 * k * lane), 'OPERATE': (sbo, 2 * k * sbo)}
         for app, (trig, pkts) in want.items():
             if d[app]['triggers'] != trig:
                 fails.append('T on: %s trigger delta %d, expected %d' % (app, d[app]['triggers'], trig))
@@ -380,6 +408,8 @@ def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0, 
                          % (stale, bound))
     else:
         for app in mx['T0']['zero_triggers']:
+            if no_j and app not in d:
+                continue
             if d[app]['triggers'] or d[app]['pkts']:
                 fails.append('T off: %s trigger delta %d and packet delta %d, expected none (generator idle)'
                              % (app, d[app]['triggers'], d[app]['pkts']))
@@ -534,8 +564,10 @@ def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=
                         fails.append('T off but %s=%s (expected 0)' % (k, d[k]))
     if a and b:
         if mirror_k is not None:
-            _mirror_checks(exp['mirror_fix'], arm, reads, sbo_count, b, a, mirror_k, fails, obs, max_stale, control_timed)
-        gaps = _loop_gap(b, a)
+            _mirror_checks(exp['mirror_fix'], arm, reads, sbo_count, b, a, mirror_k, fails, obs, max_stale, control_timed,
+                           timing_contract)
+        installed = loop_roles(timing_contract)
+        gaps = {role: gap for role, gap in _loop_gap(b, a).items() if role in installed}
         obs['loop_octet_gap'] = {r: g for r, (g, e) in gaps.items()}
         for role, (g, err) in gaps.items():
             if err:

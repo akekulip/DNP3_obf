@@ -280,7 +280,9 @@ def series_switch_gate(cfg, arm, reads, ev, lifecycle, piggybacks=None):
         # triggers and their bounded stranded tokens), as campaign.py's verdict does
         control_timed=bool(build.get('control_timed')), piggyback_bound=bool(build.get('piggyback_bound')),
         piggyback_controls=piggybacks.get('SELECT', 0) + piggybacks.get('OPERATE', 0),
-        gen_exhausted_outcome=build.get('gen_exhausted_outcome'), timing_contract=cfg.get('timing_contract'))
+        gen_exhausted_outcome=build.get('gen_exhausted_outcome'), timing_contract=cfg.get('timing_contract'),
+        # a build without switch telemetry (c68+) has no T outcome counters; relay_verdict skips them the same way
+        telemetry=build.get('switch_telemetry') is not False)
     try:
         growth = (_mapper_reg(lifecycle, 'acct', '.lo') - _mapper_reg(lifecycle, 'front')) & 0xffffffff
         unacked = _mapper_reg(lifecycle, 'acct', '.hi')
@@ -302,7 +304,8 @@ def series_switch_gate(cfg, arm, reads, ev, lifecycle, piggybacks=None):
         failures.append('missing or malformed mapper counter evidence: %s' % error)
     # dup_hold_01: an early duplicate OPERATE dropped while held is counted at OUT_OP_DUP_DROP. Required (>= 1)
     # only when the fixture declares it; otherwise any such drop is unexpected.
-    dup = (observed.get('outcomes') or {}).get('OUT_OP_DUP_DROP')
+    outcomes = observed.get('outcomes')       # a string when the build has no switch telemetry
+    dup = outcomes.get('OUT_OP_DUP_DROP') if isinstance(outcomes, dict) else None
     observed['held_operate_dup_drops'] = dup
     if cfg['traffic'].get('expect_held_operate_dup'):
         if type(dup) is not int or dup < 1:

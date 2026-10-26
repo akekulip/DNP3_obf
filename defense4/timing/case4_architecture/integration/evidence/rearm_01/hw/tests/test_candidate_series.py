@@ -456,3 +456,26 @@ def test_physical_relay_series_gates_on_the_standards_dimension(monkeypatch, tmp
     else:
         campaign.verdict(trial, {}, trial['label'], str(dest), SimpleNamespace(rc=0), arm, 'physical_relay')
         assert trial['ok'] is True and trial['dimension_verdicts']['standards'] is True, trial['failures']
+
+
+@pytest.mark.parametrize('telemetry', [False, True])
+def test_series_switch_gate_follows_the_build_telemetry_flag(telemetry):
+    """c69 (switch_telemetry false, no-J contract): the three-connection gate checks generator and loop ports but no
+    T outcome counters, as relay_verdict does; a telemetry build still requires its outcomes."""
+    module = load('candidate_series_telemetry_test', HW / 'candidate_series.py')
+    rc = module.ARCH / 'integration/core/response_only_rearm/stage_experiments/read_complete_01'
+    cfg = json.loads((rc / 'hw/config/rc01_m12p_c69_sdk9132_sel751_d20_persistence_graceful_950.json').read_text())
+    build = cfg['builds'][cfg['arms'][0]['build']]
+    build['switch_telemetry'] = telemetry
+    lane = 3 * 20 + 2 * 3                      # three connections: 20 READs + SELECT + OPERATE each, all via app0
+    k = cfg['service']['k']
+
+    def snap(trig):
+        loops = {r: {'dev_port': 48, '$OctetsReceived': 0, '$OctetsReceivedinGoodFrames': 0}
+                 for r in ('n_ack_return', 't_in', 'held_return')}
+        return {'outcomes': {}, 'loop_ports': loops,
+                'pktgen': {'READ': {'trigger_counter': trig, 'batch_counter': trig, 'pkt_counter': 2 * k * trig}}}
+    fails, _ = module.series_switch_gate(cfg, cfg['arms'][0], 20, {'before': snap(0), 'after': snap(lane)}, {})
+    outcome_fails = [f for f in fails if 'outcome' in f]
+    assert not [f for f in fails if 'trigger' in f or 'packets' in f or 'loop' in f], fails
+    assert bool(outcome_fails) is telemetry, fails
