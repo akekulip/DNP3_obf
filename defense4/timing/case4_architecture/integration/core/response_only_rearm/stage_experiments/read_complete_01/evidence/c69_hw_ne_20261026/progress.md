@@ -89,6 +89,23 @@ source SHA256 `5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59`
   from the e1c16ecbc export); c69 source bytes are identical either way.
 - Compile deferred until the hardware matrix finishes (brief sequencing).
 
+## Phase 4 record — N experiment (terminal construction), transform prepared
+
+- Data dependencies (c69 final placement, p0/logs/table_summary.log and table_dependency_graph.log): N's last stage
+  (10) holds only first_event and abort_t. abort_t follows next_stage_t by OUTPUT and ANTI_ACTION_READ edges
+  (hdr.event.event slices). first_event follows snapshot_t (OUTPUT, ACTION_READ: envelope/event/origin headers) and
+  close_phase_t (ACTION_READ: m.desired), and close_phase_t is in stage 9 because its key reads m.observed from owner_t
+  (stage 8). So restructuring the snapshot alone cannot move first_event; doing so would also require folding the
+  96-row close_phase_t into first_event (cross product of rows), which is the excluded invasive fallback and is not
+  attempted. The earlier report next_stage_analysis_01 proposed a 32-bit m.snapshot_epoch precompute; with pipe-0
+  normal 32-bit containers full and close_phase_t still binding, it is not part of this trial.
+- Transform m12gen/merge_n_terminal.py (`--merge-n-terminal`, requires --strip-operate-hold), candidate id c71: next_stage()
+  folded into abort_work()/carry_current() (disjoint fields), branch restructured so exactly one keyless table applies
+  per path; table names and keyless shape kept; no field/key/table added. Tests tests/test_merge_n_terminal.py: c69
+  identity, N-only change, executed-action equivalence over 1,944 branch inputs with all three outcomes reached, field
+  disjointness, composition with --strip-rbad, CLI dependency. Expected compiler effect: abort_t may leave stage 10;
+  first_event stays, so N's stage count is not expected to drop — the compile decides.
+
 ## Scope-drift records
 
 (requirement / observable / mechanism / cheapest falsifying test — added before any new requirement or chase)

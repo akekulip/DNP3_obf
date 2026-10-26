@@ -2,7 +2,7 @@
 import hashlib
 import json
 
-from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp, diag_anchor, response_ready_timing as response_ready, strip_telemetry, strip_operate_hold, strip_rbad
+from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp, diag_anchor, response_ready_timing as response_ready, strip_telemetry, strip_operate_hold, strip_rbad, merge_n_terminal
 from .common import (CONSTANTS, CONSTANTS_TWO, HERE, M11_09, M11_09_PROFILE, M11_09_SHA, combined)
 
 TRANSFORM = {
@@ -26,6 +26,7 @@ TRANSFORM = {
     'strip_telemetry': strip_telemetry.transform,
     'strip_operate_hold': strip_operate_hold.transform,
     'strip_rbad': strip_rbad.transform,
+    'merge_n_terminal': merge_n_terminal.transform,
 }
 
 
@@ -38,7 +39,7 @@ def generator_files():
 def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False,
           reduce=False, ack_retry=False, read_handshake=False, headroom=False, relay=False, relay_sbo=False, relay_ts=False,
           diag_anchors=False, response_ready_timing=False, strip_telemetry=False, strip_operate_hold=False,
-          strip_rbad=False):
+          strip_rbad=False, merge_n_terminal=False):
     # Select the two-READ shape source for this build (relay only applies to a two-READ build).
     two_read.use_relay_shapes(relay and two_read_build)
     src = M11_09.read_text()
@@ -104,6 +105,10 @@ def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_
         if not strip_operate_hold:
             raise ValueError('rbad predicate removal requires the c69 OPERATE hold removal')
         transforms.append('strip_rbad')
+    if merge_n_terminal:   # c71 trial: N phase-1/2 terminal construction consolidated (resource experiment N)
+        if not strip_operate_hold:
+            raise ValueError('N terminal consolidation requires the c69 OPERATE hold removal')
+        transforms.append('merge_n_terminal')
     if diag_anchors:   # m12p_c52d: switch-clock transaction anchors, a separate diagnostic evidence tier
         if not relay_ts:
             raise ValueError('diagnostic anchors require the relay timestamp profile')

@@ -63,9 +63,13 @@ def main():
                     help='remove fixed OPERATE-J hold; retain response-ready ACK/D timing (requires --strip-telemetry)')
     ap.add_argument('--strip-rbad', dest='strip_rbad', action='store_true',
                     help="c70 trial: remove E's always-zero rbad0/rbad1/rbadt predicates (requires --strip-operate-hold)")
+    ap.add_argument('--merge-n-terminal', dest='merge_n_terminal', action='store_true',
+                    help="c71 trial: fold next_stage into N's abort/carry terminal actions (requires --strip-operate-hold)")
     ap.add_argument('--diag-anchors', dest='diag_anchors', action='store_true',
                     help='diagnostic switch-clock transaction anchors in T (separate evidence tier; requires --relay-ts)')
     a = ap.parse_args()
+    if a.merge_n_terminal and not a.strip_operate_hold:
+        ap.error('--merge-n-terminal requires --strip-operate-hold')
     if a.strip_rbad and not a.strip_operate_hold:
         ap.error('--strip-rbad requires --strip-operate-hold')
     if a.strip_operate_hold and not a.strip_telemetry:
@@ -108,7 +112,7 @@ def main():
                          headroom=a.headroom, relay=a.relay, relay_sbo=a.relay_sbo, relay_ts=a.relay_ts,
                          diag_anchors=a.diag_anchors, response_ready_timing=a.response_ready_timing,
                          strip_telemetry=a.strip_telemetry, strip_operate_hold=a.strip_operate_hold,
-                         strip_rbad=a.strip_rbad)
+                         strip_rbad=a.strip_rbad, merge_n_terminal=a.merge_n_terminal)
     sha = write_outputs(out, a, src, applied)
     print('wrote %s (image=%d, transforms=%s, sha=%s)' % (out / 'response_only.p4', image, applied, sha[:12]))
 
