@@ -2,7 +2,7 @@
 import hashlib
 import json
 
-from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp, diag_anchor, response_ready_timing as response_ready, strip_telemetry, strip_operate_hold
+from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp, diag_anchor, response_ready_timing as response_ready, strip_telemetry, strip_operate_hold, strip_rbad
 from .common import (CONSTANTS, CONSTANTS_TWO, HERE, M11_09, M11_09_PROFILE, M11_09_SHA, combined)
 
 TRANSFORM = {
@@ -25,6 +25,7 @@ TRANSFORM = {
     'response_ready_timing': response_ready.transform,
     'strip_telemetry': strip_telemetry.transform,
     'strip_operate_hold': strip_operate_hold.transform,
+    'strip_rbad': strip_rbad.transform,
 }
 
 
@@ -36,7 +37,8 @@ def generator_files():
 
 def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False,
           reduce=False, ack_retry=False, read_handshake=False, headroom=False, relay=False, relay_sbo=False, relay_ts=False,
-          diag_anchors=False, response_ready_timing=False, strip_telemetry=False, strip_operate_hold=False):
+          diag_anchors=False, response_ready_timing=False, strip_telemetry=False, strip_operate_hold=False,
+          strip_rbad=False):
     # Select the two-READ shape source for this build (relay only applies to a two-READ build).
     two_read.use_relay_shapes(relay and two_read_build)
     src = M11_09.read_text()
@@ -98,6 +100,10 @@ def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_
         if not strip_telemetry:
             raise ValueError('OPERATE hold removal requires telemetry removal')
         transforms.append('strip_operate_hold')
+    if strip_rbad:   # c70 trial: E's always-zero READ-CRC predicates removed (resource experiment E)
+        if not strip_operate_hold:
+            raise ValueError('rbad predicate removal requires the c69 OPERATE hold removal')
+        transforms.append('strip_rbad')
     if diag_anchors:   # m12p_c52d: switch-clock transaction anchors, a separate diagnostic evidence tier
         if not relay_ts:
             raise ValueError('diagnostic anchors require the relay timestamp profile')

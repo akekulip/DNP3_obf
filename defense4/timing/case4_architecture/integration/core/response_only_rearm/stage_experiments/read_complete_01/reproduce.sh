@@ -45,6 +45,8 @@ BUILD_SUFFIX="$CANDIDATE"
 case "$CANDIDATE" in
   c69) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing --strip-telemetry --strip-operate-hold"
        TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c69_sdk9132
+       # generator pinned at its recorded identity: the shared generator gained opt-in transforms after e1c16ecbc
+       GEN_PIN=e1c16ecbc
        SOURCE_SHA=5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59
        EVIDENCE_TIER="offline compile/model candidate; no OPERATE request hold; hardware not evaluated" ;;
   c68) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing --strip-telemetry"

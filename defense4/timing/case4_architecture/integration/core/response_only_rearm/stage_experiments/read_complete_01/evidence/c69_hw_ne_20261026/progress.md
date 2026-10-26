@@ -70,6 +70,25 @@ source SHA256 `5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59`
   campaign.json mirror note text; J-era stale-token bound (unobservable without telemetry).
 - Suites: hw_vepa 963 passed / baseline 1; rearm 815 passed / baseline 6 (`tests_post_gate_*.txt`).
 
+## Phase 3 record — E experiment (rbad0/rbad1/rbadt), transform prepared
+
+- Data dependencies (c69 source 5efad5c8, E = r_EgParser/r_Egress, P4 lines 567-1309): each predicate's only
+  assignment is the parser-start zeroing (P4:741); the compares were deleted by two_read_reduce because c0/c1/c2 are
+  extracted only by state read_b0, which no transition reaches (dl/dl_mid select read_pp, ctl_b0 or accept); E's
+  producers in_rb0_t/in_rb1_t/in_rt_t are declared and never applied (the in_rb0_t apply at P4:2185 is p1 x_Egress's
+  own table). Consumers: acct_t key positions 10-12 (stage 4, ternary) and classify_fwd key positions 10-12 (stage 7,
+  ternary, 16 keys); every const entry holds 0 or _ there. The three bits share container B36 (with m.grant, m.in_cb0);
+  their pa_solitary pragmas sit on r_EgParser. Kept: m.in_rt (status_crc_t -> cbadt) and badh/cbad0/cbadt.
+- Transform m12gen/strip_rbad.py (`--strip-rbad`, requires --strip-operate-hold), candidate id c70 (m12p_c70_sdk9132).
+  Fail-closed premises (single zeroing assignment, no applied producer, removed entry values only 0/_). Tests
+  tests/test_strip_rbad.py: c69 byte identity without the flag, N/T byte-identical, only predicate/producer lines
+  change in E, row-for-row entry equivalence with order and actions, fail-closed cases, CLI dependency. Generator
+  suite 202 passed / 1 optional legacy skip.
+- Historical reproduction: c69 now pins its generator at e1c16ecbc (reproduce.sh GEN_PIN), because generator_files in
+  its recorded inputs.json would otherwise differ; the pinned generator reproduces c69's inputs.json exactly (checked
+  from the e1c16ecbc export); c69 source bytes are identical either way.
+- Compile deferred until the hardware matrix finishes (brief sequencing).
+
 ## Scope-drift records
 
 (requirement / observable / mechanism / cheapest falsifying test — added before any new requirement or chase)
