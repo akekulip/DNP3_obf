@@ -478,8 +478,14 @@ def test_required_software_hold_fails_closed_without_evidence(tmp_path, missing)
 def test_software_hold_gate_is_not_applied_to_other_evidence_tiers(tmp_path, exemption):
     artifact, context, captures = software_hold_artifact(tmp_path, 100)
     if exemption == 'sel751':
+        # SEL-751 evidence is judged by its own receiver-visible branch (test_relay_standards.py), which never
+        # applies the software hold gate; software-shaped evidence fails closed there
         context['config']['endpoint_profile'] = 'sel751'
         context['trial']['fixture'] = 'physical_relay'
+        result = standards.validate_standards(artifact, context, captures)
+        assert result['ok'] is False
+        assert not any('OPERATE hold' in f for f in result['failures']), result['failures']
+        return
     elif exemption == 'untimed':
         context['arm']['T'] = 0
     elif exemption == 'unbound_native':

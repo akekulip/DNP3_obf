@@ -505,7 +505,7 @@ def _verdict_without_wire(tmp_path, rc, result=True):
 
         def relay_verdict(self, trial, *args, **kwargs):
             trial.update(failures=['master transaction failed'], ok=False, observed={},
-                         dimension_verdicts=dict(application=False))
+                         dimension_verdicts=dict(application=False, standards=False))
 
     if result:
         (tmp_path / 'result.json').write_text(json.dumps(dict(error='identity loss arm failed', loss=dict(

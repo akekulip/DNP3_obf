@@ -84,6 +84,17 @@ RECONNECT_OPERATE_HOLD_EXEMPT = 'reconnect %s: OPERATE hold is not evaluated'
 RUNNER_OPERATE_HOLD_EXEMPT = 'this runner does not evaluate OPERATE hold'
 
 
+def relay_checker_files():
+    """Checker identity of the SEL-751 receiver-visible standards branch: the validator and relay_check with their
+    imports, and the relay master/session producers (with their imports) whose outcomes and wire records it judges."""
+    active = Path(ARCH).parents[0] / 'active_harness'
+    return [os.path.join(HERE, name) for name in
+            ('standards.py', 'capture_boundary.py', 'read_classes.py', 'relay_check.py', 'wire_check.py',
+             'endpoint_profiles.py', 'relay_master.py', 'relay_loss.py', 'loss.py')] + [
+                str(active / name) for name in ('session.py', 'dnp3_codec.py', 'sbo_driver.py', 'read_requests.py',
+                                                'frozen_builders.py')]
+
+
 def path_of(rel):
     return rel if os.path.isabs(rel) else os.path.join(ARCH, rel)
 
@@ -667,6 +678,7 @@ class Campaign:
 
     def standards_context(self, trial, arm, connection_id=None, unbound_native=False):
         build = self.cfg['builds'].get(arm['build'], {})
+        relay = endpoint_profiles.is_relay(self.cfg)
         return {
             'config': self.cfg,
             'run_record': dict(self.record, run_id=self.run_id, config_sha256=self.config_sha256,
@@ -675,13 +687,15 @@ class Campaign:
             'connection_id': connection_id or 'primary',
             'arm': arm,
             'candidate_source_sha256': build.get('source_sha256') or build.get('strict_source_sha256'),
-            'checker_files': [os.path.join(HERE, name) for name in
+            'checker_files': relay_checker_files() if relay else [os.path.join(HERE, name) for name in
                               ('wire_check.py', 'clrt_check.py', 'checks.py', 'standards.py',
                                'capture_boundary.py', 'hold_check.py', 'read_classes.py')] + [CHECK_CAPTURE] + [
                                    os.path.join(os.path.dirname(CHECK_CAPTURE), name)
                                    for name in ('capture.py', 'dnp3_std.py', 'profile_check.py')],
             'unbound_native': unbound_native,
-            'packet_boundary_required': bool(build.get('profile') == 'candidate61' or
+            # the candidate61 label demands boundary proof for software profiles; in the SEL-751
+            # receiver-visible scope only an explicit requirement counts (and fails there: NOT EVALUATED)
+            'packet_boundary_required': bool((build.get('profile') == 'candidate61' and not relay) or
                                              build.get('packet_boundary_required') or
                                              self.cfg.get('standards', {}).get('packet_boundary_required')),
         }
@@ -1424,7 +1438,7 @@ class Campaign:
         if self.rn.dry:
             return
         import relay_check
-        failures, observed, application_failures = [], {}, []
+        failures, observed, application_failures, standards_failures = [], {}, [], []
         sbo = checks.sbo_count(self.cfg['traffic'])
         connections = connections or {'single': (dest, trial['master_port'])}
         reports = {}
@@ -1446,8 +1460,7 @@ class Campaign:
                 padded = bool(arm['padding'] and not native_connection)
                 for record in master['records']:
                     operation, workload = record['operation'], record.get('workload')
-                    expected = ({'mixed': 141, 'integrity': 158} if padded else {'mixed': 91, 'integrity': 134}).get(workload) \
-                        if operation == 'READ' else (60 if padded else 49)
+                    expected = standards.SEL751_IMAGES[padded].get(workload if operation == 'READ' else operation)
                     if len(bytes.fromhex(record.get('response_wire_hex', ''))) != expected:
                         report['failures'].append('response length differs from selected relay image: ' + operation)
                 report['ok'] = not report['failures']
@@ -1464,6 +1477,17 @@ class Campaign:
                                       visible_clrt=relay_check.visible_clrt(report))
             except (OSError, ValueError, KeyError, TypeError) as error:
                 application_failures.append(name + ': missing/malformed physical relay evidence: ' + str(error))
+            # receiver-visible standards: evaluated for every connection, fail closed when it cannot run
+            try:
+                errors = self.validate_standards_file(
+                    directory, trial, arm, {key: {'path': os.path.join(directory, filename)} for key, filename in
+                                            (('out', 'out.pcap'), ('in', 'in.pcap'), ('master', 'master.json'),
+                                             ('relay_wire', 'relay_wire.json'))},
+                    None, connection_id=None if name == 'single' else name,
+                    unbound_native=name == 'c2' and self.scenario == 'reconnect', master_port=port)
+            except Exception as error:      # noqa: BLE001  (any failure to evaluate is a recorded FAIL, never a pass)
+                errors = ['standards not evaluated: %s: %s' % (type(error).__name__, error)]
+            standards_failures += [name + ': ' + error for error in errors]
         snapshots = checks.load_evidence_files(
             before=os.path.join(dest, 'snapshots', label + '_before.json'),
             after=os.path.join(dest, 'snapshots', label + '_after.json'))
@@ -1482,14 +1506,14 @@ class Campaign:
             control_timed=bool(build.get('control_timed')),
             piggyback_bound=bool(build.get('piggyback_bound')), gen_exhausted_outcome=build.get('gen_exhausted_outcome'),
             timing_contract=self.cfg.get('timing_contract'), telemetry=build.get('switch_telemetry') is not False)
-        failures = application_failures + failures + switch_failures
+        failures = application_failures + failures + switch_failures + standards_failures
         if v is None or v.rc:
             failures.append('physical relay Vision workload failed')
         trial.update(ok=not failures, failures=failures, observed=dict(connections=observed, switch=switch_observed),
                      endpoint_profile='sel751', dimension_verdicts=dict(application=not application_failures,
-                     switch=not switch_failures))
+                     switch=not switch_failures, standards=not standards_failures))
         (Path(dest) / 'trial.json').write_text(json.dumps(trial, indent=2) + '\n')
-        if raise_on_failure and (application_failures or switch_failures or v is None or v.rc):
+        if raise_on_failure and (application_failures or switch_failures or standards_failures or v is None or v.rc):
             raise StepFailed('physical relay application/switch gate failed: ' + '; '.join(failures[:4]))
         return trial
 
@@ -1631,7 +1655,8 @@ class Campaign:
             # other than 0 = clean or 1 = recorded master failure, e.g. ssh 255) stops the block.
             if v.rc not in (0, 1):
                 raise StepFailed('physical relay loss trial infrastructure failure (Vision run rc %s)' % v.rc)
-            if failures or not trial['dimension_verdicts']['application'] or v.rc:
+            if failures or not trial['dimension_verdicts']['application'] or \
+                    trial['dimension_verdicts'].get('standards') is not True or v.rc:
                 self.soft_failures.append(label)
             return
         """Gate for a trial with one deterministic drop. A failed recovery is RECORDED (trial not ok, campaign goes

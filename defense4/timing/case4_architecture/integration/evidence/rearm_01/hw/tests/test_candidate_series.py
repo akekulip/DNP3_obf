@@ -420,3 +420,39 @@ def test_lifecycle_m5_retry_epoch_is_recorded_not_mistaken_for_n_epoch():
     failures, observed = module.lifecycle_gate(snapshot)
     assert failures == [] and observed['epochs']['values'] == {'N': 145, 'E': 145, 'T': 145}
     assert observed['n_retry_epoch'] == 145
+
+
+@pytest.mark.parametrize('emission_required', [False, True])
+def test_physical_relay_series_gates_on_the_standards_dimension(monkeypatch, tmp_path, emission_required):
+    """Retained c67 graceful persistence (three SEL-751 connections): the relay branch passes on its own evidence and
+    raises when only the receiver-visible standards check fails (here an explicit emission-proof requirement)."""
+    import shutil
+    module = load('candidate_series_relay_test', HW / 'candidate_series.py')
+    rc = module.ARCH / 'integration/core/response_only_rearm/stage_experiments/read_complete_01'
+    source = next((rc / 'evidence/hw_blocks/rc01_hw_c67_20261025_07_persistence_graceful_950/physical_relay/combined')
+                  .glob('*_t0'), None)
+    if source is None or not (source / 'c1' / 'out.pcap').is_file():
+        pytest.skip('retained c67 persistence captures absent')
+    cfg = module.base.load_config(str(rc / 'hw/config/rc01_m12p_c67_sdk9132_sel751_d20_persistence_graceful_950.json'))
+    if emission_required:
+        cfg.setdefault('standards', {})['packet_boundary_required'] = True
+    runner = module.base.DryRunner(); runner.dry = False
+    campaign = module.CandidateSeriesCampaign(cfg, runner, 'rc01_hw_c67_20261025_07_persistence_graceful_950',
+                                              arms=['combined'], fixtures=['physical_relay'], out=lambda *_: None)
+    campaign.bound = {name: build.get('hashes') for name, build in cfg['builds'].items()}
+    dest = tmp_path / 'trial'
+    shutil.copytree(source, dest, ignore=shutil.ignore_patterns('*.log', 'standards*.json'))
+    monkeypatch.setattr(module.checks, 'evaluate_switch', lambda *a, **kw: ([], {}))
+    monkeypatch.setattr(module, 'series_switch_gate', lambda *a, **kw: ([], {}))
+    monkeypatch.setattr(module, 'lifecycle_gate', lambda *a, **kw: ([], {}))
+    recorded = json.loads((dest / 'trial.json').read_text())
+    trial = {k: recorded[k] for k in ('fixture', 'label', 'master_port', 'reads')}
+    arm = campaign.arms[0]
+    if emission_required:
+        with pytest.raises(module.base.StepFailed, match='standards'):
+            campaign.verdict(trial, {}, trial['label'], str(dest), SimpleNamespace(rc=0), arm, 'physical_relay')
+        assert trial['dimension_verdicts']['standards'] is False
+        assert trial['dimension_verdicts']['application'] is True
+    else:
+        campaign.verdict(trial, {}, trial['label'], str(dest), SimpleNamespace(rc=0), arm, 'physical_relay')
+        assert trial['ok'] is True and trial['dimension_verdicts']['standards'] is True, trial['failures']

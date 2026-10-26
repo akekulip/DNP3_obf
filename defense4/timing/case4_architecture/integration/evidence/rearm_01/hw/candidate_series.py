@@ -552,8 +552,9 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
                                      connections={name: dict(master_port=trial['master_port']) for name in ('c1', 'c2', 'c3')})
             trial['ok'] = not trial['failures']
             Path(dest, 'trial.json').write_text(json.dumps(trial, indent=2) + '\n')
-            if sfail or lfail or not trial['dimension_verdicts']['application'] or v.rc:
-                raise base.StepFailed('physical same-tuple application/lifecycle/switch gate failed')
+            if sfail or lfail or not trial['dimension_verdicts']['application'] or \
+                    trial['dimension_verdicts'].get('standards') is not True or v.rc:
+                raise base.StepFailed('physical same-tuple application/lifecycle/switch/standards gate failed')
             return
         tool_rcs = {}
         scheduled = self.cfg['traffic'].get('read_schedule') is not None

@@ -201,12 +201,14 @@ def test_physical_verdict_reports_visible_clrt_and_never_fails_on_timing(tmp_pat
     monkeypatch.setattr(checks, 'evaluate_switch', lambda *args, **kwargs: ([], {}))
     runner = campaign.Campaign(cfg, campaign.DryRunner(), 'offline_dimensions')
     runner.rn.dry = False
+    # synthetic records without captures: the SEL-751 standards branch is exercised in test_relay_standards.py
+    monkeypatch.setattr(runner, 'validate_standards_file', lambda *args, **kwargs: [])
     arm = next(a for a in cfg['arms'] if a['name'] == 'combined')
     trial = dict(reads=reads, master_port=59410)
     from types import SimpleNamespace
     runner.relay_verdict(trial, {}, 'offline', str(tmp_path), SimpleNamespace(rc=0), arm, 'physical_relay')
     assert trial['ok'] and trial['failures'] == []
-    assert trial['dimension_verdicts'] == dict(application=True, switch=True)
+    assert trial['dimension_verdicts'] == dict(application=True, switch=True, standards=True)
     single = trial['observed']['connections']['single']
     assert not {'timing_gated', 'precision'} & set(single)
     clrt = single['visible_clrt']
