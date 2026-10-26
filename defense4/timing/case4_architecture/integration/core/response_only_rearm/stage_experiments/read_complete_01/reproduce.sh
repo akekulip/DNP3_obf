@@ -113,6 +113,10 @@ if [ $# -gt 0 ] && [ "$1" != --readout ]; then
   echo "unknown argument $1 (use --candidate-info or --readout BLOCK_DIR CONFIG [ARMS])" >&2
   exit 2
 fi
+if [ "$CANDIDATE" = c68 ] && [ ! -f "$FREEZE" ]; then
+  echo "required current freeze missing: $FREEZE" >&2
+  exit 1
+fi
 SCRATCH="$(mktemp -d)"
 REPO="$(git -C "$HERE" rev-parse --show-toplevel)"
 cleanup() {

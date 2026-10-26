@@ -3,6 +3,8 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import shutil
+import tempfile
 import unittest
 
 
@@ -102,6 +104,19 @@ class ReproduceEntry(unittest.TestCase):
         self.assertEqual(info['generator_pin'], 'a4ebbecbe')
         self.assertEqual(info['gate_pin'], 'a4ebbecbe')
         self.assertEqual(info['freeze_pin'], 'a4ebbecbe')
+
+    def test_c68_missing_current_freeze_fails_before_running_checks(self):
+        with tempfile.TemporaryDirectory() as directory:
+            here = Path(directory) / 'integration/core/response_only_rearm/stage_experiments/read_complete_01'
+            here.mkdir(parents=True)
+            (here.parent / '../../../evidence/rearm_01/hw').resolve().mkdir(parents=True)
+            script = here / 'reproduce.sh'
+            shutil.copyfile(HERE / 'reproduce.sh', script)
+            result = subprocess.run(['bash', str(script)], env=dict(os.environ, CANDIDATE='c68'),
+                                    capture_output=True, text=True, timeout=10)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('required current freeze missing', result.stdout + result.stderr)
+            self.assertNotIn('software encoder:', result.stdout)
 
 
 if __name__ == '__main__':
