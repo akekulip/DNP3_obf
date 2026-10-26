@@ -101,6 +101,8 @@ if rp.SEL751:
 
 def timing_params_for_profile(profile, enabled):
     contract = profile.get('timing_contract')
+    if contract == 'response_ready_ack_d_no_j_v3':
+        return dict(gap=profile['timing_ns']['D_release_budget'], budget=240000, enabled=enabled)
     if contract == 'response_ready_ack_d_v2':
         timing = profile['timing_ns']
         return dict(gap=timing['D_release_budget'], op_j=timing['J_operate_hold'],

@@ -17,7 +17,7 @@ DEAD_RECIRC_LOCALS = (69, 70, 71)
 NEVER_LOOP = (9, 10, 11, 64)          # Vision, two cabled ports, the SEL-751 relay leg (STATUS.md "in use")
 
 
-def read(build_out):
+def read(build_out, timing_contract=None):
     """(ports dict, errors). Errors when a constant is missing or defined twice, or the roles disagree."""
     path = Path(build_out) / 'response_only.p4pp'
     if not path.is_file():
@@ -25,6 +25,10 @@ def read(build_out):
     text = path.read_text(errors='replace')
     ports, errs = {}, []
     for ours, const in NAMES.items():
+        if ours == "hb_return" and timing_contract == "response_ready_ack_d_no_j_v3":
+            if re.search(r"const PortId_t t_HB_RETURN\s*=", text):
+                errs.append("no-J build retains the OPERATE HB port")
+            continue
         found = re.findall(r'const PortId_t %s\s*=\s*9w(\d+)' % const, text)
         if len(found) != 1:
             errs.append('build defines %s %d times' % (const, len(found)))
@@ -49,13 +53,14 @@ def read(build_out):
         errs.append("T's N_RETURN %d is not N's RETURN_PORT %d" % (ports['t_n_return'], ports['return_port']))
     if ports['n_ack_return'] not in ports['e_ports']:
         errs.append("E dispatches on %s, which lacks N's ACK lap port %d" % (ports['e_ports'], ports['n_ack_return']))
-    loops = [ports[n] for n in LOOP_NAMES]
+    active_loops = loop_names(timing_contract)
+    loops = [ports[n] for n in active_loops]
     if len(set(loops)) != len(loops):
-        errs.append('looping ports are not distinct: %s' % {n: ports[n] for n in LOOP_NAMES})
+        errs.append('looping ports are not distinct: %s' % {n: ports[n] for n in active_loops})
     for name in ('return_port', 'n_ack_return'):
         if ports[name] // 128 != 0:
             errs.append('%s %d is not in pipe 0' % (name, ports[name]))
-    pipes = {ports[n] // 128 for n in ('pktgen_return', 't_in', 'hb_return', 'held_return')}
+    pipes = {ports[n] // 128 for n in active_loops if n not in ('return_port', 'n_ack_return')}
     if len(pipes) != 1:
         errs.append("T's ports span pipes %s" % sorted(pipes))
     if ports['pktgen_return'] % 128 != INTERNAL_RECIRC_LOCAL:
@@ -63,12 +68,16 @@ def read(build_out):
     return ports, errs
 
 
-def loopback_ports(ports):
+def loop_names(timing_contract=None):
+    return tuple(n for n in LOOP_NAMES if n != "hb_return") if timing_contract == "response_ready_ack_d_no_j_v3" else LOOP_NAMES
+
+
+def loopback_ports(ports, timing_contract=None):
     """The looping ports that are front-panel ports (not a pipe-local 68), by role name."""
-    return {n: ports[n] for n in LOOP_NAMES if ports[n] % 128 != INTERNAL_RECIRC_LOCAL}
+    return {n: ports[n] for n in loop_names(timing_contract) if ports[n] % 128 != INTERNAL_RECIRC_LOCAL}
 
 
-def check_endpoints(ports, master_dev, relay_dev):
+def check_endpoints(ports, master_dev, relay_dev, timing_contract=None):
     """Errors unless the build was composed for these endpoint ports and no looping port is a port in use."""
     errs = []
     if ports['forward'] != master_dev:
@@ -77,7 +86,7 @@ def check_endpoints(ports, master_dev, relay_dev):
         errs.append('build has t_RELAY_PORT = %d, this plan needs %d' % (ports['relay'], relay_dev))
     if master_dev not in ports['e_ports']:
         errs.append("E dispatches on %s, which lacks the master's port %d" % (ports['e_ports'], master_dev))
-    for name, port in sorted(loopback_ports(ports).items()):
+    for name, port in sorted(loopback_ports(ports, timing_contract=timing_contract).items()):
         if port in NEVER_LOOP or port in (master_dev, relay_dev):
             errs.append('%s is dev_port %d, a port in use: it must never be put in loopback' % (name, port))
         if port % 128 in DEAD_RECIRC_LOCALS:

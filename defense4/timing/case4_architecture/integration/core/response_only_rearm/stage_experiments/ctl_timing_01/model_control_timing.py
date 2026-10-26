@@ -41,7 +41,7 @@ OP_J_S = 0.200                                     # J in model ns; the model cl
 def main():
     from model_profile import from_env
     profile = from_env()
-    if profile.get('timing_contract') == 'response_ready_ack_d_v2':
+    if profile.get('timing_contract') in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3'):
         from model_response_ready import main as response_ready_main
         return response_ready_main(control_only=True)
     milestone = profile['milestone']

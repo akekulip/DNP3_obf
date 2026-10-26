@@ -2,7 +2,7 @@
 import hashlib
 import json
 
-from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp, diag_anchor, response_ready_timing as response_ready, strip_telemetry
+from . import mapper, read_policy, segmented, two_read, relay_sbo as relay_control, relay_ts as relay_timestamp, diag_anchor, response_ready_timing as response_ready, strip_telemetry, strip_operate_hold
 from .common import (CONSTANTS, CONSTANTS_TWO, HERE, M11_09, M11_09_PROFILE, M11_09_SHA, combined)
 
 TRANSFORM = {
@@ -24,6 +24,7 @@ TRANSFORM = {
     'diag_anchor': diag_anchor.transform,
     'response_ready_timing': response_ready.transform,
     'strip_telemetry': strip_telemetry.transform,
+    'strip_operate_hold': strip_operate_hold.transform,
 }
 
 
@@ -35,7 +36,7 @@ def generator_files():
 
 def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_full=False, two_read_build=False,
           reduce=False, ack_retry=False, read_handshake=False, headroom=False, relay=False, relay_sbo=False, relay_ts=False,
-          diag_anchors=False, response_ready_timing=False, strip_telemetry=False):
+          diag_anchors=False, response_ready_timing=False, strip_telemetry=False, strip_operate_hold=False):
     # Select the two-READ shape source for this build (relay only applies to a two-READ build).
     two_read.use_relay_shapes(relay and two_read_build)
     src = M11_09.read_text()
@@ -93,6 +94,10 @@ def build(only=None, c3='ladder', shapes='none', segmented_pad=False, segmented_
         if not response_ready_timing:
             raise ValueError('telemetry removal requires response-ready timing')
         transforms.append('strip_telemetry')
+    if strip_operate_hold:   # c69: common response timing without a fixed OPERATE-J hold
+        if not strip_telemetry:
+            raise ValueError('OPERATE hold removal requires telemetry removal')
+        transforms.append('strip_operate_hold')
     if diag_anchors:   # m12p_c52d: switch-clock transaction anchors, a separate diagnostic evidence tier
         if not relay_ts:
             raise ValueError('diagnostic anchors require the relay timestamp profile')
@@ -242,6 +247,13 @@ def write_outputs(out, a, src, applied):
         profile['switch_telemetry'] = False
         profile['_note'] += '; no switch measurement state (outcome/count registers and counters removed)'
         scope = profile['_note']
+    if getattr(a, 'strip_operate_hold', False):
+        required.add('strip_operate_hold')
+        profile['timing_contract'] = 'response_ready_ack_d_no_j_v3'
+        profile['timing_ns'] = {'D_release_budget': 5000000}
+        profile['ports'] = {k: v for k, v in profile['ports'].items() if k != 'hb_return'}
+        profile['_note'] += '; OPERATE forwards immediately through common response timing; no fixed J hold'
+        scope = profile['_note']
     if getattr(a, 'diag_anchors', False):
         required.add('diag_anchor')
         profile['evidence_tier'] = 'diagnostic: switch-clock transaction anchors (not the measured baseline)'
@@ -289,7 +301,9 @@ def write_outputs(out, a, src, applied):
         'generator_sha256': hashlib.sha256(json.dumps(gen_files, sort_keys=True).encode()).hexdigest(),
         'generator_files': gen_files,
         'read_growth': read_out - read_native, 'control_growth': ctl_growth,
-        'port_map': {'relay_port': 64 if actual_relay else 9, 'n_ack_return': 48, 't_in': 180, 'hb_return': 181, 'held_return': 182},
+        'port_map': {'relay_port': 64 if actual_relay else 9, 'n_ack_return': 48, 't_in': 180,
+                     **({} if getattr(a, 'strip_operate_hold', False) else {'hb_return': 181}),
+                     'held_return': 182},
         'successor_of': {'build': 'm11_09', 'source_sha256': M11_09_SHA}}, indent=2) + '\n')
     (out / 'supported_profile.json').write_text(json.dumps(profile, indent=2) + '\n')
     return sha

@@ -102,18 +102,23 @@ def load_config(path):
     if missing:
         raise ValueError('config missing required sections: %s' % ', '.join(missing))
     t = cfg['timing_params_ns']
-    response_ready = cfg.get('timing_contract') == 'response_ready_ack_d_v2'
+    no_j = cfg.get('timing_contract') == 'response_ready_ack_d_no_j_v3'
+    response_ready = cfg.get('timing_contract') in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3')
+    if no_j and not endpoint_profiles.is_relay(cfg):
+        raise ValueError('no-J response-ready contract requires the physical SEL-751 profile')
     if response_ready:
-        allowed = {'gap', 'op_j', 'budget', 'enabled'}
+        allowed = {'gap', 'budget', 'enabled'} if no_j else {'gap', 'op_j', 'budget', 'enabled'}
         if set(t) != allowed or any(type(t[k]) is not int for k in allowed) or \
-                t['gap'] not in (5000000, 10000000, 15000000, 20000000) or t['op_j'] != 2400000 or \
+                t['gap'] not in (5000000, 10000000, 15000000, 20000000) or (not no_j and t['op_j'] != 2400000) or \
                 not 0 < t['budget'] < 1 << 31 or t['enabled'] not in (0, 1):
-            raise ValueError('invalid response_ready_ack_d_v2 timing parameters')
+            raise ValueError('invalid %s timing parameters' % cfg['timing_contract'])
         if any(b.get('timing_contract') != cfg['timing_contract'] or b.get('piggyback_bound')
                for b in cfg['builds'].values()):
             raise ValueError('response-ready config/build timing contract mismatch')
-    elif cfg.get('timing_contract') is not None or 'response_wait_timeout' in t or any(b.get('timing_contract') == 'response_ready_ack_d_v2'
-                                           for b in cfg['builds'].values()):
+    elif cfg.get('timing_contract') is not None or 'response_wait_timeout' in t or \
+            set(t) == {'gap', 'budget', 'enabled'} or any(
+                b.get('timing_contract') in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3')
+                for b in cfg['builds'].values()):
         raise ValueError('response-ready parameters/build require explicit timing_contract')
     if 'pb' in t and not (isinstance(t['pb'], int) and not isinstance(t['pb'], bool) and t['op_j'] < t['pb'] < t['readiness']):
         raise ValueError('timing_params_ns.pb (piggyback bound, ctl_timing builds only) must be an int in op_j < pb < readiness')
@@ -1830,7 +1835,9 @@ class Campaign:
         flag = c.get('padding_installer_flag', '--pad-enable')
         if self.installer_has(flag):
             pad = ' %s %d' % (flag, padding)
-        if c.get('timing_contract') == 'response_ready_ack_d_v2':
+        if c.get('timing_contract') == 'response_ready_ack_d_no_j_v3':
+            timing = '--t-gap %d --t-budget %d --t-enabled %d' % (t['gap'], t['budget'], t['enabled'])
+        elif c.get('timing_contract') == 'response_ready_ack_d_v2':
             timing = '--t-gap %d --t-op-j %d --t-budget %d --t-enabled %d' % (
                 t['gap'], t['op_j'], t['budget'], t['enabled'])
         else:

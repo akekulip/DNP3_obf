@@ -72,6 +72,11 @@ def classify(frame):
 
 def main():
     profile_module = load('_dup_timing_profile', HERE.parent / 'ctl_timing_01/model_profile.py')
+    profile = profile_module.from_env()
+    if profile.get('timing_contract') == 'response_ready_ack_d_no_j_v3':
+        sys.path.insert(0, str(HERE.parent / 'ctl_timing_01'))
+        from model_response_ready import main as response_ready_main
+        return response_ready_main(duplicate_only=True)
     ready = profile_module.from_env().get('timing_contract') == 'response_ready_ack_d_v2'
     view = load('_dup_log_view', HERE.parent / 'ctl_timing_01/model_log_view.py') if ready else None
     log_path = view.log_path() if ready else None

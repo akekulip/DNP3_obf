@@ -63,7 +63,7 @@ def required_drivers(build):
         if relay and declared != {'sel751'}:
             raise ValueError('relay semantics require endpoint_profile=sel751')
     contracts = {doc['timing_contract'] for doc in documents if doc.get('timing_contract') is not None}
-    if len(contracts) > 1 or contracts - {'response_ready_ack_d_v2'}:
+    if len(contracts) > 1 or contracts - {'response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3'}:
         raise ValueError('inconsistent or unsupported timing_contract')
     if contracts:
         from model_profile import validate_timing_contract
@@ -405,15 +405,18 @@ def _single_child_problems(results):
     """Retain the full invalid-child state-immutability matrix and policy-off positive controls."""
     import copy
     from model_response_ready import child_ingress_problems
+    no_j = (results.get('meta') or {}).get('timing_contract') == 'response_ready_ack_d_no_j_v3'
     required = {'N': {'owner', 'epoch', 'client', 'server'},
                 'E': {'epoch', 'mode', 'front', 'acct', 'img_end', 'img_start', 'img_wend'},
                 'T': {'cur_epoch_reg', 'gen_alloc_reg', 'op_gen_alloc_reg', 'op_t0_reg',
                       'ack_done_reg', 'resp_done_reg', 'op_done_reg', 'child_seen0_reg',
                       'ack_commit_at_reg', 'ack_commit_gen_reg', 'outcomes'}}
+    if no_j:
+        required['T'] -= {'op_gen_alloc_reg','op_t0_reg','op_done_reg'}
     rows = (results.get('meta') or {}).get('single_child_probes') or []
     expected_cases = [('response', None, child) for child in (1, 2, 255)] + [
-        ('held', role, child) for role in (14, 15, 16) for child in (1, 2, 255)] + [
-        ('blocker', role, child) for role in (11, 12, 13) for child in (0, 1, 2, 255)]
+        ('held', role, child) for role in ((14, 15) if no_j else (14, 15, 16)) for child in (1, 2, 255)] + [
+        ('blocker', role, child) for role in ((11, 12) if no_j else (11, 12, 13)) for child in (0, 1, 2, 255)]
     problems = []
     for kind, role, child in expected_cases:
         tag = '%s role%s child%d' % (kind, role, child)
@@ -435,8 +438,11 @@ def _single_child_problems(results):
         if row.get('expected_after') != expected or after != expected or row.get('output_frames') != 0:
             problems.append(tag + ': register/counter mutation or public output')
         problems.extend(tag + ': ' + issue for issue in child_ingress_problems(row))
+        identity = (('epoch', 0x80000000), ('read_generation', 0xffff)) + (() if no_j else (('operate_generation', 0xffff),))
+        if no_j and row.get('timing_contract') != 'response_ready_ack_d_no_j_v3':
+            problems.append(tag + ': missing explicit no-J probe contract')
         if any(type(row.get(key)) is not int or not 0 < row[key] < limit
-               for key, limit in (('epoch', 0x80000000), ('read_generation', 0xffff), ('operate_generation', 0xffff))):
+               for key, limit in identity):
             problems.append(tag + ': no live epoch and both generations')
     if len(rows) != len(expected_cases):
         problems.append('unexpected or missing invalid-child probe rows')
@@ -473,9 +479,11 @@ def _generation_isolation_problems(results):
 
 def _response_ready_problems(results):
     """Require the complete v2 matrix and ownership-qualified retry/cleanup proofs."""
-    from model_response_ready import committed_problems, lane_integrity_problems, retry_problems, post_release_replay_problems, cleanup_problems, delta
+    from model_response_ready import committed_problems, lane_integrity_problems, retry_problems, post_release_replay_problems, cleanup_problems, delta, no_j_operate_problems, removed_operate_token_problems
     meta=results.get('meta') or {};points=meta.get('points') or [];problems=[]
-    if meta.get('timing_contract')!='response_ready_ack_d_v2':problems.append('missing executed v2 contract')
+    contract = meta.get('timing_contract')
+    no_j = contract == 'response_ready_ack_d_no_j_v3'
+    if contract not in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3'):problems.append('missing executed response-ready contract')
     def one(tag):
         matches=[point for point in points if point.get('tag')==tag]
         if len(matches)!=1:
@@ -493,18 +501,22 @@ def _response_ready_problems(results):
                     tag='D%d_%s_%s%s'%(gap//1000000,order,cls,suffix);point=one(tag)
                     if point is None:continue
                     units=point.get('written_units') or {}
-                    if set(units)!={'gap','op_j','budget','enabled'} or units.get('gap')!=-(-(gap+512)//256) or units.get('op_j')!=9377 or units.get('enabled')!=1:
+                    keys = {'gap','budget','enabled'} if no_j else {'gap','op_j','budget','enabled'}
+                    if set(units)!=keys or units.get('gap')!=-(-(gap+512)//256) or (not no_j and units.get('op_j')!=9377) or units.get('enabled')!=1:
                         problems.append(tag+': not the exact four-field nominal D/J write')
                     if point.get('model_only_hold_override') or point.get('order')!=order or (point.get('native_octets'),point.get('image_octets'))!=(native,image):
                         problems.append(tag+': nominal matrix order/shape replaced by a construction')
                     committed(point,tag)
-                    if suffix=='_OPERATE':
+                    if no_j:
+                        if point.get('timing_contract') != contract or any(key in point for key in ('op_generation_before','op_generation_after','operate_anchor_units','operate_release_units','operate_release_count')):
+                            problems.append(tag+': no-J nominal point has absent contract or fabricated J state')
+                    elif suffix=='_OPERATE':
                         hold=delta(point.get('operate_release_units'),point.get('operate_anchor_units'))
                         if hold is None or hold<9377 or point.get('operate_release_count')!=1 or point.get('op_generation_after')!=point.get('op_generation_before',-2)+1:
                             problems.append(tag+': nominal independent J not measured')
                     elif point.get('operate_release_count')!=0 or point.get('op_generation_after')!=point.get('op_generation_before'):
                         problems.append(tag+': non-OPERATE changed J ownership')
-    retry_cases=[('OPERATE','op_J')]+[(kind,phase) for phase in ('response_D','waiting','after_release','disabled')
+    retry_cases=([] if no_j else [('OPERATE','op_J')])+[(kind,phase) for phase in ('response_D','waiting','after_release','disabled')
                                     for kind in ('READ','READ_integrity','SELECT','OPERATE')]
     for kind,phase in retry_cases:
         tag='retry_%s_%s'%(kind,phase);point=one(tag)
@@ -541,7 +553,18 @@ def _response_ready_problems(results):
             if point is not None and point.get('epoch')==recovery.get('epoch'):
                 problems.append(tag+': cleanup did not recover through a fresh handshake')
     problems+=_single_child_problems(results)+_generation_isolation_problems(results)
-    expected=['invalid_child_ids','request_retry_policy','stale_token_isolation']+['D%d_%s'%(gap//1000000,order) for gap in durations for order in ('ack_first','response_first')]+[
+    if no_j:
+        immediate = one('no_j_immediate_OPERATE')
+        if immediate is not None:
+            problems.extend('no_j_immediate_OPERATE: '+issue for issue in no_j_operate_problems(immediate))
+            committed(immediate, 'no_j_immediate_OPERATE')
+        probes = meta.get('removed_operate_token_probes') or []
+        expected_tokens = {'role13_port181','role13_port182','role16_port181','role16_port182','app1','E101'}
+        if len(probes) != 6 or {row.get('name') for row in probes} != expected_tokens:
+            problems.append('missing complete removed OPERATE token rejection matrix')
+        for row in probes:
+            problems.extend('removed OPERATE token: '+issue for issue in removed_operate_token_problems(row))
+    expected=(['no_j_immediate_OPERATE','removed_operate_tokens'] if no_j else [])+['invalid_child_ids','request_retry_policy','stale_token_isolation']+['D%d_%s'%(gap//1000000,order) for gap in durations for order in ('ack_first','response_first')]+[
         'waiting_and_cleanup','generation_A_to_B_isolation','disabled_and_exhaustion']
     if meta.get('planned_cases')!=expected or meta.get('completed_cases')!=expected:
         problems.append('v2 did not complete every planned connection/case')
@@ -582,8 +605,8 @@ def summarize_v3(build):
             profile = model_profile.resolve(json.loads(inputs_path.read_text()), build / 'response_only.p4')
         except (OSError, ValueError, TypeError) as error:
             reasons.append('unsupported or inconsistent build profile: %s' % error)
-    if profile and profile.get('timing_contract') == 'response_ready_ack_d_v2':
-        state_audit = model_profile.compiled_t_state_of_build(build)
+    if profile and profile.get('timing_contract') in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3'):
+        state_audit = model_profile.compiled_t_state_of_build(build, profile.get('timing_contract'))
         base['compiled_t_state_audit'] = state_audit
         reasons.extend('compiled T state precondition: ' + problem for problem in state_audit['problems'])
     for driver, run in sorted(base['latest_by_driver'].items()):
@@ -608,13 +631,13 @@ def summarize_v3(build):
             problems += _unmeasured_points(build.parent / run)
         elif driver == 'abort' and reset_required:
             problems += _unmeasured_points(build.parent / run)
-        if driver in ('contention', 'abort') and run_profile and run_profile.get('timing_contract') == 'response_ready_ack_d_v2':
+        if driver in ('contention', 'abort') and run_profile and run_profile.get('timing_contract') in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3'):
             result_files = list((build.parent / run).glob('*_results.json'))
             if len(result_files) == 1:
                 problems += _contention_v2_clock_problems(json.loads(result_files[0].read_text()))
             else:
                 problems.append('v2 contention clock coverage needs exactly one results file')
-        if driver == 'control_timing' and run_profile and run_profile.get('timing_contract') == 'response_ready_ack_d_v2':
+        if driver == 'control_timing' and run_profile and run_profile.get('timing_contract') in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3'):
             result_files = list((build.parent / run).glob('*_results.json'))
             if len(result_files) == 1:
                 problems += _single_child_problems(json.loads(result_files[0].read_text()))

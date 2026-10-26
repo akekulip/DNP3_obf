@@ -106,3 +106,12 @@ def test_e_counter_one_packet_per_pipe0_egress_pass_by_last_write(tmp_path):
     assert counts[(t.E_COUNTER, 4)] == 1        # pass 0x2: replay
     assert counts[(t.E_COUNTER, 0)] == 1        # pass 0x3: never written, counted at 0
     assert counts.get((t.E_COUNTER, 1), 0) == 0  # pipe 1 egress is not E
+
+
+def test_no_j_map_preserves_common_operate_retry_without_fabricating_removed_J_events():
+    mapping = t.action_map(timing_contract='response_ready_ack_d_no_j_v3')
+    assert mapping['t_Ingress.passthrough_operate_dup'] == ('p1.t_Ingress.outcomes', 9)
+    assert mapping['t_Ingress.drop_request_duplicate'] == ('p1.t_Ingress.outcomes', 8)
+    for name in ('release_operate_counted', 'rewait_operate', 'flush_operate_stale',
+                 'drop_operate_dup', 'drop_timer_stale_operate'):
+        assert 't_Ingress.' + name not in mapping

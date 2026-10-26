@@ -26,6 +26,9 @@ RESPONSE_READY_CONTRACT = 'response_ready_ack_d_v2'
 RESPONSE_READY_DEFAULTS = dict(gap=5000000, op_j=2400000,
                                budget=240000, enabled=1)
 RESPONSE_READY_KEYS = ('gap', 'op_j', 'budget', 'enabled')
+RESPONSE_READY_NO_J_CONTRACT = 'response_ready_ack_d_no_j_v3'
+RESPONSE_READY_NO_J_KEYS = ('gap', 'budget', 'enabled')
+RESPONSE_READY_NO_J_DEFAULTS = dict(gap=5000000, budget=240000, enabled=1)
 
 
 def t_units(values_ns, unit_ns=1, grid_ns=256):
@@ -57,18 +60,32 @@ def t_time_of_source(text):
     raise ValueError('unrecognised T clock: refusing to guess its units')
 
 
-def timing_contract_of_source(text):
-    """Select the parameter ABI from the compiled action (comments may be stripped)."""
+def timing_contract_of_source(text, timing_contract=None):
+    """Bind a declared contract to the compiled action; missing op_j never selects no-J."""
     import re
     actions = re.findall(r'action\s+set_params\s*\(([^)]*)\)', text, re.S)
     keys = tuple(re.findall(r'bit\s*<\s*\d+\s*>\s+(\w+)', actions[0])) if len(actions) == 1 else ()
-    if keys != RESPONSE_READY_KEYS:
-        if RESPONSE_READY_CONTRACT in text or 'response_wait_timeout' in text:
-            raise ValueError('response-ready contract parameter ABI mismatch')
+    declared = re.findall(r'timing_contract:\s*(\w+)', text)
+    if timing_contract is None and declared:
+        if len(set(declared)) != 1:
+            raise ValueError('conflicting source timing contracts')
+        timing_contract = declared[0]
+    if timing_contract == RESPONSE_READY_NO_J_CONTRACT:
+        if keys != RESPONSE_READY_NO_J_KEYS:
+            raise ValueError('no-J response-ready contract parameter ABI mismatch')
+        contract = timing_contract
+    elif timing_contract in (None, RESPONSE_READY_CONTRACT) and keys == RESPONSE_READY_KEYS:
+        contract = RESPONSE_READY_CONTRACT
+    elif timing_contract is not None or keys == RESPONSE_READY_NO_J_KEYS or \
+            RESPONSE_READY_CONTRACT in text or RESPONSE_READY_NO_J_CONTRACT in text or 'response_wait_timeout' in text:
+        raise ValueError('response-ready contract parameter ABI mismatch')
+    else:
         return None
+    if declared and any(value != contract for value in declared):
+        raise ValueError('source timing contract differs from declared contract')
     if t_time_of_source(text) != dict(unit_ns=256, grid_ns=512):
         raise ValueError('response-ready contract T clock mismatch')
-    return RESPONSE_READY_CONTRACT
+    return contract
 
 
 # (role of the port, qid, label): strict priority, qid == max_priority, descending within each port.
@@ -105,11 +122,21 @@ def pipe_of(dev_port):
     return dev_port // 128
 
 
-def queue_plan(ports):
-    return [(ports[role], qid, label) for role, qid, label in LADDER]
+def pktgen_apps(timing_contract=None):
+    return PKTGEN_APPS[1:] if timing_contract == RESPONSE_READY_NO_J_CONTRACT else PKTGEN_APPS
 
 
-def params_op(values):
+def queue_plan(ports, timing_contract=None):
+    ladder = LADDER[:4] if timing_contract == RESPONSE_READY_NO_J_CONTRACT else LADDER
+    return [(ports[role], qid, label) for role, qid, label in ladder]
+
+
+def params_op(values, timing_contract=None):
+    if timing_contract == RESPONSE_READY_NO_J_CONTRACT:
+        if set(values) != set(RESPONSE_READY_NO_J_KEYS):
+            raise ValueError("no-J response-ready set_params requires exactly %s" % (RESPONSE_READY_NO_J_KEYS,))
+        return dict(kind="default", table="p1.t_Ingress.params", pipe=ALL_PIPES, action="t_Ingress.set_params",
+                    data=[(key, values[key]) for key in RESPONSE_READY_NO_J_KEYS])
     if not {'da', 'readiness', 'cap'} <= set(values):
         if set(values) != set(RESPONSE_READY_KEYS):
             raise ValueError('response-ready set_params requires exactly %s' % (RESPONSE_READY_KEYS,))
@@ -120,11 +147,11 @@ def params_op(values):
                 + ([('pb', values['pb'])] if values.get('pb') is not None else []))
 
 
-def loopback_ops(ports):
+def loopback_ops(ports, timing_contract=None):
     """One $PORT write per front-panel looping port, before anything else. The only $PORT field ever written."""
     return [dict(kind='loopback', table='$PORT', pipe=ALL_PIPES, label='%s dev %d' % (role, port),
                  key=[('$DEV_PORT', port, None)], data=[('$LOOPBACK_MODE', LOOPBACK_ON)])
-            for role, port in sorted(build_ports.loopback_ports(ports).items(), key=lambda kv: kv[1])]
+            for role, port in sorted(build_ports.loopback_ports(ports, timing_contract=timing_contract).items(), key=lambda kv: kv[1])]
 
 
 def mirror_op(ports):
@@ -150,7 +177,7 @@ BLOCK_BURST = 64            # blocker reservoir: allow a burst up to the live bl
                            # stays occupied (a burst of 1 would drain it between returns, defeating the hold)
 
 
-def queue_ops(ports, shape_pps=None, block_shape_pps=None, block_burst=BLOCK_BURST):
+def queue_ops(ports, shape_pps=None, block_shape_pps=None, block_burst=BLOCK_BURST, timing_contract=None):
     """Key (pg_id, pg_queue) is resolved on the switch from the port's own tf1.tm.port.cfg entry; the target
     pipe is the port's pipe.
 
@@ -162,7 +189,7 @@ def queue_ops(ports, shape_pps=None, block_shape_pps=None, block_burst=BLOCK_BUR
     shape_pps = shape_pps or {}
     block_shape_pps = block_shape_pps or {}
     ops = []
-    for port, qid, label in queue_plan(ports):
+    for port, qid, label in queue_plan(ports, timing_contract=timing_contract):
         if label in HOLD_LABELS:
             rate, burst = int(shape_pps.get(HOLD_LABELS[label], 0) or 0), HOLD_BURST
         elif label in BLOCK_LABELS:
@@ -179,7 +206,7 @@ def queue_ops(ports, shape_pps=None, block_shape_pps=None, block_burst=BLOCK_BUR
     return ops
 
 
-def pktgen_ops(k, ports):
+def pktgen_ops(k, ports, timing_contract=None):
     if k < 1:
         raise ValueError('k must be >= 1')
     count = 2 * k             # READ tokens split by packet_id parity, so the count must be even
@@ -190,7 +217,11 @@ def pktgen_ops(k, ports):
            dict(kind='pktgen_buffer', table='tf1.pktgen.pkt_buffer', pipe=pipe,
                 key=[('pkt_buffer_offset', BUF_OFFSET, None), ('pkt_buffer_size', TOKEN_LEN, None)],
                 data=[('buffer', token_buffer())])]
-    for name, app_id, pattern in PKTGEN_APPS:
+    if timing_contract == RESPONSE_READY_NO_J_CONTRACT:
+        # App 1 is owned by the legacy installer. Stop a retained old OPERATE reservoir before app 0 starts.
+        ops.append(dict(kind='pktgen_disable', table='tf1.pktgen.app_cfg', pipe=pipe, label='OPERATE stale',
+                        key=[('app_id', 1, None)], action=None, data=[('app_enable', False)]))
+    for name, app_id, pattern in pktgen_apps(timing_contract):
         ops.append(dict(kind='pktgen_app', table='tf1.pktgen.app_cfg', pipe=pipe, label=name,
                         key=[('app_id', app_id, None)], action='trigger_recirc_pattern',
                         data=[('pattern_value', pattern), ('pattern_mask', PKTGEN_MASK), ('pkt_len', TOKEN_LEN),
@@ -203,17 +234,27 @@ def pktgen_ops(k, ports):
     return ops
 
 
-def enable_ops(ports):
+def enable_ops(ports, timing_contract=None):
     """Written last, only when every earlier write read back clean. No action, as the silicon-proven
     set_app_enable (case_a_defense3_fixed_ack_delay_setup.py) writes it."""
     return [dict(kind='pktgen_enable', table='tf1.pktgen.app_cfg', pipe=pipe_of(ports['pktgen_return']), label=name,
                  key=[('app_id', app_id, None)], action=None, data=[('app_enable', True)])
-            for name, app_id, _ in PKTGEN_APPS]
+            for name, app_id, _ in pktgen_apps(timing_contract)]
 
 
-def check_params(values):
+def check_params(values, timing_contract=None):
     """Range check before anything is written; returns error strings."""
     errs = []
+    if timing_contract == RESPONSE_READY_NO_J_CONTRACT:
+        if set(values) != set(RESPONSE_READY_NO_J_KEYS):
+            errs.append('no-J response-ready parameters must contain exactly %s' % (RESPONSE_READY_NO_J_KEYS,))
+        if type(values.get('gap')) is not int or not 0 < values['gap'] < 1000000000:
+            errs.append('invalid response-ready duration gap')
+        if type(values.get('budget')) is not int or not 0 < values['budget'] < 1 << 31:
+            errs.append('invalid response-ready blocker budget')
+        if type(values.get('enabled')) is not int or values['enabled'] not in (0, 1):
+            errs.append('invalid response-ready enabled')
+        return errs
     if not {'da', 'readiness', 'cap'} <= set(values):
         if set(values) != set(RESPONSE_READY_KEYS):
             errs.append('response-ready parameters must contain exactly %s' % (RESPONSE_READY_KEYS,))

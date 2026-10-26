@@ -37,13 +37,16 @@ for name in ('smoke', 'packets', 'rearm', 'dup', 'repeat', 'abandon', 'prefix', 
     DRIVERS[name] = HERE.parent / 'seg61_02' / ('model_%s.py' % name)
 
 
-def model_ports(inputs):
+def model_ports(inputs, driver=None):
     """Ports are source-profile data, including distinct physical relay dev64."""
     profile = inputs.get('supported_profile') or {}
     ports = profile.get('ports') or {}
     values = {int(v) for k, v in ports.items() if k != 'stat_ports' and type(v) is int}
     pm = inputs.get('port_map') or {}
     values.update(int(v) for v in pm.values())
+    if profile.get('timing_contract') == 'response_ready_ack_d_no_j_v3' and driver in ('response_ready','control_timing','dup'):
+        # Private model namespace only: exercise rejection at the removed old HB ingress.
+        values.add(181)
     values.add(9)
     values.add(68)
     values.add(((int(pm.get('t_in', 180)) >> 7) << 7) + 68)
@@ -97,18 +100,18 @@ def main():
     build = (HERE / args.build).resolve() if not Path(args.build).is_absolute() else Path(args.build)
     inputs_path = build / 'response_only.inputs.json'
     inputs = json.loads(inputs_path.read_text())
-    from model_profile import resolve
+    from model_profile import resolve, RESPONSE_READY_CONTRACTS
     profile = resolve(inputs, build / 'response_only.p4', args.milestone)
-    if args.driver == 'response_ready' and profile.get('timing_contract') != 'response_ready_ack_d_v2':
+    if args.driver == 'response_ready' and profile.get('timing_contract') not in RESPONSE_READY_CONTRACTS:
         raise SystemExit('response_ready requires a source-bound response_ready_ack_d_v2 profile')
-    if args.pb is not None and profile.get('timing_contract') == 'response_ready_ack_d_v2':
+    if args.pb is not None and profile.get('timing_contract') in RESPONSE_READY_CONTRACTS:
         raise SystemExit('--pb is incompatible with response-ready timing')
     sha = hashlib.sha256((build / 'response_only.p4').read_bytes()).hexdigest()
     manifest = json.loads((build / 'compile_local/manifest.json').read_text())
     assert sha == inputs['source_sha256'] == manifest['source_sha256'] and manifest['exit_code'] == 0
-    if profile.get('timing_contract') == 'response_ready_ack_d_v2':
+    if profile.get('timing_contract') in RESPONSE_READY_CONTRACTS:
         from model_profile import compiled_t_state_of_build
-        audit = compiled_t_state_of_build(build)
+        audit = compiled_t_state_of_build(build, profile.get('timing_contract'))
         if audit['problems']:
             raise SystemExit('compiled T state precondition failed: ' + '; '.join(audit['problems']))
     if inputs.get('milestone') and args.milestone != inputs['milestone']:
@@ -125,7 +128,7 @@ def main():
     # every run goes through record_closure.py, which records each repository file the driver executed (review
     # of af7bd434: a wrapper plus one inner driver is not the imported closure)
     command = ['bash', str(HERE.parents[2] / 'launch_model.sh'), '-p', str(build / 'compile_local/out'),
-               '-o', str(out), '-P', model_ports(inputs), '-d', str(HERE / 'record_closure.py')]
+               '-o', str(out), '-P', model_ports(inputs, driver=args.driver), '-d', str(HERE / 'record_closure.py')]
     env = dict(os.environ, PORT_MAP=str(build / 'response_only.inputs.json'), PAD_ENABLE='1',
                MILESTONE=args.milestone, CTL_CLOSURE_TARGET=str(launched),
                CTL_CLOSURE_OUT=str(out / 'dependency_closure.json'))
@@ -162,11 +165,11 @@ def main():
             'reset_restart_required': profile['reset_restart_required'],
             'supported_profile_sha256': hashlib.sha256(inputs_path.read_bytes()).hexdigest(),
             'exit_code': exit_code}, indent=2) + '\n')
-        if args.driver == 'contention' and profile.get('timing_contract') == 'response_ready_ack_d_v2':
+        if args.driver == 'contention' and profile.get('timing_contract') in RESPONSE_READY_CONTRACTS:
             (out / 'committed_precondition.json').write_text(json.dumps(dict(applicable=False,
                 timing_contract=profile['timing_contract'], reason='v2 has no request-age/readiness deadline or t0 register; '
                 'committed points require actual held-ACK/whole-response/ACK-commit/full-D model-clock proofs in results'), indent=1) + '\n')
-        if args.driver == 'contention' and profile.get('timing_contract') != 'response_ready_ack_d_v2':
+        if args.driver == 'contention' and profile.get('timing_contract') not in RESPONSE_READY_CONTRACTS:
             # classifies each committed-path point by its precondition (response at T before t0 + readiness); it
             # changes no verdict (committed_precondition_check.py)
             check = subprocess.run([sys.executable, str(HERE / 'committed_precondition_check.py'), str(out)],

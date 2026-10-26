@@ -199,13 +199,17 @@ def test_installer_and_snapshot_restore_three_child_initialization_after_one_chi
     assert all('child_seen%d_reg' % i in snapshot.snapshot.readback.T_REGISTER_INIT for i in range(3))
 
 
-@pytest.mark.parametrize('driver', ['model_rearm.py', 'model_dup.py'])
+@pytest.mark.parametrize('driver,response_ready,no_j', [
+    ('model_rearm.py', False, False), ('model_dup.py', False, False),
+    ('model_rearm.py', True, False), ('model_dup.py', True, False),
+    ('model_rearm.py', True, True),
+])
 @pytest.mark.parametrize('children', [1, 3])
-@pytest.mark.parametrize('response_ready', [False, True])
-def test_model_snapshots_read_every_selected_child_bank_and_no_others(driver, children, response_ready):
+def test_model_snapshots_read_every_selected_child_bank_and_no_others(driver, children, response_ready, no_j):
     # Execute the real nested snapshot against a register-reader boundary double;
     # importing the model driver would require the BF SDK and running simulator.
-    # The snapshot closes over the driver's timing-contract flag (model_dup `ready`, model_rearm `response_ready`).
+    # Snapshot closure flags select the legacy, response-ready v2, and explicit no-J layouts.
+    # The no-J duplicate driver routes to response_ready; only rearm uses this nested snapshot then.
     import ast
     path = CORE / 'stage_experiments/seg61_02' / driver
     tree = ast.parse(path.read_text())
@@ -216,13 +220,19 @@ def test_model_snapshots_read_every_selected_child_bank_and_no_others(driver, ch
             reads.append(name)
             return [0]
     namespace = {'m': Model(), 'child_regs': profile.child_registers({'t_child_count': children}),
-                 'ready': response_ready, 'response_ready': response_ready}
+                 'ready': response_ready, 'response_ready': response_ready, 'no_j': no_j}
     exec(compile(ast.Module(body=[snapshot_node], type_ignores=[]), str(path), 'exec'), namespace)
-    namespace['snapshot']()
+    state = namespace['snapshot']()
     assert {name for name in reads if '.child_seen' in name} == {
         'p1.t_Ingress.child_seen%d_reg' % i for i in range(children)}
     # The response-ready contract compiles no t0_reg; only the legacy branch reads it.
     assert ('p1.t_Ingress.t0_reg' in reads) is (not response_ready)
+    operate_registers = {'op_gen_alloc_reg', 'op_t0_reg', 'op_done_reg'}
+    assert (operate_registers & set(state['T'])) == (set() if no_j else operate_registers)
+    if no_j:
+        assert set(state['T']) == {'cur_epoch_reg', 'gen_alloc_reg', 'ack_done_reg', 'resp_done_reg',
+                                   'ack_commit_at_reg', 'ack_commit_gen_reg'} | {
+            'child_seen%d_reg' % i for i in range(children)}
 
 
 def test_deployed_build_retains_enough_bound_metadata_for_strict_profile_selection(tmp_path):

@@ -19,6 +19,7 @@ import traceback
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+NO_J_CONTRACT = 'response_ready_ack_d_no_j_v3'
 UNIT_NS, WRAP = 256, 1 << 32
 D_VALUES = (5_000_000, 10_000_000, 15_000_000, 20_000_000)
 MODEL_HOLD_NS = 1_000_000_000
@@ -28,6 +29,10 @@ NAMES = ('UNMATCHED', 'HELD_REWAIT', 'ACK_COMMIT', 'RESP_RELEASE', 'RESP_DUP_DRO
 LANE = ('ACK_COMMIT', 'RESP_RELEASE', 'REQ_DUP_DROP', 'REQ_DUP_FORWARD', 'OP_DUP_DROP')
 
 
+def lane_names(point):
+    return LANE[:-1] if point.get('timing_contract') == NO_J_CONTRACT else LANE
+
+
 def delta(later, earlier):
     return None if later is None or earlier is None else (later - earlier) % WRAP
 
@@ -35,6 +40,10 @@ def delta(later, earlier):
 def child_ingress_problems(row):
     """Bind the child-id control to its actual compiled ingress branch, without a synthetic counter."""
     kind, role, child = (row.get(key) for key in ('kind', 'role', 'child'))
+    no_j = row.get('timing_contract') == NO_J_CONTRACT
+    if no_j and ('operate_generation' in row or any(name in ((row.get('before') or {}).get('T') or {})
+            for name in ('op_gen_alloc_reg','op_t0_reg','op_done_reg'))):
+        return ['no-J child proof contains removed OPERATE state']
     port = 180 if kind == 'response' else 181 if role in (13, 16) else 182
     try:
         frame = bytes.fromhex(row['stimulus_frame_hex'])
@@ -51,8 +60,8 @@ def child_ingress_problems(row):
         cells = [item for item in value.values() if isinstance(item, list)] if isinstance(value, dict) else []
         return cells[0][0] if len(cells) == 1 and len(cells[0]) == 1 else None
     if any(measured(register) != row.get(key) for register, key in
-           (('cur_epoch_reg', 'epoch'), ('gen_alloc_reg', 'read_generation'),
-            ('op_gen_alloc_reg', 'operate_generation'))):
+           ((('cur_epoch_reg', 'epoch'), ('gen_alloc_reg', 'read_generation')) +
+            (() if no_j else (('op_gen_alloc_reg', 'operate_generation'),)))):
         problems.append('child stimulus identity differs from measured live T epoch/generations')
     if kind == 'blocker' and child == 0:
         register = {11: 'ack_done_reg', 12: 'resp_done_reg', 13: 'op_done_reg'}.get(role)
@@ -247,7 +256,7 @@ def post_release_replay_problems(point):
         problems.append('replay did not deliver exactly one complete encoded response')
     if point.get('encoding_delta') != dict(commit=0, replay=1, growth=0):
         problems.append('replay changed logical commit/growth or did not count one replay')
-    if any((point.get('lane_delta') or {}).get(name) != 0 for name in LANE):
+    if any((point.get('lane_delta') or {}).get(name) != 0 for name in lane_names(point)):
         problems.append('response replay changed T completion/request-retry state')
     release, arrival = point.get('primary_release_units'), point.get('replay_arrival_units')
     if release is None or arrival is None or delta(arrival, release) >= WRAP // 2:
@@ -287,7 +296,7 @@ def token_source_problems(point):
     if any(value is None for value in (source_u, blocker_u, release_u)) or \
             delta(source_u, release_u) >= WRAP // 2 or delta(blocker_u, source_u) >= WRAP // 2:
         problems.append('completed A/source-token/source-blocker causal evidence missing')
-    if source.get('state_after') != generation or any((source.get('lane_delta') or {}).get(name) != 0 for name in LANE):
+    if source.get('state_after') != generation or any((source.get('lane_delta') or {}).get(name) != 0 for name in lane_names(point)):
         problems.append('timer changed completed A ownership/completion')
     return problems
 
@@ -339,22 +348,28 @@ def generation_isolation_problems(point):
 def retry_problems(point):
     proof = point.get('request_retry') or {}
     phase = proof.get('phase')
+    no_j = point.get('timing_contract') == NO_J_CONTRACT
     if phase == 'disabled':
         problems = []
-        if point.get('generation_after') != point.get('generation_before') or point.get('op_generation_after') != point.get('op_generation_before'):
+        if point.get('generation_after') != point.get('generation_before') or (not no_j and point.get('op_generation_after') != point.get('op_generation_before')):
             problems.append('disabled retry allocated a timing generation')
-        if (point.get('lane') or {}) != dict(ACK_COMMIT=0, RESP_RELEASE=0, REQ_DUP_DROP=0, REQ_DUP_FORWARD=1, OP_DUP_DROP=0) or point.get('operate_release_count') != 0:
+        expected_lane = dict(ACK_COMMIT=0, RESP_RELEASE=0, REQ_DUP_DROP=0, REQ_DUP_FORWARD=1)
+        if not no_j:
+            expected_lane['OP_DUP_DROP'] = 0
+        if (point.get('lane') or {}) != expected_lane or (not no_j and point.get('operate_release_count') != 0):
             problems.append('disabled retry did not forward once without hold/release')
         if proof.get('relay_request_copies') != 2 or proof.get('ingress_units') is None:
             problems.append('disabled retry delivery/T ingress not proved')
         return problems
     problems = lane_integrity_problems(point)
+    if no_j and phase == 'op_J':
+        return problems + ['no-J retry cannot claim a removed OPERATE hold window']
     if phase not in ('op_J', 'response_D', 'waiting', 'after_release'):
         return problems + ['missing request-retry construction']
     expected = 'OP_DUP_DROP' if phase == 'op_J' else 'REQ_DUP_DROP' if phase == 'response_D' else 'REQ_DUP_FORWARD'
     lane = point.get('lane') or {}
     if lane.get(expected) != 1 or any(lane.get(name) != 0 for name in
-            ('REQ_DUP_DROP', 'REQ_DUP_FORWARD', 'OP_DUP_DROP') if name != expected):
+            lane_names(point)[2:] if name != expected):
         problems.append('request retry did not take exactly its qualified drop/forward outcome')
     forwarded = phase in ('waiting', 'after_release')
     if proof.get('relay_request_copies') != (2 if forwarded else 1):
@@ -367,7 +382,7 @@ def retry_problems(point):
     if retry is None or lower is None or delta(retry, lower) >= WRAP // 2 or \
             (upper is not None and delta(upper, retry) >= WRAP // 2):
         problems.append('request retry was not observed in the intended ownership window')
-    if point.get('fc') == 4:
+    if point.get('fc') == 4 and not no_j:
         op_generation = point.get('op_generation_after')
         if op_generation != point.get('op_generation_before', -2) + 1:
             problems.append('OPERATE retry allocated or restarted J')
@@ -379,12 +394,100 @@ def retry_problems(point):
     return problems
 
 
-def main(*, control_only=False):
+def functional_token_state(state):
+    """Keep real registers while excluding the separate log-derived observation array."""
+    return {domain: {name: value for name, value in registers.items()
+                     if not (domain == 'T' and name == 'outcomes')}
+            for domain, registers in state.items()}
+
+
+def removed_operate_token_problems(row):
+    """Bind each obsolete format to its live state, expected port and complete ingress."""
+    required = {'N': {'owner','epoch','client','server'},
+                'E': {'epoch','mode','front','acct','img_end','img_start','img_wend'},
+                'T': {'cur_epoch_reg','gen_alloc_reg','ack_done_reg','resp_done_reg',
+                      'child_seen0_reg','ack_commit_at_reg','ack_commit_gen_reg'}}
+    for label in ('before','after'):
+        state = row.get(label)
+        if not isinstance(state, dict) or set(state) != set(required):
+            return ['obsolete OPERATE token requires complete N/E/T functional state']
+        if any(not isinstance(state[domain], dict) or set(state[domain]) - ({'outcomes'} if domain == 'T' else set()) != names
+               for domain, names in required.items()):
+            return ['obsolete OPERATE token requires every common functional register']
+        for domain, names in required.items():
+            for name in names:
+                value = state[domain][name]
+                cells = [cell for cell in value.values() if isinstance(cell, list)] if isinstance(value, dict) else []
+                if len(cells) != (2 if (domain,name) == ('E','acct') else 1) or any(
+                        len(cell) != 1 or type(cell[0]) is not int or cell[0] < 0 for cell in cells):
+                    return ['obsolete OPERATE token has incomplete functional register readback']
+    before = row['before']
+    def measured(name):
+        return next(value[0] for value in before['T'][name].values() if isinstance(value, list))
+    epoch, generation = measured('cur_epoch_reg'), measured('gen_alloc_reg')
+    if not 0 < epoch < 0x80000000 or not 0 < generation < 0xffff:
+        return ['obsolete OPERATE token is not bound to a measured live epoch/generation']
+    name = row.get('name')
+    role = re.fullmatch(r'role(13|16)_port(181|182)', name) if isinstance(name, str) else None
+    if role:
+        kind, port = map(int, role.groups())
+        header = struct.pack('!BBHI', kind, 0, generation, 240000 if kind == 13 else epoch)
+    elif name == 'app1':
+        port, header = 196, bytes((9,1)) + struct.pack('!HH', generation, 0)
+    elif name == 'E101':
+        port, header = 196, bytes.fromhex('e101') + struct.pack('!HIIIBBH', generation, epoch, 0, 0, 12, 0, 0)
+    else:
+        return ['unqualified obsolete OPERATE token format name']
+    try:
+        frame = bytes.fromhex(row['stimulus_frame_hex'])
+    except (KeyError, TypeError, ValueError):
+        return ['missing obsolete OPERATE token stimulus']
+    problems = []
+    if row.get('stimulus_port') != port or len(frame) < len(header) + 14 or not frame.startswith(header):
+        problems.append('obsolete OPERATE token format/port does not match its declared live-state probe')
+    records = row.get('model_ingress')
+    if not isinstance(records, list) or len(records) != 1 or not isinstance(records[0], dict):
+        return problems + ['obsolete OPERATE token requires exactly one actual T ingress record']
+    record = records[0]
+    if record.get('pipe') != 1 or record.get('port') != port or record.get('frame') != (frame + bytes(4)).hex():
+        problems.append('obsolete OPERATE token differs from actual injected ingress')
+    if functional_token_state(before) != functional_token_state(row['after']) or row.get('output_frames') != 0:
+        problems.append('obsolete OPERATE token changed functional state or produced output')
+    if not isinstance(record.get('actions'), list) or any(action in record['actions'] for action in (
+            't_Ingress.admit_request','t_Ingress.release_ack_commit','t_Ingress.release_response_counted',
+            't_Ingress.stop_blocking','t_Ingress.seed_ack_blocker')):
+        problems.append('obsolete OPERATE token entered a surviving timing action or lacks action evidence')
+    return problems
+
+
+def no_j_operate_problems(point):
+    """Prove original OPERATE admission before a deliberately withheld response."""
+    problems = []
+    arrival, response = point.get('request_arrival_units'), point.get('response_arrival_units')
+    if point.get('timing_contract') != NO_J_CONTRACT or point.get('fc') != 4:
+        problems.append('no-J OPERATE contract not declared')
+    if point.get('request_relay_observed_before_response') is not True:
+        problems.append('original OPERATE was not observed at relay before whole response injection')
+    actions = point.get('request_admission_actions') or []
+    if 't_Ingress.admit_request' not in actions or any('operate' in action for action in actions):
+        problems.append('original OPERATE did not use common immediate admission')
+    if type(arrival) is not int or type(response) is not int or not 2_400_000 < delta(response, arrival) * UNIT_NS < (WRAP // 2) * UNIT_NS:
+        problems.append('whole response was not withheld beyond the removed 2.4ms J')
+    if 'op_j' in (point.get('written_units') or {}) or any(
+            name in (point.get('lane_registers') or {}) for name in ('op_gen_alloc_reg', 'op_t0_reg', 'op_done_reg')):
+        problems.append('no-J proof contains removed OPERATE hold state')
+    return problems
+
+
+def main(*, control_only=False, duplicate_only=False):
     sys.path.insert(0, str(HERE))
-    from model_profile import from_env, RESPONSE_READY
+    from model_profile import from_env, RESPONSE_READY, RESPONSE_READY_CONTRACTS, RESPONSE_READY_NO_J
     profile = from_env()
-    if profile.get('timing_contract') != RESPONSE_READY:
-        raise ValueError('strict response_ready requires source-bound response_ready_ack_d_v2')
+    contract = profile.get('timing_contract')
+    no_j = contract == RESPONSE_READY_NO_J
+    if contract not in RESPONSE_READY_CONTRACTS:
+        raise ValueError('strict response_ready requires an explicit source-bound response-ready contract')
+    active_lane = LANE[:-1] if no_j else LANE
     from model_relay_sbo import RelayGate, mp
     import model_log_view as view
     import reset_application_check as rac
@@ -403,7 +506,7 @@ def main(*, control_only=False):
                 sock.bind((veth_for(port), 0))
                 self.fast[port] = sock
                 self.m._listen(port)
-            for port in (self.pm.t_in, self.pm.held_return, self.pm.hb_return):
+            for port in (self.pm.t_in, self.pm.held_return) + (() if no_j else (self.pm.hb_return,)):
                 sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
                 sock.bind((veth_for(port), 0))
                 self.fast[port] = sock
@@ -417,7 +520,7 @@ def main(*, control_only=False):
 
         def outcomes(self):
             return {name: self.h.scalar(self.m.register_read('p1.t_Ingress.outcomes', i, pipe=1))
-                    for i, name in enumerate(NAMES)}
+                    for i, name in enumerate(NAMES) if not no_j or name not in ('OP_RELEASE','OP_DUP_DROP')}
 
         def collect(self, duration=.01):
             socks = {self.m._listen(port): port for port in self.ports}
@@ -446,8 +549,10 @@ def main(*, control_only=False):
             return [record for record in self.all_records(offset) if record['pipe'] == 1]
 
         def set_timing(self, gap, enabled=1, op_j=2_400_000):
-            self.m.set_default('p1.t_Ingress.params', 't_Ingress.set_params',
-                               dict(gap=gap, op_j=op_j, budget=240000, enabled=enabled))
+            values = dict(gap=gap, budget=240000, enabled=enabled)
+            if not no_j:
+                values['op_j'] = op_j
+            self.m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', values)
             self.written = json.loads((Path(os.environ['OUT']) / 't_params_written.json').read_text())[-1]['written']
 
         def new_connection(self, tag):
@@ -486,7 +591,7 @@ def main(*, control_only=False):
             want_rsp = mp.rp.preserve_options(rsp, self.v.packet(24, w, cend, reverse=True, payload=image))
             before, encoding = self.outcomes(), self.encoding_state()
             generation_before = self.h.scalar(self.m.register_read('p1.t_Ingress.gen_alloc_reg', 0, pipe=1))
-            op_before = self.h.scalar(self.m.register_read('p1.t_Ingress.op_gen_alloc_reg', 0, pipe=1))
+            op_before = None if no_j else self.h.scalar(self.m.register_read('p1.t_Ingress.op_gen_alloc_reg', 0, pipe=1))
             epoch = self.h.scalar(self.m.register_read('p1.t_Ingress.cur_epoch_reg', 0, pipe=1))
             offset = view.size(self.log)
             live, captured, marks = LiveIngress(self.log, offset), [], []
@@ -583,16 +688,18 @@ def main(*, control_only=False):
                       else 'other' for frame in masters]
             generation = self.h.scalar(m.register_read('p1.t_Ingress.gen_alloc_reg', 0, pipe=1))
             row = dict(tag=tag, cls=cls, fc=fc, order=order, native_octets=len(native), image_octets=len(image),
-                request_arrival_units=stamp('admit_request') if cls != 'CONTROL' or fc != 4 else stamp('hold_operate'),
+                timing_contract=contract, request_relay_observed_before_response=relay_copies() >= 1,
+                request_admission_actions=find('admit_request')['actions'] if find('admit_request') else [],
+                request_arrival_units=stamp('admit_request') if no_j or cls != 'CONTROL' or fc != 4 else stamp('hold_operate'),
                 held_ack_units=stamp('hold_ack'), ack_arrival_ordinal=find('hold_ack')['ordinal'] if find('hold_ack') else None,
                 response_arrival_units=response_recs[0]['t_units'] if response_recs else None,
                 response_arrival_ordinal=response_recs[0]['ordinal'] if response_recs else None,
                 ack_release_units=stamp('release_ack_commit'), response_release_units=stamp('release_response_counted'),
                 operate_anchor_units=stamp('arm_operate_anchor'), operate_release_units=stamp('release_operate_counted'),
-                operate_release_count=after['OP_RELEASE']-before['OP_RELEASE'], master_frames=labels,
-                lane={name: after[name]-before[name] for name in LANE}, encoding_before=encoding, encoding_after=encoded,
+                operate_release_count=None if no_j else after['OP_RELEASE']-before['OP_RELEASE'], master_frames=labels,
+                lane={name: after[name]-before[name] for name in active_lane}, encoding_before=encoding, encoding_after=encoded,
                 generation_before=generation_before, generation_after=generation,
-                op_generation_before=op_before, op_generation_after=self.h.scalar(m.register_read('p1.t_Ingress.op_gen_alloc_reg',0,pipe=1)),
+                op_generation_before=op_before, op_generation_after=None if no_j else self.h.scalar(m.register_read('p1.t_Ingress.op_gen_alloc_reg',0,pipe=1)),
                 epoch=epoch, written_units=dict(self.written), model_only_hold_override=retry_phase in ('op_J','response_D') or reset_phase=='response_held' or bool(stale_probe and stale_probe['phase']=='committed'),
                 wait_response_target_ns=wait_response_ns, wait_ack_target_ns=wait_ack_ns,
                 pre_completion_master_frames=pre_completion, send_marks=marks,
@@ -600,7 +707,11 @@ def main(*, control_only=False):
                 reset_forwarded_count=sum(port==self.relay.dev_port and self.h.same_frame(frame,want_rst,rst) for port,frame in captured))
             row['ack_state_transitions'] = completion_transitions(view.lines_since(self.log, offset))
             row['lane_registers'] = {name: completion_transitions(view.lines_since(self.log, offset), name) for name in
-                ('gen_alloc_reg','cur_epoch_reg','ack_commit_at_reg','ack_commit_gen_reg','op_gen_alloc_reg','op_t0_reg')}
+                (('gen_alloc_reg','cur_epoch_reg','ack_commit_at_reg','ack_commit_gen_reg') +
+                 (() if no_j else ('op_gen_alloc_reg','op_t0_reg')))}
+            if no_j:
+                for key in ('op_generation_before','op_generation_after','operate_anchor_units','operate_release_units','operate_release_count'):
+                    row.pop(key, None)
             seeds = [bytes.fromhex(record['frame']) for record in trecs if record['port']==self.h.PKTGEN_RETURN and
                      record['frame'].startswith('e100%04x'%generation)]
             self.last_exchange_artifacts = dict(ack=ack,response=rsp,token=None,seed=seeds[0] if seeds else None,
@@ -632,14 +743,16 @@ def main(*, control_only=False):
             problems=committed_problems(row,self.written['gap'])+lane_integrity_problems(row) if enabled else []
             if not enabled and labels != ['ack','response']:
                 problems.append('disabled original exchange did not deliver exact ACK/encoded response')
-            if enabled and fc!=4 and (row['op_generation_after']!=op_before or row['operate_release_count']!=0):
+            if not no_j and enabled and fc!=4 and (row['op_generation_after']!=op_before or row['operate_release_count']!=0):
                 problems.append('non-OPERATE request changed the J domain')
-            if fc==4 and enabled:
+            if not no_j and fc==4 and enabled:
                 if row['op_generation_after']!=op_before+1:
                     problems.append('original OPERATE did not allocate exactly one J generation')
                 hold=delta(row['operate_release_units'],row['operate_anchor_units'])
                 if hold is None or hold<self.written['op_j'] or row['operate_release_count']!=1:
                     problems.append('independent J/single OPERATE release not proved')
+            if no_j and fc==4 and enabled and wait_response_ns > 2_400_000:
+                problems += no_j_operate_problems(row)
             if stale_probe:
                 problems+=generation_isolation_problems(row)
             self.add(tag+'_T_clock_whole_response_ACK_full_D',[],problems,point=row)
@@ -662,15 +775,17 @@ def main(*, control_only=False):
                 actual=next((record for record in retry_records if record['pipe']==1 and record['port']==self.pm.t_in and
                              record['frame'][24:26] in ('0f','10') and req[34:42].hex() in record['frame']),None)
                 after_retry_t=self.outcomes()
-                row['lane']={name:after_retry_t[name]-before[name] for name in LANE}
-                row['operate_release_count']=after_retry_t['OP_RELEASE']-before['OP_RELEASE']
+                row['lane']={name:after_retry_t[name]-before[name] for name in active_lane}
+                if not no_j:
+                    row['operate_release_count']=after_retry_t['OP_RELEASE']-before['OP_RELEASE']
                 row['request_retry']=dict(phase=retry_phase,relay_request_copies=2,
                     ingress_units=actual['t_units'] if actual else None)
                 after_retry_e=self.encoding_state()
                 self.add(tag+'_retry_no_second_growth',[0,0],[after_retry_e['commit']-before_retry_e['commit'],
                     (after_retry_e['growth']-before_retry_e['growth'])&0xffffffff])
                 row['generation_after']=self.h.scalar(m.register_read('p1.t_Ingress.gen_alloc_reg',0,pipe=1))
-                row['op_generation_after']=self.h.scalar(m.register_read('p1.t_Ingress.op_gen_alloc_reg',0,pipe=1))
+                if not no_j:
+                    row['op_generation_after']=self.h.scalar(m.register_read('p1.t_Ingress.op_gen_alloc_reg',0,pipe=1))
                 row['ack_state_transitions']+=completion_transitions(view.lines_since(self.log,retry_offset))
                 for name in row['lane_registers']:
                     row['lane_registers'][name]+=completion_transitions(view.lines_since(self.log,retry_offset),name)
@@ -693,11 +808,11 @@ def main(*, control_only=False):
             response = next((record for record in recs if record['port'] == self.pm.t_in and
                 native_packet[34:46].hex() in record['frame'] and
                 any(action.endswith('.passthrough_tev_forward') for action in record['actions'])), None)
-            replay = dict(exact_frame=self.h.same_frame(received, expected_packet, native_packet), output_frames=1,
+            replay = dict(timing_contract=contract, exact_frame=self.h.same_frame(received, expected_packet, native_packet), output_frames=1,
                 encoding_delta=dict(commit=after_e['commit'] - before_e['commit'],
                     replay=after_e['replay'] - before_e['replay'], growth=(after_e['growth'] - before_e['growth']) & 0xffffffff),
                 lane_delta={name: after_t[name] - before_t[name] for name in
-                            LANE},
+                            active_lane},
                 primary_release_units=row['response_release_units'],
                 replay_arrival_units=response['t_units'] if response else None)
             row['post_release_replay'] = replay
@@ -745,7 +860,7 @@ def main(*, control_only=False):
                 timer_port=self.h.PKTGEN_RETURN,
                 source_action='t_Ingress.seed_ack_blocker', source_t_units=source['t_units'],
                 blocker_port=blocker['port'], blocker_t_units=blocker['t_units'], blocker_frame_hex=raw.hex(),
-                lane_delta={name: after[name] - before[name] for name in LANE},
+                lane_delta={name: after[name] - before[name] for name in active_lane},
                 state_after=self.h.scalar(self.m.register_read('p1.t_Ingress.ack_done_reg', 0, pipe=1)))
             self.add(tag + '_source_produced_completed_A_blocker_provenance', [], token_source_problems(point))
             self.last_exchange_artifacts['token'] = raw
@@ -797,7 +912,7 @@ def main(*, control_only=False):
                     self.close(*state,tag+'_close')
 
         def request_retries(self):
-            cases=[('OPERATE','op_J')]+[(kind,phase) for phase in ('response_D','waiting','after_release')
+            cases=([] if no_j else [('OPERATE','op_J')])+[(kind,phase) for phase in ('response_D','waiting','after_release')
                 for kind in ('READ','READ_integrity','SELECT','OPERATE')]+[(kind,'disabled') for kind in ('READ','READ_integrity','SELECT','OPERATE')]
             for kind,phase in cases:
                 tag='retry_%s_%s'%(kind,phase)
@@ -835,6 +950,8 @@ def main(*, control_only=False):
                            'ack_done_reg', 'resp_done_reg', 'op_done_reg', 'child_seen0_reg',
                            'ack_commit_at_reg', 'ack_commit_gen_reg')}
             prefixes = {'N': 'p0.n_Ingress.', 'E': 'p0.r_Egress.', 'T': 'p1.t_Ingress.'}
+            if no_j:
+                names['T'] = tuple(name for name in names['T'] if name not in ('op_gen_alloc_reg','op_t0_reg','op_done_reg'))
             result = {domain: {name: self.m.register_read(prefixes[domain] + name, 0,
                        pipe=1 if domain == 'T' else 0) for name in registers}
                       for domain, registers in names.items()}
@@ -851,9 +968,9 @@ def main(*, control_only=False):
             state = self.exchange_ready('single_child_live_OPERATE', 'CONTROL', state, fc=4)
             epoch = self.h.scalar(self.m.register_read('p1.t_Ingress.cur_epoch_reg', 0, pipe=1))
             read_gen = self.h.scalar(self.m.register_read('p1.t_Ingress.gen_alloc_reg', 0, pipe=1))
-            op_gen = self.h.scalar(self.m.register_read('p1.t_Ingress.op_gen_alloc_reg', 0, pipe=1))
+            op_gen = None if no_j else self.h.scalar(self.m.register_read('p1.t_Ingress.op_gen_alloc_reg', 0, pipe=1))
             self.add('single_child_negative_live_epoch_and_generations', True,
-                0 < epoch < 0x80000000 and 0 < read_gen < 0xffff and 0 < op_gen < 0xffff)
+                0 < epoch < 0x80000000 and 0 < read_gen < 0xffff and (no_j or 0 < op_gen < 0xffff))
             _request, _native, image = self.frames('mixed')
             opaque = self.v.packet(24, state[2], state[0], reverse=True, payload=image)
             rows = self.report.record['meta']['single_child_probes'] = []
@@ -869,6 +986,9 @@ def main(*, control_only=False):
                     read_generation=read_gen, operate_generation=op_gen,
                     before=before, expected_after=expected, after=after, output_frames=sum(map(len, got.values())),
                     stimulus_port=port, stimulus_frame_hex=frame.hex(), model_ingress=self.records(offset))
+                row['timing_contract'] = contract
+                if no_j:
+                    row.pop('operate_generation')
                 rows.append(row)
                 tag = 'single_child_%s_role%s_child%d' % (kind, role, child)
                 self.add(tag + '_no_output', 0, row['output_frames'], received=got)
@@ -878,18 +998,18 @@ def main(*, control_only=False):
             for child in (1, 2, 255):
                 probe('response', None, child, self.pm.t_in,
                       struct.pack('!IIIBBH', epoch, 0, 0, 11, child, 0) + opaque)
-                for role in (14, 15, 16):
+                for role in ((14, 15) if no_j else (14, 15, 16)):
                     probe('held', role, child, self.pm.hb_return if role == 16 else self.pm.held_return,
                           struct.pack('!BBHI', role, child, op_gen if role == 16 else read_gen, epoch) + opaque)
             self.set_timing(5_000_000, enabled=0)
-            for role in (11, 12, 13):
+            for role in ((11, 12) if no_j else (11, 12, 13)):
                 for child in (0, 1, 2, 255):
                     probe('blocker', role, child, self.pm.hb_return if role == 13 else self.pm.held_return,
                           struct.pack('!BBHI', role, child, op_gen if role == 13 else read_gen, 240000) + opaque,
                           policy_off=True)
             self.set_timing(5_000_000)
             self.report.record['meta'].update(single_child_negative_ids=[1, 2, 255],
-                single_child_negative_ladder_roles=[11, 12, 13, 14, 15, 16],
+                single_child_negative_ladder_roles=[11, 12, 14, 15] if no_j else [11, 12, 13, 14, 15, 16],
                 single_child_blocker_positive_control='child0 actual stop_blocking action; all state/counters unchanged')
             self.close(*state, 'single_child_close')
 
@@ -902,8 +1022,9 @@ def main(*, control_only=False):
             state = self.actual_exchange('timing_off_SELECT', 'CONTROL', *state, fc=3)
             state = self.actual_exchange('timing_off_OPERATE', 'CONTROL', *state, fc=4)
             after = self.outcomes()
-            self.add('timing_off_no_lane_commit_release_or_generation', [0, 0, 0, generation],
-                [after[k] - before[k] for k in ('ACK_COMMIT', 'RESP_RELEASE', 'OP_RELEASE')] +
+            release_names = ('ACK_COMMIT','RESP_RELEASE') + (() if no_j else ('OP_RELEASE',))
+            self.add('timing_off_no_lane_commit_release_or_generation', [0] * len(release_names) + [generation],
+                [after[k] - before[k] for k in release_names] +
                 [self.h.scalar(self.m.register_read('p1.t_Ingress.gen_alloc_reg', 0, pipe=1))])
             self.close(*state, 'timing_off_close')
             self.set_timing(5_000_000)
@@ -919,19 +1040,70 @@ def main(*, control_only=False):
                 self.exchange('exhaust_' + kind + '_request_dropped',
                     self.v.packet(24, c, w, payload=request), allow_drop=True)
                 after = self.outcomes()
-                self.add('exhaust_' + kind + '_counted_without_downgrade', [1, 0, 0, 0],
-                    [after[k] - before[k] for k in ('GEN_EXHAUSTED', 'ACK_COMMIT', 'RESP_RELEASE', 'OP_RELEASE')])
+                names = ('GEN_EXHAUSTED',) + release_names
+                self.add('exhaust_' + kind + '_counted_without_downgrade', [1] + [0] * len(release_names),
+                    [after[k] - before[k] for k in names])
                 self.m.register_write('p1.t_Ingress.gen_alloc_reg', 0,
                     {'t_Ingress.gen_alloc_reg.f1': 100}, pipe=1)
                 self.exchange('exhaust_' + kind + '_RST', self.v.packet(20, c + len(request), w),
                               self.v.packet(20, c + len(request), n))
 
+        def removed_operate_tokens(self):
+            """Observe rejection of the removed J formats on both current and old ports."""
+            self.set_timing(5_000_000)
+            state = self.new_connection('removed_operate_tokens')
+            state = self.exchange_ready('removed_token_SELECT', 'CONTROL', state)
+            state = self.exchange_ready('removed_token_OPERATE', 'CONTROL', state, fc=4)
+            live = self.negative_state()
+            generation = self.h.scalar(live['T']['gen_alloc_reg'])
+            epoch = self.h.scalar(live['T']['cur_epoch_reg'])
+            opaque = self.v.packet(16, state[2], state[0], reverse=True)
+            rows = self.report.record['meta']['removed_operate_token_probes'] = []
+            cases = [('role%d_port%d' % (role, port), port,
+                      struct.pack('!BBHI', role, 0, generation, 240000 if role == 13 else epoch) + opaque)
+                     for role in (13, 16) for port in (self.pm.held_return, 181)]
+            cases += [('app1', self.h.PKTGEN_RETURN, bytes((9, 1)) + struct.pack('!HH', generation, 0) + opaque),
+                      ('E101', self.h.PKTGEN_RETURN, bytes.fromhex('e101') + struct.pack('!HIIIBBH', generation, epoch, 0, 0, 12, 0, 0) + opaque)]
+            for name, port, frame in cases:
+                before = self.negative_state()
+                self.m.drain(self.ports)
+                offset = view.size(self.log)
+                got = self.m.exchange(port, frame, self.ports, timeout=.6, quiet=.1)
+                after = self.negative_state()
+                row = dict(name=name, stimulus_port=port, stimulus_frame_hex=frame.hex(),
+                           before=before, after=after, output_frames=sum(map(len, got.values())),
+                           model_ingress=self.records(offset))
+                rows.append(row)
+                self.add('removed_operate_' + name + '_no_output', 0, row['output_frames'])
+                self.add('removed_operate_' + name + '_state_unchanged', functional_token_state(before), functional_token_state(after))
+                self.add('removed_operate_' + name + '_actual_ingress', [], removed_operate_token_problems(row))
+            self.close(*state, 'removed_operate_token_close')
+
+        def immediate_operate(self):
+            self.set_timing(20_000_000)
+            state = self.new_connection('no_j_immediate_OPERATE')
+            state = self.exchange_ready('no_j_immediate_SELECT', 'CONTROL', state)
+            state = self.exchange_ready('no_j_immediate_OPERATE', 'CONTROL', state, fc=4, wait_response_ns=20_000_000)
+            self.add('no_j_immediate_OPERATE_before_withheld_response', [], no_j_operate_problems(self.points[-1]))
+            self.close(*state, 'no_j_immediate_close')
+
         def run(self):
+            if duplicate_only:
+                planned = ['request_retry_policy','waiting_and_cleanup']
+                self.report.record['meta']['planned_cases'] = planned
+                done = self.report.record['meta']['completed_cases'] = []
+                self.request_retries();done.append('request_retry_policy')
+                self.waiting_and_cleanup();done.append('waiting_and_cleanup')
+                self.add('all_planned_cases_completed', planned, done)
+                return
             matrix=['D%d_%s'%(gap//1000000,order) for gap in D_VALUES for order in ('ack_first','response_first')]
-            planned=['invalid_child_ids']+([] if control_only else ['request_retry_policy','stale_token_isolation'])+matrix+(
+            planned=(['no_j_immediate_OPERATE','removed_operate_tokens'] if no_j else [])+['invalid_child_ids']+([] if control_only else ['request_retry_policy','stale_token_isolation'])+matrix+(
                 [] if control_only else ['waiting_and_cleanup','generation_A_to_B_isolation'])+['disabled_and_exhaustion']
             self.report.record['meta']['planned_cases']=planned
             done=self.report.record['meta']['completed_cases']=[]
+            if no_j:
+                self.immediate_operate();done.append('no_j_immediate_OPERATE')
+                self.removed_operate_tokens();done.append('removed_operate_tokens')
             self.invalid_child_ids();done.append('invalid_child_ids')
             if not control_only:
                 self.request_retries();done.append('request_retry_policy')
@@ -954,15 +1126,15 @@ def main(*, control_only=False):
 
     h=mp.load('_response_ready_helpers',HERE.parents[2]/'response_only/model_drive_composite.py')
     cp=mp.load('_response_ready_cp',HERE.parents[1]/'cp.py')
-    report=h.Report(os.environ['PROG'],physical=False,timing_contract=RESPONSE_READY,
-        scope='v2 whole response/genuine ACK/full D; retention-qualified retries and cleanup; no exchange age cap',
+    report=h.Report(os.environ['PROG'],physical=False,timing_contract=contract,
+        scope='whole response/genuine ACK/full D; retention-qualified retries and cleanup; no exchange age cap',
         driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     gate=ReadyGate(report,h.Model(ports=[],enable=False),h,cp)
     try:
         gate.configure();gate.run()
     except Exception:
         report.add('exception','none',traceback.format_exc(),ok=False)
-    filename='control_timing_results.json' if control_only else 'response_ready_results.json'
+    filename='dup_results.json' if duplicate_only else 'control_timing_results.json' if control_only else 'response_ready_results.json'
     return 0 if report.finish(Path(os.environ['OUT'])/filename) else 1
 
 

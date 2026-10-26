@@ -55,7 +55,11 @@ def _one_int(registers, table):
     return value
 
 
-def current_generations(snapshot):
+def registers_for(timing_contract=None):
+    return {"read": REGISTERS["read"]} if timing_contract == "response_ready_ack_d_no_j_v3" else dict(REGISTERS)
+
+
+def current_generations(snapshot, timing_contract=None):
     if not isinstance(snapshot, dict):
         raise HeadroomError('generation headroom snapshot is malformed')
     if snapshot.get('valid') is not True:
@@ -68,7 +72,8 @@ def current_generations(snapshot):
     registers = snapshot.get('registers')
     if not isinstance(registers, dict):
         raise HeadroomError('generation headroom snapshot is missing registers')
-    return {role: _one_int(registers, table) for role, table in REGISTERS.items()}
+    contract = timing_contract if timing_contract is not None else snapshot.get('timing_contract')
+    return {role: _one_int(registers, table) for role, table in registers_for(contract).items()}
 
 
 LIFECYCLE_PER_CONNECTION = 2      # OPEN and the live RESET each bump both allocators
@@ -81,7 +86,8 @@ def _count(name, value):
     return value
 
 
-def workload_reserve(reads, sbo, connections, control_timed, timed=True, cancelled_selects=0, margin=MARGIN):
+def workload_reserve(reads, sbo, connections, control_timed, timed=True, cancelled_selects=0, margin=MARGIN,
+                     timing_contract=None):
     """Per-allocator reserve for one installed incarnation, from the configured workload (never from
     endpoint self-reports). Allocation sites in the T source (m3 line numbers; candidate61 identical except
     as noted):
@@ -97,6 +103,8 @@ def workload_reserve(reads, sbo, connections, control_timed, timed=True, cancell
     ctl_timing m4 adds first_event rows that admit a READ or a new SELECT while a selection is in effect; they
     emit the same REQUEST events, so `cancelled_selects` counts every SELECT beyond the SBO cycles (cancelled,
     replaced or retried)."""
+    if timing_contract == 'response_ready_ack_d_no_j_v3' and not control_timed:
+        raise HeadroomError('no-J common generation budget requires control-timed READ/SELECT/OPERATE')
     reads, sbo = _count('reads', reads), _count('sbo', sbo)
     connections, cancelled = _count('connections', connections), _count('cancelled_selects', cancelled_selects)
     if connections < 1:
@@ -108,30 +116,37 @@ def workload_reserve(reads, sbo, connections, control_timed, timed=True, cancell
     else:
         lane = operate = 0
     reserve = {'read': lane * connections + lifecycle + margin, 'operate': operate * connections + lifecycle + margin}
+    if timing_contract == 'response_ready_ack_d_no_j_v3':
+        reserve.pop('operate')
     explanation = {'reads': reads, 'sbo_cycles': sbo, 'cancelled_selects': cancelled, 'connections': connections,
                    'control_timed': bool(control_timed), 'timed': bool(timed),
                    'open_close_per_connection': LIFECYCLE_PER_CONNECTION, 'margin': margin,
                    'read_lane_per_connection': lane, 'operate_per_connection': operate,
                    'source': 'T gen_access / operate_generation_access rows and N first_event (workload_reserve)'}
+    if timing_contract == 'response_ready_ack_d_no_j_v3':
+        explanation.pop('operate_per_connection')
+        explanation['source'] = 'T gen_access and N first_event: common READ/SELECT/OPERATE allocator'
     return reserve, explanation
 
 
-def _reserves(reserve):
+def _reserves(reserve, timing_contract=None):
+    registers = registers_for(timing_contract)
     if isinstance(reserve, dict):
-        if set(reserve) != set(REGISTERS):
-            raise HeadroomError('generation headroom reserve needs exactly %s' % sorted(REGISTERS))
+        if set(reserve) != set(registers):
+            raise HeadroomError('generation headroom reserve needs exactly %s' % sorted(registers))
         out = dict(reserve)
     else:
-        out = {role: reserve for role in REGISTERS}
+        out = {role: reserve for role in registers}
     for role, value in out.items():
         if not isinstance(value, int) or isinstance(value, bool) or value < 1:
             raise HeadroomError('generation headroom reserve must be a positive integer (%s)' % role)
     return out
 
 
-def evaluate_headroom(snapshot, reserve):
-    reserves = _reserves(reserve)
-    current = current_generations(snapshot)
+def evaluate_headroom(snapshot, reserve, timing_contract=None):
+    contract = timing_contract if timing_contract is not None else snapshot.get("timing_contract") if isinstance(snapshot, dict) else None
+    reserves = _reserves(reserve, contract)
+    current = current_generations(snapshot, contract)
     evidence = {
         'ok': True,
         'time': time.time(),
@@ -139,7 +154,7 @@ def evaluate_headroom(snapshot, reserve):
         'reserve': reserve,
         'reserves': reserves,
         'current': current,
-        'registers': dict(REGISTERS),
+        'registers': registers_for(contract),
         'remaining_before_reserve': {},
         'remaining_after_reserve': {},
     }
@@ -156,26 +171,55 @@ def evaluate_headroom(snapshot, reserve):
     return evidence
 
 
-def assess_headroom(snapshot, reserve):
-    evidence = evaluate_headroom(snapshot, reserve)
+def assess_headroom(snapshot, reserve, timing_contract=None):
+    evidence = evaluate_headroom(snapshot, reserve, timing_contract)
     if evidence.get('failures'):
         raise HeadroomError('; '.join(evidence['failures']))
     return evidence
 
 
-def _register_definitions(build_out):
+def _register_definitions(build_out, timing_contract=None):
     schema = build_out / 'bfrt.json'
     data = json.loads(schema.read_text())
     tables = {item.get('name'): item for item in data.get('tables', [])}
-    missing = [table for table in REGISTERS.values()
+    missing = [table for table in registers_for(timing_contract).values()
                if tables.get(table, {}).get('table_type') != 'Register']
     if missing:
         raise HeadroomError('candidate allocator register(s) missing from BFRT schema: ' + ', '.join(missing))
     return schema, tables
 
 
+def _build_timing_contract(build_out):
+    """Only an explicit source-bound no-J profile can remove the second allocator requirement."""
+    out = Path(build_out)
+    directory = out / 'profile' if (out / 'profile').is_dir() else out.parent.parent
+    declared_no_j = False
+    for name in ('response_only.inputs.json', 'supported_profile.json'):
+        path = directory / name
+        if not path.is_file():
+            continue
+        try:
+            value = json.loads(path.read_text())
+            supported = value.get('supported_profile') if name.endswith('.inputs.json') else value
+            declared_no_j |= isinstance(supported, dict) and \
+                supported.get('timing_contract') == 'response_ready_ack_d_no_j_v3'
+        except (ValueError, AttributeError):
+            # Historical headroom reads validate the two-register schema only. Malformed or unknown metadata
+            # never grants the no-J exception; a missing second allocator still fails the default schema check.
+            continue
+    if not declared_no_j:
+        return None
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from sealed_profile import describe
+    contract = describe(out).get('timing_contract')
+    if contract != 'response_ready_ack_d_no_j_v3':
+        raise HeadroomError('no-J headroom requires its source-bound compiled timing contract')
+    return contract
+
+
 def read_hardware(build_out, switch_tools, program='response_only', client_id=217):
-    schema, _tables = _register_definitions(build_out)
+    timing_contract = _build_timing_contract(build_out)
+    schema, _tables = _register_definitions(build_out, timing_contract)
     sys.path.insert(0, str(switch_tools.resolve()))
     from switch import Switch
 
@@ -191,9 +235,9 @@ def read_hardware(build_out, switch_tools, program='response_only', client_id=21
     sw = HardwareOnlySwitch(program, client_id)
     try:
         registers = {}
-        for table in REGISTERS.values():
+        for table in registers_for(timing_contract).values():
             registers[table] = sw.must_get(table, 1, [('$REGISTER_INDEX', 0, None)])
-        return {
+        snapshot = {
             'valid': True,
             'time': time.time(),
             'program': program,
@@ -202,6 +246,9 @@ def read_hardware(build_out, switch_tools, program='response_only', client_id=21
             'errors': {},
             'software_read_fallbacks': [],
         }
+        if timing_contract is not None:
+            snapshot['timing_contract'] = timing_contract
+        return snapshot
     finally:
         sw.close()
 
@@ -217,12 +264,18 @@ def main(argv=None):
     parser.add_argument('--program', default='response_only')
     parser.add_argument('--client-id', type=int, default=217)
     args = parser.parse_args(argv)
+    timing_contract = _build_timing_contract(args.build_out)
+    no_j = timing_contract == 'response_ready_ack_d_no_j_v3'
+    if no_j and args.reserve_operate is not None:
+        parser.error('no-J profile has no OPERATE allocator reserve')
     if (args.reserve is None) == (args.reserve_read is None and args.reserve_operate is None):
         parser.error('give --reserve, or both --reserve-read and --reserve-operate')
-    if args.reserve is None and None in (args.reserve_read, args.reserve_operate):
+    if not no_j and args.reserve is None and None in (args.reserve_read, args.reserve_operate):
         parser.error('per-role reserves need both --reserve-read and --reserve-operate')
     reserve = args.reserve if args.reserve is not None else {'read': args.reserve_read,
                                                                'operate': args.reserve_operate}
+    if no_j and isinstance(reserve, dict):
+        reserve.pop('operate')
     record = {'ok': False, 'reserve': reserve, 'time': time.time()}
     try:
         require_authorized()

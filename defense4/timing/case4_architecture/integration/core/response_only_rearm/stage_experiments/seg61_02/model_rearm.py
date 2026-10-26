@@ -77,7 +77,9 @@ PKTGEN_RETURN = helpers.PKTGEN_RETURN
 
 def timing_params_for_profile(profile):
     contract = profile.get('timing_contract')
-    if contract == 'response_ready_ack_d_v2':
+    if contract == 'response_ready_ack_d_no_j_v3':
+        return dict(gap=profile['timing_ns']['D_release_budget'], budget=240000, enabled=0)
+    if contract in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3'):
         timing = profile['timing_ns']
         return dict(gap=timing['D_release_budget'], op_j=timing['J_operate_hold'],
                     budget=240000, enabled=0)
@@ -155,7 +157,8 @@ def main():
         if timing_profile.get('timing_contract') is not None:
             timing_profiles = load('_rearm_timing_contract', Path(__file__).resolve().parent.parent / 'ctl_timing_01/model_profile.py')
             timing_profile = timing_profiles.resolve(inputs, Path(os.environ['PORT_MAP']).with_name('response_only.p4'))
-        response_ready = timing_profile.get('timing_contract') == 'response_ready_ack_d_v2'
+        no_j = timing_profile.get('timing_contract') == 'response_ready_ack_d_no_j_v3'
+        response_ready = timing_profile.get('timing_contract') in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3')
         params = timing_params_for_profile(timing_profile)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
         mirror = m.table('$mirror.cfg', raw=True)
@@ -173,6 +176,8 @@ def main():
                                't0_reg', 'op_t0_reg', 'ack_done_reg', 'resp_done_reg', 'op_done_reg')}
             if response_ready:
                 registers['T'] = tuple(name for name in registers['T'] if name != 't0_reg')
+            if no_j:
+                registers['T'] = tuple(name for name in registers['T'] if name not in ('op_gen_alloc_reg','op_t0_reg','op_done_reg'))
             registers['T'] += child_regs + ('ack_commit_at_reg', 'ack_commit_gen_reg')
             prefix = {'N': 'p0.n_Ingress.', 'E': 'p0.r_Egress.', 'T': 'p1.t_Ingress.'}
             return {role: {name: m.register_read(prefix[role] + name, 0, pipe=1 if role == 'T' else 0) for name in names}
@@ -283,7 +288,7 @@ def main():
         stale = {index: scalar(m.register_read('p1.t_Ingress.outcomes', index, pipe=1))
                  for index in (6, 23, 24)}
         for profile, allocator in ((0, 'gen_alloc_reg'), (1, 'op_gen_alloc_reg')):
-            old_generation = scalar(initial['T'][allocator])
+            old_generation = scalar(initial['T']['gen_alloc_reg' if no_j else allocator])
             for packet_id in (0, 1):
                 raw = bytes((1 << 3 | profile, profile)) + struct.pack('!HH', old_generation, packet_id) + bytes(58)
                 m.drain(ports)
@@ -292,7 +297,7 @@ def main():
                 name = 'old_raw_token_app%d_id%d_on196' % (profile, packet_id)
                 report.add(name + '_dropped', True, not any(got.values()))
                 report.add(name + '_authority_unchanged', before_token, snapshot())
-        for index, count in ((6, 0), (23, 2), (24, 2)):
+        for index, count in (((6, 0), (24, 2)) if no_j else ((6, 0), (23, 2), (24, 2))):
             report.add('old_raw_tokens_stale_count_%d' % index, stale[index] + count,
                        scalar(m.register_read('p1.t_Ingress.outcomes', index, pipe=1)))
         params['enabled'] = 0
@@ -311,9 +316,9 @@ def main():
             report.add('old_Work_phase%d_dropped' % phase, True, not any(got.values()))
             report.add('old_Work_phase%d_all_banks_unchanged' % phase, before_private, private_snapshot())
         for role in range(11, 17):
-            generation = scalar(initial['T']['op_gen_alloc_reg' if role in (13, 16) else 'gen_alloc_reg'])
+            generation = scalar(initial['T']['op_gen_alloc_reg' if not no_j and role in (13, 16) else 'gen_alloc_reg'])
             raw = struct.pack('!BBHI', role, 0, generation, old_epoch) + read_response_packet(901, 101 + READ_REQ)
-            port = PM.hb_return if role in (13, 16) else PM.held_return
+            port = PM.hb_return if not no_j and role in (13, 16) else PM.held_return
             m.drain(ports)
             m.send(port, raw)
             got = m.capture(ports, timeout=.4, quiet=.1)
@@ -419,7 +424,8 @@ def main():
             response_exact = len(master_frames) == 2 and same_frame(master_frames[1], want_response, native_packet)
             report.add('new_OPERATE_hold_native', 'one exact frame', len(arrivals), ok=request_exact,
                        received=[frame.hex() for frame in arrivals])
-            report.add('OPERATE_release_count', 1, after_t['OP_RELEASE'])
+            if not no_j:
+                report.add('OPERATE_release_count', 1, after_t['OP_RELEASE'])
             report.add('new_OPERATE_response_61', 'one exact frame',
                        sum(same_frame(frame, want_response, native_packet) for frame in master_frames), ok=response_exact,
                        received=[frame.hex() for frame in master_frames], want=want_response.hex())
@@ -444,8 +450,11 @@ def main():
                 written_units=written, native_octets=len(response), image_octets=len(image))
             problems = timing_proof.committed_problems(point, written['gap'])
             hold = timing_proof.delta(point['operate_release_units'], point['operate_anchor_units'])
-            if hold is None or hold < written['op_j'] or after_t['OP_RELEASE'] - before_t['OP_RELEASE'] != 1:
+            if not no_j and (hold is None or hold < written['op_j'] or after_t['OP_RELEASE'] - before_t['OP_RELEASE'] != 1):
                 problems.append('independent OPERATE J hold/single release not proved on T clock')
+            if no_j:
+                point.pop('operate_anchor_units')
+                point.pop('operate_release_units')
             report.record['meta']['timing_contract'] = timing_profile['timing_contract']
             report.record['meta']['response_ready_operate'] = point
             report.add('new_OPERATE_genuine_ACK_full_D_and_J_on_T_clock', [], problems, point=point)

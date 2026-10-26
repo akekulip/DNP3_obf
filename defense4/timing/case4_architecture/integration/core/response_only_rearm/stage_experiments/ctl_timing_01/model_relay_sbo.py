@@ -68,7 +68,8 @@ class RelayGate(mp.PacketGate):
     def configure(self):
         super().configure()
         inputs = json.loads(Path(os.environ['PORT_MAP']).read_text())
-        self.response_ready_v2 = (inputs.get('supported_profile') or {}).get('timing_contract') == 'response_ready_ack_d_v2'
+        self.timing_contract = (inputs.get('supported_profile') or {}).get('timing_contract')
+        self.response_ready_v2 = self.timing_contract in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3')
         self.templates, self.template_path = select_templates(HERE.parent / 'read_complete_01/vectors', mp.rp.SHAPES)
         self.seqs = dict(master=0, app=0, server=0)
         gc = self.h.gc
@@ -214,7 +215,7 @@ class RelayGate(mp.PacketGate):
                     before = self.h.scalar(self.m.register_read('p1.t_Ingress.outcomes', 5, pipe=1))
                     state = self.actual_exchange(tag + '_OPERATE', 'CONTROL', *state, fc=4, timed=timed)
                     after = self.h.scalar(self.m.register_read('p1.t_Ingress.outcomes', 5, pipe=1))
-                    if timed:
+                    if timed and self.timing_contract != 'response_ready_ack_d_no_j_v3':
                         self.add(tag + '_J_release_once', 1, after - before)
             self.close(*state, 'c%d_close' % connection)
             completed.append(connection)

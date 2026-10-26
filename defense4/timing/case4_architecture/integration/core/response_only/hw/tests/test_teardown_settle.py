@@ -53,3 +53,29 @@ def test_outcome_counters_used_when_present():
     sw = WithOutcomes()
     assert teardown.off_counts(sw) == (7, 7)
     assert sw.reads == [('p1.t_Ingress.outcomes', teardown.OFF_FLUSH), ('p1.t_Ingress.outcomes', teardown.TOKEN_OFF)]
+
+
+def test_no_j_settle_ports_come_from_owned_manifest_loopbacks():
+    manifest = dict(timing_contract='response_ready_ack_d_no_j_v3', installed=[
+        dict(kind='loopback', label=role + ' dev ' + str(port), key=[('$DEV_PORT', port, None)])
+        for role, port in [('n_ack_return', 48), ('t_in', 180), ('held_return', 182)]])
+    assert teardown.settle_ports(manifest) == (180, 182)
+    manifest['timing_contract'] = 'response_ready_ack_d_v2'
+    assert teardown.settle_ports(manifest) == (180, 181, 182)
+    manifest.pop('timing_contract')
+    assert teardown.settle_ports(manifest) == (180, 181, 182)
+
+
+def test_no_j_settles_without_absent_outcomes_or_unowned_hb():
+    class NoJ(NoOutcomes):
+        def register(self, *args):
+            raise AssertionError('no-J has no outcomes register')
+    sw = NoJ({180: [1, 2, 2], 182: [3, 3]})
+    assert teardown.settle(sw, quiet=0.2, timeout=2.0, ports=(180, 182),
+                           timing_contract='response_ready_ack_d_no_j_v3') is True
+
+
+def test_partial_no_j_install_settles_only_ports_it_installed():
+    manifest = dict(timing_contract='response_ready_ack_d_no_j_v3', installed=[
+        dict(kind='loopback', label='t_in dev 180', key=[('$DEV_PORT', 180, None)])])
+    assert teardown.settle_ports(manifest) == (180,)

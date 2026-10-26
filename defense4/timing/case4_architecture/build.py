@@ -234,10 +234,12 @@ def terminate_group(process):
     process.wait()
 
 
-def verify_evidence(output):
+def verify_evidence(output, *, source_root=None):
     output = Path(output)
     report = json.loads((output / 'manifest.json').read_text())
-    source_root = Path(report['source']).parent
+    # A retained bundle may be checked from a new checkout. Use that explicitly
+    # selected source tree while retaining every original source/include hash.
+    source_root = Path(source_root) if source_root is not None else Path(report['source']).parent
     identity_matches = report['source_files'].get(Path(report['source']).name) == report['source_sha256']
     source_matches = identity_matches and all((source_root / name).is_file() and
         sha(source_root / name) == expected for name, expected in report['source_files'].items())

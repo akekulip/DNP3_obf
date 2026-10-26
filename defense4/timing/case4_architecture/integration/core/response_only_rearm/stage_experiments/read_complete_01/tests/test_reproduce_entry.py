@@ -97,6 +97,30 @@ class ReproduceEntry(unittest.TestCase):
         self.assertEqual(info['source_sha256'], profile['candidate']['source_sha256'])
         self.assertIn('--strip-telemetry', info['generator_args'])
 
+    def test_c69_identifies_the_new_offline_no_operate_hold_candidate(self):
+        result = self.info('c69')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        info = json.loads(result.stdout)
+        self.assertEqual(Path(info['build']).name, 'm12p_c69_sdk9132')
+        self.assertIn('--strip-operate-hold', info['generator_args'])
+        self.assertIn('--strip-telemetry', info['generator_args'])
+        self.assertIn('offline', info['evidence_tier'].lower())
+        self.assertIn('no OPERATE request hold', info['evidence_tier'])
+
+    def test_c68_reproduction_uses_its_pre_c69_dependencies(self):
+        info = json.loads(self.info('c68').stdout)
+        self.assertEqual(info['generator_pin'], '51f9c9d18')
+        self.assertEqual(info['gate_pin'], '51f9c9d18')
+        self.assertEqual(info['freeze_pin'], '51f9c9d18')
+
+    def test_c69_refuses_hardware_readout_in_its_offline_tier(self):
+        result = subprocess.run(['bash', str(HERE / 'reproduce.sh'), '--readout', 'some_block', 'some_config'],
+                                env=dict(os.environ, CANDIDATE='c69', RESEARCH_PYTHON='/bin/false'),
+                                capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('c69 is offline-only', result.stdout + result.stderr)
+        self.assertNotIn('software encoder:', result.stdout)
+
     def test_c67_uses_its_historical_generator_gate_and_freeze(self):
         result = self.info('c67')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

@@ -106,19 +106,29 @@ def child_registers(descriptor):
 def validate_timing_contract(supported, text):
     """Reject a source/profile ABI mismatch before choosing any hardware writes."""
     contract = supported.get('timing_contract')
+    declared = re.findall(r'timing_contract:\s*(\w+)', text)
+    if declared and any(value != contract for value in declared):
+        raise ValueError('source timing ABI differs from supported profile contract')
     actions = re.findall(r'action\s+set_params\s*\(([^)]*)\)', text, re.S)
     keys = tuple(re.findall(r'bit\s*<\s*\d+\s*>\s+(\w+)', actions[0])) if len(actions) == 1 else ()
-    ready = keys == ('gap', 'op_j', 'budget', 'enabled') or 'response_wait_timeout' in text
-    if contract != 'response_ready_ack_d_v2':
-        if ready or contract is not None:
+    if contract == 'response_ready_ack_d_no_j_v3':
+        if supported.get('timing_ns') != dict(D_release_budget=5000000):
+            raise ValueError('no-J response-ready profile timing must bind only D')
+        expected = ('gap', 'budget', 'enabled')
+    elif contract == 'response_ready_ack_d_v2':
+        if supported.get('timing_ns') != dict(D_release_budget=5000000, J_operate_hold=2400000):
+            raise ValueError('response-ready profile timing must bind only D and J')
+        expected = ('gap', 'op_j', 'budget', 'enabled')
+    else:
+        if keys in (('gap', 'op_j', 'budget', 'enabled'), ('gap', 'budget', 'enabled')) or \
+                'response_wait_timeout' in text or contract is not None:
             raise ValueError('source timing ABI differs from supported profile')
         return None
-    if supported.get('timing_ns') != dict(D_release_budget=5000000, J_operate_hold=2400000):
-        raise ValueError('response-ready profile timing must bind only D and J')
-    if keys != ('gap', 'op_j', 'budget', 'enabled') or \
+    if keys != expected or \
             'md.now = ig_prsr_md.global_tstamp[39:8] & 32w0xfffffffe;' not in text:
         raise ValueError('response-ready compiled source ABI/clock mismatch')
     return contract
+
 
 
 def _source_profile(out):
@@ -200,6 +210,24 @@ def describe(build_out):
     if descriptor is None:
         descriptor = dict(sealed=_legacy_select(out), t_child_count=3)
     tables = json.loads((out / 'bfrt.json').read_bytes())['tables']
+    if descriptor.get('timing_contract') is not None:
+        validate_timing_contract(dict(timing_contract=descriptor['timing_contract'],
+            timing_ns=(dict(D_release_budget=5000000) if descriptor['timing_contract'] ==
+                       'response_ready_ack_d_no_j_v3' else dict(D_release_budget=5000000, J_operate_hold=2400000))),
+            (out / 'response_only.p4pp').read_text())
+    if descriptor.get('timing_contract') == 'response_ready_ack_d_no_j_v3':
+        params = next((table for table in tables if table['name'] == 'p1.t_Ingress.params'), {})
+        actions = [action for action in params.get('action_specs', [])
+                   if action.get('name') == 't_Ingress.set_params']
+        if len(actions) != 1 or tuple(field['name'] for field in actions[0].get('data', [])) != \
+                ('gap', 'budget', 'enabled'):
+            raise ValueError('no-J compiled BFRT parameter ABI mismatch')
+        retired = {'op_gen_alloc_reg', 'op_t0_reg', 'op_done_reg', 'operate_generation_access',
+                   'operate_anchor_access', 'op_go_check', 'operate_completion_access', 'hb_verdict'}
+        observed_retired = {item['name'] for item in tables
+                            if item['name'].startswith('p1.t_Ingress.') and item['name'].split('.')[-1] in retired}
+        if observed_retired:
+            raise ValueError('no-J compiled ABI retains OPERATE hold resources: %s' % sorted(observed_retired))
     observed = {item['name'] for item in tables
                 if re.fullmatch(r'p1\.t_Ingress\.child_seen[0-9]+_reg', item['name'])}
     expected = {'p1.t_Ingress.' + name for name in child_registers(descriptor)}

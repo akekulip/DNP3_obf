@@ -23,6 +23,7 @@ def configure(build_out):
     snapshot.T_OUTCOMES = tuple('OUT_REQ_DUP_DROP' if i == 8 else 'OUT_REQ_DUP_FORWARD' if i == 9 else name
                                 for i, name in enumerate(original_outcomes)) \
         if descriptor.get('timing_contract') == 'response_ready_ack_d_v2' else original_outcomes
+    snapshot.TIMING_CONTRACT = descriptor.get('timing_contract')
     snapshot.readback = entry.installer.readback
     snapshot.read_diagnostics = entry.profile.read_diagnostics if sealed else original_diagnostics
     snapshot.diagnostic_build = (lambda _out: False) if sealed else original_diagnostic_build
@@ -36,10 +37,13 @@ def configure(build_out):
 N_COUNTERS = (('count_busy', 8), ('count_term', 4))
 
 
-def read_n_counters(sw, all_pipes):
+def read_n_counters(sw, all_pipes, tables=None):
     out = {}
     for name, cells in N_COUNTERS:
         values = []
+        if tables is not None and 'p0.n_Ingress.' + name not in tables:
+            out[name] = [None] * cells
+            continue
         for i in range(cells):
             try:
                 values.append(sum(sw.register('p0.n_Ingress.' + name, all_pipes, i)))
@@ -55,20 +59,27 @@ def read_n_counters(sw, all_pipes):
 N_STATE = ('owner', 'counter', 'epoch', 'retry_epoch', 'client', 'server', 'read_app')
 
 
-def read_n_state(sw, all_pipes):
+def read_n_state(sw, all_pipes, tables=None):
     out = {}
     for name in N_STATE:
+        if tables is not None and 'p0.n_Ingress.' + name not in tables:
+            continue
         try:
             out[name] = sw.register('p0.n_Ingress.' + name, all_pipes, 0)
         except Exception as error:
             out[name] = 'unreadable: %s' % type(error).__name__
     try:
+        if tables is not None and 'p0.n_Ingress.work.work' not in tables:
+            raise KeyError('work register absent from selected schema')
         got = sw.must_get('p0.n_Ingress.work.work', all_pipes, [('$REGISTER_INDEX', 0, None)])
         out['work'] = {k.rsplit('.', 1)[-1]: v for k, v in got.items() if k.endswith(('.generation', '.phase'))}
     except Exception as error:
         out['work'] = 'unreadable: %s' % type(error).__name__
     first = []
     for i in range(4):
+        if tables is not None and 'p0.n_Ingress.count_first' not in tables:
+            first.append(None)
+            continue
         try:
             first.append(sw.register('p0.n_Ingress.count_first', all_pipes, i))
         except Exception:
@@ -141,12 +152,15 @@ def add_n_counters(args, mau_spec=None):
     sw = Switch(a.program, a.client_id)
     diag, diag_error, mau, mau_error = None, None, None, None
     try:
-        counters = read_n_counters(sw, snapshot.tc.ALL_PIPES)
-        state = read_n_state(sw, snapshot.tc.ALL_PIPES)
+        tables = None
+        if snapshot.TIMING_CONTRACT == snapshot.tc.RESPONSE_READY_NO_J_CONTRACT:
+            tables = {table['name'] for table in json.loads((Path(a.build_out) / 'bfrt.json').read_text())['tables']}
+        counters = read_n_counters(sw, snapshot.tc.ALL_PIPES, tables)
+        state = read_n_state(sw, snapshot.tc.ALL_PIPES, tables)
         # the diagnostic register only after a trial (never in a _before snapshot, so a m9d unit does not wait on a
         # 16,384-entry read between selecting T and starting traffic), and in its own try: whatever happens there,
         # n_counters are written and the snapshot does not fail
-        if not Path(a.output).name.endswith('_before.json'):
+        if not Path(a.output).name.endswith('_before.json') and (tables is None or DIAG_EGRESS in tables):
             try:
                 diag = read_egress_diag(sw)
             except Exception as error:

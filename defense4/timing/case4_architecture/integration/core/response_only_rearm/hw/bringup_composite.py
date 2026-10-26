@@ -30,7 +30,7 @@ installer.rows.cp = candidate_cp
 baseline_ports = installer.build_ports
 
 
-def candidate_ports(build_out):
+def candidate_ports(build_out, timing_contract=None):
     """Check the private parser, then reuse the baseline's port invariants."""
     path = Path(build_out) / 'response_only.p4pp'
     if not path.is_file():
@@ -60,7 +60,7 @@ def candidate_ports(build_out):
     normalized = text[:match.start()] + match.group().replace('provenance;', 'eth;') + text[match.end():]
     with tempfile.TemporaryDirectory(prefix='rearm_port_check_') as temporary:
         (Path(temporary) / path.name).write_text(normalized)
-        ports, errors = baseline_ports.read(temporary)
+        ports, errors = baseline_ports.read(temporary, timing_contract=timing_contract)
     if departure is not None and not errors:
         ports['e_relay_departure'] = departure
     return ports, errors
@@ -123,10 +123,14 @@ def configure(build_out):
     P1_PAD['enabled'] = p4pp.is_file() and 'p1_conn' in p4pp.read_text(errors='replace')
     descriptor = profile.describe(build_out)
     sealed = descriptor['sealed']
+    installer.TIMING_CONTRACT = descriptor.get('timing_contract')
     # Rebuild from the original map so a later three-bank install restores all banks. The response-ready
     # contract has no exchange anchor, so its T compiles no t0_reg (c67 smoke rc01_hw_c67_20261025_01).
-    absent = {'quarantine_reg'} | ({'t0_reg'} if descriptor.get('timing_contract') == 'response_ready_ack_d_v2'
-                                   else set())
+    absent = {'quarantine_reg'}
+    if descriptor.get('timing_contract') in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3'):
+        absent.add('t0_reg')
+    if descriptor.get('timing_contract') == 'response_ready_ack_d_no_j_v3':
+        absent.update(('op_gen_alloc_reg', 'op_t0_reg', 'op_done_reg'))
     sealed_readback.T_REGISTER_INIT = {name: value for name, value in original_readback.T_REGISTER_INIT.items()
                                       if name not in absent and
                                       (not name.startswith('child_seen') or name in profile.child_registers(descriptor))}

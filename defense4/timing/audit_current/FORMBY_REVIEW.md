@@ -64,17 +64,20 @@ device. 2,500 open and close commands were issued with 20 s idle between operati
 
 ## 4. What this means for our mechanism, stated plainly
 
-**The physical-operation-time fingerprint as reported is out of reach of a timing-only defense.**
-It is computed from a timestamp **inside the application payload**, written by the outstation's
-own event recorder. Our mechanism moves packets in time and changes no byte, so it cannot alter
-an SER timestamp. Delaying the packet that carries it changes `t2 − t1` only through `t1`, the
-command observation, which the mechanism does not delay toward the relay in a way the master can
-see, and not at all through the SER value.
+**Correction, 2026-10-26: report delay and command delay have different effects.** An SER timestamp
+is written by the device when the event occurs. Delaying the report that carries it does not change
+that embedded value. However, delaying OPERATE before delivery also delays the resulting event, so an
+observer upstream of that hold can measure approximately `t2 − t1 = J + physical operation time`.
+An observer downstream sees the command after the hold. The previous blanket claim that a timing-only
+mechanism could not affect the SER measurement was too broad and is withdrawn.
 
-**The one variant our defense could affect is the one that failed.** Definition 1, `t3 − t1`, is
-a packet-arrival difference and is exactly the kind of quantity our release schedule governs.
-Formby reports it produced no usable results. So there is no established packet-timing physical
-fingerprint for us to suppress, and none to claim credit for suppressing.
+**A fixed command delay is not demonstrated physical-fingerprint suppression.** The configured
+constant translates the upstream timing distribution; it does not remove its centered variation.
+The current fixed-J candidate has no measured SER/physical-event evaluation. Randomized request delay
+would be a separate mechanism with its own measurement and leakage obligations; none is introduced by
+retiring fixed J. ACK/ordinary-response shaping addresses CLRT, not an embedded physical-event timestamp.
+Formby's arrival-time notification method produced no usable results in their experiment; that result
+does not establish the ineffectiveness of notification timing in every setting.
 
 **Our traffic does not contain the channel at all.** Measured over all 132 `campaign_v1`
 captures: **zero unsolicited responses** (function 0x82; the only functions present are 1, 3, 4

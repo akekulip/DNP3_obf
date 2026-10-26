@@ -6,6 +6,7 @@ and child layout; renaming a build cannot select weaker expectations.
 import hashlib
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -70,6 +71,9 @@ def from_env():
 
 
 RESPONSE_READY = 'response_ready_ack_d_v2'
+RESPONSE_READY_NO_J = 'response_ready_ack_d_no_j_v3'
+RESPONSE_READY_CONTRACTS = (RESPONSE_READY, RESPONSE_READY_NO_J)
+OPERATE_HOLD_REGISTERS = frozenset(('op_gen_alloc_reg', 'op_t0_reg', 'op_done_reg'))
 RESPONSE_READY_KEYS = frozenset(('gap', 'op_j', 'budget', 'enabled'))
 LEGACY_ONLY_KEYS = frozenset(('da', 'readiness', 'cap', 'pb'))
 
@@ -79,25 +83,28 @@ def validate_timing_contract(profile):
     contract = profile.get('timing_contract')
     if contract is None:
         return
-    if contract != RESPONSE_READY:
+    if contract not in RESPONSE_READY_CONTRACTS:
         raise ValueError('unknown timing_contract: %r' % contract)
     if profile.get('endpoint_profile') != 'sel751':
         raise ValueError('response-ready requires endpoint_profile=sel751')
-    if profile.get('timing_ns') != dict(D_release_budget=5_000_000, J_operate_hold=2_400_000):
-        raise ValueError('response-ready v2 timing_ns must contain only D=5ms and J=2.4ms')
+    timing = dict(D_release_budget=5_000_000)
+    if contract == RESPONSE_READY:
+        timing['J_operate_hold'] = 2_400_000
+    if profile.get('timing_ns') != timing:
+        raise ValueError('response-ready timing_ns must exactly match its declared contract')
     clock = profile.get('clock') or {}
     if (clock.get('t_unit_ns'), clock.get('t_grid_ns')) != (256, 512):
         raise ValueError('response-ready requires the 256ns T clock and 512ns grid')
 
 
 def model_params(profile, values_ns):
-    """Translate retained legacy stimuli only for the source-bound four-field v2 ABI.
+    """Translate retained model stimuli only for an explicit source-bound timing ABI.
 
-    D and J remain caller-specific for explicitly labeled model constructions.
+    D remains caller-specific for model constructions; J exists only in v2.
     An exchange timeout has no v2 meaning and is rejected rather than translated.
     """
     values = dict(values_ns)
-    if profile.get('timing_contract') != RESPONSE_READY:
+    if profile.get('timing_contract') not in RESPONSE_READY_CONTRACTS:
         return values
     validate_timing_contract(profile)
     unknown = set(values) - RESPONSE_READY_KEYS - LEGACY_ONLY_KEYS
@@ -105,19 +112,40 @@ def model_params(profile, values_ns):
         raise ValueError('unknown model T parameters: %r' % sorted(unknown))
     for name in LEGACY_ONLY_KEYS:
         values.pop(name, None)
-    if set(values) != RESPONSE_READY_KEYS:
-        raise ValueError('response-ready v2 requires all four set_params fields')
+    required = RESPONSE_READY_KEYS
+    if profile['timing_contract'] == RESPONSE_READY_NO_J:
+        values.pop('op_j', None)
+        required = RESPONSE_READY_KEYS - {'op_j'}
+    if set(values) != required:
+        raise ValueError('response-ready requires the exact declared set_params fields')
     return values
 
 
 
-def compiled_t_state_audit(context):
+def compiled_t_state_audit(context, timing_contract=None):
     """One P4 state object must have one physical bank shared by all its actions.
 
     A compiled duplicate in a second MAU stage is separate state: a write in one
     bank cannot make a read of the other bank observe completion (c60 replay RED).
     """
     problems, banks = [], {}
+    if timing_contract == RESPONSE_READY_NO_J:
+        forbidden = OPERATE_HOLD_REGISTERS | {'op_j', 'hold_operate', 'arm_operate_anchor',
+            'release_operate_counted', 'seed_operate_blocker'}
+        def strings(node):
+            if isinstance(node, dict):
+                for key, value in node.items():
+                    yield str(key)
+                    yield from strings(value)
+            elif isinstance(node, list):
+                for value in node:
+                    yield from strings(value)
+            elif isinstance(node, str):
+                yield node
+        found = sorted({name for value in strings(context) for name in forbidden
+                        if re.search(r'(?<![A-Za-z0-9_])' + name + r'(?![A-Za-z0-9_])', value)})
+        if found:
+            problems.append('no-J contract retains compiled OPERATE hold state/ABI: ' + ', '.join(found))
     tables = context.get('tables') if isinstance(context, dict) else None
     if not isinstance(tables, list):
         return dict(banks_by_register={}, problems=['compiled context has no tables list'])
@@ -164,10 +192,10 @@ def _compiled_stage_numbers(node):
             yield from _compiled_stage_numbers(value)
 
 
-def compiled_t_state_of_build(build):
+def compiled_t_state_of_build(build, timing_contract=None):
     """New-contract preflight: one T bank per object and the approved actual MAU bounds.
 
-    run_model and summary_v3 call this only for response_ready_ack_d_v2; retained
+    run_model and summary_v3 pass the explicit response-ready contract; retained
     source profiles keep their historical resource and expectation contracts.
     """
     contexts, hashes = {}, {}
@@ -182,7 +210,7 @@ def compiled_t_state_of_build(build):
         except (OSError, ValueError, TypeError) as error:
             return dict(banks_by_register={}, layout={}, problems=[
                 'cannot read compiled %s state/layout context: %s' % (pipe, error)])
-    audit = compiled_t_state_audit(contexts['p1'])
+    audit = compiled_t_state_audit(contexts['p1'], timing_contract)
     problems, layout = list(audit['problems']), {}
     roles = (('N', 'p0', 'ingress', 'max_index', 10), ('E', 'p0', 'egress', 'max_index', 10),
              ('T', 'p1', 'ingress', 'occupied_count', 11), ('p1_egress', 'p1', 'egress', 'occupied_count', 4))

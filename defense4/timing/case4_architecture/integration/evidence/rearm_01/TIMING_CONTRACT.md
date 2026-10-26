@@ -1,3 +1,10 @@
+# Retirement note — 2026-10-26
+
+This is the historical J-bearing timing contract for c68 and earlier candidates. The user approved c69 with
+`response_ready_ack_d_no_j_v3`: OPERATE has no intentional request hold; its ACK/response still use the common
+response-ready/D path. J requirements and J checks below do not apply to c69. Historical results are retained
+unchanged, and c69 requires its own compile/model evidence. See the current root handover and c69 execution ledger.
+
 # candidate61 timing contract: code, configuration and what an observer measures
 
 Source: `seg61_02/evidence/full_04/response_only.p4` (SHA256 `1b2d62d1…65aa`). Configuration: `timing_params_ns` in the candidate61 configs (`da` 2 ms, `readiness` 30 ms, `cap` 40 ms, `gap` 950 µs, `op_j` 2.4 ms). Measurements come from the repeated-SBO silicon blocks `candidate61_repeat_sbo_950_b1_02`, `_b2` and `_b3` (64 cycles per connection, separate-ACK fixture with a 5 ms outstation response delay), summarized by `seg61_02/analysis/repeat_sbo_report.py`.

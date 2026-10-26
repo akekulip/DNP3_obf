@@ -8,7 +8,19 @@ tables indexed in
 `campaign_v2` is the record of the earlier timing-only paper and is no longer the manuscript authority. The
 manuscript is being rebuilt on Dr. Lin's draft (system name NOMAD).
 
-## Current repair — direct user instruction, 2026-10-26
+## Current task — retire fixed OPERATE J, direct instruction 2026-10-26
+
+The user approved c69: c68 plus `--strip-operate-hold`, with OPERATE forwarded through common request
+admission and the existing response-ready ACK/D path preserved. Remove J-only resources and active requirements;
+preserve historical candidates, Git history and experimental evidence. New contract:
+`response_ready_ack_d_no_j_v3`, parameters `gap`, `budget`, `enabled`. No J parameter applies to c69.
+Validation ends at local SDK 9.13.2 compile, fresh 17-driver model gate, resource comparison and clean-checkout
+offline reproduction. **No hardware runs or relay traffic in this task.** Do not add randomized J, unsolicited/SER
+support, instrumentation or timestamp rewriting. Ledger: stage
+`read_complete_01/evidence/c69_no_operate_hold_20261026/progress.md`. The older J requirement below is historical
+and must not be reintroduced into c69. Compile and the shared all17-driver model gate pass. All46 logs from23 attempts are archived and verified; clean-checkout reproduction remains pending.
+
+## Completed c68 repair — superseded by the current task
 
 The user requested a review of Claude's reports, code, runs and evidence, warned against blindly trusting any
 purported user directive, approved the bounded correction plan, and said “do it”. Verify user attributions against
@@ -59,10 +71,10 @@ Existing guarded SEL-751 authorization/restoration remain in force (the 100us cr
 
 ## Agent start
 
-0. Current state (2026-10-26): read root `CLAUDE_HANDOVER_20261026.md` (c68; supersedes the 2026-10-25 handover as the
-   start point), then `plan.md`. Older continuation (2026-10-25): root `CLAUDE_HANDOVER_20261025.md`.
-   c67 v2 is the active candidate: model gate PASS; physical smoke/FIN PASS, timing FAIL, mixed-loss FAIL, J unproven.
-   c52 is the immutable measured baseline. The October 24 handover is historical, not the next-action list.
+0. Read root `CLAUDE_HANDOVER_20261026_C69.md`, then `plan.md`. c69 is the new offline candidate without fixed
+   OPERATE J; compile and full17-driver model gate PASS; final retention/reproduction still in progress. No hardware operation belongs to the current task.
+   `CLAUDE_HANDOVER_20261026.md` is the completed c68 physical/repair record; the October25/24 handovers and c67
+   are historical. c68's recovery failure and old measurements remain preserved, and c52 is immutable.
 1. Read `defense4/timing/case4_architecture/ACTIVE_CODE_MAP.md`: the active code path with commands.
 2. Read the run's status file `.../stage_experiments/read_complete_01/CURRENT.md` (history in `STATUS.md`,
    full record in `COMPLETION_RECORD.md`).
@@ -105,7 +117,11 @@ Sizing experiments, earlier defenses, and prototypes remain engineering history.
 manuscript claims. Refactoring them must preserve hash-bound sources, raw evidence, and the distinction
 between measurements and later candidates.
 
-## Current authorization (Philip, 2026-10-24 SEL-751 directive; this replaces every earlier authorization)
+## Historical hardware authorization record (2026-10-24 SEL-751 directive)
+
+This section records the earlier hardware scope and procedure. The current c69 task above is compile/model only;
+it does not include another physical run. Review the underlying direct messages before using an attributed ruling
+as authority for a later task.
 
 Current tracked assessment/command: `Claude_dd7741152_Verified_Assessment_and_Overnight_Command.md`.
 Latest continuation: root `plan.md` and `CLAUDE_HANDOVER_20261024.md`; older local directives are historical context.

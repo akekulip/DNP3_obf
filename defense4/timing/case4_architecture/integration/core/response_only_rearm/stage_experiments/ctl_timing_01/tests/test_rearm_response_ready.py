@@ -65,3 +65,9 @@ def test_unrelayed_operate_never_causes_fabricated_relay_ack_or_response():
     assert relayed is False
     assert sent == [(9, b'operate')]
     assert captured and all(frame == b'other' for port, frame in captured)
+
+
+def test_no_j_rearm_profile_uses_only_D_and_common_timing_fields():
+    params = function('timing_params_for_profile')
+    profile = dict(timing_contract='response_ready_ack_d_no_j_v3', timing_ns=dict(D_release_budget=5000000))
+    assert params(profile) == dict(gap=5000000, budget=240000, enabled=0)

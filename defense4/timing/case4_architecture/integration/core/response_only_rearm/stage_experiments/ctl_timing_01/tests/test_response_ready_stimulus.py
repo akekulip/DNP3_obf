@@ -16,17 +16,19 @@ def method(name):
     cls=next(node for node in main.body if isinstance(node,ast.ClassDef) and node.name=='ReadyGate')
     node=next(node for node in cls.body if isinstance(node,ast.FunctionDef) and node.name==name)
     ns=dict(ready.__dict__)
+    ns.update(no_j=False, contract='response_ready_ack_d_v2', active_lane=ready.LANE, duplicate_only=False)
     ns.update(mp=types.SimpleNamespace(rp=types.SimpleNamespace(advance_timestamp=lambda:None,preserve_options=lambda a,b:b)),
               view=types.SimpleNamespace(size=lambda path:0))
     exec(compile(ast.Module(body=[node],type_ignores=[]),str(CTL/'model_response_ready.py'),'exec'),ns)
     return ns,name
 
 
+@pytest.mark.parametrize('no_j', [False, True])
 @pytest.mark.parametrize('order,duplicate,expected',[
     ('ack_first',False,['ack','response']),('response_first',False,['response','ack']),
     ('ack_first',True,['ack','ack','response'])])
-def test_actual_exchange_has_no_observer_or_bfrt_between_causal_stimulus_and_resolution(order,duplicate,expected):
-    ns,name=method('exchange_ready');sent=[];request_sent=[False];polls=[0];resolved=[False]
+def test_actual_exchange_has_no_observer_or_bfrt_between_causal_stimulus_and_resolution(order,duplicate,expected,no_j):
+    ns,name=method('exchange_ready');ns['no_j']=no_j;sent=[];request_sent=[False];polls=[0];resolved=[False]
     class End(Exception):pass
     def work(label):
         if request_sent[0]:assert sent==expected,label+' before complete relay stimulus'
@@ -36,7 +38,10 @@ def test_actual_exchange_has_no_observer_or_bfrt_between_causal_stimulus_and_res
             if self.relay:sent.append(raw.decode())
             else:request_sent[0]=True
     class Model:
-        def register_read(self,*a,**k):work('register');return 7
+        def register_read(self,*a,**k):
+            if no_j:
+                assert not any(name in a[0] for name in ('op_gen_alloc_reg','op_t0_reg','op_done_reg'))
+            work('register');return 7
         def drain(self,*a):work('drain')
         def capture(self,*a,**k):return {1:[],2:[]}
     class Gate:
@@ -101,3 +106,53 @@ def test_v2_full_plan_has_retry_tokens_matrix_and_cleanup_without_expiry_section
     assert len([tag for tag in planned if tag.startswith('D')])==8
     assert 'waiting_and_cleanup' in planned and 'invalid_child_ids' in planned
     assert not any('expir' in tag or 'bound' in tag for tag in planned)
+
+
+def test_no_j_plan_runs_immediate_OPERATE_and_removed_tokens_before_common_retry_matrix():
+    ns, name = method('run')
+    ns.update(control_only=False, no_j=True, duplicate_only=False)
+    observed = []
+    class End(Exception): pass
+    class Gate:
+        report = types.SimpleNamespace(record=dict(meta={}))
+        def immediate_operate(self): observed.append('immediate')
+        def removed_operate_tokens(self): observed.append('removed_tokens')
+        def invalid_child_ids(self): observed.append('children')
+        def request_retries(self): raise End()
+    gate = Gate()
+    with pytest.raises(End): ns[name](gate)
+    assert observed == ['immediate', 'removed_tokens', 'children']
+    assert gate.report.record['meta']['planned_cases'][:5] == [
+        'no_j_immediate_OPERATE', 'removed_operate_tokens', 'invalid_child_ids',
+        'request_retry_policy', 'stale_token_isolation']
+
+
+def test_removed_HB_probe_uses_retired_physical181_when_generic_PortMap_defaults198():
+    import copy
+    from test_response_ready_no_j_profile import obsolete_token_row
+    ns, name = method('removed_operate_tokens')
+    sent = []
+    class Model:
+        def drain(self, ports): pass
+        def exchange(self, port, frame, ports, **kwargs):
+            sent.append((port, frame))
+            return {9: [], 64: []}
+    class Gate:
+        def __init__(self):
+            self.pm = types.SimpleNamespace(held_return=182, hb_return=198)
+            self.h = types.SimpleNamespace(PKTGEN_RETURN=196,
+                scalar=lambda value: next(cell[0] for cell in value.values() if isinstance(cell, list)))
+            self.v = types.SimpleNamespace(packet=lambda *a, **k: bytes(60))
+            self.report = types.SimpleNamespace(record=dict(meta={}))
+            self.m, self.ports, self.log = Model(), [9, 64], 'unused'
+        def set_timing(self, gap): pass
+        def new_connection(self, tag): return (100, 900, 900)
+        def exchange_ready(self, tag, cls, state, **kwargs): return state
+        def negative_state(self): return copy.deepcopy(obsolete_token_row()['before'])
+        def records(self, offset):
+            port, frame = sent[-1]
+            return [dict(pipe=1, port=port, frame=(frame + bytes(4)).hex(), actions=[])]
+        def add(self, tag, expected, actual): assert actual == expected, tag
+        def close(self, *args): pass
+    ns[name](Gate())
+    assert [port for port, frame in sent] == [182, 181, 182, 181, 196, 196]

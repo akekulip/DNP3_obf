@@ -1,3 +1,13 @@
+# Active execution — c69 without fixed OPERATE J (2026-10-26)
+
+Direct instruction: “Implement the plan”. New c69 removes the fixed command hold and its resources while keeping
+SELECT/CROB authorization and the shared response-ready ACK/response timing. Historical Git/evidence stays.
+Validation ends at compile/model and a reproducible resource report; no new physical operation or campaign.
+Execution ledger and reviewed physical-timing explanation:
+`read_complete_01/evidence/c69_no_operate_hold_20261026/` under the stage directory.
+
+The c68 execution plan and results below are completed historical checkpoints.
+
 # SEL-751 response-ready timing completion plan — 2026-10-25
 
 Approved by Philip: “Implement the plan.” This replaces the r150 readiness proposal. Preserve frozen c52

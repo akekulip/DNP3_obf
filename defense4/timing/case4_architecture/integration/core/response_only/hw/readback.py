@@ -105,7 +105,7 @@ def register_errors(regs):
             for r, (vals, init) in regs.items() if not vals or any(v != init for v in vals)]
 
 
-def snapshot(sw, ports, requested_pps=None, requested_block_pps=None):
+def snapshot(sw, ports, requested_pps=None, requested_block_pps=None, timing_contract=None):
     """Generator app counters, TM queue counters, and the shaping actually applied to each hold queue.
 
     requested_pps: optional {role -> pps} ('ack'/'resp'/'op') so the snapshot records requested vs the
@@ -117,7 +117,7 @@ def snapshot(sw, ports, requested_pps=None, requested_block_pps=None):
     # Total internal traffic per front-panel loop port (the build's N_ACK_RETURN / T_IN / HB_RETURN /
     # HELD_RETURN, read from its port map): a before/after delta gives packets and bytes per ladder port.
     # Read-only; a port whose stats cannot be read is recorded as None so the snapshot still completes.
-    for role, port in sorted(build_ports.loopback_ports(ports).items(), key=lambda kv: kv[1]):
+    for role, port in sorted(build_ports.loopback_ports(ports, timing_contract=timing_contract).items(), key=lambda kv: kv[1]):
         try:
             got = sw.get('$PORT_STAT', tc.ALL_PIPES, [('$DEV_PORT', port, None)]) or {}
             stats = {f: got.get(f) for f in LOOP_PORT_STATS}
@@ -125,11 +125,11 @@ def snapshot(sw, ports, requested_pps=None, requested_block_pps=None):
             stats = {f: None for f in LOOP_PORT_STATS}
         snap['loop_ports'][role] = dict(dev_port=port, **stats)
     gen_pipe = tc.pipe_of(ports['pktgen_return'])
-    for name, app_id, _pattern in tc.PKTGEN_APPS:
+    for name, app_id, _pattern in tc.pktgen_apps(timing_contract):
         got = sw.get('tf1.pktgen.app_cfg', gen_pipe, [('app_id', app_id, None)]) or {}
         snap['pktgen'][name] = {k: got.get(k) for k in COUNTER_FIELDS + ('app_enable',)}
     snap['shaping'] = {}
-    for port, qid, label in tc.queue_plan(ports):
+    for port, qid, label in tc.queue_plan(ports, timing_contract=timing_contract):
         pipe = tc.pipe_of(port)
         pg_id, pgq, _cfg = sw.resolve_queue(port, qid, pipe)
         key = [('pg_id', pg_id, None), ('pg_queue', pgq, None)]

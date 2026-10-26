@@ -1,6 +1,7 @@
 """Evidence must not silently lose failed runs or accept stale source/artifacts."""
 import importlib.util
 import json
+import shutil
 from pathlib import Path
 import tempfile
 import time
@@ -86,6 +87,19 @@ class BuildEvidence(unittest.TestCase):
         self.assertEqual(self.module.verify_evidence(out)['source_matches'], True)
         self.source.write_text('// modified\n')
         self.assertEqual(self.module.verify_evidence(out)['source_matches'], False)
+
+    def test_relocated_bundle_verifies_only_explicit_checkout_source(self):
+        out = self.root / 'run01'
+        self.module.compile_candidate(self.source, out, self.compiler)
+        checkout = self.root / 'clean_checkout'
+        checkout.mkdir()
+        for name in ('test.p4', 'local.p4'):
+            shutil.copyfile(self.root / name, checkout / name)
+        self.source.write_text('// original checkout no longer has the pinned source\n')
+        self.assertFalse(self.module.verify_evidence(out)['source_matches'])
+        self.assertTrue(self.module.verify_evidence(out, source_root=checkout)['source_matches'])
+        (checkout / 'local.p4').write_text('// corrupted include in new checkout\n')
+        self.assertFalse(self.module.verify_evidence(out, source_root=checkout)['source_matches'])
 
     def test_failed_build_never_qualifies(self):
         out = self.root / 'run01'

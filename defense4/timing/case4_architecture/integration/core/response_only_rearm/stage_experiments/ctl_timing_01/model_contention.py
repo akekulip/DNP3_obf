@@ -104,10 +104,11 @@ class PointInterrupted(Exception):
 def main():
     from model_profile import from_env
     profile = from_env()
-    ready = profile.get('timing_contract') == 'response_ready_ack_d_v2'
+    ready = profile.get('timing_contract') in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3')
     names = tuple('REQ_DUP_DROP' if i == 8 else 'REQ_DUP_FORWARD' if i == 9 else name
                   for i, name in enumerate(NAMES)) if ready else NAMES
-    out_indices = {name: i for i, name in enumerate(names)}
+    out_indices = {name: i for i, name in enumerate(names) if profile.get('timing_contract') != 'response_ready_ack_d_no_j_v3' or name not in ('OP_RELEASE','OP_DUP_DROP')}
+    names = tuple(out_indices)  # Every abort/restart delta uses only the explicitly observed contract cells.
     lane_keys = ('ACK_COMMIT', 'RESP_RELEASE') if ready else LANE
     committed = {name: COMMITTED[name] for name in lane_keys}
     milestone = profile['milestone']

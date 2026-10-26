@@ -164,6 +164,8 @@ class CandidateCampaign(base.Campaign):
                 raise HEADROOM.HeadroomError('supported profile file differs from build inputs')
             profile = separate
         if profile is None:
+            if build.get('timing_contract') == 'response_ready_ack_d_no_j_v3':
+                raise HEADROOM.HeadroomError('no-J candidate requires its source-bound supported profile')
             if base.endpoint_profiles.is_relay(cfg):
                 raise HEADROOM.HeadroomError('physical SEL-751 candidate requires its source-bound supported profile')
             return None
@@ -184,7 +186,15 @@ class CandidateCampaign(base.Campaign):
             raise HEADROOM.HeadroomError(str(error))
         if cfg.get('timing_contract') != contract or build.get('timing_contract') != contract:
             raise HEADROOM.HeadroomError('config/build/source timing contract mismatch')
-        if contract == 'response_ready_ack_d_v2':
+        if contract == 'response_ready_ack_d_no_j_v3':
+            keys = ('D_release_budget',)
+            t = cfg.get('timing_params_ns') or {}
+            if set(t) != {'gap', 'budget', 'enabled'} or \
+                    type(t.get('gap')) is not int or t['gap'] not in (5000000, 10000000, 15000000, 20000000) or \
+                    type(t.get('budget')) is not int or not 0 < t['budget'] < 1 << 31 or \
+                    type(t.get('enabled')) is not int or t['enabled'] not in (0, 1):
+                raise HEADROOM.HeadroomError('no-J response-ready config timing parameter mismatch')
+        elif contract == 'response_ready_ack_d_v2':
             keys = ('D_release_budget', 'J_operate_hold')
             t = cfg.get('timing_params_ns') or {}
             if set(t) != {'gap', 'op_j', 'budget', 'enabled'} or \
@@ -251,7 +261,8 @@ class CandidateCampaign(base.Campaign):
         traffic = self.cfg.get('traffic', {})
         return HEADROOM.workload_reserve(
             reads, base.checks.sbo_count(traffic), connections, control_timed,
-            timed=bool(rec.get('T', True)), cancelled_selects=traffic.get('cancelled_selects', 0))
+            timed=bool(rec.get('T', True)), cancelled_selects=traffic.get('cancelled_selects', 0),
+            timing_contract=build.get('timing_contract'))
 
     def preflight(self):
         """Budget every unit before the switch is touched: a refused or malformed budget is a preflight error,
@@ -303,9 +314,10 @@ class CandidateCampaign(base.Campaign):
     def _check_generation_headroom(self, out_remote, name, rec, trial):
         reserve, budget = self._headroom_reserve(trial, rec)
         output = '%s/snap/%s_generation_headroom.json' % (self.R, name)
+        reserve_args = ' '.join('--reserve-%s %d' % (role, value) for role, value in reserve.items())
         cmd = ('python3 %s/src/%s/hw/generation_headroom.py --build-out %s --switch-tools %s/%s '
-               '--reserve-read %d --reserve-operate %d --output %s' %
-               (self.R, CANDIDATE, out_remote, self.R, base.HW, reserve['read'], reserve['operate'], output))
+               '%s --output %s' %
+               (self.R, CANDIDATE, out_remote, self.R, base.HW, reserve_args, output))
         if self.rn.dry:
             self.step('switch', 'generation headroom precheck %s' % name, self.hw_env(cmd))
             evidence = {'ok': None, 'dry_run': True, 'reserve': reserve,

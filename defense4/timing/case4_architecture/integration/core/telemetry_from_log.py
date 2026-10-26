@@ -48,7 +48,7 @@ def _actions(text, control):
     return out
 
 
-def action_map(source=None):
+def action_map(source=None, timing_contract=None):
     """{qualified action: (register, cell)} from c67's counting sites."""
     text = Path(source or C67).read_text()
     if source is None and hashlib.sha256(text.encode()).hexdigest() != C67_SHA:
@@ -66,6 +66,10 @@ def action_map(source=None):
     for name, body in _actions(n_text, 'n_Ingress').items():
         for register, cell in re.findall(r'\b(count_first|count_busy|count_term)_bump\.execute\(4w(\d+)\)', body):
             mapping[name] = ('p0.n_Ingress.' + register, int(cell))
+    if timing_contract == 'response_ready_ack_d_no_j_v3':
+        removed = {'rewait_operate','flush_operate_stale','release_operate_counted',
+                   'drop_operate_dup','drop_timer_stale_operate'}
+        mapping = {name: value for name, value in mapping.items() if name.split('.')[-1] not in removed}
     if not mapping:
         raise ValueError('no counting actions found')
     return mapping
@@ -92,7 +96,10 @@ def counts(log_path, mapping=None):
     key = str(log_path)
     state = _CACHE.get(key)
     if state is None or mapping is not None:
-        state = dict(offset=0, totals={}, last_t={}, last_e={}, destination=set(), mapping=mapping or action_map(),
+        port_map = os.environ.get('PORT_MAP')
+        contract = ((json.loads(Path(port_map).read_text()).get('supported_profile') or {}).get('timing_contract')
+                    if port_map else None)
+        state = dict(offset=0, totals={}, last_t={}, last_e={}, destination=set(), mapping=mapping or action_map(timing_contract=contract),
                      e_results=e_result_map())
         if mapping is None:
             _CACHE[key] = state

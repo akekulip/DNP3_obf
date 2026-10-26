@@ -79,20 +79,31 @@ def steps(ops):
 SETTLE_PORTS = (180, 181, 182)
 
 
-def off_counts(sw):
-    try:
-        return tuple(sum(sw.register('p1.t_Ingress.outcomes', 0xffff, i)) for i in (OFF_FLUSH, TOKEN_OFF))
-    except KeyError:                    # BF Runtime: the loaded build has no outcomes register
-        return tuple((sw.get('$PORT_STAT', 0xffff, [('$DEV_PORT', port, None)]) or {}).get('$FramesTransmittedAll')
-                     for port in SETTLE_PORTS)
+def settle_ports(manifest):
+    """Use only installed T loopbacks for no-J; historical manifests keep their settled port set."""
+    if manifest.get('timing_contract') != 'response_ready_ack_d_no_j_v3':
+        return SETTLE_PORTS
+    return tuple(sorted({value for op in manifest['installed'] if op['kind'] == 'loopback'
+                         and op.get('label', '').split(' ', 1)[0] in ('t_in', 'held_return')
+                         for name, value, _mask in op.get('key', []) if name == '$DEV_PORT'}))
 
 
-def settle(sw, quiet, timeout):
-    """True once both counters are unchanged for `quiet` seconds."""
-    start, last, since = time.time(), off_counts(sw), time.time()
+def off_counts(sw, ports=SETTLE_PORTS, timing_contract=None):
+    if timing_contract != 'response_ready_ack_d_no_j_v3':
+        try:
+            return tuple(sum(sw.register('p1.t_Ingress.outcomes', 0xffff, i)) for i in (OFF_FLUSH, TOKEN_OFF))
+        except KeyError:                # BF Runtime: the loaded build has no outcomes register
+            pass
+    return tuple((sw.get('$PORT_STAT', 0xffff, [('$DEV_PORT', port, None)]) or {}).get('$FramesTransmittedAll')
+                 for port in ports)
+
+
+def settle(sw, quiet, timeout, ports=SETTLE_PORTS, timing_contract=None):
+    """True once the selected counters are unchanged for `quiet` seconds."""
+    start, last, since = time.time(), off_counts(sw, ports, timing_contract), time.time()
     while time.time() - start < timeout:
         time.sleep(0.2)
-        now = off_counts(sw)
+        now = off_counts(sw, ports, timing_contract)
         if now != last:
             last, since = now, time.time()
         elif time.time() - since >= quiet and None not in now:     # an unreadable counter never settles
@@ -170,7 +181,8 @@ def main(argv=None):
     try:
         for i, op in enumerate(order):
             if i == n_pre:                  # generator off and T off are written; now wait for the flush
-                if failed or not settle(sw, a.quiet, a.settle_timeout):
+                if failed or not settle(sw, a.quiet, a.settle_timeout, ports=settle_ports(m),
+                                        timing_contract=m.get('timing_contract')):
                     print('STOPPED before deleting any row: %s' % (failed or 'T did not settle'))
                     return 2
             try:

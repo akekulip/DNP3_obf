@@ -41,6 +41,7 @@ def probe3_decision(monkeypatch, inputs, milestone):
     calls, cases = [], []
     namespace.update(milestone=resolved,
                      report=SimpleNamespace(add=lambda *args, **kwargs: cases.append(args)),
+                     check=lambda *args, **kwargs: cases.append(args),
                      read=lambda tag: calls.append(tag) or True,
                      seqs=SimpleNamespace(request=lambda *args: (b'read', 0), next_app=lambda: None),
                      vectors=SimpleNamespace(packet=lambda *args, **kwargs: b'read'),

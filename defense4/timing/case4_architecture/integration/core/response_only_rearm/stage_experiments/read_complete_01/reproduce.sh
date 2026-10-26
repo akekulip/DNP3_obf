@@ -43,8 +43,13 @@ RELAY_READ=0
 EVIDENCE_TIER="historical software endpoint profile (offline only)"
 BUILD_SUFFIX="$CANDIDATE"
 case "$CANDIDATE" in
+  c69) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing --strip-telemetry --strip-operate-hold"
+       TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c69_sdk9132
+       SOURCE_SHA=5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59
+       EVIDENCE_TIER="offline compile/model candidate; no OPERATE request hold; hardware not evaluated" ;;
   c68) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing --strip-telemetry"
        TWO_READ=1; RELAY_READ=1; BUILD_SUFFIX=c68_sdk9132
+       GEN_PIN=51f9c9d18; GATE_PIN=51f9c9d18; FREEZE_PIN=51f9c9d18
        SOURCE_SHA=825b7e6da3c24dd1705d43f1d921dbd2184a99fe47f75f4de1d2d372e160b289
        EVIDENCE_TIER="SEL-751 candidate without switch telemetry; visible CLRT is reported data" ;;
   c67) GEN_ARGS="--policy --c3 cimg --shapes passthrough --two-read --reduce --ack-retry --read-handshake --headroom --relay --relay-sbo --relay-ts --response-ready-timing"
@@ -94,7 +99,7 @@ case "$CANDIDATE" in
        SOURCE_SHA=1e94c31d80e6708ab31ca117f066d15f5ec23244fc6f7bf7b9ca68dc81a2a27b ;;
   b08) GEN_ARGS="--policy"
        SOURCE_SHA=7b1281bc4aa73950b33088adc9d9ae5bbd827422ec702c71d1d3b791f352214f ;;
-  *) echo "unknown CANDIDATE $CANDIDATE (c68 | c67 | c62 | c60 | c52 | c51 | c50 | c49 | c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
+  *) echo "unknown CANDIDATE $CANDIDATE (c69 | c68 | c67 | c62 | c60 | c52 | c51 | c50 | c49 | c48 | c30 | c26 | c25 | c24 | c12 | c20 | b08)"; exit 2 ;;
 esac
 BUILD="$STAGE/ctl_timing_01/evidence/m12p_$BUILD_SUFFIX"
 FREEZE="$BUILD/freeze_v3.json"
@@ -111,6 +116,10 @@ EOF
 fi
 if [ $# -gt 0 ] && [ "$1" != --readout ]; then
   echo "unknown argument $1 (use --candidate-info or --readout BLOCK_DIR CONFIG [ARMS])" >&2
+  exit 2
+fi
+if [ "$CANDIDATE" = c69 ] && [ $# -gt 0 ]; then
+  echo "c69 is offline-only; no hardware readout is defined" >&2
   exit 2
 fi
 if [ "$CANDIDATE" = c68 ] && [ ! -f "$FREEZE" ]; then
@@ -173,7 +182,7 @@ python3 "$GEN_STAGE/m12_fullsize/make_m12.py" "$SCRATCH/m12p" $GEN_ARGS >/dev/nu
 got="$(sha256sum "$SCRATCH/m12p/response_only.p4" | cut -d' ' -f1)"
 [ "$got" = "$SOURCE_SHA" ] || { echo "regenerated source $got != $SOURCE_SHA"; exit 1; }
 echo "source $got"
-if [ "$CANDIDATE" = c48 ] || [ "$CANDIDATE" = c49 ] || [ "$CANDIDATE" = c50 ] || [ "$CANDIDATE" = c51 ] || [ "$CANDIDATE" = c52 ] || [ "$CANDIDATE" = c60 ] || [ "$CANDIDATE" = c62 ] || [ "$CANDIDATE" = c67 ] || [ "$CANDIDATE" = c68 ]; then
+if [ "$CANDIDATE" = c48 ] || [ "$CANDIDATE" = c49 ] || [ "$CANDIDATE" = c50 ] || [ "$CANDIDATE" = c51 ] || [ "$CANDIDATE" = c52 ] || [ "$CANDIDATE" = c60 ] || [ "$CANDIDATE" = c62 ] || [ "$CANDIDATE" = c67 ] || [ "$CANDIDATE" = c68 ] || [ "$CANDIDATE" = c69 ]; then
   step "4b. integrated relay generator, checksum, admission and boundary regressions"
   (cd "$STAGE/m12_fullsize" && "$PY312" -m pytest -q tests)
   python3 "$STAGE/m12_fullsize/check_generator_identity.py"
@@ -245,6 +254,23 @@ else
   (cd "$STAGE/ctl_timing_01" && python3 model_summary.py "evidence/m12p_$BUILD_SUFFIX" --v3 --enforce | tail -1)
 fi
 
+if [ "$CANDIDATE" = c69 ]; then
+  step "6. offline compiler bundle: verify retained source, compiler, resources and artifact bytes"
+  python3 - "$STAGE/../../../../build.py" "$BUILD/compile_local" <<'EOF'
+import importlib.util, json, pathlib, sys
+path = pathlib.Path(sys.argv[1]).resolve()
+spec = importlib.util.spec_from_file_location('candidate_build_verify', path)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+result = module.verify_evidence(sys.argv[2], source_root=pathlib.Path(sys.argv[2]).parent)
+print(json.dumps(result, sort_keys=True))
+if not result['compiled_artifacts_verified']:
+    raise SystemExit('offline compiler bundle verification failed')
+EOF
+  echo "reproduce.sh: c69 offline compile/model checks passed; hardware and physical-event fingerprint protection not evaluated"
+  exit 0
+fi
+
 step "6. freeze: every block config belongs to the frozen candidate"
 F_HERE="$HERE"; F_HW="$HW"; F_BUILD="$BUILD"; F_FREEZE="$FREEZE"
 if [ -n "$FREEZE_PIN" ]; then
@@ -253,6 +279,7 @@ if [ -n "$FREEZE_PIN" ]; then
   fi
   F_HERE="$SCRATCH/fpin/${HERE#$REPO/}"; F_HW="$SCRATCH/fpin/${HW#$REPO/}"; F_BUILD="$SCRATCH/fpin/${BUILD#$REPO/}"
   F_FREEZE="$F_BUILD/freeze_v3.json"
+  if [ "$CANDIDATE" = c68 ]; then F_FREEZE="$F_BUILD/freeze_v3_04.json"; fi
   echo "checking the measured baseline's freeze at $FREEZE_PIN (detached worktree, removed on exit)"
 fi
 if [ -f "$F_FREEZE" ] && ls "$F_HERE"/hw/config/rc01_m12p_${CANDIDATE}_*.json >/dev/null 2>&1; then

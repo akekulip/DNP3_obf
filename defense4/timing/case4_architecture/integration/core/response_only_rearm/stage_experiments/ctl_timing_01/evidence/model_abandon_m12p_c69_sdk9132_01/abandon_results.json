@@ -1,0 +1,348 @@
+{
+ "cases": [
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200000006400000000a002100029c10000020405b40402080a000f42400000000001030307"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200000006400000000a002100029c10000020405b40402080a000f42400000000001030307",
+   "work": {
+    "action_name": null,
+    "generation": [
+     1
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e8120000038400000065b0121000aacc0000020405b401030300010104020101080a000f6951000f4240"
+    ]
+   },
+   "want": "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e8120000038400000065b0121000aacc0000020405b401030300010104020101080a000f6951000f4240",
+   "work": {
+    "action_name": null,
+    "generation": [
+     2
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e20000000650000038580101000eb9500000101080a000f4242000f6951"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e20000000650000038580101000eb9500000101080a000f4242000f6951",
+   "work": {
+    "action_name": null,
+    "generation": [
+     3
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500004d000140004006a551c0a80a01c0a80a07e8124e20000000650000038580181000bbc200000101080a000f4243000f6951056412c400000100d0bbc0c001010200000f1e01000007fb5c"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc008004500004d000140004006a551c0a80a01c0a80a07e8124e20000000650000038580181000bbc200000101080a000f4243000f6951056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+   "work": {
+    "action_name": null,
+    "generation": [
+     4
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "READ_server_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000034000140004006a56ac0a80a07c0a80a014e20e812000003850000007e80101000eb7800000101080a000f6954000f4243"
+    ]
+   },
+   "want": "3cfdfecc5dc00030a7024ca2080045000034000140004006a56ac0a80a07c0a80a014e20e812000003850000007e80101000eb7800000101080a000f6954000f4243",
+   "work": {
+    "action_name": null,
+    "generation": [
+     5
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "READ_response_61",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca20800450000c1000140004006a4ddc0a80a07c0a80a014e20e812000003850000007e80181000b88400000101080a000f6955000f42430564274401000000c8c240c08180000102010004190400000000427b00000000000000000000000000000000ffff0000ffff05644c4401000000bb948100000000010200000f810101010101db29010101010101010101011e0100000701e70802000000010900000001020000000105431700000001080000000105000000010e00684b0000013c000000ed51"
+    ]
+   },
+   "want": "3cfdfecc5dc00030a7024ca20800450000c1000140004006a4ddc0a80a07c0a80a014e20e812000003850000007e80181000b88400000101080a000f6955000f42430564274401000000c8c240c08180000102010004190400000000427b00000000000000000000000000000000ffff0000ffff05644c4401000000bb948100000000010200000f810101010101db29010101010101010101011e0100000701e70802000000010900000001020000000105431700000001080000000105000000010e00684b0000013c000000ed51",
+   "work": {
+    "action_name": null,
+    "generation": [
+     6
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000061000140004006a53dc0a80a01c0a80a07e8124e200000007e000003e080181000bd4000000101080a000f4246000f6955056424c4000001004a59c1c1030c011702010101c800000000007020000000030101c8000000000000000015ee"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc0080045000061000140004006a53dc0a80a01c0a80a07e8124e200000007e000003e080181000bd4000000101080a000f4246000f6955056424c4000001004a59c1c1030c011702010101c800000000007020000000030101c8000000000000000015ee",
+   "work": {
+    "action_name": null,
+    "generation": [
+     7
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "SELECT_response_61",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000070000140004006a52ec0a80a07c0a80a014e20e81200000412000000ab801810006de600000101080a000f6957000f424605641544010000003c6d41c18100000c011702010101c800000093fd05641744010000008b4b820000000000030101c8000000000000d1d60000ffff"
+    ]
+   },
+   "want": "3cfdfecc5dc00030a7024ca2080045000070000140004006a52ec0a80a07c0a80a014e20e81200000412000000ab801810006de600000101080a000f6957000f424605641544010000003c6d41c18100000c011702010101c800000093fd05641744010000008b4b820000000000030101c8000000000000d1d60000ffff",
+   "work": {
+    "action_name": null,
+    "generation": [
+     8
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "READ_after_SELECT_cancels_selection_forwarded",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500004d000140004006a551c0a80a01c0a80a07e8124e20000000ab00000411801810009fa400000101080a000f4248000f6957056412c400000100d0bbc2c201010200000f1e010000073a76"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc008004500004d000140004006a551c0a80a01c0a80a07e8124e20000000ab00000411801810009fa400000101080a000f4248000f6957056412c400000100d0bbc2c201010200000f1e010000073a76",
+   "work": {
+    "action_name": null,
+    "generation": [
+     9
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "RST_after_abandoned_SELECT_forwarded",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e20000000c40000041180141000ea9900000101080a000f4249000f6957"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e20000000c40000041180141000ea9900000101080a000f4249000f6957",
+   "work": {
+    "action_name": null,
+    "generation": [
+     9
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "new_SYN_after_abandoned_SELECT_admitted",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200000138800000000a002100016930000020405b40402080a000f424a0000000001030307"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200000138800000000a002100016930000020405b40402080a000f424a0000000001030307",
+   "work": {
+    "action_name": null,
+    "generation": [
+     10
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "expected": true,
+   "name": "characterized",
+   "observed": true,
+   "ok": true
+  }
+ ],
+ "meta": {
+  "driver_sha256": "38343c46f6a356a7defb04cf83617801d555fb554b6734407e113d8c3deaf368",
+  "endpoint_profile": {
+   "alternate_tcp_port_fixture": "Unconfigured-connection probes use master source port 59411",
+   "dnp_master": 1,
+   "dnp_relay": 0,
+   "master_dev": 9,
+   "master_ip": "192.168.10.1",
+   "master_mac": "3c:fd:fe:cc:5d:c0",
+   "master_tcp_port": 59410,
+   "master_window_scale": 7,
+   "name": "sel751",
+   "relay_dev": 64,
+   "relay_ip": "192.168.10.7",
+   "relay_mac": "00:30:a7:02:4c:a2",
+   "relay_tcp_port": 20000,
+   "relay_window_scale": 0,
+   "syn_tcp_header_octets": 40,
+   "synack_tcp_header_octets": 44,
+   "tcp_header_octets": 32,
+   "tcp_profile": "sel751_ts",
+   "timestamp_policy": "monotonic logical steps; exact options retained across seq/ack mapping"
+  },
+  "physical": false,
+  "read_after_select": [
+   {
+    "attempt": 0,
+    "forwarded": true,
+    "waited_s": 0,
+    "work": {
+     "action_name": null,
+     "generation": [
+      9
+     ],
+     "is_default_entry": false,
+     "phase": [
+      4
+     ]
+    }
+   }
+  ],
+  "recovery": {
+   "new_syn_forwarded": true,
+   "rst_forwarded": true,
+   "work": {
+    "action_name": null,
+    "generation": [
+     10
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  "scope": "E61 compiled: SELECT not followed by OPERATE (abandoned select), T enabled=0; what N drops, whether it clears with time, RST or a new connection",
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "work_after_select": {
+   "action_name": null,
+   "generation": [
+    8
+   ],
+   "is_default_entry": false,
+   "phase": [
+    4
+   ]
+  }
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [],
+  "passed": 12,
+  "total": 12
+ }
+}

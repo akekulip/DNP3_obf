@@ -18,6 +18,8 @@ import build_ports  # noqa: E402
 import readback  # noqa: E402
 import t_config as tc  # noqa: E402
 
+TIMING_CONTRACT = None  # source-bound candidate entrypoint selects the active resource ABI
+
 T_OUTCOMES = ('OUT_UNMATCHED', 'OUT_HELD_REWAIT', 'OUT_ACK_COMMIT', 'OUT_RESP_RELEASE', 'OUT_RESP_DUP_DROP',
               'OUT_OP_RELEASE', 'OUT_TOKEN_STALE', 'OUT_HELD_STALE_FLUSH', 'OUT_ACK_FALLBACK', 'OUT_RESP_FALLBACK',
               'OUT_TOKEN_TMO', 'OUT_HELD_OFF_FLUSH', 'OUT_TOKEN_OFF', 'OUT_REQ_BYPASS')   # t_OUT_* constants 0..13
@@ -76,7 +78,7 @@ def main(argv=None):
     if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':      # read-only, but it binds a BF Runtime client
         print('REFUSED: needs DEFENSE4_HW_AUTHORIZED=1')
         return 3
-    ports, errs = build_ports.read(a.build_out)
+    ports, errs = build_ports.read(a.build_out, timing_contract=TIMING_CONTRACT)
     if errs:
         print('REFUSED: %s' % errs)
         return 1
@@ -85,7 +87,13 @@ def main(argv=None):
     try:
         snap = dict(time=time.time(), outcomes={}, diag=dict(rewait={}, blocker_laps={}), ports={})
 
+        tables = None
+        if TIMING_CONTRACT == tc.RESPONSE_READY_NO_J_CONTRACT:
+            tables = {table['name'] for table in json.loads((Path(a.build_out) / 'bfrt.json').read_text())['tables']}
+
         def read_outcome(i):
+            if tables is not None and 'p1.t_Ingress.outcomes' not in tables:
+                return None
             try:
                 return sum(sw.register('p1.t_Ingress.outcomes', tc.ALL_PIPES, i))
             except Exception:
@@ -97,7 +105,7 @@ def main(argv=None):
         snap['diag'] = read_diagnostics(read_outcome, snap['outcomes'], diagnostic_build(a.build_out))
         requested = {r: getattr(a, 'shape_' + r) for r in ('ack', 'resp', 'op')}
         requested_block = {r: getattr(a, 'block_' + r) for r in ('ack', 'resp', 'op')}
-        snap.update(readback.snapshot(sw, ports, requested, requested_block))
+        snap.update(readback.snapshot(sw, ports, requested, requested_block, timing_contract=TIMING_CONTRACT))
         for p in [int(x) for x in a.ports.split(',')]:
             snap['ports'][p] = sw.get('$PORT_STAT', tc.ALL_PIPES, [('$DEV_PORT', p, None)])
         Path(a.output).write_text(json.dumps(snap, indent=1, default=str) + '\n')

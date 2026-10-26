@@ -9,13 +9,44 @@ import hashlib
 import json
 import os
 import sys
-import time
 import traceback
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / 'seg61_02'))
 import model_packets as mp
+import model_log_view as view
+
+
+def busy_fin_race(m, ports, relay_port, peer_ack, peer_fin, timeout=3):
+    """Observe this pair's FIN retry and actual busy work, then release without counter waits.
+
+    A full snapshot's eight log-derived counter reads can consume the finite retry budget.
+    Keep the exact executed FIN action and one real BFRT work read as the pre-unlock proof.
+    """
+    log = view.log_path()
+    if log is None:
+        raise ValueError('expected one model log for the busy FIN observation')
+    work_name = 'p0.n_Ingress.work.work'
+    generation = 'n_Ingress.work.work.generation'
+    phase = 'n_Ingress.work.work.phase'
+    seed = 0x7ffffffe
+    m.register_write(work_name, 0, {generation: seed, phase: 1}, pipe=0)
+    try:
+        m.drain(ports)
+        offset = view.size(log)
+        m.send(relay_port, peer_ack)
+        m.send(relay_port, peer_fin)
+        action, waited, end = view.wait_for(
+            log, offset, r':<0,0,\d+>:Execute (?:Default )?Action: n_Ingress\.busy_retry_rst\s*$',
+            timeout=timeout)
+        work = m.register_read(work_name, 0, pipe=0) if action is not None else None
+    finally:
+        m.register_write(work_name, 0, {generation: seed, phase: 4}, pipe=0)
+    return dict(model_log=log.name, log_start=offset, retry_action=action,
+                retry_log_end=end, wait_seconds=waited, **{'work.work': work},
+                qualified=(action is not None and isinstance(work, dict)
+                           and work.get(generation) == [seed] and work.get(phase) == [1]))
 
 
 def main():
@@ -59,27 +90,15 @@ def main():
             point['after_master_half_close'] = half
             # The physical trace's next pair is the relay's pure ACK followed by its FIN.
             # Keep the work cell occupied until the FIN has taken the actual retry path.
-            m.register_write('p0.n_Ingress.work.work', 0,
-                             {'n_Ingress.work.work.generation': 0x7ffffffe, 'n_Ingress.work.work.phase': 1}, pipe=0)
-            m.drain(gate.ports)
             peer_ack = v.packet(16, s, c + 1, reverse=True)
             peer = v.packet(17, s, c + 1, reverse=True)
-            m.send(gate.relay.dev_port, peer_ack)
-            m.send(gate.relay.dev_port, peer)
-            anchor, deadline = None, time.monotonic() + 3
-            while time.monotonic() < deadline:
-                current = snapshot()
-                if current['busy'][2] > half['busy'][2]:
-                    anchor = current
-                    break
+            anchor = busy_fin_race(m, gate.ports, gate.relay.dev_port, peer_ack, peer)
             point['busy_anchor_before_unlock'] = anchor
-            m.register_write('p0.n_Ingress.work.work', 0,
-                             {'n_Ingress.work.work.generation': 0x7ffffffe, 'n_Ingress.work.work.phase': 4}, pipe=0)
             got = m.capture(gate.ports, timeout=3, quiet=.3)
             after = snapshot()
             point['after_race'] = after
             point['received'] = {str(p): [f.hex() for f in fs] for p, fs in got.items()}
-            report.add('busy_retry_rst_anchor_before_unlock', True, anchor is not None)
+            report.add('busy_retry_rst_anchor_before_unlock', True, anchor['qualified'])
             report.add('half_close_keeps_current_retry_epoch', h.scalar(half['epoch']), h.scalar(half['retry_epoch']))
             report.add('same_epoch_retry_not_stale', 0, after['busy'][4] - half['busy'][4])
             report.add('retry_not_exhausted', 0, after['busy'][3] - half['busy'][3])

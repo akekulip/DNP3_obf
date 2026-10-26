@@ -36,7 +36,9 @@ PB = int(os.environ.get('CTL_PB', '300000000'))
 def main():
     from model_profile import from_env
     profile = from_env()
-    ready = profile.get('timing_contract') == 'response_ready_ack_d_v2'
+    no_j = profile.get('timing_contract') == 'response_ready_ack_d_no_j_v3'
+    generation_register = 'gen_alloc_reg' if no_j else 'op_gen_alloc_reg'
+    ready = profile.get('timing_contract') in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3')
     if ready:
         import model_log_view as view
         log_path = view.log_path()
@@ -196,13 +198,23 @@ def main():
             respond(tag, 'OPERATE', request(tag, 'OPERATE', 4, crob(on_ms)), control_body(on_ms), False)
 
         def counted(tag, timed, body, lane, releases):
-            """Run body; when timed, assert its lane generations and OPERATE releases exactly."""
+            """Count successful exchanges against the explicitly selected timing contract."""
             begin_case(tag)
-            lane0, rel0 = t_reg('gen_alloc_reg'), outcome(5)
+            lane0 = t_reg('gen_alloc_reg')
+            if no_j:
+                ack0, response0, operate0 = outcome(2), outcome(3), counts['OPERATE']
+            else:
+                rel0 = outcome(5)
             body()
             if timed:
                 check('%s_lane_generations' % tag, lane, t_reg('gen_alloc_reg') - lane0)
-                check('%s_OPERATE_releases' % tag, releases, outcome(5) - rel0)
+                if no_j:
+                    # respond() advances counts only after exact relay delivery and genuine ACK/full D proof.
+                    check('%s_ACK_commits' % tag, lane, outcome(2) - ack0)
+                    check('%s_response_releases' % tag, lane, outcome(3) - response0)
+                    check('%s_completed_OPERATE_exchanges' % tag, releases, counts['OPERATE'] - operate0)
+                else:
+                    check('%s_OPERATE_releases' % tag, releases, outcome(5) - rel0)
 
         for phase, timed, (client, server) in (('untimed', 0, (100, 900)), ('timed', 1, (20000, 30000))):
             begin_case('%s_connect' % phase)
@@ -244,7 +256,7 @@ def main():
             begin_case('%s_replaced_authority' % phase)
             old_app = select('%s_old_sel_A' % phase, 106)
             select('%s_old_sel_B' % phase, 107)
-            op_gen0, rel0 = t_reg('op_gen_alloc_reg'), outcome(5)
+            op_gen0, rel0 = t_reg(generation_register), outcome(5)
             frame, _app = state['seqs'].request(4, crob(106))
             if rep.rp.SEL751:
                 head, user = rep.rp._std().deframe(frame)
@@ -256,7 +268,7 @@ def main():
             check('%s_replaced_selection_OPERATE_dropped' % phase, 0, sum(len(v) for v in got.values()),
                        received=got)
             check('%s_replaced_selection_OPERATE_no_release' % phase, rel0, outcome(5))
-            check('%s_replaced_selection_OPERATE_no_generation' % phase, op_gen0, t_reg('op_gen_alloc_reg'))
+            check('%s_replaced_selection_OPERATE_no_generation' % phase, op_gen0, t_reg(generation_register))
             if rep.rp.SEL751:
                 frame, _app = state['seqs'].request(4, crob(107))
                 head, user = rep.rp._std().deframe(frame)
@@ -268,7 +280,7 @@ def main():
                                                                  payload=frame), ports, timeout=3, quiet=.15)
                 check('%s_out_of_profile_second_CROB_OPERATE_dropped' % phase, 0,
                            sum(len(v) for v in got.values()), received=got)
-                check('%s_out_of_profile_OPERATE_no_generation' % phase, op_gen0, t_reg('op_gen_alloc_reg'))
+                check('%s_out_of_profile_OPERATE_no_generation' % phase, op_gen0, t_reg(generation_register))
                 check('%s_out_of_profile_OPERATE_no_release' % phase, rel0, outcome(5))
                 report.record['meta']['replacement_contract'] = (
                     'fixed guarded command; replacement changes application/TCP identity; stale application refused; '
@@ -281,13 +293,13 @@ def main():
             begin_case('%s_stale_authority' % phase)
             select('%s_stale' % phase, 105)
             read('%s_stale_cancel' % phase)
-            op_gen0, rel0 = t_reg('op_gen_alloc_reg'), outcome(5)
+            op_gen0, rel0 = t_reg(generation_register), outcome(5)
             frame, _app = state['seqs'].request(4, crob(105))
             got = m.exchange(MASTER.dev_port, vectors.packet(24, state['c'], state['s'] + state['growth'],
                                                              payload=frame), ports, timeout=3, quiet=.15)
             check('%s_stale_OPERATE_dropped' % phase, 0, sum(len(v) for v in got.values()), received=got)
             check('%s_stale_OPERATE_no_release' % phase, rel0, outcome(5))
-            check('%s_stale_OPERATE_no_generation' % phase, op_gen0, t_reg('op_gen_alloc_reg'))
+            check('%s_stale_OPERATE_no_generation' % phase, op_gen0, t_reg(generation_register))
             step('%s_RST' % phase, vectors.packet(20, state['c'], state['s'] + state['growth']),
                  vectors.packet(20, state['c'], state['s']))
         begin_case('after_reconnect')

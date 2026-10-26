@@ -185,9 +185,11 @@ def main():
         if milestone in ('m4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm9d', 'm10'):
             meta['planned_counts']['READ'] += 1
         ready = False
+        no_j = False
         if milestone is not None:
             profile = load('_repeat_model_profile', HERE / 'stage_experiments/ctl_timing_01/model_profile.py').from_env()
-            ready = profile.get('timing_contract') == 'response_ready_ack_d_v2'
+            no_j = profile.get('timing_contract') == 'response_ready_ack_d_no_j_v3'
+            ready = profile.get('timing_contract') in ('response_ready_ack_d_v2', 'response_ready_ack_d_no_j_v3')
             report.record['meta']['timing_contract'] = profile.get('timing_contract')
         if ready:
             sys.path.insert(0, str(HERE / 'stage_experiments/ctl_timing_01'))
@@ -223,6 +225,8 @@ def main():
                       gap=50_000_000, op_j=200_000_000, budget=240_000, enabled=0)
         if ready:
             params = dict(gap=5_000_000, op_j=2_400_000, budget=240_000, enabled=0)
+        if no_j:
+            params.pop('op_j', None)
         m.set_default('p1.t_Ingress.params', 't_Ingress.set_params', params)
         mirror = m.table('$mirror.cfg', raw=True)
         mirror.entry_add(gc.Target(device_id=0, pipe_id=0xffff),
@@ -235,6 +239,8 @@ def main():
         def snapshot():
             names = {'N': ('owner', 'epoch'), 'E': ('front', 'acct', 'img_end', 'img_start', 'img_wend'),
                      'T': ('gen_alloc_reg', 'op_gen_alloc_reg', 'op_done_reg')}
+            if no_j:
+                names['T'] = ('gen_alloc_reg', 'ack_done_reg', 'resp_done_reg')
             prefix = {'N': 'p0.n_Ingress.', 'E': 'p0.r_Egress.', 'T': 'p1.t_Ingress.'}
             return {role: {n: scalar(m.register_read(prefix[role] + n, 0, pipe=1 if role == 'T' else 0))
                            for n in ns} for role, ns in names.items()}
@@ -366,11 +372,13 @@ def main():
             begin_case('phaseB_cycle_%02d' % cycle)
             tag = 't%02d' % cycle
             sbo(tag, 200 + cycle)
-            check('%s_one_OPERATE_release' % tag, releases + cycle + 1, outcome(5))
+            if not no_j:
+                check('%s_one_OPERATE_release' % tag, releases + cycle + 1, outcome(5))
             read(tag)
         begin_case('phaseB_summary')
         master_ack('phaseB_end')
-        check('phaseB_releases', releases + timed_cycles, outcome(5))
+        if not no_j:
+            check('phaseB_releases', releases + timed_cycles, outcome(5))
 
         # Authority probes with T enabled. Each ends its connection: a dropped OPERATE leaves its TCP sequence
         # slot outstanding, so the connection is retired (qualified RST) and a fresh one is opened.
@@ -382,8 +390,8 @@ def main():
                              timeout=3, quiet=.15)
             check('%s_OPERATE_dropped' % tag, 0, sum(len(v) for v in got.values()), received=got)
             check('%s_no_OPERATE_release' % tag, before_release, outcome(5))
-            check('%s_no_OPERATE_generation' % tag, before_state['T']['op_gen_alloc_reg'],
-                       snapshot()['T']['op_gen_alloc_reg'])
+            check('%s_no_OPERATE_generation' % tag, before_state['T']['gen_alloc_reg' if no_j else 'op_gen_alloc_reg'],
+                       snapshot()['T']['gen_alloc_reg' if no_j else 'op_gen_alloc_reg'])
 
         def reconnect(tag, client, server):
             nonlocal c, s, growth, seqs

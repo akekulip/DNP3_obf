@@ -34,6 +34,8 @@ def oneline(e):
 
 # p1/response_only.bfa is the file the mirror guard reads; requiring its hash binds the guarded file to the
 # binaries being loaded (a .bfa copied from another build would otherwise be guarded in their place).
+TIMING_CONTRACT = None  # candidate entrypoint sets this only after source/artifact profile validation
+
 REQUIRED_EXPECT = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa')
 
 
@@ -80,6 +82,7 @@ def parse(argv):
     ap.add_argument('--apply', action='store_true')
     argv = list(sys.argv[1:] if argv is None else argv)
     a = ap.parse_args(argv)
+    a.timing_contract = TIMING_CONTRACT
     a.explicit_t_params = {x.split('=')[0] for x in argv if x.startswith('--t-')}
     if a.master_dev == a.relay_dev and not (a.master_ip and a.relay_ip):
         ap.error('endpoints sharing dev_port %d are told apart by address: give --master-ip and --relay-ip' % a.master_dev)
@@ -128,12 +131,12 @@ def mirror_guard(a):
 
 def build_ports_for(a):
     """(ports read from the build, errors): the build must be composed for --master-dev / --relay-dev."""
-    ports, errs = build_ports.read(a.build_out)
+    ports, errs = build_ports.read(a.build_out, timing_contract=a.timing_contract)
     if not errs:
-        errs = build_ports.check_endpoints(ports, a.master_dev, a.relay_dev)
+        errs = build_ports.check_endpoints(ports, a.master_dev, a.relay_dev, timing_contract=a.timing_contract)
     print('PORTS FROM THE BUILD (response_only.p4pp): %s' % (
         ', '.join('%s=%s' % (k, ports[k]) for k in sorted(ports)) or 'unreadable'))
-    loops = build_ports.loopback_ports(ports) if not errs else {}
+    loops = build_ports.loopback_ports(ports, timing_contract=a.timing_contract) if not errs else {}
     print('    front-panel ports this bring-up puts in MAC loopback: %s' % (
         ', '.join('%s=%d' % kv for kv in sorted(loops.items(), key=lambda kv: kv[1])) or 'none'))
     return ports, errs
@@ -141,14 +144,18 @@ def build_ports_for(a):
 
 def params(a):
     text = (Path(a.build_out) / 'response_only.p4pp').read_text()
-    contract = tc.timing_contract_of_source(text)
-    if contract == tc.RESPONSE_READY_CONTRACT:
+    contract = tc.timing_contract_of_source(text, timing_contract=getattr(a, "timing_contract", None))
+    a.timing_contract = contract
+    if contract in (tc.RESPONSE_READY_CONTRACT, tc.RESPONSE_READY_NO_J_CONTRACT):
         obsolete = getattr(a, 'explicit_t_params', set()) & {'--t-da', '--t-readiness', '--t-cap', '--t-pb'}
+        if contract == tc.RESPONSE_READY_NO_J_CONTRACT:
+            obsolete |= getattr(a, 'explicit_t_params', set()) & {'--t-op-j'}
         if obsolete:
             raise ValueError('obsolete parameters for response-ready contract: %s' % sorted(obsolete))
         return {key: (getattr(a, 't_' + key, None) if '--t-' + key.replace('_', '-') in
                       getattr(a, 'explicit_t_params', set()) else value)
-                for key, value in tc.RESPONSE_READY_DEFAULTS.items()}
+                for key, value in (tc.RESPONSE_READY_NO_J_DEFAULTS if contract == tc.RESPONSE_READY_NO_J_CONTRACT
+                                   else tc.RESPONSE_READY_DEFAULTS).items()}
     values = {k: getattr(a, 't_' + k) for k in tc.T_PARAM_DEFAULTS}
     if getattr(a, 't_pb', None) is not None:
         values['pb'] = a.t_pb
@@ -161,7 +168,7 @@ def dataplane_params_op(a):
     tc.t_units converts, rounding up. ns, units and time base are kept on the op, so the manifest records all three."""
     values_ns = params(a)
     t_time = tc.t_time_of_source((Path(a.build_out) / 'response_only.p4pp').read_text())
-    op = tc.params_op(tc.t_units(values_ns, **t_time))
+    op = tc.params_op(tc.t_units(values_ns, **t_time), timing_contract=a.timing_contract)
     op.update(values_ns=values_ns, t_time=t_time)
     return op
 
@@ -170,6 +177,7 @@ def plan(a, ports):
     """Write order: loopback of the build's front-panel looping ports, then T-side state, E, and N last with
     its connection rows at the very end, so no master packet is bound by N before everything it hands to T
     and E is in place."""
+    params(a)  # validate and select the compiled ABI before choosing resources
     master, relay = rows.endpoints(a.master_ip, a.master_port, a.master_dev, a.relay_ip, a.relay_port, a.relay_dev)
     decoy = {k: getattr(a, 'crob_' + k) for k in rows.VECTOR_DECOY}
     ne = rows.build(master, relay, decoy, ports, a.read_dst, a.read_src, pad_enable=a.pad_enable)
@@ -178,7 +186,9 @@ def plan(a, ports):
     n_rest = [r for r in ne if r['table'].startswith('p0.n_') and r not in n_conn]
     shape = {r: getattr(a, 'shape_' + r) for r in ('ack', 'resp', 'op')}
     block = {r: getattr(a, 'block_' + r) for r in ('ack', 'resp', 'op')}
-    return (tc.loopback_ops(ports) + tc.queue_ops(ports, shape, block, a.block_burst) + tc.pktgen_ops(a.k, ports)
+    return (tc.loopback_ops(ports, timing_contract=a.timing_contract)
+            + tc.queue_ops(ports, shape, block, a.block_burst, timing_contract=a.timing_contract)
+            + tc.pktgen_ops(a.k, ports, timing_contract=a.timing_contract)
             + [tc.mirror_op(ports), dataplane_params_op(a)] + e_rows + n_rest + n_conn)
 
 
@@ -194,7 +204,7 @@ def show(op):
 
 def offline(ops, a, ports):
     tables = check_names.load(Path(a.build_out) / 'bfrt.json', a.fixed_schema_dir)
-    errs = check_names.check(ops + tc.enable_ops(ports), tables)
+    errs = check_names.check(ops + tc.enable_ops(ports, timing_contract=a.timing_contract), tables)
     errs += check_names.check_registers(['p1.t_Ingress.' + r for r in readback.T_REGISTER_INIT], tables)
     errs += check_names.check_reads(tables)
     return errs
@@ -289,8 +299,10 @@ def apply(ops, a, ports):
     done, manifest = [], Path(a.manifest_out)
 
     def record():
-        manifest.write_text(json.dumps(dict(program=a.program, time=time.time(), installed=done), indent=1,
-                                       default=encode) + '\n')
+        data = dict(program=a.program, time=time.time(), installed=done)
+        if getattr(a, 'timing_contract', None) is not None:
+            data['timing_contract'] = a.timing_contract
+        manifest.write_text(json.dumps(data, indent=1, default=encode) + '\n')
 
     def stop(what):
         if done:                    # nothing written -> no manifest: an empty one would hide an earlier install
@@ -340,7 +352,7 @@ def apply(ops, a, ports):
             step(op)
         if a.enable_pktgen:
             apps = {o['label']: o for o in ops if o['kind'] == 'pktgen_app'}
-            for op in tc.enable_ops(ports):
+            for op in tc.enable_ops(ports, timing_contract=a.timing_contract):
                 step(op, readback.enabled_app_op(apps[op['label']]))   # re-verify the whole app, not just the flag
         try:
             bad = readback.register_errors(readback.registers(sw))
@@ -355,7 +367,7 @@ def apply(ops, a, ports):
                                                                  'ENABLED' if a.enable_pktgen else 'written DISABLED'))
         shape = {r: getattr(a, 'shape_' + r) for r in ('ack', 'resp', 'op')}
         block = {r: getattr(a, 'block_' + r) for r in ('ack', 'resp', 'op')}
-        print('counters', json.dumps(readback.snapshot(sw, ports, shape, block), indent=1))
+        print('counters', json.dumps(readback.snapshot(sw, ports, shape, block, timing_contract=a.timing_contract), indent=1))
     finally:
         sw.close()
 
@@ -369,13 +381,13 @@ def main(argv=None):
         print('REFUSED: %d error(s):\n    %s' % (len(errs), '\n    '.join(errs)))
         return 1
     ports, port_errs = build_ports_for(a)
-    errs += port_errs + tc.check_params(params(a))
+    errs += port_errs + tc.check_params(params(a), timing_contract=a.timing_contract)
     if port_errs:                # without the build's ports there is no plan to print or check
         print('REFUSED: %d error(s):\n    %s' % (len(errs), '\n    '.join(errs)))
         return 1
     ops = plan(a, ports)
     print('PLAN: %d writes (+%d pktgen enables, last, only with --enable-pktgen) | pad_enable=%d | T enabled=%d'
-          % (len(ops), len(tc.PKTGEN_APPS), a.pad_enable, a.t_enabled))
+          % (len(ops), len(tc.pktgen_apps(a.timing_contract)), a.pad_enable, a.t_enabled))
     for op in ops:
         print('    ', show(op))
     names = offline(ops, a, ports)

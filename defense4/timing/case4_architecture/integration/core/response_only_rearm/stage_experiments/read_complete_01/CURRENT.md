@@ -1,3 +1,22 @@
+# c69 — fixed OPERATE hold removed; model gate PASS (2026-10-26)
+
+Current handover: root `CLAUDE_HANDOVER_20261026_C69.md`. The direct user instruction removes fixed J from the
+active candidate, preserves Git/evidence history, and ends this task at compile/model verification. No hardware
+operation or physical-event/SER implementation belongs to this task.
+
+- Source `5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59`; c68 plus `--strip-operate-hold`.
+- New contract `response_ready_ack_d_no_j_v3`: `gap`, `budget`, `enabled`; no J field. Common request admission
+  forwards OPERATE, preserving its identity and existing response-ready ACK/D behavior. N/E source unchanged.
+- SDK 9.13.2 compile PASS: p1 ingress stages9→8, SRAM47→36, TCAM51→36; p0 unchanged. Three stateful banks and
+  five J-specific tables removed. Original failed parser-capacity attempt retained.
+- All17 fresh required model drivers pass (6339 checks); shared v3 gate recomputes model_gate_passed,
+  23 attempts including6 retained failures. Archiving and clean-checkout reproduction remain in progress.
+  Records/resources/log retention: `evidence/c69_no_operate_hold_20261026/`. No c69 hardware qualification.
+- c68 remains the last physical candidate; its application recovery failure is preserved. Removing J does not
+  establish that failure's cause or resolution. Physical-fingerprint suppression remains unproven.
+
+## Historical checkpoints below
+
 # Reviewed c68 repair — completed execution, 2026-10-26
 
 Root handover: `CLAUDE_HANDOVER_20261026.md`. Direct current user decisions restore software OPERATE hold >= J
