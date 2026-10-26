@@ -36,9 +36,37 @@ source SHA256 `5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59`
   first baseline attempt overlapped my edits and an archive-tree attempt hung/failed on untracked evidence; both
   discarded.
 
+## Phase 2 record — c69 freeze, preflight and smoke
+
+- Configs/freeze/manifests/dry-runs committed fd4e28f6f; freeze_v3_01 178 files, 0 untracked; all ten exact-argv
+  dry-runs rc 0 (installer --t-gap/--t-budget/--t-enabled only).
+- Read-only live preflight 2026-10-26T20:33Z: switch ufispace on production case4_response_path; Vision .19, route
+  to .7 via enp59s0f0np0; ownership inactive/safe; native READ mixed 91 / integrity 134, IIN 0x80, no problems
+  (`read_preflight_01.json`).
+- Smoke rc01_hw_c69_20261026_01 (20:34:05Z-20:36:58Z): **block rc 1 (FAIL)**; independent restoration ok; ownership
+  inactive, unsafe_restoration false. Trial t0: application True, standards True, switch False. Switch failures:
+  "mirror_fix build: the snapshots carry no pktgen trigger/packet counters" and "loop-port counters for hb_return are
+  missing or unreadable". Receiver-visible: 2 READ + SELECT + OPERATE all OK, CROB SUCCESS, sizes 141/158/60;
+  visible CLRT READ mixed 5.964 ms, integrity 4.623 ms, SELECT 6.408 ms, OPERATE 5.319 ms (D = 5 ms; reported only).
+  Snapshot: pktgen carries only the READ app (triggers 0->4, packets 0->16); loop ports n_ack_return/t_in/held_return
+  present with zero octet gap; hb_return absent. Per the smoke stop rule the matrix and the optimization phase are
+  halted pending Philip's decision.
+
 ## Scope-drift records
 
 (requirement / observable / mechanism / cheapest falsifying test — added before any new requirement or chase)
+
+1. Smoke switch-gate failure (2026-10-26).
+   - Requirement: the existing switch gate (checks.evaluate_switch via relay_verdict) is part of block acceptance.
+   - Observable: c69 smoke snapshots (switch BFRT, before/after) lack pktgen app OPERATE and loop role hb_return.
+   - Proposed mechanism: c69 removed packet-generator app1 and the HB runtime resources by design (c69 handover);
+     `_mirror_checks` still requires READ+OPERATE generator counters (a J-era rule: OPERATE app triggers == SBOs)
+     and LOOP_ROLES still lists hb_return. A checker-expectation defect, not a dataplane fault.
+   - Cheapest falsifying test: offline, against the retained smoke snapshots and c69 bfrt.json — if c69's compiled
+     program still declares pktgen app1 or an hb_return port, the premise fails. RESULT: premise holds —
+     integration/core/response_only/hw/build_ports.py:28,72 omit hb_return for response_ready_ack_d_no_j_v3 and c69
+     setup disables stale app1 (c69 progress.md:15), while protocol/hw_vepa/checks.py:17 (LOOP_ROLES) and
+     _mirror_checks were not given a no-J rule. No repair made.
 
 ## Claim boundaries
 

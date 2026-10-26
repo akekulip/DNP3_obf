@@ -3529,3 +3529,19 @@ Fixed OPERATE J and its dedicated resources are removed in c69; common request a
 Clean checkout of6b0b5efa2 starts with no raw c69 logs and reproduces exit0 in855.166s:374 shared logs restored without failures; all46 c69 raw/archive and all23 launch/closure/result pins independently verified; all38 compiler files verified and resource comparison byte-identical. Encoder76; two-READ44+32subtests; generator194+163subtests, one optional legacy-context skip. The earlier reported generator count195 is corrected by this fresh log. Code/source dependencies are unchanged after this verification; remaining edits are closeout records.
 
 Offline scope complete. No hardware/relay traffic, new physical-event/SER work, production-default change or history rewrite. Earlier c68 recovery failure remains; c69 physical qualification and physical-fingerprint suppression are unproven. Root CLAUDE/plan/map now mark stale activec67/c68 instructions historical; start at CLAUDE_HANDOVER_20261026_C69.md. No follow-on work is part of this approval.
+
+
+## 2026-10-26 — c69 hardware verification + bounded N/E experiments (Claude, in progress)
+- Spec: root CLAUDE_NEXT_TASK_C69_HW_NE.md (Codex-written). Authority: Philip answered "Yes, as written" to a direct
+  question about its hardware scope in this Claude session and confirmed it from his native session; he also required
+  five plan corrections (shared validator entry, boundary wording, no reuse of the c69 resource comparator as is, no
+  exact-IIN gate / baseline-vs-regression test discipline, manifest path RC/hw). Ledger:
+  read_complete_01/evidence/c69_hw_ne_20261026/.
+- Phase 1 DONE (38b46ff6c): SEL-751 receiver-visible branch inside the shared standards validator; independent
+  review (1 HIGH fail-open fixed, 3 MEDIUM fixed) and qa-verifier PASS on all ten criteria; suites show only the
+  baseline failure sets (hw_vepa 1, rearm 6).
+- Phase 2 prep (fd4e28f6f): ten c69 configs (2,440 planned exchanges), freeze_v3_01 (178 files, 0 untracked), one
+  manifest per block (rc01_hw_c69_20261026_01..10), exact-argv dry-runs all rc 0 with --t-gap/--t-budget/--t-enabled.
+- Live read-only preflight 20:33Z: switch ufispace running case4_response_path; Vision .19 route to .7 via
+  enp59s0f0np0; ownership inactive/safe; native READ mixed 91 / integrity 134, IIN 0x80, no problems.
+- 20:34Z smoke campaign rc01_hw_c69_20261026_01 started (detached supervisor).

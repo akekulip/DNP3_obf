@@ -1,0 +1,1365 @@
+{
+  "when": "2026-10-26T20:33:53",
+  "src": "192.168.10.1",
+  "relay": "192.168.10.7",
+  "port": 20000,
+  "each": 1,
+  "transactions": [
+    {
+      "workload": "mixed",
+      "app_seq": 0,
+      "outcome": "OK",
+      "request_hex": "056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+      "request_len": 25,
+      "response_wire_hex": "05644c4401000000bb94c4c0818000010200000f8101010101014273010101010101010101011e0100000701e70802000000010500000001050000000103f19200000001030000000104000000010c0091bf0000013c000000ed51",
+      "response_app_hex": "c0818000010200000f810101010101010101010101010101011e01000007010200000001050000000105000000010300000001030000000104000000010c000000013c000000",
+      "response_frames_hex": [
+        "05644c4401000000bb94c4c0818000010200000f8101010101014273010101010101010101011e0100000701e70802000000010500000001050000000103f19200000001030000000104000000010c0091bf0000013c000000ed51"
+      ],
+      "received_wire_hex": "05644c4401000000bb94c4c0818000010200000f8101010101014273010101010101010101011e0100000701e70802000000010500000001050000000103f19200000001030000000104000000010c0091bf0000013c000000ed51",
+      "received_wire_len": 91,
+      "received_frames_hex": [
+        "05644c4401000000bb94c4c0818000010200000f8101010101014273010101010101010101011e0100000701e70802000000010500000001050000000103f19200000001030000000104000000010c0091bf0000013c000000ed51"
+      ],
+      "elapsed_ms": 10.292,
+      "validation_problems": [],
+      "local_address": [
+        "192.168.10.1",
+        34465
+      ],
+      "peer_address": [
+        "192.168.10.7",
+        20000
+      ],
+      "master_outcome": {
+        "operation": "READ",
+        "function": 1,
+        "app_seq": 0,
+        "outcome": "OK",
+        "t_send": 594085.480938771,
+        "t_complete": 594085.491231224,
+        "elapsed_ms": 10.292452992871404,
+        "budget_ms": 2000.0,
+        "remaining_ms_at_completion": 1989.7075470071286,
+        "response_function": 129,
+        "iin": 128,
+        "points": [],
+        "problems": [],
+        "stale_frames_discarded": 0,
+        "bytes_left_buffered": 0,
+        "request_wire_hex": "056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+        "request_app_hex": "c001010200000f1e01000007",
+        "request_frames_hex": [
+          "056412c400000100d0bbc0c001010200000f1e01000007fb5c"
+        ],
+        "response_wire_hex": "05644c4401000000bb94c4c0818000010200000f8101010101014273010101010101010101011e0100000701e70802000000010500000001050000000103f19200000001030000000104000000010c0091bf0000013c000000ed51",
+        "response_app_hex": "c0818000010200000f810101010101010101010101010101011e01000007010200000001050000000105000000010300000001030000000104000000010c000000013c000000",
+        "response_frames_hex": [
+          "05644c4401000000bb94c4c0818000010200000f8101010101014273010101010101010101011e0100000701e70802000000010500000001050000000103f19200000001030000000104000000010c0091bf0000013c000000ed51"
+        ],
+        "received_frames_hex": [
+          "05644c4401000000bb94c4c0818000010200000f8101010101014273010101010101010101011e0100000701e70802000000010500000001050000000103f19200000001030000000104000000010c0091bf0000013c000000ed51"
+        ],
+        "transport_bytes_buffered": 0,
+        "received_wire_hex": "05644c4401000000bb94c4c0818000010200000f8101010101014273010101010101010101011e0100000701e70802000000010500000001050000000103f19200000001030000000104000000010c0091bf0000013c000000ed51",
+        "response_objects": [
+          {
+            "group": 1,
+            "variation": 2,
+            "qualifier": 0,
+            "count": 16,
+            "points": [
+              {
+                "index": 0,
+                "raw_hex": "81",
+                "flags": 1,
+                "value": true
+              },
+              {
+                "index": 1,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 2,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 3,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 4,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 5,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 6,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 7,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 8,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 9,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 10,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 11,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 12,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 13,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 14,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 15,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              }
+            ]
+          },
+          {
+            "group": 30,
+            "variation": 1,
+            "qualifier": 0,
+            "count": 8,
+            "points": [
+              {
+                "index": 0,
+                "raw_hex": "0102000000",
+                "flags": 1,
+                "value": 2
+              },
+              {
+                "index": 1,
+                "raw_hex": "0105000000",
+                "flags": 1,
+                "value": 5
+              },
+              {
+                "index": 2,
+                "raw_hex": "0105000000",
+                "flags": 1,
+                "value": 5
+              },
+              {
+                "index": 3,
+                "raw_hex": "0103000000",
+                "flags": 1,
+                "value": 3
+              },
+              {
+                "index": 4,
+                "raw_hex": "0103000000",
+                "flags": 1,
+                "value": 3
+              },
+              {
+                "index": 5,
+                "raw_hex": "0104000000",
+                "flags": 1,
+                "value": 4
+              },
+              {
+                "index": 6,
+                "raw_hex": "010c000000",
+                "flags": 1,
+                "value": 12
+              },
+              {
+                "index": 7,
+                "raw_hex": "013c000000",
+                "flags": 1,
+                "value": 60
+              }
+            ]
+          }
+        ],
+        "local_address": [
+          "192.168.10.1",
+          34465
+        ],
+        "peer_address": [
+          "192.168.10.7",
+          20000
+        ],
+        "t_first_response": 594085.490715496,
+        "ack_evidence": "not observable at the application layer; requires a link capture",
+        "ok": true
+      },
+      "wire_len": 91,
+      "n_link_frames": 1,
+      "link_lens": [
+        91
+      ],
+      "link_len_fields": [
+        76
+      ],
+      "n_transport_segments": 1,
+      "crc_failures": 0,
+      "trailing_bytes": 0,
+      "transport_problems": [],
+      "app_fragment_hex": "c0818000010200000f810101010101010101010101010101011e01000007010200000001050000000105000000010300000001030000000104000000010c000000013c000000",
+      "app_len": 70,
+      "decode": {
+        "function": 129,
+        "app_seq": 0,
+        "iin": 128,
+        "group": 1,
+        "variation": 2,
+        "qualifier": 0,
+        "objects": [
+          {
+            "group": 1,
+            "variation": 2,
+            "qualifier": 0,
+            "count": 16,
+            "points": [
+              {
+                "index": 0,
+                "raw_hex": "81",
+                "flags": 1,
+                "value": true
+              },
+              {
+                "index": 1,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 2,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 3,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 4,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 5,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 6,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 7,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 8,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 9,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 10,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 11,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 12,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 13,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 14,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 15,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              }
+            ]
+          },
+          {
+            "group": 30,
+            "variation": 1,
+            "qualifier": 0,
+            "count": 8,
+            "points": [
+              {
+                "index": 0,
+                "raw_hex": "0102000000",
+                "flags": 1,
+                "value": 2
+              },
+              {
+                "index": 1,
+                "raw_hex": "0105000000",
+                "flags": 1,
+                "value": 5
+              },
+              {
+                "index": 2,
+                "raw_hex": "0105000000",
+                "flags": 1,
+                "value": 5
+              },
+              {
+                "index": 3,
+                "raw_hex": "0103000000",
+                "flags": 1,
+                "value": 3
+              },
+              {
+                "index": 4,
+                "raw_hex": "0103000000",
+                "flags": 1,
+                "value": 3
+              },
+              {
+                "index": 5,
+                "raw_hex": "0104000000",
+                "flags": 1,
+                "value": 4
+              },
+              {
+                "index": 6,
+                "raw_hex": "010c000000",
+                "flags": 1,
+                "value": 12
+              },
+              {
+                "index": 7,
+                "raw_hex": "013c000000",
+                "flags": 1,
+                "value": 60
+              }
+            ]
+          }
+        ],
+        "problems": []
+      }
+    },
+    {
+      "workload": "integrity",
+      "app_seq": 1,
+      "outcome": "OK",
+      "request_hex": "056414c40000010009d0c0c1013c02063c03063c04063c01067a6f",
+      "request_len": 27,
+      "response_wire_hex": "05647344010000001a59c5c1818000010200000f810101010101d650010101010101010101010a0200001f01fee801010101010101010101010101010101bbc30101010101010101010101010101011ec30d04000014020005000500030003000400201e0c003c00070011001800100017000000678f0000000009000000000000000000e2c5",
+      "response_app_hex": "c1818000010200000f810101010101010101010101010101010a0200001f01010101010101010101010101010101010101010101010101010101010101011e040000140200050005000300030004000c003c000700110018001000170000000000000009000000000000000000",
+      "response_frames_hex": [
+        "05647344010000001a59c5c1818000010200000f810101010101d650010101010101010101010a0200001f01fee801010101010101010101010101010101bbc30101010101010101010101010101011ec30d04000014020005000500030003000400201e0c003c00070011001800100017000000678f0000000009000000000000000000e2c5"
+      ],
+      "received_wire_hex": "05647344010000001a59c5c1818000010200000f810101010101d650010101010101010101010a0200001f01fee801010101010101010101010101010101bbc30101010101010101010101010101011ec30d04000014020005000500030003000400201e0c003c00070011001800100017000000678f0000000009000000000000000000e2c5",
+      "received_wire_len": 134,
+      "received_frames_hex": [
+        "05647344010000001a59c5c1818000010200000f810101010101d650010101010101010101010a0200001f01fee801010101010101010101010101010101bbc30101010101010101010101010101011ec30d04000014020005000500030003000400201e0c003c00070011001800100017000000678f0000000009000000000000000000e2c5"
+      ],
+      "elapsed_ms": 5.6,
+      "validation_problems": [],
+      "local_address": [
+        "192.168.10.1",
+        34465
+      ],
+      "peer_address": [
+        "192.168.10.7",
+        20000
+      ],
+      "master_outcome": {
+        "operation": "READ",
+        "function": 1,
+        "app_seq": 1,
+        "outcome": "OK",
+        "t_send": 594085.542386765,
+        "t_complete": 594085.547987035,
+        "elapsed_ms": 5.6002700002864,
+        "budget_ms": 2000.0,
+        "remaining_ms_at_completion": 1994.3997299997136,
+        "response_function": 129,
+        "iin": 128,
+        "points": [],
+        "problems": [],
+        "stale_frames_discarded": 0,
+        "bytes_left_buffered": 0,
+        "request_wire_hex": "056414c40000010009d0c0c1013c02063c03063c04063c01067a6f",
+        "request_app_hex": "c1013c02063c03063c04063c0106",
+        "request_frames_hex": [
+          "056414c40000010009d0c0c1013c02063c03063c04063c01067a6f"
+        ],
+        "response_wire_hex": "05647344010000001a59c5c1818000010200000f810101010101d650010101010101010101010a0200001f01fee801010101010101010101010101010101bbc30101010101010101010101010101011ec30d04000014020005000500030003000400201e0c003c00070011001800100017000000678f0000000009000000000000000000e2c5",
+        "response_app_hex": "c1818000010200000f810101010101010101010101010101010a0200001f01010101010101010101010101010101010101010101010101010101010101011e040000140200050005000300030004000c003c000700110018001000170000000000000009000000000000000000",
+        "response_frames_hex": [
+          "05647344010000001a59c5c1818000010200000f810101010101d650010101010101010101010a0200001f01fee801010101010101010101010101010101bbc30101010101010101010101010101011ec30d04000014020005000500030003000400201e0c003c00070011001800100017000000678f0000000009000000000000000000e2c5"
+        ],
+        "received_frames_hex": [
+          "05647344010000001a59c5c1818000010200000f810101010101d650010101010101010101010a0200001f01fee801010101010101010101010101010101bbc30101010101010101010101010101011ec30d04000014020005000500030003000400201e0c003c00070011001800100017000000678f0000000009000000000000000000e2c5"
+        ],
+        "transport_bytes_buffered": 0,
+        "received_wire_hex": "05647344010000001a59c5c1818000010200000f810101010101d650010101010101010101010a0200001f01fee801010101010101010101010101010101bbc30101010101010101010101010101011ec30d04000014020005000500030003000400201e0c003c00070011001800100017000000678f0000000009000000000000000000e2c5",
+        "response_objects": [
+          {
+            "group": 1,
+            "variation": 2,
+            "qualifier": 0,
+            "count": 16,
+            "points": [
+              {
+                "index": 0,
+                "raw_hex": "81",
+                "flags": 1,
+                "value": true
+              },
+              {
+                "index": 1,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 2,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 3,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 4,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 5,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 6,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 7,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 8,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 9,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 10,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 11,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 12,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 13,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 14,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 15,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              }
+            ]
+          },
+          {
+            "group": 10,
+            "variation": 2,
+            "qualifier": 0,
+            "count": 32,
+            "points": [
+              {
+                "index": 0,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 1,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 2,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 3,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 4,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 5,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 6,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 7,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 8,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 9,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 10,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 11,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 12,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 13,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 14,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 15,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 16,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 17,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 18,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 19,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 20,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 21,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 22,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 23,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 24,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 25,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 26,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 27,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 28,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 29,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 30,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 31,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              }
+            ]
+          },
+          {
+            "group": 30,
+            "variation": 4,
+            "qualifier": 0,
+            "count": 21,
+            "points": [
+              {
+                "index": 0,
+                "raw_hex": "0200",
+                "value": 2
+              },
+              {
+                "index": 1,
+                "raw_hex": "0500",
+                "value": 5
+              },
+              {
+                "index": 2,
+                "raw_hex": "0500",
+                "value": 5
+              },
+              {
+                "index": 3,
+                "raw_hex": "0300",
+                "value": 3
+              },
+              {
+                "index": 4,
+                "raw_hex": "0300",
+                "value": 3
+              },
+              {
+                "index": 5,
+                "raw_hex": "0400",
+                "value": 4
+              },
+              {
+                "index": 6,
+                "raw_hex": "0c00",
+                "value": 12
+              },
+              {
+                "index": 7,
+                "raw_hex": "3c00",
+                "value": 60
+              },
+              {
+                "index": 8,
+                "raw_hex": "0700",
+                "value": 7
+              },
+              {
+                "index": 9,
+                "raw_hex": "1100",
+                "value": 17
+              },
+              {
+                "index": 10,
+                "raw_hex": "1800",
+                "value": 24
+              },
+              {
+                "index": 11,
+                "raw_hex": "1000",
+                "value": 16
+              },
+              {
+                "index": 12,
+                "raw_hex": "1700",
+                "value": 23
+              },
+              {
+                "index": 13,
+                "raw_hex": "0000",
+                "value": 0
+              },
+              {
+                "index": 14,
+                "raw_hex": "0000",
+                "value": 0
+              },
+              {
+                "index": 15,
+                "raw_hex": "0000",
+                "value": 0
+              },
+              {
+                "index": 16,
+                "raw_hex": "0900",
+                "value": 9
+              },
+              {
+                "index": 17,
+                "raw_hex": "0000",
+                "value": 0
+              },
+              {
+                "index": 18,
+                "raw_hex": "0000",
+                "value": 0
+              },
+              {
+                "index": 19,
+                "raw_hex": "0000",
+                "value": 0
+              },
+              {
+                "index": 20,
+                "raw_hex": "0000",
+                "value": 0
+              }
+            ]
+          }
+        ],
+        "local_address": [
+          "192.168.10.1",
+          34465
+        ],
+        "peer_address": [
+          "192.168.10.7",
+          20000
+        ],
+        "t_first_response": 594085.547178499,
+        "ack_evidence": "not observable at the application layer; requires a link capture",
+        "ok": true
+      },
+      "wire_len": 134,
+      "n_link_frames": 1,
+      "link_lens": [
+        134
+      ],
+      "link_len_fields": [
+        115
+      ],
+      "n_transport_segments": 1,
+      "crc_failures": 0,
+      "trailing_bytes": 0,
+      "transport_problems": [],
+      "app_fragment_hex": "c1818000010200000f810101010101010101010101010101010a0200001f01010101010101010101010101010101010101010101010101010101010101011e040000140200050005000300030004000c003c000700110018001000170000000000000009000000000000000000",
+      "app_len": 109,
+      "decode": {
+        "function": 129,
+        "app_seq": 1,
+        "iin": 128,
+        "group": 1,
+        "variation": 2,
+        "qualifier": 0,
+        "objects": [
+          {
+            "group": 1,
+            "variation": 2,
+            "qualifier": 0,
+            "count": 16,
+            "points": [
+              {
+                "index": 0,
+                "raw_hex": "81",
+                "flags": 1,
+                "value": true
+              },
+              {
+                "index": 1,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 2,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 3,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 4,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 5,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 6,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 7,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 8,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 9,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 10,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 11,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 12,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 13,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 14,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 15,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              }
+            ]
+          },
+          {
+            "group": 10,
+            "variation": 2,
+            "qualifier": 0,
+            "count": 32,
+            "points": [
+              {
+                "index": 0,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 1,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 2,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 3,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 4,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 5,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 6,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 7,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 8,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 9,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 10,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 11,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 12,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 13,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 14,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 15,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 16,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 17,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 18,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 19,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 20,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 21,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 22,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 23,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 24,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 25,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 26,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 27,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 28,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 29,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 30,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              },
+              {
+                "index": 31,
+                "raw_hex": "01",
+                "flags": 1,
+                "value": false
+              }
+            ]
+          },
+          {
+            "group": 30,
+            "variation": 4,
+            "qualifier": 0,
+            "count": 21,
+            "points": [
+              {
+                "index": 0,
+                "raw_hex": "0200",
+                "value": 2
+              },
+              {
+                "index": 1,
+                "raw_hex": "0500",
+                "value": 5
+              },
+              {
+                "index": 2,
+                "raw_hex": "0500",
+                "value": 5
+              },
+              {
+                "index": 3,
+                "raw_hex": "0300",
+                "value": 3
+              },
+              {
+                "index": 4,
+                "raw_hex": "0300",
+                "value": 3
+              },
+              {
+                "index": 5,
+                "raw_hex": "0400",
+                "value": 4
+              },
+              {
+                "index": 6,
+                "raw_hex": "0c00",
+                "value": 12
+              },
+              {
+                "index": 7,
+                "raw_hex": "3c00",
+                "value": 60
+              },
+              {
+                "index": 8,
+                "raw_hex": "0700",
+                "value": 7
+              },
+              {
+                "index": 9,
+                "raw_hex": "1100",
+                "value": 17
+              },
+              {
+                "index": 10,
+                "raw_hex": "1800",
+                "value": 24
+              },
+              {
+                "index": 11,
+                "raw_hex": "1000",
+                "value": 16
+              },
+              {
+                "index": 12,
+                "raw_hex": "1700",
+                "value": 23
+              },
+              {
+                "index": 13,
+                "raw_hex": "0000",
+                "value": 0
+              },
+              {
+                "index": 14,
+                "raw_hex": "0000",
+                "value": 0
+              },
+              {
+                "index": 15,
+                "raw_hex": "0000",
+                "value": 0
+              },
+              {
+                "index": 16,
+                "raw_hex": "0900",
+                "value": 9
+              },
+              {
+                "index": 17,
+                "raw_hex": "0000",
+                "value": 0
+              },
+              {
+                "index": 18,
+                "raw_hex": "0000",
+                "value": 0
+              },
+              {
+                "index": 19,
+                "raw_hex": "0000",
+                "value": 0
+              },
+              {
+                "index": 20,
+                "raw_hex": "0000",
+                "value": 0
+              }
+            ]
+          }
+        ],
+        "problems": []
+      }
+    }
+  ],
+  "summary": {
+    "mixed": [
+      91
+    ],
+    "integrity": [
+      134
+    ]
+  }
+}

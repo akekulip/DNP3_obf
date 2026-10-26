@@ -1,0 +1,44 @@
+{
+  "active_step": null,
+  "active_unit": null,
+  "campaign_id": "rc01_hw_c69_20261026_01",
+  "controller_generation": 1,
+  "controller_unit": "dnp3-eval-rc01_hw_c69_20261026_01-3279052ca1e6-controller-1.service",
+  "created": 1793046845.729686,
+  "deadline": 1793133245.8491397,
+  "evidence_kind": "hardware",
+  "manifest_sha256": "3740f16b22daedbed91e57aa94bce50841882b7ccadaf3668660f2179f511e97",
+  "phase": "stopped",
+  "start": 1793046845.8491397,
+  "started": true,
+  "steps": {
+    "rc01_hw_c69_20261026_01_smoke": {
+      "artifact_manifest": {
+        "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c69_20261026_01_smoke/artifact_manifest.json",
+        "sha256": "4609804eae95a85166dfabb042cfa42b381deb9e4681126fa81aa310b5fdc48c"
+      },
+      "finished": 1793047018.149131,
+      "hardware_entry": 1793046845.917713,
+      "id": "rc01_hw_c69_20261026_01_smoke",
+      "kind": "block",
+      "manifest_sha256": "3740f16b22daedbed91e57aa94bce50841882b7ccadaf3668660f2179f511e97",
+      "postcheck_rc": null,
+      "rc": 1,
+      "reason": "block_failed",
+      "restoration": {
+        "device": 2050,
+        "inode": 53646223,
+        "mtime_ns": 1793047018110161945,
+        "ok": true,
+        "path": "/home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/read_complete_01/evidence/hw_blocks/rc01_hw_c69_20261026_01_smoke/restore_verify.json",
+        "sha256": "dbfcf341d8e57f9a8ff605a9a5307d4499017efb77cc118cb9d80f1688c68972",
+        "size": 5646
+      },
+      "started": 1793046845.9118974,
+      "status": "failed",
+      "unit": "dnp3-eval-rc01_hw_c69_20261026_01-3279052ca1e6-step-rc01_hw_c69_20261026_01_smoke.service"
+    }
+  },
+  "stop_after_current": false,
+  "stop_reason": "block_failed"
+}
