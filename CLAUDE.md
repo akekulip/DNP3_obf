@@ -25,7 +25,7 @@ see WORKING_NOTES 2026-10-25/26 and `active_harness/event_clear.py`.
 
 ## Earlier: timing correction — Philip, 2026-10-25 (historical; superseded by the section above)
 
-Current handover: [CLAUDE_HANDOVER_20261025.md](CLAUDE_HANDOVER_20261025.md). Philip requested takeover by
+Handover of that time: [CLAUDE_HANDOVER_20261025.md](CLAUDE_HANDOVER_20261025.md) (current: CLAUDE_HANDOVER_20261026.md). Philip requested takeover by
 Claude and explicitly prohibited scope expansion. The c67 model gate and all planned physical blocks are done
 (handover Closeout section): model PASS, smoke PASS, FIN PASS, timing FAIL, mixed-loss SBO recovery FAIL, physical
 J unproven; c67 has not passed hardware qualification. Revised scope (Philip, 2026-10-25): bounded hardware
@@ -44,7 +44,8 @@ Existing guarded SEL-751 authorization/restoration remain in force (the 100us cr
 
 ## Agent start
 
-0. Current SEL-751 continuation (2026-10-25): read root `CLAUDE_HANDOVER_20261025.md`, then `plan.md`.
+0. Current state (2026-10-26): read root `CLAUDE_HANDOVER_20261026.md` (c68; supersedes the 2026-10-25 handover as the
+   start point), then `plan.md`. Older continuation (2026-10-25): root `CLAUDE_HANDOVER_20261025.md`.
    c67 v2 is the active candidate: model gate PASS; physical smoke/FIN PASS, timing FAIL, mixed-loss FAIL, J unproven.
    c52 is the immutable measured baseline. The October 24 handover is historical, not the next-action list.
 1. Read `defense4/timing/case4_architecture/ACTIVE_CODE_MAP.md`: the active code path with commands.

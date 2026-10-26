@@ -5,6 +5,11 @@ Approved by Philip: “Implement the plan.” This replaces the r150 readiness p
 padding/loss-targeting/FIN/RST repairs. Physical SEL-751 only; no software outstation. Work directly on main,
 commit and push task changes; preserve unrelated files and the two pre-existing deletions.
 
+## Current start point — 2026-10-26
+
+Read `CLAUDE_HANDOVER_20261026.md` first: c68 ran on the SEL-751 at every D (off vs timing+size), all blocks rc 0;
+the 100 us criterion is removed. Nothing further is authorized until Philip directs it.
+
 ## Claude takeover scope — Philip, 2026-10-25
 
 Philip requested updated working notes and handover, and explicitly said to keep Claude from expanding scope.

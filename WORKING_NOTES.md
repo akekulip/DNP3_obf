@@ -3477,3 +3477,15 @@ recovery FAIL | physical J unproven. c67 has NOT passed hardware qualification. 
 - Docs updated (CLAUDE.md current-state section, plan.md, CURRENT.md, STATUS.md, ACTIVE_CODE_MAP.md, handover
   addendum). Model logs xz-compressed with RAW_SHA256SUMS; the three ~8.5 GB diag_shim_contention logs stay on disk
   (hashes recorded, not committed).
+
+### 2026-10-26 — status / next action (handover)
+- DONE: c68 built, model-gated (17/17), frozen (freeze_v3_03) and run on the SEL-751 at D=5/10/15/20, off vs
+  timing+size, all rc 0, restoration verified. Commit b576d34e9 pushed to origin/main. The 100 us criterion is gone.
+- Testbed: ownership active=false, unsafe_restoration=false (checked 2026-10-26 after the push). Relay IIN 80 00 at
+  the last contact.
+- Handover: root CLAUDE_HANDOVER_20261026.md (supersedes CLAUDE_HANDOVER_20261025.md as the start point).
+- Next action: none authorized. Open for Philip: (1) restore or keep removed the two software-path checks
+  (OPERATE transit >= op_j in hold_check; piggyback-fraction range); (2) whether to retest mixed-loss SBO recovery
+  on c68 (not retested; c68 changes no forwarding logic).
+- Correction to the entry above: the three uncommitted diag_shim_contention raw logs are ~4.6 GB each (not ~8.5 GB)
+  and live in ctl_timing_01/evidence/diag_shim_contention_m12p_c67_sdk9132_0{1,2,3}/ (c67 verification runs).
