@@ -1,1 +1,0 @@
-The sweep offsets are read from sweep_points.csv, and each point's installed parameters are confirmed by the control-plane readback archived in sweep/provenance/. The fail-open horizon H is a control-plane quantity computed from the pass budget and reservoir depth, not a value the data plane enforces or that was measured directly. All points come from one relay behind one switch.

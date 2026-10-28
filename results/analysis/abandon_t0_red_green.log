@@ -1,0 +1,7 @@
+### RED (test expects 0, gate still sets 1)
+>       assert (env['REPEAT_CYCLES'], env['REPEAT_TIMED_CYCLES'], env['ABANDON_T']) == ('64', '3', '0')
+E       AssertionError: assert ('64', '3', '1') == ('64', '3', '0')
+1 failed, 8 deselected in 0.03s
+### GREEN
+177 passed in 10.70s
+pyflakes clean

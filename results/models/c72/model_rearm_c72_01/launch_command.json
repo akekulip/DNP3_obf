@@ -1,0 +1,47 @@
+{
+  "command": [
+    "bash",
+    "/home/philip/Projects/DNP3/scripts/model/launch_model.sh",
+    "-p",
+    "/home/philip/Projects/DNP3/results/builds/c72/compile_local/out",
+    "-o",
+    "/home/philip/Projects/DNP3/results/models/c72/model_rearm_c72_01",
+    "-P",
+    "9 48 64 68 180 182 196",
+    "-d",
+    "/home/philip/Projects/DNP3/scripts/model/record_closure.py"
+  ],
+  "PORT_MAP": "/home/philip/Projects/DNP3/results/builds/c72/response_only.inputs.json",
+  "PAD_ENABLE": "1",
+  "MILESTONE": "current",
+  "pb_injected": null,
+  "timeline": false,
+  "hardware": false,
+  "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+  "driver_sha256": "0f508b9e8484dd9e5589ea5e6899c3e318fe683b5343e111b29dbd9b697299b6",
+  "compile_manifest_sha256": "210da0637250363903ae8a7ab7808281941738ebbb7ece4096b011ce8cf4b33b",
+  "library_sha256": {
+    "scripts/model/model_driver.py": "8c6eed38df6c3470adc79d8b0d5499f4bf4c19b44b86f74c8587da253a9cf115",
+    "scripts/hardware/t_config.py": "2236a208856a3f27b8d29c0669da7aecb13e43eb40ac9990d5c128036f2fc358",
+    "scripts/model/action_observations.json": "0f04b0e921cfcf945c86a296dfb87698670fddfcad404fe3a7b5fbabe8cca233"
+  },
+  "dependency_sha256": {
+    "scripts/model/model_repeat.py": "a5b21576299213d0ef9373688a03e388ce8b797a1e54b0f4c4fd365d445698ca",
+    "scripts/model/model_drive_composite.py": "9447f5edfe1714e2da156cc44a4dc64e98e53cf7c7d5b2ba58e213e995dcd3ab"
+  },
+  "closure_target": "/home/philip/Projects/DNP3/scripts/model/model_rearm.py",
+  "dependency_closure_sha256": "e44e6d9d03427e6c52fbc4039a922064bd3a18af5d25ddc40106d37b53d49ea7",
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "reset_restart_required": true,
+  "supported_profile_sha256": "a4f653024e290d659f36ca4830fd91badaf849c584a6a11a70eec51cfc021f78",
+  "observation_source": "SDK model action log; not physical switch counters",
+  "stimulus_environment": {
+    "REPEAT_CYCLES": "64",
+    "REPEAT_TIMED_CYCLES": "3",
+    "ABANDON_T": "1",
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "model_log_retention_sha256": "daa5bc974d15cec6d80fc90cf967417a3a36f14d0b65519790111caa4693a7cb",
+  "retention_error": null,
+  "exit_code": 0
+}

@@ -1,0 +1,79 @@
+{
+  "baseline_source_sha256": "5efad5c85b1adeb5aaac2f24d0eadd7660abab14d52a8a8ec0325d94e4998d59",
+  "baseline_recorded_stages": {
+    "p0": {
+      "egress": 11,
+      "ingress": 11
+    },
+    "p1": {
+      "egress": 4,
+      "ingress": 8
+    }
+  },
+  "baseline_tail": [
+    {
+      "table": "classify_fwd",
+      "stage": 7
+    },
+    {
+      "table": "img_wend_t",
+      "stage": 8
+    },
+    {
+      "table": "classify_rev",
+      "stage": 9
+    },
+    {
+      "table": "window_t",
+      "stage": 10
+    }
+  ],
+  "mechanism": "Read/update img_wend from early grant, returning old value. Complete forward seq=old_wend+qx after unchanged forward classifier. Reverse read can advance because it no longer shares the late forward classification dependency. Grant1 implies front_ret0 via sole acct_try writer and all three keyed rows. No metadata/register/pass added. NOACK shape5 remains outside the ACK-only forward sequence update.",
+  "trials": [
+    {
+      "candidate": "c72_e_wend_01",
+      "source_sha256": "71d52e6c7f132193e3344c56219afc1cb2297e386e0c53ceb6f6d96e16112f89",
+      "flags": "event logger",
+      "compile_rc": 0,
+      "stages": {
+        "p0": {
+          "ingress": 12,
+          "egress": 12
+        },
+        "p1": {
+          "ingress": 8,
+          "egress": 4
+        }
+      },
+      "critical_path": 10,
+      "accepted": false
+    },
+    {
+      "candidate": "c72_e_wend_02",
+      "source_sha256": "773e0b75ec17993c941ec923d6d15101350cead973c8537dac2f61dc47ee0162",
+      "change": "grant-only key; E stage annotations7/7/8/9",
+      "event_compile": "interrupted at parent request; manifest exit130 retained",
+      "plain_compile": "PASS",
+      "semantic_cases": 140320,
+      "compile_rc": 0,
+      "stages": {
+        "p0": {
+          "egress": 10,
+          "ingress": 12
+        },
+        "p1": {
+          "egress": 4,
+          "ingress": 8
+        }
+      },
+      "E_target_met": true,
+      "actual_E_highest_occupied": 9,
+      "full_candidate_qualified": false
+    }
+  ],
+  "limitations": [
+    "Only source-bound action-selection and arithmetic differential checks; full SDK model gate is still required for retained candidate.",
+    "Actual final context stage numbers determine resource result.",
+    "No hardware activity."
+  ]
+}

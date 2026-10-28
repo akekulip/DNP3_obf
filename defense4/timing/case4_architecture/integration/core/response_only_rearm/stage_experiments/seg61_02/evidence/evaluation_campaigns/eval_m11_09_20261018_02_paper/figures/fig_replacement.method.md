@@ -1,1 +1,0 @@
-(a) release/rows.csv, all rounds of D10_J2p4; the counterfactual adds one constant (pooled Timing+Size median minus pooled No obfuscation median) to every No obfuscation CLRT. (b) results/oracle_windows.csv, test split, K = 32, all conditions; boxes are quartiles, whiskers 1.5 IQR, fliers omitted; variances floored at 1e-7 ms² for the log axis.

@@ -1,1 +1,0 @@
-DNP3 analog input points of an SEL protective relay: each measurement, from phase currents to power factor and four auxiliary inputs, is carried as a numeric index 0–20 whose meaning only the device's configuration supplies.

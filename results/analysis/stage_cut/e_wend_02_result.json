@@ -1,0 +1,681 @@
+{
+  "candidate": "c72_e_wend_02",
+  "source": "results/builds/c72_e_wend_02/response_only.p4",
+  "source_sha256": "773e0b75ec17993c941ec923d6d15101350cead973c8537dac2f61dc47ee0162",
+  "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+  "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14",
+  "command": [
+    "/home/philip/bf-sde-9.13.2/install/bin/bf-p4c",
+    "--target",
+    "tofino",
+    "--arch",
+    "tna",
+    "-g",
+    "-o",
+    "/home/philip/Projects/DNP3/results/builds/c72_e_wend_02/compile_plain/out",
+    "/home/philip/Projects/DNP3/results/builds/c72_e_wend_02/compile_plain/source/response_only.p4"
+  ],
+  "compile_rc": 0,
+  "stage_counts_highest_occupied_plus_one": {
+    "p0": {
+      "egress": 10,
+      "ingress": 12
+    },
+    "p1": {
+      "egress": 4,
+      "ingress": 8
+    }
+  },
+  "actual_E_highest_occupied": 9,
+  "E_target_met": true,
+  "T_and_p1_egress_unchanged": true,
+  "critical_path": 10,
+  "semantics": "140320 source-bound action-selection and arithmetic differential cases PASS; full model gate not run",
+  "whole_candidate_qualification": "not qualified: root must combine N edit, compile final combined source, then run required model/hardware gates",
+  "evidence_verified": {
+    "source_matches": true,
+    "snapshots_match": true,
+    "compiler_matches": true,
+    "compiled_artifacts_verified": true,
+    "full_target": false
+  },
+  "egress_tables": [
+    {
+      "table": "r_Egress.conn",
+      "type": "match",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "r_Egress.prepare_open_t",
+      "type": "match",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "prepare_open_t_0-gateway",
+      "type": "condition",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "leff_t_0$precompute",
+      "type": "match",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "leff_t_0$precompute-gateway",
+      "type": "condition",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "r_Egress.normalization_ack_t",
+      "type": "match",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "normalization_ack_t_0-gateway",
+      "type": "condition",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "r_Egress.in_ct_t",
+      "type": "match",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "cond-98",
+      "type": "condition",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "r_Egress.status_crc_t",
+      "type": "match",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "r_Egress.ctl_profile",
+      "type": "match",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "r_Egress.in_cb0_t",
+      "type": "match",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "in_cb0_t_0-gateway",
+      "type": "condition",
+      "stages": [
+        0
+      ]
+    },
+    {
+      "table": "r_Egress.crc_ctl_tail2_t",
+      "type": "match",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "r_Egress.epoch",
+      "type": "stateful",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "r_Egress.lifecycle_access",
+      "type": "match",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "r_Egress.prep_t",
+      "type": "match",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "r_Egress.shape_t",
+      "type": "match",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "r_Egress.shape_t$action",
+      "type": "action",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "r_Egress.leff_t",
+      "type": "match",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "r_Egress.read_profile",
+      "type": "match",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "cond-97",
+      "type": "condition",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "r_Egress.in_dl_t",
+      "type": "match",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "cond-96",
+      "type": "condition",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "cond-99",
+      "type": "condition",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "tbl_drop_lifetime_0",
+      "type": "match",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "cond-114",
+      "type": "condition",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "r_Egress.odd_ip_t",
+      "type": "match",
+      "stages": [
+        1
+      ]
+    },
+    {
+      "table": "tbl_response_only1243",
+      "type": "match",
+      "stages": [
+        2
+      ]
+    },
+    {
+      "table": "cond-100",
+      "type": "condition",
+      "stages": [
+        2
+      ]
+    },
+    {
+      "table": "tbl_response_only1243_1",
+      "type": "match",
+      "stages": [
+        2
+      ]
+    },
+    {
+      "table": "tbl_response_only1243_0",
+      "type": "match",
+      "stages": [
+        2
+      ]
+    },
+    {
+      "table": "tbl_response_only1242",
+      "type": "match",
+      "stages": [
+        2
+      ]
+    },
+    {
+      "table": "cond-103",
+      "type": "condition",
+      "stages": [
+        2
+      ]
+    },
+    {
+      "table": "tbl_response_only1241",
+      "type": "match",
+      "stages": [
+        2
+      ]
+    },
+    {
+      "table": "cond-102",
+      "type": "condition",
+      "stages": [
+        2
+      ]
+    },
+    {
+      "table": "r_Egress.derive_t",
+      "type": "match",
+      "stages": [
+        2
+      ]
+    },
+    {
+      "table": "r_Egress.isn_access",
+      "type": "match",
+      "stages": [
+        2
+      ]
+    },
+    {
+      "table": "r_Egress.master_isn",
+      "type": "stateful",
+      "stages": [
+        2
+      ]
+    },
+    {
+      "table": "r_Egress.ina_img_t",
+      "type": "match",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "r_Egress.front_t",
+      "type": "match",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "r_Egress.front",
+      "type": "stateful",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "cond-104",
+      "type": "condition",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "tbl_response_only1243_2",
+      "type": "match",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "r_Egress.mode",
+      "type": "stateful",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "r_Egress.mode_t",
+      "type": "match",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "r_Egress.normalization_result",
+      "type": "match",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "cond-101",
+      "type": "condition",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "tbl_drop_lifetime",
+      "type": "match",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "cond-115",
+      "type": "condition",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "tbl_drop_lifetime_1",
+      "type": "match",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "cond-116",
+      "type": "condition",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "tbl_unbound_normalization",
+      "type": "match",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "tbl_strip_provenance",
+      "type": "match",
+      "stages": [
+        3
+      ]
+    },
+    {
+      "table": "r_Egress.acct_t",
+      "type": "match",
+      "stages": [
+        4
+      ]
+    },
+    {
+      "table": "r_Egress.acct",
+      "type": "stateful",
+      "stages": [
+        4
+      ]
+    },
+    {
+      "table": "r_Egress.settle_t",
+      "type": "match",
+      "stages": [
+        4
+      ]
+    },
+    {
+      "table": "r_Egress.envelope_result",
+      "type": "match",
+      "stages": [
+        4
+      ]
+    },
+    {
+      "table": "r_Egress.img_start",
+      "type": "stateful",
+      "stages": [
+        5
+      ]
+    },
+    {
+      "table": "r_Egress.img_start_t",
+      "type": "match",
+      "stages": [
+        5
+      ]
+    },
+    {
+      "table": "r_Egress.img_end",
+      "type": "stateful",
+      "stages": [
+        5
+      ]
+    },
+    {
+      "table": "r_Egress.img_end_t",
+      "type": "match",
+      "stages": [
+        5
+      ]
+    },
+    {
+      "table": "r_Egress.fwd_prep_t",
+      "type": "match",
+      "stages": [
+        6
+      ]
+    },
+    {
+      "table": "cond-106",
+      "type": "condition",
+      "stages": [
+        6
+      ]
+    },
+    {
+      "table": "r_Egress.fwd_prep_t$action",
+      "type": "action",
+      "stages": [
+        6
+      ]
+    },
+    {
+      "table": "r_Egress.reverse_gap_t",
+      "type": "match",
+      "stages": [
+        6
+      ]
+    },
+    {
+      "table": "cond-105",
+      "type": "condition",
+      "stages": [
+        6
+      ]
+    },
+    {
+      "table": "r_Egress.reverse_window_base_t",
+      "type": "match",
+      "stages": [
+        7
+      ]
+    },
+    {
+      "table": "reverse_window_base_t_0-gateway",
+      "type": "condition",
+      "stages": [
+        7
+      ]
+    },
+    {
+      "table": "r_Egress.img_wend_t",
+      "type": "match",
+      "stages": [
+        7
+      ]
+    },
+    {
+      "table": "cond-107",
+      "type": "condition",
+      "stages": [
+        7
+      ]
+    },
+    {
+      "table": "r_Egress.img_wend",
+      "type": "stateful",
+      "stages": [
+        7
+      ]
+    },
+    {
+      "table": "r_Egress.classify_fwd",
+      "type": "match",
+      "stages": [
+        7
+      ]
+    },
+    {
+      "table": "cond-108",
+      "type": "condition",
+      "stages": [
+        7
+      ]
+    },
+    {
+      "table": "r_Egress.finish_forward_sequence_t",
+      "type": "match",
+      "stages": [
+        8
+      ]
+    },
+    {
+      "table": "cond-109",
+      "type": "condition",
+      "stages": [
+        8
+      ]
+    },
+    {
+      "table": "cond-110",
+      "type": "condition",
+      "stages": [
+        8
+      ]
+    },
+    {
+      "table": "r_Egress.classify_rev",
+      "type": "match",
+      "stages": [
+        8
+      ]
+    },
+    {
+      "table": "cond-112",
+      "type": "condition",
+      "stages": [
+        8
+      ]
+    },
+    {
+      "table": "r_Egress.ctl_pad_t",
+      "type": "match",
+      "stages": [
+        8
+      ]
+    },
+    {
+      "table": "cond-111",
+      "type": "condition",
+      "stages": [
+        8
+      ]
+    },
+    {
+      "table": "r_Egress.ctl_pad_t$action",
+      "type": "action",
+      "stages": [
+        8
+      ]
+    },
+    {
+      "table": "r_Egress.read_pad_t",
+      "type": "match",
+      "stages": [
+        8
+      ]
+    },
+    {
+      "table": "r_Egress.window_t",
+      "type": "match",
+      "stages": [
+        9
+      ]
+    },
+    {
+      "table": "cond-113",
+      "type": "condition",
+      "stages": [
+        9
+      ]
+    },
+    {
+      "table": "egress_reset_invalidated_checksum_fields_1",
+      "type": "match",
+      "stages": [
+        9
+      ]
+    },
+    {
+      "table": "egress_reset_invalidated_checksum_fields_cond_1-gateway",
+      "type": "condition",
+      "stages": [
+        9
+      ]
+    },
+    {
+      "table": "egress_reset_invalidated_checksum_fields_0",
+      "type": "match",
+      "stages": [
+        9
+      ]
+    },
+    {
+      "table": "egress_reset_invalidated_checksum_fields_cond_0-gateway",
+      "type": "condition",
+      "stages": [
+        9
+      ]
+    },
+    {
+      "table": "egresshdr.ip.checksum_encode_update_condition_4_egress",
+      "type": "match",
+      "stages": [
+        9
+      ]
+    },
+    {
+      "table": "egresshdr.tcp.checksum_encode_update_condition_5_egress",
+      "type": "match",
+      "stages": [
+        9
+      ]
+    }
+  ]
+}

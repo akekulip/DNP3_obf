@@ -1,0 +1,1806 @@
+NOMAD: In-Network Traﬃc Obfuscation Against
+Device Fingerprinting for Industrial Control Systems
+Philip Akekudaga
+
+Hui Lin
+
+Dept. of Electrical and Computer Engineering
+University of Rhode Island
+Kingston, RI, U.S.A
+philip.akekudaga@uri.edu
+
+Dept. of Electrical and Computer Engineering
+University of Rhode Island
+Kingston, RI, U.S.A.
+huilin@uri.edu
+
+Abstract—Device ﬁngerprinting lets adversaries in industrial
+control systems (ICSs) learn which devices and operations they
+face before an attack. Existing traﬃc obfuscation pads, splits and
+delays packets over encrypted channels. However, ICS networks
+still carry plain-text protocols such as DNP3, where ﬁller and
+dummy packets are visible, and ICS ﬁngerprinting relies on the
+timing between diﬀerent types of packets, e.g., the cross-layer
+response time (CLRT) between a TCP acknowledgment and the
+response. In this paper, we present NOMAD, an in-network
+traﬃc obfuscation mechanism that uses the syntax of control
+units to apply a diﬀerent strategy to each type of operation on
+a programmable switch. NOMAD replaces the CLRT of reads
+with a conﬁgured value, holds control commands inside the
+switch, and splits the control units of every response into one
+ﬁxed layout, without changing the endpoints or the meaning of
+any control unit. We implement NOMAD on an Intel Toﬁno1 switch and evaluate it with 98,816 DNP3 transactions. The
+CLRT at the master stays within 10–16 𝜇s of the conﬁgured
+value at the median, and all responses carry 61 bytes and remain
+conformant to IEEE 1815. Against the CLRT classiﬁer of Formby
+et al., NOMAD’s eﬀect is limited on our testbed: trained before
+deployment, the classiﬁer falls to chance, as it also does under a
+constant delay of 1 ms, and retrained on the obfuscated traﬃc
+it learns about as much as without NOMAD. All transactions
+complete within 53 ms without retransmission.
+Index Terms—traﬃc obfuscation
+
+I. INTRODUCTION
+Device ﬁngerprinting is an essential step in cyber reconnaissance, allowing adversaries to reveal unique features of target
+networks and design eﬀective attack strategies. These techniques are becoming increasingly critical in industrial control
+systems (ICSs) such as power grids, where adversaries often
+use IP-based control networks and computing devices within
+as entry points to initiate physical damage. Consequently,
+ﬁngerprinting shifts the focus from visited websites and user
+biometric behavior to device models and types of control
+operations that are critical to ICS attacks. In the 2015 attack
+that disrupted Ukrainian power grids and the Stuxnet attack
+that disrupted Iranian nuclear power facilities, it is widely
+believed that adversaries stay in their systems for at least 6
+months to perform cyber reconnaissance [1], [2].
+To disrupt device ﬁngerprinting, many studies present network traﬃc obfuscation [3], [4]. Device ﬁngerprinting targeting general computing environments typically relies on
+network-level features such as packet size and/or inter-packet
+
+latency observed from communication patterns [5]. Consequently, existing traﬃc obfuscation focuses on (i) padding and
+splitting network packets, which hide or change the distribution
+of network packet sizes [3], and (ii) delaying network packets and adding dummy ones, which disrupt the inter-packet
+timing pattern [4], [6]. Because manipulating communication
+networks can introduce runtime overhead, recent work has
+begun oﬄoading traﬃc obfuscation to programmable network
+switches, using specialized ASIC to change communication
+patterns at much higher line rates than CPUs [7]–[9].
+Unfortunately, these methods cannot be directly applied to
+ICS environments for two main reasons. First, existing traﬃc
+obfuscation is performed over encrypted channels, which are
+necessary to mix the obfuscated and normal traﬃc. ICS networks, on the other hand, still rely on plain-text communications traﬃc due to a wide range of legacy devices, despite ICS
+network protocols providing security features [10]. Directly
+padding or adding dummy packets can easily reveal obfuscated
+packets, exposing the underlying traﬃc pattern to adversaries.
+Second, device ﬁngerprinting methods on ICS devices rely
+on diﬀerent features from the ones in general computing
+environments. Instead of using network layer knowledge, they
+attempt to use behavior on physical devices to reveal device
+model or types of operations. For example, work in [11] uses
+cross-layer response time (CLRT), determined by the latency
+between the TCP acknowledge packets (ACK) and the actual
+response from the same device to estimate execution time
+there. Since each vendor may choose diﬀerent materials or
+algorithms to implement the same control functionality, CLRT
+becomes an eﬀective feature for ICS device ﬁngerprinting.
+In this paper, we present NOMAD, an in-network trafﬁc obfuscation mechanism against ICS device ﬁngerprinting,
+even with plain-text communication. Consequently, adversaries cannot conduct eﬀective reconnaissance using sidechannel knowledge to reveal target systems’ vulnerabilities
+(e.g., outdated ﬁrmware or vulnerable device models) from
+network communications. Our solution draws on a key insight:
+to carry control units (e.g., measurements and commands), ICS
+network protocols map them to numerical indices, with syntax
+varying across control operations. Instead of applying the
+same obfuscation strategy to each network packet (as in many
+existing solutions), we use programmable network switches to
+
+extract operation-related knowledge from network traﬃc and
+apply diﬀerent strategies by splitting, padding, and scheduling
+control units while maintaining protocol compliance. NOMAD
+realizes multiple advancements with small runtime overhead:
+(i) provide ﬂexible obfuscation (e.g., normalize TCP ACK and
+application response in two diﬀerent patterns); (ii) preserve
+communication with legitimate end devices; and (iii) require
+no reliance on de-obfuscation hardware and encryption over
+ICS traﬃc.
+We realize NOMAD on a single Intel Toﬁno-1 programmable switch placed in front of an outstation, and we
+instantiate three example strategies on the DNP3 protocol.
+First, the switch holds the TCP acknowledgment and the
+DNP3 response of a READ or SELECT and releases them
+at deadlines computed from the request, so that the CLRT
+a passive observer measures becomes a value the operator
+conﬁgures. Second, it holds each OPERATE command for
+a conﬁgured interval before delivering it, so that the timing
+of a control operation no longer follows the device. Third, it
+splits the control units of every response into a ﬁxed layout
+of index ranges and transport frames, so that all responses
+have the same size while carrying the same measurements
+and status. None of these strategies changes the master, the
+outstation, or the meaning of a control unit. We evaluate
+NOMAD on a hardware testbed, with OpenDNP3 master and
+outstation endpoints behind the switch, over 98,816 DNP3
+transactions under four obfuscation conﬁgurations and eight
+timing settings. Speciﬁcally, NOMAD makes the following
+contributions:
+∙
+
+∙
+
+∙
+
+∙
+
+Obfuscates plain-text ICS traﬃc inside the network.
+NOMAD uses the syntax of control units, i.e., function
+codes, object groups and index ranges, to apply a diﬀerent
+strategy to each type of operation on one programmable
+switch. It needs neither encryption nor a de-obfuscation unit
+at either end, and the obfuscated traﬃc remains conformant
+to IEEE 1815 [10].
+Replaces ﬁngerprintable timing with conﬁgured values.
+NOMAD releases the acknowledgment of a transaction at
+a deadline after the request and the response a conﬁgured
+interval after the acknowledgment, and it holds OPERATE
+commands before delivery. On hardware, the CLRT measured at the master stays within 10–16 𝜇s of the conﬁgured
+value at the median, and the hold applied to OPERATE does
+not appear on the master-facing link.
+Normalizes response sizes while preserving protocol
+compliance. NOMAD re-encodes READ responses into
+three index ranges and splits select-before-operate responses
+into three transport frames, so that every response carries
+61 bytes. All 98,816 responses passed the conformance
+checker with their application sequence intact.
+Evaluates NOMAD against CLRT ﬁngerprinting with little overhead. The CLRT classiﬁer of Formby et al., trained
+before deployment, drops to chance in every setting, as it
+also does under a constant delay; retrained after deployment
+on our software outstation, it stays near its unobfuscated
+
+accuracy. Every transaction completes within 53 ms without
+retransmission. Every request is answered at the master
+within 53 ms, under the 201 ms TCP retransmission timeout,
+and no request was retransmitted.
+II. BACKGROUND
+A. ICS Network Communications
+Like many ICSs, power grids comprise cyber and physical
+infrastructures. Physically, substations (buses) are linked by
+electrical lines into a transmission or distribution network.
+The cyber infrastructure connects ﬁeld devices, e.g., IEDs
+(intelligent electronic devices), PLCs (programmable logic
+controllers), and legacy sensors and breakers, to a control
+center over an IP-based control network. The control center
+uses supervisory control and data acquisition (or a similar
+setup) to periodically collect measurements (voltage, current,
+power consumption) and issue commands to maintain stable,
+safe physical processes.
+ICS network protocols, e.g., DNP3 and Modbus, are designed mainly to carry control units, e.g., measurements or
+control commands, to accomplish these functions. The syntax
+of control units varies across operational types. For example,
+the DNP3 protocol speciﬁes primitive types, e.g., ﬂoating
+points, to represent measurements and composite types, e.g.,
+control relay output block (CROB), to represent commands
+applied to circuit breakers. The protocol further uses numerical
+indices to organize various control units in a single network
+packet. The protocol-conforming devices, e.g., IEDs and PLCs,
+store a local conﬁguration ﬁle, to look up the meaning of a
+control unit based on its indices.
+For example, Table I lists the analog input points that an
+SEL protective relay exposes over DNP3. Each measurement,
+from the three phase currents to the power factor, travels only
+as an index between 0 and 20, and the master interprets a
+value through the same conﬁguration. A DNP3 request names
+the points it wants by an object group, a qualiﬁer, and a range
+of indices, and the response returns the values under object
+headers that name the indices they carry [10]. Consequently,
+the same set of control units admits more than one valid layout,
+e.g., one range of indices or several consecutive ranges, and
+a response can change its size without changing what it says
+(Section V).
+B. ICS Device Fingerprinting
+Because physical devices may use diﬀerent algorithms or
+mechanical components to implement the same control operations, adversaries can use side-channel knowledge from control
+networks, e.g., packet size or timing, to pinpoint speciﬁc device types and control operations. This information can reveal
+vulnerable device models or ﬁrmware versions, enabling eﬀective attacks. For example, studies in [11] use two proprietary
+features for device ﬁngerprinting, as shown in Fig. 1. Crosslayer response time (CLRT), calculated by the latency between
+a TCP ACK packet and the corresponding application layer
+response, estimates the time used by speciﬁc IEDs to retrieve
+measurements. Physical Response Time (PRT), calculated as
+
+Ingress pipeline
+
+TABLE I
+DNP3 ANALOG INPUT POINTS OF AN SEL PROTECTIVE RELAY. T HE
+
+Egress pipeline
+
+MEANING OF EACH INDEX COMES ONLY FROM THE DEVICE CONFIGURATION.
+
+Parser
+
+Index
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+
+Point
+
+Index
+
+IA_MAG
+IB_MAG
+IC_MAG
+IG_MAG
+IN_MAG
+IAV
+3I2
+FREQ
+VAB_MAG
+VBC_MAG
+VCA_MAG
+
+(a) READ poll
+Master
+Outstation
+
+CLRT
+
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+
+VAVE
+3V2
+P
+Q
+S
+PF
+AI301
+AI302
+AI303
+AI304
+
+(b) Select-before-operate
+Master
+Outstation
+
+READ (0x01)
+
+SELECT (0x03)
+
+TCP ACK
+
+TCP ACK
+RESPONSE (0x81)
+
+RESPONSE (0x81)
+
+OPERATE (0x04)
+TCP ACK
+
+PRT
+
+MAUs
+
+Deparser
+
+Queues
+
+Parser
+
+MAUs
+
+Deparser
+
+Point
+
+RESPONSE (0x81)
+UNSOLICITED
+RESPONSE (0x82)
+
+Fig. 1. The two DNP3 transactions on the master-facing link. (a) A READ
+poll and its CLRT. (b) A select-before-operate control and its PRT.
+
+the latency between unsolicited responses (indicating the start
+of a control operation) and the corresponding application-layer
+response, estimates the time speciﬁc IEDs take to execute
+control commands. These device ﬁngerprinting presents different features compared to website or browser ﬁngerprinting
+in general computing environments. While the latter treat every
+packet equally (as they are encrypted), device ﬁngerprinting
+refers to timing between diﬀerent types of packets to reveal
+device-speciﬁc features.
+Fig. 1 shows the two transactions this paper considers and
+the two intervals that ﬁngerprinting measures on them. In
+a READ poll, the outstation’s TCP stack acknowledges the
+request as soon as it arrives, while its application layer answers
+only after the device has retrieved the measurements. CLRT is
+the interval between the arrival of the TCP acknowledgment
+and the arrival of the DNP3 response at the master [11].
+Because both packets leave the same device over the same
+path, the network delay cancels, and CLRT estimates how
+long the device takes to serve the request. In a select-beforeoperate (SBO) control, the master ﬁrst sends SELECT and
+then OPERATE. After the outstation executes the command,
+it reports the resulting change of state in an UNSOLICITED
+RESPONSE, and PRT, which Formby et al. call operation
+
+traffic manager
+
+Fig. 2. A programmable data plane. Packets pass a parser, a sequence of
+match/action units (MAUs) and a deparser in ingress, the traﬃc manager’s
+queues, and the same three blocks in egress.
+
+time, is the interval from the command to that unsolicited
+response, which estimates how long the device takes to actuate [11]. In this paper, NOMAD shapes CLRT, and PRT is
+outside the evaluated scope (Section VII). For example, the
+SEL-751A relay in our testbed acknowledges a READ poll
+within 0.49 ms and answers it 2.79 ms later at the median
+(Section III).
+C. Network Switch with Programmable Network Dataplane
+Network switches with programmable network data plane
+enabled by P4 draw signiﬁcant attention to host in-network
+security analytics. P4 stands for Programming Protocolindependent Packet Processors and is the de facto data-plane
+programming language enable customized packet-processing
+functions [12]. As shown in Fig. 2, Portable Switch Architecture (PSA) provides reference infrastructure for a programmable network data plane. It can feature up to four ingress
+and four egress pipelines [13], each composed of a parser,
+a deparser, and a sequence of match/action units (MAUs).
+MAUs include various storage units (e.g., SRAM, TCAM) to
+store network knowledge and arithmetic logic units (ALUs)
+to enable the following features directly in network devices:
+customized packet parsing across all network layers, line-rate
+analysis, and integrated monitoring and traﬃc engineering.
+However, realizing these beneﬁts requires meeting with strict
+hardware limits, e.g., roughly 120 MB of SRAM, 10 MB of
+TCAM, and ALUs that do not support ﬂoating-point operations, multiplication, or division.
+III. NOMAD D ESIGN OVERVIEW
+In this section, we ﬁrst present the threat model used
+by current ICS device ﬁngerprinting. The assumptions about
+adversaries lead to NOMAD’s design principles and major
+building components.
+A. Threat Model
+Assumptions on Adversary’s Capability. We assume the
+adversary has penetrated the control network already and can
+passively monitor traﬃc from the master-facing link as shown
+in Figure 3. The passive observer is able to read and record
+packet headers, their sizes, and arrival time, and because DNP3
+does not have any transport security by default [14], this gives
+the observer the ability to read the function codes of each
+request, and using that, they are able to label each exchange
+by what it does, e.g., READ poll or SELECT and OPERATE.
+We also assume that the adversary knows the existence of the
+
+Cumulative fraction
+
+0.8
+0.6
+0.4
+SEL-751: request→ACK
+SEL-751: request→response
+ION7550: request→response (carries ACK)
+
+0.2
+0.0
+0
+
+2
+
+4
+
+6
+
+8
+
+10
+
+READs with a separate ACK (%)
+
+(a) Where the acknowledgment travels
+1.0
+
+passive
+adversary
+
+(b) CLRT exists only with a separate ACK
+100
+
+100/100
+
+80
+60
+40
+20
+0/100
+
+0
+SEL-751
+
+ION7550
+
+Time after READ request (ms)
+
+Master
+
+Programmable switch
+
+Outstation
+
+Fig. 3. Observation model. The adversary monitors the shaded master-facing
+link. The dashed paths are not visible to it.
+
+framework and the intervals it obfuscates, but they cannot read
+the internal mechanism and state of the switch or be able to
+monitor the link between the switch and the outstation. This is
+practical, as the switch usually sits at the edge of the outstation
+and is usually connected with a single cable between devices
+in the same substation cabinet.
+Adversary’s Goal. The aim of the adversary is to ﬁngerprint the outstation using the timing from the exchanges and
+then infer the make and model of devices and the operation
+each of them performs. With this knowledge, they can design
+speciﬁc and targeted attacks like false data injection that must
+match the devices they compromise [15]. We consider an
+adversary that builds its classiﬁer from captured traﬃc before
+the framework is deployed and applies it afterwards.
+B. Design Goals
+Before describing NOMAD’s design goal, we use a sample network trace collected from IEDs from two diﬀerent
+vendors, i.e., the Schweitzer Engineering Laboratories (SEL)
+751A [16] and the Schneider Electric (SE) ION7550 power
+meter [17], to demonstrate unique characteristics in ICS device
+ﬁngerprinting. First, despite establishing security extensions in
+common ICS network protocols, plain-text communication is
+still prevalent in power grids and other ICSs. We have developed a web crawler that examined public product manuals,
+datasheets, and pages from ﬁve IED vendors, namely, SEL,
+SE, Rockwell Automation, GE Vernova, and Siemens. With a
+stratiﬁed sample of 99 catalogued entries, 32 were identiﬁed
+as having DNP3 support, and these documents established
+encryption for six entries, and one had DNP3 authentication.
+However, it is also established that OT asset owners and
+operators do not use these security measures even if they
+exist, with numerous reasons hindering their adoption [18].
+The crawler methodology and detailed results are presented in
+Appendix A.
+Second, diﬀerent IEDs can conﬁgure network protocols
+diﬀerently, and some even include undocumented variants.
+These conﬁgurations, largely beneﬁting from plain-text communication, can enable ad hoc features for ICS device ﬁngerprinting. In Figure 4, we present the data acquisition based
+on the DNP3 protocol on IEDs from two diﬀerent vendors,
+i.e., the Schweitzer Engineering Laboratories (SEL) 751A [16]
+and the Schneider Electric (SE) ION7550 power meter [17].
+Based on the network trace, we ﬁnd that SEL 751A disables
+
+Fig. 4. The same Class 0 READ poll on two IEDs behind the testbed switch.
+(a) The SEL-751A acknowledges each request in a separate TCP segment, so
+its CLRT exists; the ION7550 lets the response carry the acknowledgment. (b)
+Share of READ polls with a separate acknowledgment, 100 polls per device.
+
+TCP’s “delayed ACK” mechanism, making CLRT a viable
+ﬁngerprinting feature. However, SE ION7550 enables this
+mechanism, so we can no longer use CLRT to estimate how
+long the device spent retrieving measurements. and conﬁgure
+the DNP3 protocol with diﬀerent parameters. We believe the
+proprietary network protocol implementation and conﬁguration can form unique device ﬁngerprints, which also present
+an excellent opportunity to disrupt adversaries’ reconnaissance
+if a diﬀerent device ﬁngerprint can be manipulated.
+To counter unique ICS device ﬁngerprinting, we design
+NOMAD driven by the following goals.
+∙
+Obfuscation over Plain-text. Despite ICS network protocols are gradually enhanced with security components,
+plain-text communication still prevails in ICS due to
+existing legacy devices and demanding communication
+requirements. It is essential to apply various obfuscation
+strategies, including packet splitting and padding, over
+plain-text communication without revealing the fact.
+∙
+Flexible Obfuscation. Features from diﬀerent types of
+network packets can combine to form unique ﬁngerprints
+for IEDs. Applying diﬀerent obfuscation strategies based
+on packet types and extracted features is important to
+accommodate ad-hoc ﬁngerprinting methods.
+∙
+Low Runtime Overhead. Maintaining constant latency
+while applying various obfuscation strategies on thousands
+of IEDs in a power grid is essential to disrupt diverse
+device ﬁngerprinting.
+∙
+No Reliance on De-obfuscation. If we follow existing
+obfuscation solutions, a de-obfuscation unit processes network traﬃc from obfuscated traﬃc from all IED, presenting security and overhead bottleneck. It is critical to
+make obfuscation directly protocol-conformance, putting
+no reliance on de-obfuscation.
+Objectives. To make these goals concrete for the transactions in Fig. 1, NOMAD pursues three research objectives,
+which the evaluation answers one by one (Section VII).
+∙ RO1: For READ, SELECT and OPERATE, the timing a
+passive observer measures on the master-facing link equals
+values that the operator conﬁgures, independent of how fast
+the outstation serves the request.
+∙ RO2: Every response carries the same number of bytes
+and the same control units, and remains conformant to
+IEEE 1815, so that neither the master nor the outstation
+needs a de-obfuscation unit.
+
+RO3: The added delay stays within the DNP3 and TCP
+timers of the master, so that no request is retransmitted, and
+the whole mechanism ﬁts one programmable switch.
+Trusted Components. To make these objectives possible,
+we only add a switch and a control plane to the trusted
+computing base. The control plane installs the policy to the
+switch for enforcement. The master or the outstation is not
+needed, and neither are they modiﬁed for the framework to
+function.
+∙
+
+C. Components and Workﬂows
+As shown in Fig. 5, NOMAD includes two components:
+(i) Obfuscation infrastructure that uses P4-enabled network
+data planes to apply ﬂexible obfuscation strategies and (ii)
+obfuscation objectives/constraints determining security properties in various scenarios while observing ICS communication
+requirements. When a network packet traverses a gateway
+network device, we use a customized parser to extract network
+attributes and control-related knowledge, then categorize packets and organize the carried control units accordingly in the
+switch’s local storage. Using the control-unit syntax, including
+sizes and indices, we can split, pad, and schedule control units
+according to diﬀerent operations while maintaining protocol
+compliance. While obfuscation infrastructures provide an innetwork hardware foundation, we use switches’ control plane
+to realize various obfuscation objectives under constraints
+for diverse security applications, e.g., neutralize, mimicry
+communication patterns, and/or maximize diﬀerences between
+obfuscated and original patterns.
+IV. O BFUSCATION INFRASTRUCTURE
+To apply a diﬀerent strategy to each type of operation,
+NOMAD must know, for every packet that crosses the switch,
+which transaction it belongs to and which control units it
+carries, and it must be able to hold a packet and release it
+later without a host in the loop. As shown in Fig. 5, packets
+entering the switch pass three modules: a classiﬁer, which
+extracts control units and binds packets into transactions; a
+holder, which keeps packets until the strategy releases them;
+and a rewriter, which changes the layout of responses while
+keeping both TCP endpoints consistent. In this section, we
+describe each module by its function and its state, and we
+leave the policies they apply to Section V.
+A. Classiﬁer
+The classiﬁer parses every TCP segment between the master
+and the outstation down to the DNP3 application layer. It extracts the function code of each request, e.g., READ, SELECT
+and OPERATE, and the object group, variation, qualiﬁer and
+index range of each object header (Section II). Based on these
+ﬁelds and the TCP connection, we bind the request, its TCP
+acknowledgment and its response into one transaction, and
+we record the arrival time 𝑡0 of the request, from which the
+strategies of Section V compute their deadlines. Requests leave
+the classiﬁer unchanged. Consequently, the classiﬁcation of a
+packet adds no byte to the request a device receives.
+
+B. Holder
+On our switch, the data plane cannot pause a queue, and a
+packet cannot wait inside a match/action stage. We therefore
+hold a packet in a queue of the traﬃc manager and decide
+its release with blocker tokens, i.e., small internal packets that
+occupy a queue of higher priority and keep the scheduler from
+serving the held packet. A token re-enters the switch through
+recirculation after each pass, so the holder checks the clock
+once per pass without any host involvement. The holder oﬀers
+three operations on a packet 𝑝 whose release deadline 𝑑𝑝 the
+strategy sets, possibly after 𝑝 arrives; e.g., Strategy 1 ﬁxes
+an acknowledgment’s deadline only once the response of its
+transaction has been seen, and a response’s deadline only once
+the acknowledgment has been released:
+∙ hold(𝑝, 𝑑𝑝 ): enqueue 𝑝 in a hold queue 𝑄𝐿 and inject a
+blocker token 𝑏𝑝 , which carries 𝑑𝑝 , into a queue 𝑄𝐻 that
+the scheduler serves with strict priority over 𝑄𝐿 .
+∙ pass(𝑏𝑝 ): on each pass of 𝑏𝑝 at time 𝜏, recirculate 𝑏𝑝 into
+𝑄𝐻 if 𝜏 < 𝑑𝑝 , and drop it otherwise.
+∙ release(𝑝): the scheduler serves 𝑄𝐿 , and therefore 𝑝, only
+once 𝑄𝐻 is empty.
+Acknowledgments, responses and OPERATE commands have
+separate pairs of queues, so a held packet of one class never
+waits behind the token of another. Each queue pair holds
+at most one packet at a time, because DNP3 allows one
+outstanding request per connection and NOMAD assigns one
+queue pair per class of packet. Let 𝛿 denote the duration of
+one recirculation pass. Because the last token of 𝑝 is dropped
+on its ﬁrst pass at or after 𝑑𝑝 , the release time 𝑒𝑝 satisﬁes
+𝑑𝑝 ≤ 𝑒𝑝 ≤ 𝑑𝑝 + 𝛿,
+
+(1)
+
+apart from the time the scheduler needs to serve 𝑝 once 𝑄𝐻
+drains and the 512 ns granularity of the switch clock. If the
+transaction never completes, a fallback deadline of the strategy
+releases 𝑝 (Section VI), and a budget of 𝐵 = 240,000 passes
+per held packet bounds the hold in any case. The held packet
+itself is never copied or regenerated, so its bytes reach the
+master exactly as the outstation sent them, apart from the
+changes of the rewriter.
+C. Rewriter
+The rewriter applies the response layouts of Section V as
+a response leaves the switch toward the master. Because a reencoded response is longer than the original, the TCP byte
+stream seen by the master no longer matches the one the
+outstation sent. Let Δ denote the number of bytes by which
+the rewriter has lengthened the responses of a connection so
+far. To keep both endpoints consistent, we in eﬀect add Δ
+to the sequence numbers of the outstation’s segments toward
+the master and subtract it from the acknowledgment numbers
+of the master’s segments toward the outstation. The rewriter
+changes a response only when its mapping state commits
+the new layout, so a ﬂow without a conﬁgured layout is
+never lengthened without a matching translation, and the TCP
+checksum of every rewritten frame is updated accordingly.
+
+Obfuscation objectives and constraints (control plane)
+targets: CLRT D, OPERATE hold J, 61-byte responses; envelope da, pb, readiness, cap from L, G
+constraints: packet availability, DNP3/TCP timers, IEEE 1815 conformance
+installs policy
+Obfuscation infrastructure (one Tofino-1)
+
+SCADA
+master
+
+Classifier
+parse DNP3: function code,
+object, qualifier, index ranges;
+bind transaction, record t0
+
+Holder
+timed hold ACK, response, OPERATE
+in queues; blocker tokens
+recirculate until release
+
+Obfuscation strategies
+S1 timing replacement (holder)
+S2 OPERATE hold (holder)
+S3 response splitting (rewriter)
+
+Outstation
+(IED)
+
+Rewriter
+re-encode responses by index
+ranges / transport frames;
+map TCP sequence numbers
+
+Fig. 5. NOMAD’s components. The control plane installs the obfuscation objectives and constraints. On one switch, the classiﬁer parses DNP3 and binds each
+transaction, the holder keeps acknowledgments, responses and OPERATE commands in queues while blocker tokens recirculate, and the rewriter re-encodes
+responses and maps TCP sequence numbers.
+
+Control plane. The control plane installs NOMAD’s policy
+into match/action tables at run time: which obfuscation applies
+to each connection, the conﬁgured timing values, and the
+deadlines of Section VI. All four obfuscation conﬁgurations
+of our evaluation run on the same compiled image and diﬀer
+only in these entries. Appendix B describes how the three
+modules map to the switch.
+V. O BFUSCATION STRATEGIES
+NOMAD applies a strategy per type of operation rather than
+per packet. In this section, we present three example strategies,
+which together cover the timing and size features of the two
+transactions in Fig. 1: a timing replacement for READ and
+SELECT, a hold for OPERATE, and a response layout that
+splits control units. Each strategy is a policy installed by the
+control plane on the infrastructure of Section IV.
+A. Strategy 1: Replacing the Read-Lane Timing
+Timing model. In Fig. 6(a), we show the timing of a READ
+transaction. We denote the arrival time of the request at the
+switch by 𝑡0 , the arrival times of the acknowledgment and the
+response by 𝑡𝐴 and 𝑡𝑅 , and the times they depart toward the
+master by 𝑒𝐴 and 𝑒𝑅 . Without NOMAD, the master measures
+CLRToriginal = 𝑡𝑅 − 𝑡𝐴 ,
+
+(2)
+
+which follows how long the outstation takes to answer.
+Replacing the interval. A constant hold on each packet
+would only shift CLRToriginal , and the variation that a timing classiﬁer uses would survive the shift. To remove that
+variation, we anchor both departures to the request and to
+the acknowledgment’s own release: the switch releases the
+acknowledgment once a deadline 𝑑𝑎 after the request has
+passed and the response of the same transaction has arrived,
+
+and it releases the response a conﬁgured interval 𝐷 after the
+acknowledgment:
+𝑒𝐴 = max(𝑡0 + 𝑑𝑎 , 𝑡𝑅 ),
+
+𝑒𝑅 = 𝑒𝐴 + 𝐷.
+
+(3)
+
+Consequently, the interval the master measures becomes
+𝑒𝑅 − 𝑒𝐴 = 𝐷,
+
+(4)
+
+independent of the values of 𝑡𝐴 and 𝑡𝑅 , as long as the response
+arrives before the acknowledgment’s deadline. A response that
+arrives early waits longer, and one that arrives close to the
+deadline waits less. The two holds, 𝑒𝐴 − 𝑡𝐴 and 𝑒𝑅 − 𝑡𝑅 , are
+not conﬁgured; the schedule determines them. SELECT, the
+ﬁrst half of a select-before-operate control, follows the same
+rule.
+Release in practice. Each release is a deadline of the holder,
+so by Eq. (1) the packet leaves at most one recirculation
+pass after it, plus the time the scheduler needs to serve it.
+If the response has not arrived by a later fallback deadline
+(Section VI), the switch releases what it holds rather than
+waiting indeﬁnitely.
+B. Strategy 2: Holding Control Operations
+The OPERATE half of a select-before-operate control carries the physical execution of a command, which Formby et
+al. ﬁngerprint through PRT [11]. To separate the timing of the
+operation from its arrival, we hold each OPERATE command
+at the switch for a conﬁgured interval 𝐽 before it delivers
+the command to the outstation. The acknowledgment and the
+response of OPERATE then follow Strategy 1 with the same
+anchor 𝑡0 , the OPERATE’s arrival at the switch, as shown
+in Fig. 6(b). Because the outstation sees the command only
+after 𝐽 , its response arrives near 𝑡0 + 𝐽 + 𝐿, where 𝐿 is the
+time the outstation takes to respond. As long as 𝑑𝑎 ≥ 𝐽 + 𝐿,
+
+VI. O BFUSCATION O BJECTIVES AND CONSTRAINTS
+
+(a) READ: ACK and response held
+request t0
+Master
+D = CLRT seen
+Switch
+Outstation
+
+native response
+da: ACK not before t0 + da
+
+(b) OPERATE: held for J, then ACK and response held
+request t0
+Master
+hold J
+
+D = CLRT seen
+
+Switch
+Outstation
+
+native response
+da: ACK not before t0 + da
+
+Fig. 6. Release timeline at 𝐷 = 10 ms and 𝐽 = 10 ms, placed at campaign
+medians. (a) READ: the switch holds the acknowledgment until 𝑑𝑎 after the
+request and releases the response 𝐷 after it. (b) OPERATE: the switch ﬁrst
+holds the command for 𝐽 , then holds the acknowledgment and the response
+exactly as in (a).
+
+the acknowledgment still leaves at 𝑡0 + 𝑑𝑎 and the response
+at 𝑒𝐴 + 𝐷, and the master-facing link reveals neither the hold
+nor the device’s execution time. This condition is one of the
+constraints of Section VI.
+C. Strategy 3: Splitting Control Units
+Responses of diﬀerent operations diﬀer in size, and the
+size alone can reveal the operation. In our testbed, a READ
+response carries 49 bytes of TCP payload and a SELECT or
+OPERATE response carries 37 bytes. Padding such a response
+with ﬁller would either break the DNP3 syntax or expose the
+ﬁller to an observer who parses the plain text. We, on the
+other hand, change the layout of the control units the response
+already carries with the index syntax of Section II.
+READ responses. In our testbed, the native READ response
+returns 23 binary output status points (object group 10, variation 2), indices 0 to 22, in one object header. We re-encode the
+same points as three consecutive index ranges, 0–5 and 6–9
+with one-byte start and stop indices and 10–22 with two-byte
+indices. Every value appears once, in the same order, and the
+response grows to 61 bytes.
+SELECT and OPERATE responses. The 22 application
+bytes of the native response are split as 15, 6 and 1 bytes across
+three DNP3 transport frames of 28, 19 and 14 bytes, which
+travel in one TCP segment of 61 bytes. The master’s DNP3
+stack reassembles the three frames into the original application
+fragment.
+In both cases, a normalized response carries 61 bytes, the
+master receives the same control units in the same order,
+and every frame keeps valid CRCs and transport sequence
+numbers. Requests stay as the master sent them; NOMAD
+normalizes the responses only.
+
+The strategies of Section V take their parameters from the
+control plane, and the parameters cannot be chosen freely. An
+obfuscation objective states what the observer should see; a
+constraint states what the control network and the switch must
+still guarantee. In this section, we describe both and the rule
+NOMAD uses to turn them into deadlines.
+Objectives. The operator states three targets: the CLRT
+the master should observe, 𝐷; the hold applied to every
+OPERATE, 𝐽 ; and the size of every response, 61 bytes
+in our deployment. Because the targets are values rather
+than functions of a device, the same targets can apply to
+all outstations behind the switch that acknowledge requests
+separately, so that such devices present the same timing and
+size to the master-facing link.
+Packet availability. The switch cannot release a packet it
+has not received. Strategy 1 therefore requires the response to
+arrive before the acknowledgment’s deadline, 𝑡𝑅 ≤ 𝑡0 +𝑑𝑎 , and
+for OPERATE the response arrives only after the hold, so 𝑑𝑎
+must also cover 𝐽 . We denote by 𝐿 an estimate of the largest
+time an outstation takes to make its response available after
+a request. We measure 𝐿 on unobfuscated pilot traﬃc, before
+any hold is applied; in our testbed, 𝐿 is 5.598 ms.
+Deadlines. To keep a margin for queue service and measurement error, we add a guard 𝐺 of 5 ms and size every
+deadline for the largest targets the operator may choose,
+𝐷max = 𝐽max = 20 ms. With 𝐶(𝑥) rounding 𝑥 up to the next
+millisecond, the control plane sets
+𝑑𝑎 = 𝐶(𝐿 + 𝐽max + 𝐺),
+(
+)
+𝑝𝑏 = 𝐶 max(𝐽max + 𝐺, 𝑑𝑎 + 𝐷max + 𝐺) ,
+(5)
+(
+)
+𝑟 = 𝐶 max(𝑝𝑏 + 𝐺, max(𝑑𝑎 , 𝐿 + 𝐽max ) + 𝐷max + 𝐺) ,
+where 𝑑𝑎 is the acknowledgment deadline of Strategy 1,
+𝑝𝑏 bounds the release of a response that carries its own
+acknowledgment, and 𝑟 is the readiness deadline after which
+the switch releases any held packet. For 𝐿 = 5.598 ms, these
+rules give 𝑑𝑎 = 31 ms, 𝑝𝑏 = 56 ms and 𝑟 = 61 ms, and one
+envelope serves every combination of 𝐷 and 𝐽 up to 20 ms.
+The control plane also checks a cap of 𝑟 + 𝐺 = 66 ms on the
+readiness deadline. These guards are margins we chose for the
+experiments, not proven worst-case bounds.
+Communication requirements. A held transaction must
+still complete before the master gives up on it. With these
+deadlines, a response leaves the switch about 𝑑𝑎 + 𝐷 after its
+request, i.e., 51 ms for the largest 𝐷, and the guarded budget of
+the whole envelope is 76 ms. Both stay well below the 500 ms
+response timeout conﬁgured at the master and the 201 ms TCP
+retransmission timeout we measured on the endpoints, so a
+held request is not retransmitted. A deployment with slower
+devices raises 𝐿, and therefore 𝑑𝑎 , by the same amount.
+Protocol compliance. The layouts of Strategy 3 must keep
+every frame valid under IEEE 1815, i.e., correct CRCs, transport sequence numbers and application sequence numbers, and
+must carry the same control units in the same order. Program
+
+(a) Full range, D = 10 ms, J = 2.4 ms
+
+VII. E VALUATION
+We evaluate NOMAD against the three research objectives
+of Section III. For RO1, we measure whether the timing that
+the master observes equals the conﬁgured values; for RO2,
+we measure response sizes and protocol conformance; and for
+RO3, we measure the delay and the switch resources NOMAD
+needs. Because the objectives exist to defeat ﬁngerprinting, we
+also measure what the classiﬁer of Formby et al. [11] learns
+from the obfuscated traﬃc.
+
+Exchanges (%)
+
+E therefore rewrites a response only when its shape and every
+native CRC match the layout conﬁgured for its operation.
+
+2
+
+10
+
+1
+
+10
+
+0
+
+10
+
+No obfuscation
+Timing
+Size
+Timing+Size
+
+−1
+
+0
+
+5
+
+10
+
+15
+
+20
+
+Master-visible CLRT (ms), 0.25 ms bins
+(b) Within 0.1 ms of D = 10 ms
+15
+
+Exchanges (%)
+
+A. Testbed and Methodology
+Testbed. We run NOMAD on an Intel Toﬁno-1 switch
+with SDE 9.13.2, as three P4 programs (Appendix B). The
+DNP3 master and outstation are OpenDNP3 [19] endpoints
+in two network namespaces of one server, connected through
+the same switch port, so every packet between them crosses
+the switch, and the outstation answers a request after a ﬁxed
+5 ms application delay. We capture every packet on the server’s
+switch-facing interface with microsecond timestamps, once
+as the endpoints send it and once as the switch delivers it;
+the master-facing observation of Section III is the delivered
+stream.
+Conﬁgurations. We compare four conﬁgurations on the
+same compiled image: No obfuscation, Timing (Strategies 1
+and 2), Size (Strategy 3) and Timing+Size (all three). We vary
+the conﬁgured CLRT 𝐷 over 5, 10, 15 and 20 ms with 𝐽 =
+2.4 ms, and the OPERATE hold 𝐽 over 5, 10, 15 and 20 ms
+with 𝐷 = 10 ms, i.e., eight settings, all under the one envelope
+of Section VI.
+Workload and campaign. Each experiment block runs
+every conﬁguration once, in an order that rotates between
+blocks, with 65 READ polls and 64 select-before-operate
+cycles each; we count the SELECT and the OPERATE of
+a cycle as two transactions. The campaign ran 154 blocks
+without failure, including pilot and feasibility blocks, and
+its 128 main blocks produced 98,816 DNP3 transactions, 16
+blocks per setting. The ﬁrst 8 blocks of each setting train the
+attackers and the last 8 test them, so no tested transaction was
+seen in training.
+Attacker. We use the classiﬁer of Formby et al. [11], a
+multinomial naive Bayes over 200-bin histograms of CLRT,
+and apply it to operations rather than device types. Its histograms have a last bin that collects every value above a threshold 𝐻, which we set to 1.05 times the largest training CLRT.
+Because the adversary reads function codes (Section III), it
+groups the CLRT values of one operation into windows of
+𝐾 = 8, 32 and 64 transactions and classiﬁes each window as
+READ, SELECT or OPERATE. Following our threat model,
+the attacker is trained on unobfuscated traﬃc captured before
+NOMAD is deployed and is applied afterwards. To bound what
+it can learn once NOMAD is in place, we also retrain the same
+classiﬁer on the traﬃc of each conﬁguration. In both cases, the
+classiﬁer is trained on the ﬁrst 8 blocks of a setting and tested
+
+10
+
+10
+5
+0
+9.900
+
+9.925
+
+9.950
+
+9.975 10.000 10.025 10.050 10.075 10.100
+
+Master-visible CLRT (ms), 5 µs bins
+Fig. 7. CLRT measured at the master at 𝐷 = 10 ms, 𝐽 = 2.4 ms, (a) over the
+full range on 0.25 ms bins and (b) within 0.1 ms of 𝐷 on 5 𝜇s bins. Without
+timing, CLRT stays at the device’s 5.3 ms; with timing, it moves to 𝐷.
+
+on the last 8. We report balanced accuracy, for which chance
+among three operations is 1/3, and, for the reduction from No
+obfuscation to Timing+Size at 𝐷 = 10 ms and 𝐽 = 2.4 ms,
+a 95% interval from 10,000 paired bootstrap resamples of the
+8 test blocks.
+B. RO1: Timing Replaced by Conﬁgured Values
+CLRT follows the conﬁguration. In Fig. 7, we show
+the CLRT the master measures in every conﬁguration at 𝐷
+= 10 ms. Without Strategy 1, CLRT stays at the 5.3 ms
+the outstation needs, and response-size normalization alone
+leaves it there. With Strategy 1, the distribution moves to the
+conﬁgured 10 ms and stays within 0.1 ms of it, in two modes
+about 40 𝜇s apart. Fig. 9 quantiﬁes the error over all eight
+settings: the median of |CLRT − 𝐷| is 10–16 𝜇s for every
+operation, the 99th percentile is 58–86 𝜇s, and 0.14–0.46% of
+the transactions exceed 100 𝜇s. The few exceptions form a tail
+near 1 ms, with a maximum of 1.93 ms. On an earlier build,
+we localized this tail to a host-observed delay downstream
+of the switch’s egress parser, and we did not re-measure that
+attribution on this build.
+A small operation-dependent oﬀset. Fig. 8 breaks the error
+down by setting. At 𝐷 = 5, 15 and 20 ms, the three operations
+agree within 3 𝜇s, at about 0, +7 and +11 𝜇s. At 𝐷 = 10 ms,
+in all ﬁve settings of 𝐽 , the medians of READ and SELECT
+sit 20–29 𝜇s early while OPERATE stays within 5 𝜇s of 𝐷;
+because the timed distribution has two modes (Fig. 7), the
+oﬀset may reﬂect how often each operation falls in the earlier
+mode. We have not established the cause of this oﬀset, which
+
+Request→response (ms) Hold before delivery (ms)
+
+Median CLRT − D (µs)
+
+Timing
+10
+0
+−10
+−20
+−30
+
+Median CLRT − D (µs)
+
+Timing+Size
+READ
+SELECT
+OPERATE
+
+10
+0
+
+(a) Outstation side: hold follows J
+20
+
+10
+
+0
+
+(b) Master side: independent of J
+40
+
+No obfuscation
+Timing
+Size
+Timing+Size
+
+20
+
+0
+2.5
+
+−10
+
+10.0
+
+12.5
+
+15.0
+
+17.5
+
+20.0
+
+Fig. 10. OPERATE at 𝐷 = 10 ms for each 𝐽 : (a) the hold applied before
+delivery to the outstation and (b) the request-to-response time at the master.
+10/20
+
+10/15
+
+10/10
+
+10/5
+
+20/2.4
+
+15/2.4
+
+10/2.4
+
+5/2.4
+
+−30
+
+D/J (ms)
+Fig. 8. Median signed error CLRT−𝐷 per setting (𝐷/𝐽 in ms) and operation,
+for Timing (top) and Timing+Size (bottom).
+
+TABLE II
+R ESPONSES PER CONFIGURATION OVER THE MAIN CAMPAIGN: COUNT,
+RESPONSES THAT PASSED THE CONFORMANCE CHECKER , RESPONSE SIZES IN
+BYTES, ACKNOWLEDGMENT COMMITS, FALLBACK RELEASES, AND
+RETRANSMITTED REQUESTS.
+Arm
+
+Fraction exceeding
+
+7.5
+
+Configured J (ms), D = 10 ms
+
+−20
+
+10
+
+5.0
+
+Resp. Conform. Bytes Commits Fallb. Retx.
+
+0
+
+10
+
+−1
+
+10
+
+−2
+
+10
+
+−3
+
+10
+
+−4
+
+10
+
+−5
+
+No obfuscation
+Timing
+Size
+Timing+Size
+
+Timing, READ
+Timing+Size, READ
+Timing, SELECT
+
+10
+
+0
+
+10
+
+1
+
+Timing+Size, SELECT
+Timing, OPERATE
+Timing+Size, OPERATE
+
+10
+
+2
+
+10
+
+3
+
+|CLRT − D| (µs), floor 1 µs
+Fig. 9. Complementary CDF of |CLRT − 𝐷| for the timed conﬁgurations
+over all eight settings, per operation; the dashed line marks 100 𝜇s.
+
+is far below the 5.3 ms CLRT of the outstation, but it is the
+one timing diﬀerence that remains (Section VII-D).
+Replacement rather than shift. A constant hold would
+keep the device’s distribution and only move it. To show the
+diﬀerence, we shifted the unobfuscated CLRT at the primary
+setting by one constant onto the obfuscated median: the shifted
+OPERATE stays about 60 𝜇s below READ and SELECT,
+while the measured Timing+Size distributions of the three
+operations lie within 25 𝜇s of each other. The median variance
+of CLRT in held-out windows of 32 transactions is about three
+times lower with timing than without it. The native spread
+of our software outstation is already small, with a standard
+deviation of 0.06–0.11 ms, so the reduction is modest in
+
+24,704
+24,704
+24,704
+24,704
+
+24,704 37/49
+24,704 37/49
+24,704
+61
+24,704
+61
+
+0
+24,704
+0
+24,704
+
+0
+0
+0
+0
+
+0
+0
+0
+0
+
+absolute terms.
+The OPERATE hold stays inside the switch. Fig. 10(a)
+shows that the hold measured before delivery follows the
+conﬁgured 𝐽 in every setting. Fig. 10(b) shows that the
+master nevertheless sees the same request-to-response time of
+41.1 ms for every 𝐽 , because 𝑑𝑎 covers the hold (Section V).
+Consequently, the time a device spends on a command no
+longer reaches the master-facing link.
+C. RO2: Uniform and Conformant Responses
+Table II summarizes every response of the campaign.
+Without Strategy 3, READ responses carry 49 bytes and
+SELECT and OPERATE responses 37 bytes; with it, every
+response carries 61 bytes, and requests keep their native 20
+and 35 bytes. All 98,816 responses passed the IEEE 1815
+conformance checker of our harness with intact transport and
+application sequence numbers, and no DNP3 CRC failed.
+In each size-normalized conﬁguration, 16,384 select-beforeoperate responses travelled as three transport frames, and the
+master reassembled every one of them; every READ matched
+the outstation’s values, and every SELECT authorized its
+OPERATE, without any packet lost, duplicated or reordered.
+D. Resistance to Fingerprinting
+Attacker trained before deployment. Fig. 11(a) shows the
+attacker of our threat model. Without obfuscation, it identiﬁes
+
+0.8
+
+10/20
+
+1
+
+10/15
+
+10
+
+D/J (ms)
+0.6
+
+K = 32
+
+K = 64
+1.0
+
+Fig. 11. Balanced accuracy of the classiﬁer of Formby et al. per conﬁguration
+and window size 𝐾, (a) trained before deployment and (b) retrained after
+deployment. Markers give the mean over the eight settings, bars the range,
+and the dashed line is chance.
+
+the operation of a window with a balanced accuracy of 0.55–
+0.60 on average over the eight settings, and Size alone leaves
+it near that level, because response sizes do not change CLRT.
+Under Timing and Timing+Size, it falls to 0.333 at every
+𝐾 and in every setting, because every obfuscated window
+lies outside the histograms it learned from the device. At the
+primary setting, the reduction is 0.271 at 𝐾 = 8 and 32 and
+0.292 at 𝐾 = 64, with 95% intervals of [0.135, 0.396], [0.146,
+0.396] and [0.167, 0.417]. However, a constant delay produces
+the same result. In a post hoc check, shifting the unobfuscated
+CLRT by 1 ms, or onto the median of Timing+Size, drives the
+same classiﬁer to 0.33–0.36 on average over the settings. This
+attacker therefore fails on any timing it did not see in training,
+and its drop does not show that NOMAD removes operation
+information; the retrained attacker below is the meaningful
+test.
+Attacker retrained after deployment. Fig. 11(b) shows the
+same classiﬁer retrained on the traﬃc of each conﬁguration.
+Under Timing+Size, it averages 0.454, 0.531 and 0.557 at
+𝐾 = 8, 32 and 64, against 0.553, 0.591 and 0.604 without
+obfuscation, and at the primary setting the reductions are
+0.130, 0.000 and −0.042, with intervals that include zero.
+Consequently, an attacker that collects labeled CLRT after NOMAD is deployed learns about as much as it learned without
+NOMAD in our testbed. We believe two factors explain this
+result. First, the unobfuscated CLRT of our software outstation
+barely diﬀers between operations (Fig. 7), so its histograms
+carry little operation information to begin with. Second, the
+20–29 𝜇s oﬀset at 𝐷 = 10 ms (Fig. 8) leaves a diﬀerence that
+a retrained histogram can learn. Each estimate rests on 192,
+48 and 24 test windows per setting at 𝐾 = 8, 32 and 64.
+
+Cumulative fraction
+
+Transactions per window
+
+cap
+
+K=8
+
+readiness
+
+0.2
+
+da
+
+0.4
+
+pb
+
+Fig. 12. Request-to-response time at the master per setting (𝐷/𝐽 in ms),
+median (marker) to maximum (line), with the endpoint timers.
+
+L (pilot)
+
+Balanced accuracy
+
+(b) Retrained after deployment
+
+Timing+Size
+
+10/10
+
+0.2
+
+10
+
+10/5
+
+0.4
+
+Size
+
+min. observed TCP RTO (201 ms)
+2
+
+20/2.4
+
+0.6
+
+Timing
+
+endpoint response timeout (500 ms)
+
+15/2.4
+
+Size
+Timing+Size
+
+10/2.4
+
+No obfuscation
+Timing
+
+No obfuscation
+
+5/2.4
+
+0.8
+
+Request→response at master (ms)
+
+Balanced accuracy
+
+(a) Trained before deployment
+
+0.8
+READ, No obfuscation
+SELECT, No obfuscation
+OPERATE, No obfuscation
+OPERATE, Timing+Size (incl. J)
+
+0.6
+0.4
+0.2
+0.0
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+60
+
+70
+
+Response availability after request (ms)
+Fig. 13. Response availability after the request at the outstation side, against
+the envelope of Section VI.
+
+E. RO3: Overhead
+Delay. In Fig. 12, we show the request-to-response time
+at the master. Without timing, a transaction completes in
+5.4 ms at the median, and with timing it completes at 𝑑𝑎 + 𝐷,
+i.e., 36.1–51.1 ms at the median, while the slowest of all
+49,408 timed transactions took 52.3 ms. Every transaction
+completed below the 201 ms TCP retransmission timeout and
+the 500 ms response timeout of the master, and no request
+was retransmitted (Table II).
+Envelope coverage. Fig. 13 compares the time each response became available at the outstation side with the envelope. Unobfuscated responses were available within 8.0 ms and
+held OPERATE responses within 26.45 ms, and no response
+of any conﬁguration arrived after 𝑑𝑎 = 31 ms. Consequently,
+every timed acknowledgment committed at its deadline, and no
+fallback release occurred (Table II); about one blocker token
+for every two timed transactions outlived its packet and was
+retired, and delivery was unaﬀected. The largest availability
+exceeded the pilot estimate 𝐿 = 5.598 ms, which the guard 𝐺
+absorbed.
+Switch resources. NOMAD ﬁts one Toﬁno-1 switch, and
+its three programs leave most of the memory of each pipe free
+(Appendix B).
+
+F. Limitations
+Our endpoints are OpenDNP3 software processes behind
+one switch, and the outstation answers after a ﬁxed delay;
+physical relays answer with a wider timing spread, which
+Strategy 1 should replace the same way but which we did
+not measure on this build. The results are transaction-class
+identiﬁcation by the classiﬁer of Formby et al., which uses
+CLRT, not device identiﬁcation. Because the adversary reads
+function codes, the operation of a window is already visible;
+the classiﬁcation measures how much operation information
+CLRT carries, which a device ﬁngerprint built on the same
+histograms would use, not information the adversary otherwise
+lacks. Response sizes and device-speciﬁc content such as
+object groups, point counts and status bits remain readable
+in plain text. With one outstation of nearly constant service
+time, RO1’s independence from how fast a device serves a
+request follows from the design (Section V), and we did not
+test it across devices. A device that piggybacks its acknowledgment, like the ION7550, would follow the 𝑝𝑏 path, and its
+master-visible timing would diﬀer from that of a device that
+acknowledges separately. Our outstation sends no unsolicited
+responses, so we did not measure PRT, and the OPERATE
+hold was evaluated only on the acknowledgment and response
+it shapes. Holding OPERATE delays the physical execution of
+a command by 𝐽 , which an operator must weigh against the
+timing requirements of protection functions. NOMAD leaves
+requests native, and their sizes alone separate READ from
+select-before-operate. The cause of the operation-dependent
+oﬀset at 𝐷 = 10 ms is not established, and the guards of the
+envelope are margins chosen for the experiments rather than
+proven bounds.
+VIII. R ELATED WORK
+Device ﬁngerprinting. Devices can be identiﬁed by what
+they emit and how they communicate, even without access
+to the payload. Kohno et al. ﬁngerprint a remote host from
+the skew of its clock in TCP timestamps [20], and GTID
+identiﬁes a device and its type from the timing signature
+of its packets [21]. Website ﬁngerprinting reaches the same
+goal from packet sizes, directions and timing over encrypted
+channels, with attackers based on random forests [22], deep
+learning [5], and timing alone [23]. NOMAD considers the
+same passive observer, and its objective is to remove the
+timing and size features that such attackers rely on from the
+master-facing link.
+ICS and power-system ﬁngerprinting. Formby et al.
+introduce ﬁngerprinting to control systems and deﬁne the
+cross-layer response time and the physical operation time of
+a DNP3 outstation [11], and their measurements of substation
+traﬃc show how regular these timings are [24]. Later work
+ﬁngerprints ICS devices from inter-layer response processing
+time [25], from the scan cycle of PLCs [26], from time delays
+in industrial dataﬂows [27], from device physics [28], and
+from behavior under challenge and response [29], and Keliris
+and Maniatakos identify Modbus ﬁeld devices from device-
+
+speciﬁc protocol content [30], which NOMAD’s strategies
+leave readable.
+Such knowledge lets an adversary craft attacks that must
+match the target, e.g., false data injection against state estimation [15] and attacks on process control [31]. Defenses against
+reconnaissance in power grids have so far worked on content
+and connectivity. DefRec virtualizes physical functions and
+presents deceptive measurements [32], RAINCOAT randomizes data acquisition and injects decoy measurements [33], and
+a testbed evaluates such approaches on grid infrastructure [34].
+Compared to these defenses, NOMAD serves a diﬀerent
+objective: it leaves the content of every control unit unchanged
+and changes when and in which layout the outstation’s answer
+reaches the master.
+General traﬃc obfuscation. Traﬃc morphing transforms
+one packet-size distribution into another [3], and Dyer et al.
+show that per-packet padding and fragmentation still leave
+exploitable features [4]. Tamaraw ﬁxes packet sizes and rates
+at a bandwidth cost [6], WTF-PAD ﬁlls inter-packet gaps
+adaptively [35], Walkie-Talkie molds bursts into supersequences [36], TraﬃcSliver splits traﬃc across paths [37], and
+FRONT, Surakav and RegulaTor trade bandwidth and latency
+in diﬀerent ways [38]–[40].
+Closer to NOMAD’s setting, Handley et al. normalize
+ambiguous traﬃc at a network element [41], Smart et al.
+rewrite TCP/IP behavior to defeat stack ﬁngerprinting [42],
+and Askarov et al. mitigate timing channels by releasing
+outputs on a predicted schedule [43], the idea behind NOMAD’s deadline release. Shaping also protects smart-home
+devices [44], and Pacer and NetShaper bound network sidechannel leakage in the cloud with shaped schedules [45], [46].
+These defenses are eﬀective over encrypted channels with
+cooperating end hosts that can add cover traﬃc. However,
+in a plain-text ICS network, dummy packets and ﬁller bytes
+are visible to an observer who parses the protocol, and the
+outstation cannot be modiﬁed. NOMAD, on the other hand,
+changes only the timing and the layout of packets the outstation
+already sends.
+Programmable data planes. P4 deﬁnes the programmable
+parser and match/action model that NOMAD uses [12]. PIFO
+provides programmable scheduling at line rate [47], SPPIFO approximates it with strict-priority queues [48], and
+programmable calendar queues release packets by time on
+Toﬁno, recirculating a marker packet whose arrival shows that
+a queue has drained [49]; NOMAD’s blocker tokens play a
+similar role for a single held packet.
+On programmable switches, NetHide obfuscates the observable topology [50], Ditto shapes WAN traﬃc to a ﬁxed
+pattern with a switch at each end [7], and Minos and Securitas
+obfuscate encrypted traﬃc with padding, dummy packets
+and fragmentation [8], [9]. In ICS networks, programmable
+switches enhance protocol security [51] and correlate timed
+events with deep packet inspection [52]. Compared to this
+work, NOMAD runs on one switch at the outstation edge and
+needs no de-obfuscation unit, because every packet it releases
+remains a valid DNP3 packet for the unmodiﬁed master.
+
+IX. CONCLUSION
+In this paper, we presented NOMAD, an in-network traﬃc
+obfuscation mechanism against ICS device ﬁngerprinting over
+plain-text communication. NOMAD uses the syntax of control
+units to apply a diﬀerent strategy to each type of operation on
+one programmable switch: it replaces the CLRT of READ and
+SELECT with a conﬁgured value, holds OPERATE commands
+inside the switch, and splits the control units of every response
+into one ﬁxed layout. On a Toﬁno-1 testbed with 98,816 DNP3
+transactions, the CLRT at the master stayed within 10–16 𝜇s
+of the conﬁgured value at the median, and all responses carried
+61 bytes and remained conformant to IEEE 1815. The CLRT
+classiﬁer of Formby et al., trained before deployment, fell to
+chance in every setting, as it also did under a constant delay,
+and the same classiﬁer retrained after deployment stayed near
+its unobfuscated accuracy on our software outstation, whose
+unobfuscated CLRT barely diﬀers between operations. All
+transactions completed within 53 ms without retransmission.
+In future work, we will evaluate NOMAD with physical relays
+of several vendors, whose wider timing gives the classiﬁer
+more to learn, and extend the strategies to requests.
+ACKNOWLEDGMENTS
+A PPENDIX A
+SECURITY SUPPORT D OCUMENTED BY IED V ENDORS
+To estimate how widely DNP3 security is available in
+deployed devices, we collected public product manuals, data
+sheets and pages of ﬁve IED vendors and recorded, for each
+device, the DNP3 security it documents. Table III summarizes
+55 devices. Of these, 48 document no DNP3 security, 4
+document encryption with authentication, 2 document authentication only, and 1 lists an option we could not conﬁrm. All
+25 devices of mature or legacy generations document none.
+Two of the four encrypted entries are PLCs whose security
+protects EtherNet/IP rather than DNP3, which reaches them
+only through an add-on module. A feature that a vendor
+documents may still be unused in a deployment [18]; an
+analysis of traﬃc at an Internet exchange found that 75.6%
+of ICS hosts communicate without encryption [53].
+TABLE III
+DNP3 SECURITY SUPPORT DOCUMENTED BY FIVE IED VENDORS (DEVICE
+COUNTS): ENCRYPTION WITH AUTHENTICATION, AUTHENTICATION ONLY,
+AN UNCONFIRMED OPTION, AND NONE .
+Vendor
+
+Devices
+
+Enc.+Auth.
+
+Auth.
+
+Unconf.
+
+None
+
+SEL
+GE
+Siemens
+Schneider
+Rockwell
+
+15
+12
+11
+10
+7
+
+1
+0
+1
+0
+2
+
+0
+0
+0
+2
+0
+
+0
+0
+0
+1
+0
+
+14
+12
+10
+7
+5
+
+Total
+
+55
+
+4
+
+2
+
+1
+
+48
+
+A PPENDIX B
+IMPLEMENTATION ON TOFINO-1
+We implement the three modules of Section IV as three P416
+programs for the Toﬁno Native Architecture, compiled with
+
+p4c 9.13. The switch has two physical pipes. The classiﬁer
+runs in the ingress of pipe 0 and hands the requests of timed
+operations to the holder, which runs in the ingress of pipe 1;
+the rewriter runs in the egress of pipe 0, through which every
+packet toward an endpoint leaves. Each pipe has dedicated
+recirculation ports, which carry the blocker tokens and the
+held packets between passes. The holder reads the ingress
+timestamp in units of 256 ns, and the rewriter updates the
+TCP checksum incrementally. The classiﬁer and the holder
+each use 11 match/action stages and the rewriter uses all 12
+stages of its pipe, and on average the programs occupy 16.5%
+of the SRAM and 31.3% of the TCAM of pipe 0.
+R EFERENCES
+[1] R. M. Lee, M. J. Assante, and T. Conway, “Analysis of the cyber
+attack on the Ukrainian power grid,” Electricity Information Sharing
+and Analysis Center (E-ISAC) and SANS Institute, Defense Use Case,
+Mar. 2016, tLP: White, 18 March 2016.
+[2] R. Langner, “Stuxnet: Dissecting a cyberwarfare weapon,” IEEE Security
+& Privacy, vol. 9, no. 3, pp. 49–51, 2011.
+[3] C. V. Wright, S. E. Coull, and F. Monrose, “Traﬃc morphing: An
+eﬃcient defense against statistical traﬃc analysis,” in Proc. Network
+and Distributed System Security Symposium (NDSS), 2009.
+[4] K. P. Dyer, S. E. Coull, T. Ristenpart, and T. Shrimpton, “Peek-a-boo,
+I still see you: Why eﬃcient traﬃc analysis countermeasures fail,” in
+Proc. IEEE Symp. on Security and Privacy (S&P), 2012, pp. 332–346.
+[5] P. Sirinam, M. Imani, M. Juarez, and M. Wright, “Deep ﬁngerprinting:
+Undermining website ﬁngerprinting defenses with deep learning,” in
+Proc. ACM SIGSAC Conf. on Computer and Communications Security
+(CCS), 2018, pp. 1928–1943.
+[6] X. Cai, R. Nithyanand, T. Wang, R. Johnson, and I. Goldberg, “A
+systematic approach to developing and evaluating website ﬁngerprinting
+defenses,” in Proc. ACM SIGSAC Conf. on Computer and Communications Security (CCS), 2014, pp. 227–238.
+[7] R. Meier, V. Lenders, and L. Vanbever, “Ditto: WAN traﬃc obfuscation
+at line rate,” in Proc. Network and Distributed System Security Symposium (NDSS), 2022.
+[8] Z. Wang, Q. Li, G. Xie, D. Zhao, K. Li, Z. Fan, L. Ma, and
+Y. Jiang, “Minos: A lightweight and dynamic defense against traﬃc
+analysis in programmable data planes,” in Proc. USENIX Annual
+Technical Conference (ATC), 2025, pp. 399–415. [Online]. Available:
+https://www.usenix.org/conference/atc25/presentation/wang-zihao
+[9] G. Xie, Q. Li, Z. Shi, G. Antichi, Y. Zhu, K. Li, C. Weng, S. Miano,
+Y. Jiang, and M. Xu, “Defending against traﬃc analysis attacks
+with ﬂexible in-network obfuscation,” in Proc. 23rd USENIX Symp.
+on Networked Systems Design and Implementation (NSDI), 2026,
+pp. 2043–2063. [Online]. Available: https://www.usenix.org/conference/
+nsdi26/presentation/xie-guorui
+[10] IEEE, “IEEE standard for electric power systems communications—
+distributed network protocol (DNP3),” IEEE Std 1815-2012, 2012, iEEE
+Std 1815-2012.
+[11] D. Formby, P. Srinivasan, A. M. Leonard, J. D. Rogers, and R. A.
+Beyah, “Who’s in control of your control system? Device ﬁngerprinting
+for cyber-physical systems,” in Proc. Network and Distributed System
+Security Symposium (NDSS), 2016.
+[12] P. Bosshart, D. Daly, G. Gibb, M. Izzard, N. McKeown, J. Rexford,
+C. Schlesinger, D. Talayco, A. Vahdat, G. Varghese, and D. Walker,
+“P4: Programming protocol-independent packet processors,” ACM SIGCOMM Computer Communication Review, vol. 44, no. 3, pp. 87–95,
+2014.
+[13] The P4.org Architecture Working Group, “P416 portable switch
+architecture (PSA), version 1.2,” P4.org, Tech. Rep., Dec. 2022.
+[Online]. Available: https://p4.org/wp-content/uploads/sites/53/p4-spec/
+docs/PSA-v1.2.html
+[14] S. East, J. Butts, M. Papa, and S. Shenoi, “A taxonomy of attacks on
+the DNP3 protocol,” in Critical Infrastructure Protection III (IFIP AICT,
+Vol. 311). Springer, 2009, pp. 67–81.
+[15] Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks against
+state estimation in electric power grids,” in Proc. ACM SIGSAC Conf.
+on Computer and Communications Security (CCS), 2009, pp. 21–32.
+
+[16] Schweitzer Engineering Laboratories, SEL-751A Feeder Protection Relay Instruction Manual, 2013, pM751A-01-NB, 20130329 printing;
+settings table, STIMEO1 select/operate time-out.
+[17] Schneider Electric, “PowerLogic ION7550/ION7650 series,” Product
+range page, accessed Oct. 15, 2026. [Online]. Available: https://www.
+se.com/us/en/product-range/1460-powerlogic-ion7550-ion7650-series/
+[18] Cybersecurity and Infrastructure Security Agency, “Barriers to secure
+OT communication: Why Johnny can’t authenticate,” Cybersecurity and
+Infrastructure Security Agency (CISA), Guidance, Feb. 2026. [Online].
+Available: https://www.cisa.gov/sites/default/ﬁles/2026-02/Barriers-toSecure-Communication-Why-OT-Johnny-Cant-Authenticate_508_2.pdf
+[19] Automatak, “opendnp3: An open-source implementation of the DNP3
+(IEEE-1815) protocol stack,” https://github.com/dnp3/opendnp3, accessed 2026.
+[20] T. Kohno, A. Broido, and K. C. Claﬀy, “Remote physical device
+ﬁngerprinting,” IEEE Trans. on Dependable and Secure Computing,
+vol. 2, no. 2, pp. 93–108, 2005.
+[21] S. V. Radhakrishnan, A. S. Uluagac, and R. Beyah, “GTID: A technique
+for physical device and device type ﬁngerprinting,” IEEE Transactions
+on Dependable and Secure Computing, vol. 12, no. 5, pp. 519–532,
+2015.
+[22] J. Hayes and G. Danezis, “K-ﬁngerprinting: A Robust Scalable Website Fingerprinting Technique,” in 25th USENIX Security Symposium
+(USENIX Security 16). USENIX Association, 2016, pp. 1187–1203.
+[23] M. S. Rahman, P. Sirinam, N. Mathews, K. G. Gangadhara, and
+M. Wright, “Tik-Tok : The Utility of Packet Timing in Website Fingerprinting Attacks,” Proceedings on Privacy Enhancing Technologies,
+vol. 2020, no. 3, pp. 5–24, Jul. 2020.
+[24] D. Formby, A. Walid, and R. Beyah, “A Case Study in Power Substation
+Network Dynamics,” Proceedings of the ACM on Measurement and
+Analysis of Computing Systems, vol. 1, no. 1, pp. 1–24, Jun. 2017.
+[25] C. Shen, C. Liu, H. Tan, Z. Wang, D. Xu, and X. Su, “Hybrid-augmented
+device ﬁngerprinting for intrusion detection in industrial control system
+networks,” IEEE Wireless Communications, vol. 25, no. 6, pp. 26–31,
+2018.
+[26] C. M. Ahmed, M. Ochoa, J. Zhou, and A. Mathur, “Scanning the cycle:
+Timing-based authentication on PLCs,” in Proc. ACM Asia Conf. on
+Computer and Communications Security (ASIACCS), 2021, pp. 886–
+900.
+[27] O. Pospisil and R. Fujdiak, “Identifying industry devices via time delay
+in dataﬂow,” in Proc. 13th Int. Conf. on Communication and Network
+Security (ICCNS), 2023, pp. 173–177.
+[28] Q. Gu, D. Formby, S. Ji, H. Cam, and R. Beyah, “Fingerprinting
+for cyber-physical system security: Device physics matters too,” IEEE
+Security & Privacy, vol. 16, no. 5, pp. 49–59, 2018.
+[29] L. Babun, H. Aksu, and A. S. Uluagac, “CPS Device-Class Identiﬁcation
+via Behavioral Fingerprinting: From Theory to Practice,” IEEE Transactions on Information Forensics and Security, vol. 16, pp. 2413–2428,
+2021.
+[30] A. Keliris and M. Maniatakos, “Remote ﬁeld device ﬁngerprinting using
+device-speciﬁc Modbus information,” in 2016 IEEE 59th International
+Midwest Symposium on Circuits and Systems (MWSCAS). IEEE, Oct.
+2016, pp. 1–4.
+[31] A. A. Cárdenas, S. Amin, Z.-S. Lin, Y.-L. Huang, C.-Y. Huang, and
+S. Sastry, “Attacks against process control systems: Risk assessment,
+detection, and response,” in Proc. 6th ACM Symp. on Information,
+Computer and Communications Security (ASIACCS), 2011, pp. 355–
+366.
+[32] H. Lin, J. Zhuang, Y.-C. Hu, and H. Zhou, “DefRec: Establishing
+physical function virtualization to disrupt reconnaissance of power grids’
+cyber-physical infrastructures,” in Proc. Network and Distributed System
+Security Symposium (NDSS), 2020.
+[33] H. Lin, Z. T. Kalbarczyk, and R. K. Iyer, “RAINCOAT: Randomization
+of network communication in power grid cyber infrastructure to mislead
+attackers,” IEEE Transactions on Smart Grid, vol. 10, no. 5, pp. 4893–
+4906, 2019.
+[34] H. Lin, B. Shrestha, and Y.-C. Hu, “Cyber-physical testbed: Case
+study to evaluate anti-reconnaissance approaches on power grids’ cyberphysical infrastructures,” in Proc. Workshop on Learning from Authoritative Security Experiment Results (LASER), 2020.
+[35] M. Juarez, M. Imani, M. Perry, C. Diaz, and M. Wright, “Toward an
+eﬃcient website ﬁngerprinting defense,” in Proc. European Symp. on
+Research in Computer Security (ESORICS), 2016, pp. 27–46.
+
+[36] T. Wang and I. Goldberg, “Walkie-talkie: An eﬃcient defense against
+passive website ﬁngerprinting attacks,” in Proc. 26th USENIX Security
+Symposium, 2017, pp. 1375–1390.
+[37] W. De la Cadena, A. Mitseva, J. Hiller, J. Pennekamp, S. Reuter, J. Filter,
+T. Engel, K. Wehrle, and A. Panchenko, “TraﬃcSliver: Fighting Website
+Fingerprinting Attacks with Traﬃc Splitting.” ACM, Oct. 2020, pp.
+1971–1985.
+[38] J. Gong and T. Wang, “Zero-delay Lightweight Defenses against Website
+Fingerprinting,” in 29th USENIX Security Symposium (USENIX Security
+20). USENIX Association, 2020, pp. 717–734.
+[39] J. Gong, W. Zhang, C. Zhang, and T. Wang, “Surakav: Generating
+Realistic Traces for a Strong Website Fingerprinting Defense.” IEEE,
+May 2022, pp. 1558–1573.
+[40] J. K. Holland and N. Hopper, “RegulaTor: A Straightforward Website
+Fingerprinting Defense,” Proceedings on Privacy Enhancing Technologies, vol. 2022, no. 2, pp. 344–362, Mar. 2022.
+[41] M. Handley, V. Paxson, and C. Kreibich, “Network intrusion
+detection: Evasion, traﬃc normalization, and End-to-End protocol
+semantics,” in 10th USENIX Security Symposium (USENIX Security
+01). Washington, D.C.: USENIX Association, Aug. 2001. [Online].
+https://www.usenix.org/conference/10th-usenix-securityAvailable:
+symposium/network-intrusion-detection-evasion-traﬃc-normalization
+[42] M. Smart, G. R. Malan, and F. Jahanian, “Defeating TCP/IP
+stack ﬁngerprinting,” in 9th USENIX Security Symposium (USENIX
+Security 00). Denver, CO: USENIX Association, Aug. 2000.
+[Online]. Available: https://www.usenix.org/conference/9th-usenixsecurity-symposium/defeating-tcpip-stack-ﬁngerprinting
+[43] A. Askarov, D. Zhang, and A. C. Myers, “Predictive black-box mitigation
+of timing channels,” in Proceedings of the 17th ACM Conference on
+Computer and Communications Security (CCS ’10). Chicago, IL, USA:
+ACM, Oct. 2010, pp. 297–307.
+[44] N. Apthorpe, D. Y. Huang, D. Reisman, A. Narayanan, and N. Feamster,
+“Keeping the smart home private with smart(er) IoT traﬃc shaping,”
+Proceedings on Privacy Enhancing Technologies (PoPETs), vol. 2019,
+no. 3, pp. 128–148, 2019.
+[45] A. Mehta, M. Alzayat, R. De Viti, B. B. Brandenburg, P. Druschel, and
+D. Garg, “Pacer: Comprehensive network side-channel mitigation in the
+cloud,” in Proc. 31st USENIX Security Symposium, 2022.
+[46] A. Sabzi, R. Vora, S. Goswami, M. Seltzer, M. Lécuyer, and A. Mehta,
+“NetShaper: A diﬀerentially private network side-channel mitigation
+system,” in Proc. 33rd USENIX Security Symposium, 2024.
+[47] A. Sivaraman, S. Subramanian, M. Alizadeh, S. Chole, S.-T. Chuang,
+A. Agrawal, H. Balakrishnan, T. Edsall, S. Katti, and N. McKeown,
+“Programmable packet scheduling at line rate,” in Proc. ACM SIGCOMM Conference, 2016, pp. 44–57.
+[48] A. G. Alcoz, A. Dietmüller, and L. Vanbever, “SP-PIFO: Approximating
+push-in ﬁrst-out behaviors using strict-priority queues,” in Proc. 17th
+USENIX Symp. on Networked Systems Design and Implementation
+(NSDI), 2020, pp. 59–76.
+[49] N. K. Sharma, C. Zhao, M. Liu, P. G. Kannan, C. Kim, A. Krishnamurthy, and A. Sivaraman, “Programmable Calendar Queues for Highspeed Packet Scheduling,” in 17th USENIX Symposium on Networked
+Systems Design and Implementation (NSDI 20). USENIX Association,
+2020, pp. 685–699.
+[50] R. Meier, P. Tsankov, V. Lenders, L. Vanbever, and M. Vechev,
+“NetHide: Secure and practical network topology obfuscation,” in Proc.
+27th USENIX Security Symposium, 2018, pp. 693–709.
+[51] Z. Hu, H. Lin, L. Waind, Y. Qu, G. Chen, and D. Jin, “Industrial
+network protocol security enhancement using programmable switches,”
+in Proc. IEEE Int. Conf. on Communications, Control, and Computing
+Technologies for Smart Grids (SmartGridComm), 2023.
+[52] Z. Hu, H. Lin, Y. Qu, and D. Jin, “I-DETECT: In-network Deep Packet
+Inspection for Timed Event Correlation in Industrial Control Systems.”
+IEEE, Jun. 2026, pp. 627–640.
+[53] G. Barbieri, M. Conti, N. O. Tippenhauer, and F. Turrin, “Assessing
+the Use of Insecure ICS Protocols via IXP Network Traﬃc Analysis.”
+IEEE, Jul. 2021, pp. 1–9.
+
+

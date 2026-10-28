@@ -1,1 +1,0 @@
-results/counter_utility.csv (per-trial switch counter deltas, summed) and release/rows.csv. OUT_HELD_REWAIT counts recirculation re-waits; OUT_TOKEN_STALE/STALE_BLOCKER count blocker tokens retired after their packet left (protocol/hw_vepa/README.md).

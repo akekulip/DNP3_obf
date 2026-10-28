@@ -1,0 +1,48 @@
+{
+  "candidate": "c72_n_pair_01",
+  "source_sha256": "7b6e3152489ee79495c5c0696b922739c7f24a61b22e3c3d2d2cd991549e9fb6",
+  "compile_rc": 3,
+  "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+  "actual_errors": [
+    "/home/philip/Projects/DNP3/results/builds/c72_n_pair_01/compile_local/source/response_only.p4(420): [--Werror=unsupported] error: : In Stateful ALU for registers with two fields or a single 64 bit field, subtraction can only be used when the result is written to the register.",
+    "/home/philip/Projects/DNP3/results/builds/c72_n_pair_01/compile_local/source/response_only.p4(423): [--Werror=unsupported] error: : In Stateful ALU for registers with two fields or a single 64 bit field, subtraction can only be used when the result is written to the register."
+  ],
+  "status": "REJECTED before placement; no resource result",
+  "semantic_mapping": {
+    "old_application32": "new pair_application_native_start.first32, initial0",
+    "old_pair_real_off_native_start32": "new pair_application_native_start.second32, initial0",
+    "stores": "stage1 kind5/7 phase1 epoch0 update both lanes",
+    "forget": "kind9 row writes first=0xffffffff only; preserve second; existing invocation guard makes this row unreachable in current call path, retained unchanged",
+    "app_read": "stage0kind5 phase4, return first-compare_application; preserve all state and old off output",
+    "joint_read": "stage0kind6/7 phase4, return application delta32 + off mismatch32; preserve all state",
+    "default": "NoAction; preserve state/output metadata"
+  },
+  "persistent_bits_old": 64,
+  "persistent_bits_proposed": 64,
+  "abi_changes_if_it_had_compiled": {
+    "removed_registers": [
+      "p0.n_Ingress.application",
+      "p0.n_Ingress.pair_real_off_native_start"
+    ],
+    "added_register": "p0.n_Ingress.pair_application_native_start",
+    "lane_mapping": {
+      "first": "application",
+      "second": "native_start"
+    },
+    "removed_tables": [
+      "p0.n_Ingress.application_t",
+      "p0.n_Ingress.real_off_t"
+    ],
+    "added_table": "p0.n_Ingress.app_off_t",
+    "requires_model_snapshot_and_control_plane_register_name_updates": true,
+    "updates_performed": false
+  },
+  "blocked_oneword_delta_alternative": "Conditional sentinel still contains read-only subtraction from a dual-field state; same SDK restriction applies. Writing delta back would change retained application state and is not equivalent.",
+  "primary_backend_crosscheck": {
+    "path": "/home/philip/src/p4c/backends/tofino/bf-p4c/mau/stateful_alu.cpp",
+    "TofinoDevice_constants_line": 32,
+    "outputAluHi_returns_false_when_dual_line": 440,
+    "dual_readonly_arithmetic_rejection_line": 1428
+  },
+  "no_hardware_or_model_run": true
+}

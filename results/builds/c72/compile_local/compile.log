@@ -1,0 +1,174 @@
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(244): [--Wwarn=unused] warning: Table syn_shapes is not used; removing
+ table syn_shapes{key={m.direction:exact;hdr.tcp.flags:exact;hdr.mss.kind:exact;hdr.mss.len:exact;hdr.mss.value:range;}
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(248): [--Wwarn=unused] warning: Table short_shapes is not used; removing
+ table short_shapes{key={m.direction:exact;hdr.tcp.flags:exact;}
+       ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(276): [--Wwarn=unused] warning: Table available_t is not used; removing
+ table available_t{key={m.generation:exact;}actions={available;NoAction;}size=1;const entries={32w0:NoAction();}const default_action=available();}
+       ^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(340): [--Wwarn=unused] warning: Table epoch_guard is not used; removing
+ table epoch_guard{key={m.epoch_diff:exact;}actions={epoch_ok;NoAction;}size=1;const entries={32w0:epoch_ok();}const default_action=NoAction();}
+       ^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(445): [--Wwarn=unused] warning: Table read_request_profile is not used; removing
+table read_request_profile{key={hdr.dl.magic:exact;hdr.dl.len:exact;hdr.dl.ctrl:exact;hdr.rd_req.tp:ternary;hdr.rd_req.app:ternary;hdr.rd_req.func:exact;hdr.rd_req.group:exact;hdr.rd_req.variation:exact;hdr.rd_req.qualifier:exact;hdr.rd_req.first:exact;hdr.rd_req.last:exact;}
+      ^^^^^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(455): [--Wwarn=unused] warning: Table rd_second_crc_t is not used; removing
+@stage(2) table rd_second_crc_t{actions={rd_second_crc;}size=1;const default_action=rd_second_crc();}
+                ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(458): [--Wwarn=unused] warning: Table rd_request_crc_t is not used; removing
+@stage(2) table rd_request_crc_t{actions={rd_request_crc;}size=1;const default_action=rd_request_crc();}
+                ^^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(468): [--Wwarn=unused] warning: Table rd_tail_crc_t is not used; removing
+@stage(2) table rd_tail_crc_t{actions={rd_tail_crc;}size=1;const default_action=rd_tail_crc();}
+                ^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(878): [--Wwarn=unused] warning: Table in_rb0_t is not used; removing
+    table in_rb0_t{actions={in_rb0;}size=1;const default_action=in_rb0();}
+          ^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(881): [--Wwarn=unused] warning: Table in_rb1_t is not used; removing
+    table in_rb1_t{actions={in_rb1;}size=1;const default_action=in_rb1();}
+          ^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(884): [--Wwarn=unused] warning: Table in_rt_t is not used; removing
+    table in_rt_t{actions={in_rt;}size=1;const default_action=in_rt();}
+          ^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(1154): [--Wwarn=unused] warning: Table crc_read_tail_t is not used; removing
+    table crc_read_tail_t{actions={crc_read_tail;}size=1;const default_action=crc_read_tail();}
+          ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(1157): [--Wwarn=unused] warning: Table crc_read_b_t is not used; removing
+    table crc_read_b_t{actions={crc_read_b;}size=1;const default_action=crc_read_b();}
+          ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(1293): [--Wwarn=unused] warning: tcp_read: unused instance
+    Checksum() ip_new; Checksum() tcp_plain; Checksum() tcp_read; Checksum() tcp_ctl;
+                                                        ^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(453): [--Wwarn=unused] warning: hash_rd_second: unused instance
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_second;
+                                           ^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(456): [--Wwarn=unused] warning: hash_rd_request: unused instance
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_request;
+                                           ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(464): [--Wwarn=unused] warning: hash_rd_tail: unused instance
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_rd_tail;
+                                           ^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(876): [--Wwarn=unused] warning: hash_in_rb0: unused instance
+    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_rb0;
+                                               ^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(879): [--Wwarn=unused] warning: hash_in_rb1: unused instance
+    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_rb1;
+                                               ^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(882): [--Wwarn=unused] warning: hash_in_rt: unused instance
+    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_in_rt;
+                                               ^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(1152): [--Wwarn=unused] warning: hash_read_tail: unused instance
+    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_read_tail;
+                                               ^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(1155): [--Wwarn=unused] warning: hash_read_b: unused instance
+    Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_read_b;
+                                               ^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(111): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'n_IgParser' terminates
+parser n_IgParser(packet_in pkt,out n_headers_t hdr,out n_meta_t m,out ingress_intrinsic_metadata_t ig){
+                                                                 ^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(111)
+parser n_IgParser(packet_in pkt,out n_headers_t hdr,out n_meta_t m,out ingress_intrinsic_metadata_t ig){
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(747): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'r_EgParser' terminates
+parser r_EgParser(packet_in pkt, out r_headers_t hdr, out r_meta_t m, out egress_intrinsic_metadata_t eg) {
+                                                                   ^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(747)
+parser r_EgParser(packet_in pkt, out r_headers_t hdr, out r_meta_t m, out egress_intrinsic_metadata_t eg) {
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(1458): [--Wwarn=uninitialized_out_param] warning: out parameter 'md' may be uninitialized when 't_IngressParser' terminates
+parser t_IngressParser(packet_in pkt, out t_header_t hdr, out t_metadata_t md,
+                                                                           ^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(1458)
+parser t_IngressParser(packet_in pkt, out t_header_t hdr, out t_metadata_t md,
+       ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(2133): [--Wwarn=uninitialized_out_param] warning: out parameter 'm' may be uninitialized when 'x_EgParser' terminates
+parser x_EgParser(packet_in pkt, out x_headers_t hdr, out x_meta_t m, out egress_intrinsic_metadata_t eg) {
+                                                                   ^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(2133)
+parser x_EgParser(packet_in pkt, out x_headers_t hdr, out x_meta_t m, out egress_intrinsic_metadata_t eg) {
+       ^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(255): warning: Expected single call to get for hash instance 'n_Ingress.hash_head'.Control plane API is not generated for this hash call
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_head;
+                                           ^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(260): warning: Expected single call to get for hash instance 'n_Ingress.hash_first'.Control plane API is not generated for this hash call
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_first;
+                                           ^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(255): warning: Expected single call to get for hash instance 'n_Ingress.hash_head'.Control plane API is not generated for this hash call
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_head;
+                                           ^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(260): warning: Expected single call to get for hash instance 'n_Ingress.hash_first'.Control plane API is not generated for this hash call
+Hash<bit<16>>(HashAlgorithm_t.CUSTOM,poly) hash_first;
+                                           ^^^^^^^^^^
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_reject_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: checksum.get() will deprecate in future versions. Please use void subtract_all_and_deposit(bit<16>) instead
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_reject_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+[--Wwarn=invalid] warning: "md.clone_ses": No matching PHV field in the pipe `p0'. Ignoring pragma.
+[--Wwarn=invalid] warning: "md.clone_ses": No matching PHV field in the pipe `p0'. Ignoring pragma.
+[--Wwarn=invalid] warning: "md.clone_ses": No matching PHV field in the pipe `p0'. Ignoring pragma.
+[--Wwarn=substitution] warning: n_Ingress.retry_epoch_t: Table key name not supported. Replacing "hdr.origin.normalized_epoch[15:0]" with "hdr.origin.normalized_epoch".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w0[31:24]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w0[23:16]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w0[15:8]" with "hdr.first.w0".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w1[23:16]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w1[15:8]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w1[7:0]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w2[31:24]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: n_Ingress.read_response_profile: Table key name not supported. Replacing "hdr.first.w2[23:16]" with "hdr.first.w2".
+[--Wwarn=substitution] warning: n_Ingress.read_request_full_profile: Table key name not supported. Replacing "hdr.rd_req_full.tp[7:6]" with "hdr.rd_req_full.tp".
+[--Wwarn=substitution] warning: n_Ingress.read_request_full_profile: Table key name not supported. Replacing "hdr.rd_req_full.app[7:4]" with "hdr.rd_req_full.app".
+[--Wwarn=substitution] warning: n_Ingress.read_request_mx_profile: Table key name not supported. Replacing "hdr.rd_req_mx.tp[7:6]" with "hdr.rd_req_mx.tp".
+[--Wwarn=substitution] warning: n_Ingress.read_request_mx_profile: Table key name not supported. Replacing "hdr.rd_req_mx.app[7:4]" with "hdr.rd_req_mx.app".
+[--Wwarn=substitution] warning: n_Ingress.owner_command: Table key name not supported. Replacing "hdr.first.w1[31:24]" with "hdr.first.w1".
+[--Wwarn=substitution] warning: n_Ingress.busy_t: Table key name not supported. Replacing "hdr.expected_cell.expected_cell[5:0]" with "hdr.expected_cell.expected_cell".
+[--Wwarn=substitution] warning: r_Egress.classify_rev: Table key name not supported. Replacing "m.s_end[7:0]" with "m.s_end".
+[--Wwarn=invalid] warning: "hdr.ctn.index2": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.ctn.code2": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.ctn.count2": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.ctn.on2": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.cstatus.status": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.cstatus.crc": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=target-error] warning: Tofino does not support clear-on-write semantic on re-assignment to field ingress::md.epoch_delta in parser state ingress::parse_tev. Try to use advance() to skip over there-assigned values and only extract them once.
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(1475): [--Wwarn=target-error] warning: ingress::md.epoch_delta[30:0] is assigned in state ingress::parse_tev but has also previous assignment. See the following errors for the list of previous assignments. This re-assignment is not supported by Tofino.
+        md.epoch_delta = 1w1 ++ hdr.tev.epoch[30:0];
+        ^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72/compile_local/source/response_only.p4(1475): warning: ingress::md.epoch_delta[31:31] previously assigned in state ingress::parse_tev.
+        md.epoch_delta = 1w1 ++ hdr.tev.epoch[30:0];
+        ^^^^^^^^^^^^^^
+[--Wwarn=invalid] warning: "m.expected_work_phase": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.event.phase": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.event.code": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.rd_req": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.rd_req": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.rd_req_full": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "m.expected_work_phase": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.event.phase": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.event.code": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "m.diff_real_links": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "m.diff_real_tcp_dst": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "m.diff_native_end": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "m.ctcrc2": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "m.ctcrc3": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "m.badh": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "m.cbad0": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "m.cbadt": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "m.read_shape": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "m.ctl_shape": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.ctn.index2": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.ctn.code2": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.ctn.count2": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.ctn.on2": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.cstatus.status": No matching PHV field in the pipe `p1'. Ignoring pragma.
+[--Wwarn=invalid] warning: "hdr.cstatus.crc": No matching PHV field in the pipe `p1'. Ignoring pragma.
+
+0 errors, 95 warnings generated.
+

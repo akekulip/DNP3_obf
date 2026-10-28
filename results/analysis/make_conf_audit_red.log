@@ -1,0 +1,30 @@
+..F.                                                                     [100%]
+=================================== FAILURES ===================================
+__________________ test_offline_cannot_bypass_switch_identity __________________
+
+compiled = (PosixPath('/tmp/pytest-of-philip/pytest-3212/test_offline_cannot_bypass_swi0/hardware.conf'), ['/tmp/pytest-of-philip/pytest-3212/test_offline_cannot_bypass_swi0/out', '--remote-dir', '/selected/out', '--pcie', '0000:04:00.0', '-o', ...])
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa83962fa90>
+
+    def test_offline_cannot_bypass_switch_identity(compiled, monkeypatch):
+        target, arguments = compiled
+        vendor_identity(monkeypatch, None)
+        with pytest.raises(SystemExit) as error:
+>           make_conf.main(arguments + ['--offline'])
+E           Failed: DID NOT RAISE <class 'SystemExit'>
+
+tests/hardware/test_make_conf.py:62: Failed
+----------------------------- Captured stdout call -----------------------------
+PCIe prefix from the 2026-09-17 conf that loaded: 0000:04:00.0 | operator says: 0000:04:00.0
+operator check on the switch:  cat /sys/bus/pci/devices/0000:04:00.0/vendor   # must print 0x1d1c (Barefoot)
+WARNING: --offline, PCI vendor NOT checked; run the cat command above on the switch before launching
+program response_only | scopes {'p0': [0], 'p1': [1]}
+  sha256 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a  bfrt.json
+  sha256 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a  p0/context.json
+  sha256 64ebd267717810f9524a58c6d7715bd9502b3c9235b291a7104389b372aeec4b  p0/tofino.bin
+  sha256 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a  p1/context.json
+  sha256 64ebd267717810f9524a58c6d7715bd9502b3c9235b291a7104389b372aeec4b  p1/tofino.bin
+  sha256 5e6a444fece32ee0c766e90fced67e86817879b38de2ad60320c587f258d22fb  p1/response_only.bfa   (read by the mirror guard at load; --expect p1/response_only.bfa=<sha> is required)
+wrote /tmp/pytest-of-philip/pytest-3212/test_offline_cannot_bypass_swi0/hardware.conf (copy ALL of out/ to /selected/out first, including p1/*.bfa; the paths above must exist there)
+=========================== short test summary info ============================
+FAILED tests/hardware/test_make_conf.py::test_offline_cannot_bypass_switch_identity
+1 failed, 3 passed in 0.13s

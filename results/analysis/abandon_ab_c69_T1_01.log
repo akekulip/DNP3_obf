@@ -1,0 +1,27 @@
+Traceback (most recent call last):
+  File "/home/philip/Projects/DNP3/scripts/model/record_closure.py", line 76, in <module>
+    main()
+  File "/home/philip/Projects/DNP3/scripts/model/record_closure.py", line 72, in main
+    runpy.run_path(str(target), run_name='__main__')
+  File "/usr/lib/python3.8/runpy.py", line 265, in run_path
+    return _run_module_code(code, init_globals, run_name,
+  File "/usr/lib/python3.8/runpy.py", line 97, in _run_module_code
+    _run_code(code, mod_globals, init_globals,
+  File "/usr/lib/python3.8/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/home/philip/Projects/DNP3/scripts/model/model_abandon.py", line 32, in <module>
+    import read_policy_expect as rp  # noqa: E402
+  File "/home/philip/Projects/DNP3/scripts/model/read_policy_expect.py", line 231, in <module>
+    SHAPES = _shapes()
+  File "/home/philip/Projects/DNP3/scripts/model/read_policy_expect.py", line 222, in _shapes
+    raw = source.read_bytes()
+  File "/usr/lib/python3.8/pathlib.py", line 1229, in read_bytes
+    with self.open(mode='rb') as f:
+  File "/usr/lib/python3.8/pathlib.py", line 1222, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/usr/lib/python3.8/pathlib.py", line 1078, in _opener
+    return self._accessor.open(self, flags, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/home/philip/Projects/DNP3/read_complete_01/vectors/constants_two_read_relay.json'
+driver exit code 1
+hugepages free after run: HugePages_Free: 196
+rc 1

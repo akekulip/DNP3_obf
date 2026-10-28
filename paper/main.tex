@@ -1,0 +1,97 @@
+% main.tex - the NOMAD manuscript, rebuilt on Dr. Lin's draft of 2026-10-19
+% (protected source: tests/fixtures/paper/lin_main_20261019.tex).
+%
+% Build (from the repository root): ./paper/pipeline/build.sh -> results/paper/<build-id>/
+% Gates: pipeline/lin_check.py (style and structure) and pipeline/check_lin_verbatim.py
+% (Dr. Lin's protected paragraphs, word for word). Evaluation figures and tables are retained
+% manuscript inputs; their historical regeneration scripts are under Archive/paper/.
+%
+% Preamble, title and authors follow Dr. Lin's draft.
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{stix}
+\usepackage{cite}
+\usepackage{amsmath,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{float}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{etoolbox}
+\usepackage{url}
+\usepackage[breaklinks=true]{hyperref}
+\def\UrlBreaks{\do\/\do-\do_\do.\do=\do?\do&}
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+\usepackage{enumitem}
+\usepackage{placeins}
+
+\patchcmd{\thebibliography}{\section*{\refname}}{}{}{}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+% Float placement: let a page carry more float area so figures settle near their text.
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+\setcounter{dbltopnumber}{3}
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.80}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.72}
+\renewcommand{\dbltopfraction}{0.92}
+\renewcommand{\dblfloatpagefraction}{0.72}
+
+% A missing figure renders as a labelled box, never as a compile error.
+\newcommand{\figplaceholder}[1]{\fbox{\parbox[c][3.3cm][c]{0.9\columnwidth}{\centering\footnotesize\ttfamily [FIGURE PLACEHOLDER]\\[3pt]\normalfont\itshape #1}}}
+
+\begin{document}
+
+\title{
+NOMAD: In-Network Traffic Obfuscation Against Device Fingerprinting for Industrial Control Systems
+}
+
+\author{\IEEEauthorblockN{Philip Akekudaga}
+\IEEEauthorblockA{\textit{Dept. of Electrical and Computer Engineering} \\
+\textit{University of Rhode Island}\\
+Kingston, RI, U.S.A\\
+philip.akekudaga@uri.edu}
+\and
+\IEEEauthorblockN{Hui Lin}
+\IEEEauthorblockA{\textit{Dept. of Electrical and Computer Engineering} \\
+\textit{University of Rhode Island}\\
+Kingston, RI, U.S.A.\\
+huilin@uri.edu}
+}
+\vspace{0pt}
+\maketitle
+
+\input{sections/00_abstract}
+
+\begin{IEEEkeywords}
+traffic obfuscation
+\end{IEEEkeywords}
+
+\input{sections/01_introduction}
+\input{sections/02_background}
+\input{sections/03_overview}
+\input{sections/04_infrastructure}
+\input{sections/05_strategies}
+\input{sections/06_objectives}
+\input{sections/07_evaluation}
+\input{sections/08_related_work}
+\FloatBarrier
+\input{sections/09_conclusion}
+
+\appendices
+\input{sections/10_appendix}
+
+\section*{References}
+\bibliographystyle{IEEEtran}
+\bibliography{References}
+
+\end{document}

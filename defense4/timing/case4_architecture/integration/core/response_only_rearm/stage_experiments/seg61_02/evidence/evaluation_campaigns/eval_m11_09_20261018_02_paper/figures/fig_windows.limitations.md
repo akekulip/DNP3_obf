@@ -1,1 +1,0 @@
-Oracle-assisted windows group exchanges by true operation, which a passive observer cannot do without labels; at K = 64 each estimate rests on 24 windows. Campaign eval_m11_09_20261018_02 on candidate m11_09 (physical Tofino-1, OpenDNP3 software endpoints, fixed 5 ms fixture); 154/154 blocks completed; 98,816 main exchanges.

@@ -1,0 +1,231 @@
+{
+  "schema": "current-model-action-observations-v1",
+  "source": "action execution in SDK model log; these are observations, not BFRT state",
+  "actions": {
+    "t_Ingress.bypass_request": [
+      "p1.t_Ingress.outcomes",
+      13
+    ],
+    "t_Ingress.drop_duplicate_response": [
+      "p1.t_Ingress.outcomes",
+      4
+    ],
+    "t_Ingress.stop_blocking_stale": [
+      "p1.t_Ingress.outcomes",
+      6
+    ],
+    "t_Ingress.stop_blocking_tmo": [
+      "p1.t_Ingress.outcomes",
+      10
+    ],
+    "t_Ingress.stop_blocking_off": [
+      "p1.t_Ingress.outcomes",
+      12
+    ],
+    "t_Ingress.rewait_ack": [
+      "p1.t_Ingress.outcomes",
+      1
+    ],
+    "t_Ingress.flush_ack_stale": [
+      "p1.t_Ingress.outcomes",
+      7
+    ],
+    "t_Ingress.rewait_response": [
+      "p1.t_Ingress.outcomes",
+      1
+    ],
+    "t_Ingress.flush_response_stale": [
+      "p1.t_Ingress.outcomes",
+      7
+    ],
+    "t_Ingress.release_ack_commit": [
+      "p1.t_Ingress.outcomes",
+      2
+    ],
+    "t_Ingress.drop_request_duplicate": [
+      "p1.t_Ingress.outcomes",
+      8
+    ],
+    "t_Ingress.release_response_counted": [
+      "p1.t_Ingress.outcomes",
+      3
+    ],
+    "t_Ingress.drop_old_epoch": [
+      "p1.t_Ingress.outcomes",
+      14
+    ],
+    "t_Ingress.passthrough_operate_dup": [
+      "p1.t_Ingress.outcomes",
+      9
+    ],
+    "t_Ingress.passthrough_request_dup": [
+      "p1.t_Ingress.outcomes",
+      9
+    ],
+    "t_Ingress.drop_exhausted": [
+      "p1.t_Ingress.outcomes",
+      15
+    ],
+    "t_Ingress.unmatched": [
+      "p1.t_Ingress.outcomes",
+      0
+    ],
+    "t_Ingress.drop_timer_stale_read": [
+      "p1.t_Ingress.outcomes",
+      24
+    ],
+    "n_Ingress.count_refused": [
+      "p0.n_Ingress.count_first",
+      0
+    ],
+    "n_Ingress.count_resent": [
+      "p0.n_Ingress.count_first",
+      1
+    ],
+    "n_Ingress.count_replay_refused": [
+      "p0.n_Ingress.count_first",
+      2
+    ],
+    "n_Ingress.reset_restart_master": [
+      "p0.n_Ingress.count_busy",
+      5
+    ],
+    "n_Ingress.reset_restart_out": [
+      "p0.n_Ingress.count_busy",
+      5
+    ],
+    "n_Ingress.busy_drop": [
+      "p0.n_Ingress.count_busy",
+      0
+    ],
+    "n_Ingress.busy_pass": [
+      "p0.n_Ingress.count_busy",
+      1
+    ],
+    "n_Ingress.busy_retry": [
+      "p0.n_Ingress.count_busy",
+      2
+    ],
+    "n_Ingress.busy_retry_next": [
+      "p0.n_Ingress.count_busy",
+      2
+    ],
+    "n_Ingress.busy_retry_rst": [
+      "p0.n_Ingress.count_busy",
+      2
+    ],
+    "n_Ingress.busy_retry_rst_next": [
+      "p0.n_Ingress.count_busy",
+      2
+    ],
+    "n_Ingress.busy_retry_ack": [
+      "p0.n_Ingress.count_busy",
+      6
+    ],
+    "n_Ingress.busy_exhausted": [
+      "p0.n_Ingress.count_busy",
+      3
+    ],
+    "n_Ingress.retry_stale": [
+      "p0.n_Ingress.count_busy",
+      4
+    ]
+  },
+  "egress_results": {
+    "r_Egress.out_commit": 1,
+    "r_Egress.out_translate": 2,
+    "r_Egress.out_zero": 3,
+    "r_Egress.out_replay": 4,
+    "r_Egress.out_stale": 5,
+    "r_Egress.out_reset_front_rd": 16,
+    "r_Egress.out_zero_img_60": 3,
+    "r_Egress.out_zero_img_61": 3,
+    "r_Egress.out_zero_img_141": 3,
+    "r_Egress.out_zero_img_158": 3,
+    "r_Egress.rev_translate": 9,
+    "r_Egress.rev_withhold_zero": 10,
+    "r_Egress.rev_withhold_open": 10,
+    "r_Egress.rev_drop": 11,
+    "r_Egress.drop_odd": 8,
+    "r_Egress.native": 12,
+    "r_Egress.armed_map": 13,
+    "r_Egress.armed_nat": 14
+  },
+  "action_body_sha256": {
+    "n_Ingress.abort_work": "7715faab6d2befc9e4d123c23cf749fade27959c318eeec41210b267255d650f",
+    "n_Ingress.busy_drop": "9f6d468893ed839545dcc88d0fd3afaa104e779df5440945eb10ddbd772f9df6",
+    "n_Ingress.busy_exhausted": "9f6d468893ed839545dcc88d0fd3afaa104e779df5440945eb10ddbd772f9df6",
+    "n_Ingress.busy_pass": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "n_Ingress.busy_retry": "01ace7215df67b313bda2a9a276e45bf5f7ba3f244dfc4f99ed0decdc53b76b2",
+    "n_Ingress.busy_retry_ack": "1d1973e95b0f31bbcfabfb37b655a1d0285d8663765aab5f4ef7572fb53e664d",
+    "n_Ingress.busy_retry_next": "396b033bcf5ea56c1e7057de8968ea21cbe25ab76a4f711c7972b5743d77065c",
+    "n_Ingress.busy_retry_rst": "2d1858416d18f5f9e8a0e12670414a799bc521ba6b15a3e0a503aa0b199cd7ca",
+    "n_Ingress.busy_retry_rst_next": "396b033bcf5ea56c1e7057de8968ea21cbe25ab76a4f711c7972b5743d77065c",
+    "n_Ingress.carry_current": "72b83c4ebeda6b4875dff201bc8eaf57917d575aca49f5273bc6f36cfde8b00a",
+    "n_Ingress.count_refused": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "n_Ingress.count_replay_refused": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "n_Ingress.count_resent": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "n_Ingress.first_close": "765a373808421c51d494bdef2a4191c4c049622a2a30f243e158ca1f82aeaba7",
+    "n_Ingress.first_close_ack_qualified": "6ea13772fb090564bbf5b41946d6cf1307c1352723bef826ea7edab18d1917a8",
+    "n_Ingress.first_close_qualified": "2154bd77f81ffbb08c7bd0c540901137ccc796984fed6e7383e3cee93ec41b9c",
+    "n_Ingress.next_stage": "9c218b672247716d83acdc5ef9db545b7136dc3c99c8f60556b91c2b766173a2",
+    "n_Ingress.reset_restart_master": "0029c48b9560e3e128366a14fdce4ec7413f97d4bec7c455ca7efbf37fa630c0",
+    "n_Ingress.reset_restart_out": "829c72662c1b2d28592873c6491b2b737c1adb3edbebb3b329cd5b45207a2149",
+    "n_Ingress.retry_stale": "9f6d468893ed839545dcc88d0fd3afaa104e779df5440945eb10ddbd772f9df6",
+    "n_Ingress.terminal_abort": "ef64de029e68e363913bf56dc4b3806e1a2784a6809c503d1a87f08026f08e3c",
+    "n_Ingress.terminal_ack": "d683b2d468a6c875de32f6a188132fdc39f414ef84d2945e1884fca5eba3bf62",
+    "n_Ingress.terminal_open": "e21b46e0ca12b1ef82cc097b5de3fd190e1f36c955c679831158d96e1afd6b5f",
+    "n_Ingress.terminal_strip": "feaadd98f619eccf3949d653c26143b466bda3856fe14e18ed45fb0030dee2b9",
+    "n_Ingress.terminal_synack": "37bf56b9836b029d07973fc48d473bd80709bf461db40a1e1a3cd74aa52597e5",
+    "r_Egress.armed_map": "a78ce21b6774a6371cfc14afb9a3a2e443e60c252c8e0ae528564213047ca0c6",
+    "r_Egress.armed_nat": "4e85a57a31950970c1fb0ca1b0d5370fb59d4014c9f3dab6a8f11dc562431466",
+    "r_Egress.drop_odd": "66dc8fef895570de26d68a9951e78e118c3b318cb7c97c2b4015ea61b3317367",
+    "r_Egress.native": "ff17da5dbda06f49fd908006a10ded8520b10783cb3ebabbbb258baa3ee0d009",
+    "r_Egress.out_commit": "a283b44b79fdfad0c470d6b4ea2629f378f5993801088890134431ae6d932add",
+    "r_Egress.out_replay": "a0fce1d179281714c6f1b815b92ca7fa1938ea1f4f4828066085641cea42547f",
+    "r_Egress.out_reset_front_rd": "c557ae9e9026d06c689645f7d1916517ea1f5d291db33ef80c8970c1e5803bf6",
+    "r_Egress.out_stale": "ab3e575bab69eeff20c07f60a16112b6bf8840122687519e65e8e93695d2cf37",
+    "r_Egress.out_translate": "8bb9ffaf92bce576de1fa86b11503689f052844feaa548c7050d33eac443a576",
+    "r_Egress.out_zero": "392809e1c9a95941dcb902d543ef2f03797e45eaa162bf2bb967bd9fe58c4277",
+    "r_Egress.out_zero_img_141": "e58db6e98270aac21d5bf68d63465244516dffc481d9c76c7117c298c0c403cc",
+    "r_Egress.out_zero_img_158": "fa43d435817a77560f2d01a795251a91426c5564f945688c3a7eaff9a5700c84",
+    "r_Egress.out_zero_img_60": "11212e1bc3a882e96ef406f8bd81275b79ba37268ee08c8d0a11d76495795002",
+    "r_Egress.out_zero_img_61": "0a0d5d20c4e0adfa131b03104c1cede8b72eaf7e7af43bcb5ab0df0472f7b23b",
+    "r_Egress.rev_drop": "05b6c347b4350eabe65ac2fbb8c628aa5cc5c2e6c1797593f6a99331dec889db",
+    "r_Egress.rev_translate": "3f7a3740ef9393d9374488464859bde4c6dd1e02bea4ae98239a973289d03154",
+    "r_Egress.rev_withhold_open": "b97e9c44f7489b2c6bd86551e47b66d3c0238c017ba9d0502687d616ed705ae2",
+    "r_Egress.rev_withhold_zero": "7038f6b204ba94b74c7422d085617a24d9a07dcd98bc720614bd624fdbd6c05d",
+    "t_Ingress.bypass_request": "75780225777becbf7c73206a8dd60d256bcca450ffd0daa27109822b562b4b79",
+    "t_Ingress.drop_duplicate_response": "9195d3c8f22da329cc48cdcf9ecb44caeba61b83886315171fa15f327097e323",
+    "t_Ingress.drop_exhausted": "9195d3c8f22da329cc48cdcf9ecb44caeba61b83886315171fa15f327097e323",
+    "t_Ingress.drop_old_epoch": "9195d3c8f22da329cc48cdcf9ecb44caeba61b83886315171fa15f327097e323",
+    "t_Ingress.drop_request_duplicate": "8b010c3ca8418b705e5b3cbd6a5f836cfb9536d48ceaf60aabcb9d654b97f62a",
+    "t_Ingress.drop_timer_stale_read": "db1f23f2f130a6d7ce6af4e5ab23e99f2aeadaf0c759f017f98fc801c539afb5",
+    "t_Ingress.flush_ack_stale": "9195d3c8f22da329cc48cdcf9ecb44caeba61b83886315171fa15f327097e323",
+    "t_Ingress.flush_response_stale": "9195d3c8f22da329cc48cdcf9ecb44caeba61b83886315171fa15f327097e323",
+    "t_Ingress.passthrough_operate_dup": "cf31d984dc4c3faa12b9bcbe51aa40a474b82edc4293e4463a831fbff35a2c90",
+    "t_Ingress.passthrough_request_dup": "1dda72cf5061622de6b70d2bc57da3d1a7a162b7e7448c105d3974d3d0da5b87",
+    "t_Ingress.release_ack_commit": "ce33da83acae602daf056021be41457f340c97667d38cdea2fbfb73f43b56eeb",
+    "t_Ingress.release_response_counted": "d42ea87934dd13789bf3e59c14936c87bd8ab5a88da088b284c7fa5653ac52f0",
+    "t_Ingress.rewait_ack": "f344ec15f3578c5fd2d311639fd6c399001cce147f8e8c8bf49615ca48c6cfd9",
+    "t_Ingress.rewait_response": "c8e9d968fb1b59cbf90f39f57bf0f2a851aa274d23888a5ad91986732ace161c",
+    "t_Ingress.stop_blocking_off": "9195d3c8f22da329cc48cdcf9ecb44caeba61b83886315171fa15f327097e323",
+    "t_Ingress.stop_blocking_stale": "9195d3c8f22da329cc48cdcf9ecb44caeba61b83886315171fa15f327097e323",
+    "t_Ingress.stop_blocking_tmo": "9195d3c8f22da329cc48cdcf9ecb44caeba61b83886315171fa15f327097e323",
+    "t_Ingress.unmatched": "9195d3c8f22da329cc48cdcf9ecb44caeba61b83886315171fa15f327097e323"
+  },
+  "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+  "non_counting_transition_actions": {
+    "n_Ingress.next_stage": "Advance only the phase byte and choose the private N return path.",
+    "n_Ingress.abort_work": "Advance once, change the event code to255 and invalidate the optional timestamp header.",
+    "n_Ingress.carry_current": "Advance once and carry the current desired work phase.",
+    "n_Ingress.first_close": "Emit phase1/code4 with the current close authority and work generation.",
+    "n_Ingress.first_close_qualified": "Emit the same close event with its statically qualified close phase.",
+    "n_Ingress.first_close_ack_qualified": "Emit phase1/code17 with its statically qualified close phase.",
+    "n_Ingress.terminal_open": "Emit OPEN toward T with the current envelope and no active work generation.",
+    "n_Ingress.terminal_strip": "Select the recorded output port and construct the private E-return marker.",
+    "n_Ingress.terminal_ack": "Apply terminal_strip and choose the normalized ACK return marker.",
+    "n_Ingress.terminal_synack": "Apply terminal_strip and choose the SYN-ACK return marker.",
+    "n_Ingress.terminal_abort": "Invalidate private work headers and mark the packet dropped."
+  }
+}

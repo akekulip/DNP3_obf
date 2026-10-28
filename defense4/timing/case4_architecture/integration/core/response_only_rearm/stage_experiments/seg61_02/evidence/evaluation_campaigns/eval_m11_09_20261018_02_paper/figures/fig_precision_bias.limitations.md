@@ -1,1 +1,0 @@
-The cause of the D = 10 ms offset is not established; it is the measured difference the adaptive attacker exploits there (OPERATE recall 0.51 at D = 10 ms, J = 2.4 ms). Campaign eval_m11_09_20261018_02 on candidate m11_09 (physical Tofino-1, OpenDNP3 software endpoints, fixed 5 ms fixture); 154/154 blocks completed; 98,816 main exchanges.

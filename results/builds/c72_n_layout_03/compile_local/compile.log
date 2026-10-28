@@ -1,0 +1,6 @@
+/home/philip/Projects/DNP3/results/builds/c72_n_layout_03/compile_local/source/response_only.p4(228): [--Werror=expected] error: hdr.event.phase ++ hdr.event.code: Complex key expression requires a @name annotation
+ table committed_t{key={(hdr.event.phase++hdr.event.code):exact;}actions={committed_to_t;deny;}size=3;const entries={16w0xe609:committed_to_t(16w0x0900);16w0xe60c:committed_to_t(16w0x0c00);16w0xe60f:committed_to_t(16w0x0f00);}const default_action=deny();}
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1 error, 0 warnings generated.
+

@@ -1,1 +1,0 @@
-No statistic is computed. The configured offsets are read from campaign_v2's PROVENANCE_CONSTANTS.json; the on-time panel places $t_r$ at the campaign's median Timing OFF READ CLRT of 2.121 ms, from MANUSCRIPT_VALUES.json, so the drawing is to the right scale. The late panel places $t_r$ beyond the release horizon to show the fail-open case; its offset is illustrative.

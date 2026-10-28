@@ -1,0 +1,165 @@
+{
+  "campaign_id": "rc01_hw_c72_20261027_02",
+  "evidence_kind": "hardware",
+  "expected_exchanges": 2440,
+  "steps": [
+    {
+      "id": "01_d5_smoke",
+      "kind": "block",
+      "argv": [
+        "bash",
+        "/home/philip/Projects/DNP3/scripts/hardware/run_block_frozen.sh",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/freeze.json",
+        "campaign",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/configs/01_d5_smoke.json",
+        "rc01_hw_c72_20261027_02_01_d5_smoke"
+      ],
+      "expected_exchanges": 4,
+      "run_root": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c72_20261027_02_01_d5_smoke"
+    },
+    {
+      "id": "02_d5_reference",
+      "kind": "block",
+      "argv": [
+        "bash",
+        "/home/philip/Projects/DNP3/scripts/hardware/run_block_frozen.sh",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/freeze.json",
+        "campaign",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/configs/02_d5_reference.json",
+        "rc01_hw_c72_20261027_02_02_d5_reference"
+      ],
+      "expected_exchanges": 772,
+      "run_root": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c72_20261027_02_02_d5_reference"
+    },
+    {
+      "id": "03_d10_reference_rest",
+      "kind": "block",
+      "argv": [
+        "bash",
+        "/home/philip/Projects/DNP3/scripts/hardware/run_block_frozen.sh",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/freeze.json",
+        "campaign",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/configs/03_d10_reference_rest.json",
+        "rc01_hw_c72_20261027_02_03_d10_reference_rest"
+      ],
+      "expected_exchanges": 386,
+      "run_root": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c72_20261027_02_03_d10_reference_rest"
+    },
+    {
+      "id": "04_d15_reference_rest",
+      "kind": "block",
+      "argv": [
+        "bash",
+        "/home/philip/Projects/DNP3/scripts/hardware/run_block_frozen.sh",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/freeze.json",
+        "campaign",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/configs/04_d15_reference_rest.json",
+        "rc01_hw_c72_20261027_02_04_d15_reference_rest"
+      ],
+      "expected_exchanges": 386,
+      "run_root": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c72_20261027_02_04_d15_reference_rest"
+    },
+    {
+      "id": "05_d20_reference_rest",
+      "kind": "block",
+      "argv": [
+        "bash",
+        "/home/philip/Projects/DNP3/scripts/hardware/run_block_frozen.sh",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/freeze.json",
+        "campaign",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/configs/05_d20_reference_rest.json",
+        "rc01_hw_c72_20261027_02_05_d20_reference_rest"
+      ],
+      "expected_exchanges": 386,
+      "run_root": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c72_20261027_02_05_d20_reference_rest"
+    },
+    {
+      "id": "06_d20_persistence_graceful",
+      "kind": "block",
+      "argv": [
+        "bash",
+        "/home/philip/Projects/DNP3/scripts/hardware/run_block_frozen.sh",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/freeze.json",
+        "persistence",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/configs/06_d20_persistence_graceful.json",
+        "rc01_hw_c72_20261027_02_06_d20_persistence_graceful",
+        "--close-mode",
+        "graceful",
+        "--fixtures",
+        "physical_relay"
+      ],
+      "expected_exchanges": 66,
+      "run_root": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c72_20261027_02_06_d20_persistence_graceful"
+    },
+    {
+      "id": "07_d20_persistence_rst",
+      "kind": "block",
+      "argv": [
+        "bash",
+        "/home/philip/Projects/DNP3/scripts/hardware/run_block_frozen.sh",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/freeze.json",
+        "persistence",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/configs/07_d20_persistence_rst.json",
+        "rc01_hw_c72_20261027_02_07_d20_persistence_rst",
+        "--close-mode",
+        "rst",
+        "--rst-grace-ms",
+        "1000",
+        "--fixtures",
+        "physical_relay"
+      ],
+      "expected_exchanges": 66,
+      "run_root": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c72_20261027_02_07_d20_persistence_rst"
+    },
+    {
+      "id": "08_d20_reconnect",
+      "kind": "block",
+      "argv": [
+        "bash",
+        "/home/philip/Projects/DNP3/scripts/hardware/run_block_frozen.sh",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/freeze.json",
+        "campaign",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/configs/08_d20_reconnect.json",
+        "rc01_hw_c72_20261027_02_08_d20_reconnect",
+        "--scenario",
+        "reconnect",
+        "--reconnect-policy",
+        "protected"
+      ],
+      "expected_exchanges": 66,
+      "run_root": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c72_20261027_02_08_d20_reconnect"
+    },
+    {
+      "id": "09_d20_loss_mixed",
+      "kind": "block",
+      "argv": [
+        "bash",
+        "/home/philip/Projects/DNP3/scripts/hardware/run_block_frozen.sh",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/freeze.json",
+        "campaign",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/configs/09_d20_loss_mixed.json",
+        "rc01_hw_c72_20261027_02_09_d20_loss_mixed",
+        "--loss",
+        "core_mixed"
+      ],
+      "expected_exchanges": 154,
+      "run_root": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c72_20261027_02_09_d20_loss_mixed"
+    },
+    {
+      "id": "10_d20_loss_full",
+      "kind": "block",
+      "argv": [
+        "bash",
+        "/home/philip/Projects/DNP3/scripts/hardware/run_block_frozen.sh",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/freeze.json",
+        "campaign",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_20261027_02/configs/10_d20_loss_full.json",
+        "rc01_hw_c72_20261027_02_10_d20_loss_full",
+        "--loss",
+        "core_full"
+      ],
+      "expected_exchanges": 154,
+      "run_root": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c72_20261027_02_10_d20_loss_full"
+    }
+  ]
+}

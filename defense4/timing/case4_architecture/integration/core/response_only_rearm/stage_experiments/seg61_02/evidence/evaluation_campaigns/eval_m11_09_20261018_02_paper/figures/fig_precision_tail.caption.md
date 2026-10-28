@@ -1,1 +1,0 @@
-Complementary CDF of |CLRT − D| for the timed arms, all eight conditions pooled, per operation. Medians are 10–16 µs; 99th percentiles 58–86 µs; between 0.14% and 0.46% of exchanges exceed 100 µs and the worst reaches 1.93 ms (SELECT, Timing+Size).

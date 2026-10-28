@@ -1,0 +1,660 @@
+2026-10-26 21:51:09.685709 DEBUG BF_SWITCHD bf_switchd: system services initialized
+2026-10-26 21:51:09.685756 DEBUG BF_SWITCHD bf_switchd: loading conf_file /home/philip/Projects/DNP3/results/analysis/model_startup/c69_control_01/noagent.conf...
+2026-10-26 21:51:09.685785 DEBUG BF_SWITCHD bf_switchd: processing device configuration...
+2026-10-26 21:51:09.685830 DEBUG BF_SWITCHD Configuration for dev_id 0
+2026-10-26 21:51:09.685847 DEBUG BF_SWITCHD   Family        : tofino
+2026-10-26 21:51:09.685862 DEBUG BF_SWITCHD   pci_sysfs_str : /sys/devices/pci0000:00/0000:00:03.0/0000:05:00.0
+2026-10-26 21:51:09.685877 DEBUG BF_SWITCHD   pci_int_mode  : 0
+2026-10-26 21:51:09.685891 DEBUG BF_SWITCHD   sds_fw_path   : share/tofino_sds_fw/avago/firmware
+2026-10-26 21:51:09.685905 DEBUG BF_SWITCHD bf_switchd: processing P4 configuration...
+2026-10-26 21:51:09.685952 DEBUG BF_SWITCHD coal_mirror_enable=0 coal_min=0 sessions_num=0
+2026-10-26 21:51:09.685969 DEBUG BF_SWITCHD P4 profile for dev_id 0
+2026-10-26 21:51:09.685983 DEBUG BF_SWITCHD num P4 programs 1
+2026-10-26 21:51:09.685998 DEBUG BF_SWITCHD   p4_name: response_only
+2026-10-26 21:51:09.686013 DEBUG BF_SWITCHD   p4_pipeline_name: p0
+2026-10-26 21:51:09.686028 DEBUG BF_SWITCHD     libpd: 
+2026-10-26 21:51:09.686042 DEBUG BF_SWITCHD     libpdthrift: 
+2026-10-26 21:51:09.686057 DEBUG BF_SWITCHD     context: /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c69_sdk9132/compile_local/out/p0/context.json
+2026-10-26 21:51:09.686071 DEBUG BF_SWITCHD     config: /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c69_sdk9132/compile_local/out/p0/tofino.bin
+2026-10-26 21:51:09.686086 DEBUG BF_SWITCHD   Pipes in scope [
+2026-10-26 21:51:09.686101 DEBUG BF_SWITCHD 0 
+2026-10-26 21:51:09.686116 DEBUG BF_SWITCHD 2 
+2026-10-26 21:51:09.686130 DEBUG BF_SWITCHD ]
+2026-10-26 21:51:09.686151 DEBUG BF_SWITCHD   diag: 
+2026-10-26 21:51:09.686165 DEBUG BF_SWITCHD   accton diag: 
+2026-10-26 21:51:09.686180 DEBUG BF_SWITCHD   p4_pipeline_name: p1
+2026-10-26 21:51:09.686195 DEBUG BF_SWITCHD     libpd: 
+2026-10-26 21:51:09.686209 DEBUG BF_SWITCHD     libpdthrift: 
+2026-10-26 21:51:09.686224 DEBUG BF_SWITCHD     context: /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c69_sdk9132/compile_local/out/p1/context.json
+2026-10-26 21:51:09.686238 DEBUG BF_SWITCHD     config: /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c69_sdk9132/compile_local/out/p1/tofino.bin
+2026-10-26 21:51:09.686253 DEBUG BF_SWITCHD   Pipes in scope [
+2026-10-26 21:51:09.686267 DEBUG BF_SWITCHD 1 
+2026-10-26 21:51:09.686282 DEBUG BF_SWITCHD 3 
+2026-10-26 21:51:09.686296 DEBUG BF_SWITCHD ]
+2026-10-26 21:51:09.686310 DEBUG BF_SWITCHD   diag: 
+2026-10-26 21:51:09.686325 DEBUG BF_SWITCHD   accton diag: 
+2026-10-26 21:51:09.687183 DEBUG BF_SWITCHD bf_switch: Operational mode set to default: MODEL
+2026-10-26 21:51:09.687209 DEBUG BF_DVM BF-SDE vesion: 9.13.2
+2026-10-26 21:51:09.696159 INFO  BF_PM pm_fsm_queues_init:340 pm_fsm_queues_init:340 Initializing all FSM queues
+2026-10-26 21:51:09.696189 INFO  BF_PM pm_fsm_queues_init:346 pm_fsm_queues_init:346 Initializing all FSM queues done
+2026-10-26 21:51:09.696269 INFO  BF_TM TM: Registered for device and port discovery
+2026-10-26 21:51:09.697266 DEBUG BF_SWITCHD bf_switchd: drivers initialized
+2026-10-26 21:51:09.697277 DEBUG BF_SWITCHD bf_switchd: initializing dru_sim service
+2026-10-26 21:51:09.697409 DEBUG BF_SWITCHD bf_switchd: library libdru_sim.so loaded
+2026-10-26 21:51:10.422359 INFO  BF_DVM bf_pktmgr_device_add dev id 0, is_sw_model 1
+2026-10-26 21:51:10.422845 DEBUG BF_LLD  Efuse settings dev 0 subdev 0
+2026-10-26 21:51:10.422855 DEBUG BF_LLD                0 : resubmit_disable
+2026-10-26 21:51:10.422862 DEBUG BF_LLD                0 : mau_tcam_reduction
+2026-10-26 21:51:10.422876 DEBUG BF_LLD                0 : mau_sram_reduction
+2026-10-26 21:51:10.422882 DEBUG BF_LLD                0 : packet_generator_disable
+2026-10-26 21:51:10.422888 DEBUG BF_LLD                0 : pipe_disable
+2026-10-26 21:51:10.422896 DEBUG BF_LLD                0 : mau_stage_disable
+2026-10-26 21:51:10.422901 DEBUG BF_LLD 0000000000000000 : port_disable (hi)
+2026-10-26 21:51:10.422907 DEBUG BF_LLD 0000000000000000 : port_disable (lo)
+2026-10-26 21:51:10.422913 DEBUG BF_LLD 0000000000000000 : tm_memory_disable
+2026-10-26 21:51:10.422919 DEBUG BF_LLD                0 : port_speed_reduction
+2026-10-26 21:51:10.422925 DEBUG BF_LLD                0 : cpu_port_speed_reduction
+2026-10-26 21:51:10.422931 DEBUG BF_LLD                0 : pcie_lane_reduction
+2026-10-26 21:51:10.422937 DEBUG BF_LLD                0 : baresync_disable
+2026-10-26 21:51:10.422944 DEBUG BF_LLD                0 : frequency_reduction
+2026-10-26 21:51:10.422949 DEBUG BF_LLD                0 : frequency_check_disable
+2026-10-26 21:51:10.422955 DEBUG BF_LLD                0 : versioning
+2026-10-26 21:51:10.422963 DEBUG BF_LLD                0 : chip_part_number
+2026-10-26 21:51:10.422970 DEBUG BF_LLD                1 : part_revision_number
+2026-10-26 21:51:10.422976 DEBUG BF_LLD                0 : package_id
+2026-10-26 21:51:10.422982 DEBUG BF_LLD 0000000000000000 : chip_id
+2026-10-26 21:51:10.422987 DEBUG BF_LLD                0 : pmro_and_skew
+2026-10-26 21:51:10.422994 DEBUG BF_LLD                0 : voltage_scaling
+2026-10-26 21:51:10.422999 DEBUG BF_LLD                0 : die-config
+2026-10-26 21:51:10.423005 DEBUG BF_LLD                0 : constant0
+2026-10-26 21:51:10.423011 DEBUG BF_LLD                0 : constant1
+2026-10-26 21:51:10.423016 DEBUG BF_LLD                0 : serdes disable even
+2026-10-26 21:51:10.423022 DEBUG BF_LLD                0 : serdes disable odd
+2026-10-26 21:51:10.423031 DEBUG BF_LLD Wafer-id: 
+2026-10-26 21:51:10.423059 DEBUG BF_LLD dev 0 subdev 0: SPI idcode: 0bad0bad (rc=0)
+2026-10-26 21:51:10.423091 DEBUG BF_LLD TCU: 0 : WARNING: device requires Power-on Reset: <0bad0bad>
+2026-10-26 21:51:10.423098 DEBUG BF_LLD TCU: 0 : Flush..
+2026-10-26 21:51:10.425931 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.425972 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.425988 DEBUG BF_LLD TCU: 0 : Flush done
+2026-10-26 21:51:10.426000 DEBUG BF_LLD TCU: 0 : Repair..
+2026-10-26 21:51:10.426762 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.426954 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.429935 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.430156 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.432601 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.432816 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.433614 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.433834 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.434634 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.434848 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.435491 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.435705 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.436346 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.436560 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.437201 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.437413 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.537887 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.538126 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.538785 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.538843 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.539329 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.539345 DEBUG BF_LLD ERROR: tcu_wrack register value is not correct on dev=0. Expected : 0x01 , Actual : 0xbad0bad
+2026-10-26 21:51:10.539397 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:51:10.539412 DEBUG BF_LLD ERROR: tcu_status register value is not correct on dev=0. Expected : 0x2a , Actual : 0xbad0bad
+2026-10-26 21:51:10.555089 DEBUG BF_LLD TCU: 0 : Repair done.
+2026-10-26 21:51:10.555578 DEBUG BF_LLD EFUSE: Set core clk to 1.22GHz, dev=0, PLL ctrl0 value=0xcd44cbfe
+2026-10-26 21:51:10.667497 DEBUG BF_LLD Core PLL has not locked even after 100 ms; PLL Lock chip 0 dbg_rst 0
+2026-10-26 21:51:11.088529 DEBUG BF_LLD [Unreset] Done after 1 polls
+2026-10-26 21:51:11.159947 DEBUG BF_LLD DR flush still asserted: dev 0 mbus bad0bad cbus bad0bad pbus bad0bad tbus 1
+2026-10-26 21:51:11.181080 INFO  BF_DVM bf_device_add dev id 0, is_sw_model 1
+2026-10-26 21:51:11.181109 DEBUG BF_PORT port_mgr_dev_add:57:0:0(warm_init_mode)
+2026-10-26 21:51:11.181130 DEBUG BF_PORT port_mgr_tof1_dev_add:76:0
+2026-10-26 21:51:11.181222 INFO  BF_PORT set chip part revision number, dev 0, part rev 1
+2026-10-26 21:51:11.181263 DEBUG BF_PORT 0:-:-: sbus master fw: 101d_2001
+2026-10-26 21:51:11.181273 DEBUG BF_PORT 0:-:-: PCIe serdes fw: 1066_2147
+2026-10-26 21:51:11.181282 DEBUG BF_PORT 0:-:-:      serdes fw: 1091_244d
+2026-10-26 21:51:11.181300 INFO  BF_PORT port_mgr_mac_block_init: core clock speed in ns = 0.819672
+2026-10-26 21:51:11.189462 DEBUG BF_PORT Unknown process id: 0x0
+
+2026-10-26 21:51:11.189506 DEBUG BF_PORT Error ocurred while trying to determine the number of devices on chip 0, SBus ring 0. aapl->return_code: 0, 0xfe 0x02 0x02 0x00: 0.
+
+2026-10-26 21:51:11.189577 DEBUG BF_PORT SDS: SBMs disabled. No FW upload
+2026-10-26 21:51:11.189631 DEBUG BF_PORT SDS: SBus CLK divider set to 5 (x32 mode)
+2026-10-26 21:51:11.189677 DEBUG BF_PORT SDS: 0:0:11: Error: -1 : setting initial state
+2026-10-26 21:51:11.189689 DEBUG BF_PORT SDS: 0:0:11: Error: -1 : turning it off
+2026-10-26 21:51:11.189695 DEBUG BF_PORT SDS: 0:0:12: Error: -1 : setting initial state
+2026-10-26 21:51:11.189700 DEBUG BF_PORT SDS: 0:0:12: Error: -1 : turning it off
+2026-10-26 21:51:11.189706 DEBUG BF_PORT SDS: 0:0:13: Error: -1 : setting initial state
+2026-10-26 21:51:11.189711 DEBUG BF_PORT SDS: 0:0:13: Error: -1 : turning it off
+2026-10-26 21:51:11.189718 DEBUG BF_PORT SDS: 0:0:14: Error: -1 : setting initial state
+2026-10-26 21:51:11.189724 DEBUG BF_PORT SDS: 0:0:14: Error: -1 : turning it off
+2026-10-26 21:51:11.189732 DEBUG BF_PORT SDS: 0:0:15: Error: -1 : setting initial state
+2026-10-26 21:51:11.189738 DEBUG BF_PORT SDS: 0:0:15: Error: -1 : turning it off
+2026-10-26 21:51:11.189744 DEBUG BF_PORT SDS: 0:0:16: Error: -1 : setting initial state
+2026-10-26 21:51:11.189749 DEBUG BF_PORT SDS: 0:0:16: Error: -1 : turning it off
+2026-10-26 21:51:11.189755 DEBUG BF_PORT SDS: 0:0:17: Error: -1 : setting initial state
+2026-10-26 21:51:11.189760 DEBUG BF_PORT SDS: 0:0:17: Error: -1 : turning it off
+2026-10-26 21:51:11.189766 DEBUG BF_PORT SDS: 0:0:18: Error: -1 : setting initial state
+2026-10-26 21:51:11.189771 DEBUG BF_PORT SDS: 0:0:18: Error: -1 : turning it off
+2026-10-26 21:51:11.189777 DEBUG BF_PORT SDS: 0:0:19: Error: -1 : setting initial state
+2026-10-26 21:51:11.189782 DEBUG BF_PORT SDS: 0:0:19: Error: -1 : turning it off
+2026-10-26 21:51:11.189788 DEBUG BF_PORT SDS: 0:0:20: Error: -1 : setting initial state
+2026-10-26 21:51:11.189793 DEBUG BF_PORT SDS: 0:0:20: Error: -1 : turning it off
+2026-10-26 21:51:11.189799 DEBUG BF_PORT SDS: 0:0:21: Error: -1 : setting initial state
+2026-10-26 21:51:11.189804 DEBUG BF_PORT SDS: 0:0:21: Error: -1 : turning it off
+2026-10-26 21:51:11.189810 DEBUG BF_PORT SDS: 0:0:22: Error: -1 : setting initial state
+2026-10-26 21:51:11.189821 DEBUG BF_PORT SDS: 0:0:22: Error: -1 : turning it off
+2026-10-26 21:51:11.189827 DEBUG BF_PORT SDS: 0:0:23: Error: -1 : setting initial state
+2026-10-26 21:51:11.189832 DEBUG BF_PORT SDS: 0:0:23: Error: -1 : turning it off
+2026-10-26 21:51:11.189838 DEBUG BF_PORT SDS: 0:0:24: Error: -1 : setting initial state
+2026-10-26 21:51:11.189843 DEBUG BF_PORT SDS: 0:0:24: Error: -1 : turning it off
+2026-10-26 21:51:11.189849 DEBUG BF_PORT SDS: 0:0:25: Error: -1 : setting initial state
+2026-10-26 21:51:11.189854 DEBUG BF_PORT SDS: 0:0:25: Error: -1 : turning it off
+2026-10-26 21:51:11.189860 DEBUG BF_PORT SDS: 0:0:26: Error: -1 : setting initial state
+2026-10-26 21:51:11.189865 DEBUG BF_PORT SDS: 0:0:26: Error: -1 : turning it off
+2026-10-26 21:51:11.189870 DEBUG BF_PORT SDS: 0:0:27: Error: -1 : setting initial state
+2026-10-26 21:51:11.189876 DEBUG BF_PORT SDS: 0:0:27: Error: -1 : turning it off
+2026-10-26 21:51:11.189882 DEBUG BF_PORT SDS: 0:0:28: Error: -1 : setting initial state
+2026-10-26 21:51:11.189887 DEBUG BF_PORT SDS: 0:0:28: Error: -1 : turning it off
+2026-10-26 21:51:11.189893 DEBUG BF_PORT SDS: 0:0:29: Error: -1 : setting initial state
+2026-10-26 21:51:11.189898 DEBUG BF_PORT SDS: 0:0:29: Error: -1 : turning it off
+2026-10-26 21:51:11.189904 DEBUG BF_PORT SDS: 0:0:30: Error: -1 : setting initial state
+2026-10-26 21:51:11.189909 DEBUG BF_PORT SDS: 0:0:30: Error: -1 : turning it off
+2026-10-26 21:51:11.189915 DEBUG BF_PORT SDS: 0:0:31: Error: -1 : setting initial state
+2026-10-26 21:51:11.189920 DEBUG BF_PORT SDS: 0:0:31: Error: -1 : turning it off
+2026-10-26 21:51:11.189926 DEBUG BF_PORT SDS: 0:0:32: Error: -1 : setting initial state
+2026-10-26 21:51:11.189932 DEBUG BF_PORT SDS: 0:0:32: Error: -1 : turning it off
+2026-10-26 21:51:11.189938 DEBUG BF_PORT SDS: 0:0:33: Error: -1 : setting initial state
+2026-10-26 21:51:11.189943 DEBUG BF_PORT SDS: 0:0:33: Error: -1 : turning it off
+2026-10-26 21:51:11.189948 DEBUG BF_PORT SDS: 0:0:34: Error: -1 : setting initial state
+2026-10-26 21:51:11.189954 DEBUG BF_PORT SDS: 0:0:34: Error: -1 : turning it off
+2026-10-26 21:51:11.189959 DEBUG BF_PORT SDS: 0:0:35: Error: -1 : setting initial state
+2026-10-26 21:51:11.189965 DEBUG BF_PORT SDS: 0:0:35: Error: -1 : turning it off
+2026-10-26 21:51:11.189971 DEBUG BF_PORT SDS: 0:0:36: Error: -1 : setting initial state
+2026-10-26 21:51:11.189976 DEBUG BF_PORT SDS: 0:0:36: Error: -1 : turning it off
+2026-10-26 21:51:11.189982 DEBUG BF_PORT SDS: 0:0:37: Error: -1 : setting initial state
+2026-10-26 21:51:11.189987 DEBUG BF_PORT SDS: 0:0:37: Error: -1 : turning it off
+2026-10-26 21:51:11.189992 DEBUG BF_PORT SDS: 0:0:38: Error: -1 : setting initial state
+2026-10-26 21:51:11.189998 DEBUG BF_PORT SDS: 0:0:38: Error: -1 : turning it off
+2026-10-26 21:51:11.190004 DEBUG BF_PORT SDS: 0:0:39: Error: -1 : setting initial state
+2026-10-26 21:51:11.190009 DEBUG BF_PORT SDS: 0:0:39: Error: -1 : turning it off
+2026-10-26 21:51:11.190015 DEBUG BF_PORT SDS: 0:0:40: Error: -1 : setting initial state
+2026-10-26 21:51:11.190020 DEBUG BF_PORT SDS: 0:0:40: Error: -1 : turning it off
+2026-10-26 21:51:11.190025 DEBUG BF_PORT SDS: 0:0:41: Error: -1 : setting initial state
+2026-10-26 21:51:11.190031 DEBUG BF_PORT SDS: 0:0:41: Error: -1 : turning it off
+2026-10-26 21:51:11.190036 DEBUG BF_PORT SDS: 0:0:42: Error: -1 : setting initial state
+2026-10-26 21:51:11.190042 DEBUG BF_PORT SDS: 0:0:42: Error: -1 : turning it off
+2026-10-26 21:51:11.190047 DEBUG BF_PORT SDS: 0:0:44: Error: -1 : setting initial state
+2026-10-26 21:51:11.190053 DEBUG BF_PORT SDS: 0:0:44: Error: -1 : turning it off
+2026-10-26 21:51:11.190058 DEBUG BF_PORT SDS: 0:0:45: Error: -1 : setting initial state
+2026-10-26 21:51:11.190063 DEBUG BF_PORT SDS: 0:0:45: Error: -1 : turning it off
+2026-10-26 21:51:11.190070 DEBUG BF_PORT SDS: 0:0:46: Error: -1 : setting initial state
+2026-10-26 21:51:11.190075 DEBUG BF_PORT SDS: 0:0:46: Error: -1 : turning it off
+2026-10-26 21:51:11.190082 DEBUG BF_PORT SDS: 0:0:47: Error: -1 : setting initial state
+2026-10-26 21:51:11.190092 DEBUG BF_PORT SDS: 0:0:47: Error: -1 : turning it off
+2026-10-26 21:51:11.190098 DEBUG BF_PORT SDS: 0:0:48: Error: -1 : setting initial state
+2026-10-26 21:51:11.190104 DEBUG BF_PORT SDS: 0:0:48: Error: -1 : turning it off
+2026-10-26 21:51:11.190109 DEBUG BF_PORT SDS: 0:0:49: Error: -1 : setting initial state
+2026-10-26 21:51:11.190114 DEBUG BF_PORT SDS: 0:0:49: Error: -1 : turning it off
+2026-10-26 21:51:11.190120 DEBUG BF_PORT SDS: 0:0:50: Error: -1 : setting initial state
+2026-10-26 21:51:11.190125 DEBUG BF_PORT SDS: 0:0:50: Error: -1 : turning it off
+2026-10-26 21:51:11.190131 DEBUG BF_PORT SDS: 0:0:51: Error: -1 : setting initial state
+2026-10-26 21:51:11.190136 DEBUG BF_PORT SDS: 0:0:51: Error: -1 : turning it off
+2026-10-26 21:51:11.190142 DEBUG BF_PORT SDS: 0:0:52: Error: -1 : setting initial state
+2026-10-26 21:51:11.190147 DEBUG BF_PORT SDS: 0:0:52: Error: -1 : turning it off
+2026-10-26 21:51:11.190153 DEBUG BF_PORT SDS: 0:0:53: Error: -1 : setting initial state
+2026-10-26 21:51:11.190158 DEBUG BF_PORT SDS: 0:0:53: Error: -1 : turning it off
+2026-10-26 21:51:11.190164 DEBUG BF_PORT SDS: 0:0:54: Error: -1 : setting initial state
+2026-10-26 21:51:11.190170 DEBUG BF_PORT SDS: 0:0:54: Error: -1 : turning it off
+2026-10-26 21:51:11.190176 DEBUG BF_PORT SDS: 0:0:55: Error: -1 : setting initial state
+2026-10-26 21:51:11.190181 DEBUG BF_PORT SDS: 0:0:55: Error: -1 : turning it off
+2026-10-26 21:51:11.190187 DEBUG BF_PORT SDS: 0:0:56: Error: -1 : setting initial state
+2026-10-26 21:51:11.190192 DEBUG BF_PORT SDS: 0:0:56: Error: -1 : turning it off
+2026-10-26 21:51:11.190197 DEBUG BF_PORT SDS: 0:0:57: Error: -1 : setting initial state
+2026-10-26 21:51:11.190203 DEBUG BF_PORT SDS: 0:0:57: Error: -1 : turning it off
+2026-10-26 21:51:11.190208 DEBUG BF_PORT SDS: 0:0:58: Error: -1 : setting initial state
+2026-10-26 21:51:11.190213 DEBUG BF_PORT SDS: 0:0:58: Error: -1 : turning it off
+2026-10-26 21:51:11.190219 DEBUG BF_PORT SDS: 0:0:59: Error: -1 : setting initial state
+2026-10-26 21:51:11.190224 DEBUG BF_PORT SDS: 0:0:59: Error: -1 : turning it off
+2026-10-26 21:51:11.190230 DEBUG BF_PORT SDS: 0:0:60: Error: -1 : setting initial state
+2026-10-26 21:51:11.190235 DEBUG BF_PORT SDS: 0:0:60: Error: -1 : turning it off
+2026-10-26 21:51:11.190241 DEBUG BF_PORT SDS: 0:0:61: Error: -1 : setting initial state
+2026-10-26 21:51:11.190246 DEBUG BF_PORT SDS: 0:0:61: Error: -1 : turning it off
+2026-10-26 21:51:11.190252 DEBUG BF_PORT SDS: 0:0:62: Error: -1 : setting initial state
+2026-10-26 21:51:11.190257 DEBUG BF_PORT SDS: 0:0:62: Error: -1 : turning it off
+2026-10-26 21:51:11.190263 DEBUG BF_PORT SDS: 0:0:63: Error: -1 : setting initial state
+2026-10-26 21:51:11.190268 DEBUG BF_PORT SDS: 0:0:63: Error: -1 : turning it off
+2026-10-26 21:51:11.190274 DEBUG BF_PORT SDS: 0:0:64: Error: -1 : setting initial state
+2026-10-26 21:51:11.190279 DEBUG BF_PORT SDS: 0:0:64: Error: -1 : turning it off
+2026-10-26 21:51:11.190285 DEBUG BF_PORT SDS: 0:0:65: Error: -1 : setting initial state
+2026-10-26 21:51:11.190290 DEBUG BF_PORT SDS: 0:0:65: Error: -1 : turning it off
+2026-10-26 21:51:11.190295 DEBUG BF_PORT SDS: 0:0:66: Error: -1 : setting initial state
+2026-10-26 21:51:11.190301 DEBUG BF_PORT SDS: 0:0:66: Error: -1 : turning it off
+2026-10-26 21:51:11.190307 DEBUG BF_PORT SDS: 0:0:67: Error: -1 : setting initial state
+2026-10-26 21:51:11.190312 DEBUG BF_PORT SDS: 0:0:67: Error: -1 : turning it off
+2026-10-26 21:51:11.190317 DEBUG BF_PORT SDS: 0:0:68: Error: -1 : setting initial state
+2026-10-26 21:51:11.190323 DEBUG BF_PORT SDS: 0:0:68: Error: -1 : turning it off
+2026-10-26 21:51:11.190329 DEBUG BF_PORT SDS: 0:0:69: Error: -1 : setting initial state
+2026-10-26 21:51:11.190334 DEBUG BF_PORT SDS: 0:0:69: Error: -1 : turning it off
+2026-10-26 21:51:11.190340 DEBUG BF_PORT SDS: 0:0:70: Error: -1 : setting initial state
+2026-10-26 21:51:11.190345 DEBUG BF_PORT SDS: 0:0:70: Error: -1 : turning it off
+2026-10-26 21:51:11.190351 DEBUG BF_PORT SDS: 0:0:71: Error: -1 : setting initial state
+2026-10-26 21:51:11.190356 DEBUG BF_PORT SDS: 0:0:71: Error: -1 : turning it off
+2026-10-26 21:51:11.190365 DEBUG BF_PORT SDS: 0:0:72: Error: -1 : setting initial state
+2026-10-26 21:51:11.190370 DEBUG BF_PORT SDS: 0:0:72: Error: -1 : turning it off
+2026-10-26 21:51:11.190375 DEBUG BF_PORT SDS: 0:0:73: Error: -1 : setting initial state
+2026-10-26 21:51:11.190381 DEBUG BF_PORT SDS: 0:0:73: Error: -1 : turning it off
+2026-10-26 21:51:11.190386 DEBUG BF_PORT SDS: 0:0:74: Error: -1 : setting initial state
+2026-10-26 21:51:11.190391 DEBUG BF_PORT SDS: 0:0:74: Error: -1 : turning it off
+2026-10-26 21:51:11.190397 DEBUG BF_PORT SDS: 0:0:75: Error: -1 : setting initial state
+2026-10-26 21:51:11.190403 DEBUG BF_PORT SDS: 0:0:75: Error: -1 : turning it off
+2026-10-26 21:51:11.190408 DEBUG BF_PORT SDS: 0:0:76: Error: -1 : setting initial state
+2026-10-26 21:51:11.190414 DEBUG BF_PORT SDS: 0:0:76: Error: -1 : turning it off
+2026-10-26 21:51:11.190419 DEBUG BF_PORT SDS: 0:0:77: Error: -1 : setting initial state
+2026-10-26 21:51:11.190424 DEBUG BF_PORT SDS: 0:0:77: Error: -1 : turning it off
+2026-10-26 21:51:11.190430 DEBUG BF_PORT SDS: 0:0:78: Error: -1 : setting initial state
+2026-10-26 21:51:11.190438 DEBUG BF_PORT SDS: 0:0:78: Error: -1 : turning it off
+2026-10-26 21:51:11.190445 DEBUG BF_PORT SDS: 0:0:79: Error: -1 : setting initial state
+2026-10-26 21:51:11.190450 DEBUG BF_PORT SDS: 0:0:79: Error: -1 : turning it off
+2026-10-26 21:51:11.190456 DEBUG BF_PORT SDS: 0:0:80: Error: -1 : setting initial state
+2026-10-26 21:51:11.190461 DEBUG BF_PORT SDS: 0:0:80: Error: -1 : turning it off
+2026-10-26 21:51:11.190466 DEBUG BF_PORT SDS: 0:0:81: Error: -1 : setting initial state
+2026-10-26 21:51:11.190472 DEBUG BF_PORT SDS: 0:0:81: Error: -1 : turning it off
+2026-10-26 21:51:11.190477 DEBUG BF_PORT SDS: 0:0:82: Error: -1 : setting initial state
+2026-10-26 21:51:11.190482 DEBUG BF_PORT SDS: 0:0:82: Error: -1 : turning it off
+2026-10-26 21:51:11.190488 DEBUG BF_PORT SDS: 0:0:83: Error: -1 : setting initial state
+2026-10-26 21:51:11.190493 DEBUG BF_PORT SDS: 0:0:83: Error: -1 : turning it off
+2026-10-26 21:51:11.190499 DEBUG BF_PORT SDS: 0:0:84: Error: -1 : setting initial state
+2026-10-26 21:51:11.190504 DEBUG BF_PORT SDS: 0:0:84: Error: -1 : turning it off
+2026-10-26 21:51:11.190510 DEBUG BF_PORT SDS: 0:0:85: Error: -1 : setting initial state
+2026-10-26 21:51:11.190515 DEBUG BF_PORT SDS: 0:0:85: Error: -1 : turning it off
+2026-10-26 21:51:11.190521 DEBUG BF_PORT SDS: 0:0:86: Error: -1 : setting initial state
+2026-10-26 21:51:11.190527 DEBUG BF_PORT SDS: 0:0:86: Error: -1 : turning it off
+2026-10-26 21:51:11.190532 DEBUG BF_PORT SDS: 0:0:87: Error: -1 : setting initial state
+2026-10-26 21:51:11.190538 DEBUG BF_PORT SDS: 0:0:87: Error: -1 : turning it off
+2026-10-26 21:51:11.190544 DEBUG BF_PORT SDS: 0:0:88: Error: -1 : setting initial state
+2026-10-26 21:51:11.190549 DEBUG BF_PORT SDS: 0:0:88: Error: -1 : turning it off
+2026-10-26 21:51:11.190554 DEBUG BF_PORT SDS: 0:0:89: Error: -1 : setting initial state
+2026-10-26 21:51:11.190560 DEBUG BF_PORT SDS: 0:0:89: Error: -1 : turning it off
+2026-10-26 21:51:11.190565 DEBUG BF_PORT SDS: 0:0:90: Error: -1 : setting initial state
+2026-10-26 21:51:11.190571 DEBUG BF_PORT SDS: 0:0:90: Error: -1 : turning it off
+2026-10-26 21:51:11.190576 DEBUG BF_PORT SDS: 0:0:91: Error: -1 : setting initial state
+2026-10-26 21:51:11.190581 DEBUG BF_PORT SDS: 0:0:91: Error: -1 : turning it off
+2026-10-26 21:51:11.190587 DEBUG BF_PORT SDS: 0:0:92: Error: -1 : setting initial state
+2026-10-26 21:51:11.190592 DEBUG BF_PORT SDS: 0:0:92: Error: -1 : turning it off
+2026-10-26 21:51:11.190598 DEBUG BF_PORT SDS: 0:0:93: Error: -1 : setting initial state
+2026-10-26 21:51:11.190603 DEBUG BF_PORT SDS: 0:0:93: Error: -1 : turning it off
+2026-10-26 21:51:11.190609 DEBUG BF_PORT SDS: 0:0:94: Error: -1 : setting initial state
+2026-10-26 21:51:11.190614 DEBUG BF_PORT SDS: 0:0:94: Error: -1 : turning it off
+2026-10-26 21:51:11.190619 DEBUG BF_PORT SDS: 0:0:95: Error: -1 : setting initial state
+2026-10-26 21:51:11.190625 DEBUG BF_PORT SDS: 0:0:95: Error: -1 : turning it off
+2026-10-26 21:51:11.190634 DEBUG BF_PORT SDS: 0:0:96: Error: -1 : setting initial state
+2026-10-26 21:51:11.190640 DEBUG BF_PORT SDS: 0:0:96: Error: -1 : turning it off
+2026-10-26 21:51:11.190645 DEBUG BF_PORT SDS: 0:0:97: Error: -1 : setting initial state
+2026-10-26 21:51:11.190650 DEBUG BF_PORT SDS: 0:0:97: Error: -1 : turning it off
+2026-10-26 21:51:11.190656 DEBUG BF_PORT SDS: 0:0:98: Error: -1 : setting initial state
+2026-10-26 21:51:11.190661 DEBUG BF_PORT SDS: 0:0:98: Error: -1 : turning it off
+2026-10-26 21:51:11.190667 DEBUG BF_PORT SDS: 0:0:99: Error: -1 : setting initial state
+2026-10-26 21:51:11.190672 DEBUG BF_PORT SDS: 0:0:99: Error: -1 : turning it off
+2026-10-26 21:51:11.190678 DEBUG BF_PORT SDS: 0:0:100: Error: -1 : setting initial state
+2026-10-26 21:51:11.190683 DEBUG BF_PORT SDS: 0:0:100: Error: -1 : turning it off
+2026-10-26 21:51:11.190689 DEBUG BF_PORT SDS: 0:0:101: Error: -1 : setting initial state
+2026-10-26 21:51:11.190694 DEBUG BF_PORT SDS: 0:0:101: Error: -1 : turning it off
+2026-10-26 21:51:11.190700 DEBUG BF_PORT SDS: 0:0:102: Error: -1 : setting initial state
+2026-10-26 21:51:11.190705 DEBUG BF_PORT SDS: 0:0:102: Error: -1 : turning it off
+2026-10-26 21:51:11.190711 DEBUG BF_PORT SDS: 0:0:103: Error: -1 : setting initial state
+2026-10-26 21:51:11.190716 DEBUG BF_PORT SDS: 0:0:103: Error: -1 : turning it off
+2026-10-26 21:51:11.190722 DEBUG BF_PORT SDS: 0:0:104: Error: -1 : setting initial state
+2026-10-26 21:51:11.190727 DEBUG BF_PORT SDS: 0:0:104: Error: -1 : turning it off
+2026-10-26 21:51:11.190733 DEBUG BF_PORT SDS: 0:0:105: Error: -1 : setting initial state
+2026-10-26 21:51:11.190738 DEBUG BF_PORT SDS: 0:0:105: Error: -1 : turning it off
+2026-10-26 21:51:11.190743 DEBUG BF_PORT SDS: 0:0:106: Error: -1 : setting initial state
+2026-10-26 21:51:11.190749 DEBUG BF_PORT SDS: 0:0:106: Error: -1 : turning it off
+2026-10-26 21:51:11.190755 DEBUG BF_PORT SDS: 0:0:107: Error: -1 : setting initial state
+2026-10-26 21:51:11.190760 DEBUG BF_PORT SDS: 0:0:107: Error: -1 : turning it off
+2026-10-26 21:51:11.190766 DEBUG BF_PORT SDS: 0:0:108: Error: -1 : setting initial state
+2026-10-26 21:51:11.190771 DEBUG BF_PORT SDS: 0:0:108: Error: -1 : turning it off
+2026-10-26 21:51:11.190776 DEBUG BF_PORT SDS: 0:0:109: Error: -1 : setting initial state
+2026-10-26 21:51:11.190782 DEBUG BF_PORT SDS: 0:0:109: Error: -1 : turning it off
+2026-10-26 21:51:11.190788 DEBUG BF_PORT SDS: 0:0:110: Error: -1 : setting initial state
+2026-10-26 21:51:11.190795 DEBUG BF_PORT SDS: 0:0:110: Error: -1 : turning it off
+2026-10-26 21:51:11.190802 DEBUG BF_PORT SDS: 0:0:111: Error: -1 : setting initial state
+2026-10-26 21:51:11.190807 DEBUG BF_PORT SDS: 0:0:111: Error: -1 : turning it off
+2026-10-26 21:51:11.190813 DEBUG BF_PORT SDS: 0:0:112: Error: -1 : setting initial state
+2026-10-26 21:51:11.190818 DEBUG BF_PORT SDS: 0:0:112: Error: -1 : turning it off
+2026-10-26 21:51:11.190824 DEBUG BF_PORT SDS: 0:0:113: Error: -1 : setting initial state
+2026-10-26 21:51:11.190829 DEBUG BF_PORT SDS: 0:0:113: Error: -1 : turning it off
+2026-10-26 21:51:11.190835 DEBUG BF_PORT SDS: 0:0:114: Error: -1 : setting initial state
+2026-10-26 21:51:11.190840 DEBUG BF_PORT SDS: 0:0:114: Error: -1 : turning it off
+2026-10-26 21:51:11.190846 DEBUG BF_PORT SDS: 0:0:115: Error: -1 : setting initial state
+2026-10-26 21:51:11.190851 DEBUG BF_PORT SDS: 0:0:115: Error: -1 : turning it off
+2026-10-26 21:51:11.190857 DEBUG BF_PORT SDS: 0:0:116: Error: -1 : setting initial state
+2026-10-26 21:51:11.190862 DEBUG BF_PORT SDS: 0:0:116: Error: -1 : turning it off
+2026-10-26 21:51:11.190868 DEBUG BF_PORT SDS: 0:0:117: Error: -1 : setting initial state
+2026-10-26 21:51:11.190873 DEBUG BF_PORT SDS: 0:0:117: Error: -1 : turning it off
+2026-10-26 21:51:11.190879 DEBUG BF_PORT SDS: 0:0:118: Error: -1 : setting initial state
+2026-10-26 21:51:11.190884 DEBUG BF_PORT SDS: 0:0:118: Error: -1 : turning it off
+2026-10-26 21:51:11.190889 DEBUG BF_PORT SDS: 0:0:119: Error: -1 : setting initial state
+2026-10-26 21:51:11.190895 DEBUG BF_PORT SDS: 0:0:119: Error: -1 : turning it off
+2026-10-26 21:51:11.190904 DEBUG BF_PORT SDS: 0:0:120: Error: -1 : setting initial state
+2026-10-26 21:51:11.190909 DEBUG BF_PORT SDS: 0:0:120: Error: -1 : turning it off
+2026-10-26 21:51:11.190914 DEBUG BF_PORT SDS: 0:0:121: Error: -1 : setting initial state
+2026-10-26 21:51:11.190920 DEBUG BF_PORT SDS: 0:0:121: Error: -1 : turning it off
+2026-10-26 21:51:11.190925 DEBUG BF_PORT SDS: 0:0:122: Error: -1 : setting initial state
+2026-10-26 21:51:11.190931 DEBUG BF_PORT SDS: 0:0:122: Error: -1 : turning it off
+2026-10-26 21:51:11.190936 DEBUG BF_PORT SDS: 0:0:123: Error: -1 : setting initial state
+2026-10-26 21:51:11.190941 DEBUG BF_PORT SDS: 0:0:123: Error: -1 : turning it off
+2026-10-26 21:51:11.190947 DEBUG BF_PORT SDS: 0:0:124: Error: -1 : setting initial state
+2026-10-26 21:51:11.190952 DEBUG BF_PORT SDS: 0:0:124: Error: -1 : turning it off
+2026-10-26 21:51:11.190958 DEBUG BF_PORT SDS: 0:0:125: Error: -1 : setting initial state
+2026-10-26 21:51:11.190963 DEBUG BF_PORT SDS: 0:0:125: Error: -1 : turning it off
+2026-10-26 21:51:11.190968 DEBUG BF_PORT SDS: 0:0:126: Error: -1 : setting initial state
+2026-10-26 21:51:11.190974 DEBUG BF_PORT SDS: 0:0:126: Error: -1 : turning it off
+2026-10-26 21:51:11.190979 DEBUG BF_PORT SDS: 0:0:127: Error: -1 : setting initial state
+2026-10-26 21:51:11.190984 DEBUG BF_PORT SDS: 0:0:127: Error: -1 : turning it off
+2026-10-26 21:51:11.190990 DEBUG BF_PORT SDS: 0:0:128: Error: -1 : setting initial state
+2026-10-26 21:51:11.190995 DEBUG BF_PORT SDS: 0:0:128: Error: -1 : turning it off
+2026-10-26 21:51:11.191001 DEBUG BF_PORT SDS: 0:0:129: Error: -1 : setting initial state
+2026-10-26 21:51:11.191006 DEBUG BF_PORT SDS: 0:0:129: Error: -1 : turning it off
+2026-10-26 21:51:11.191012 DEBUG BF_PORT SDS: 0:0:130: Error: -1 : setting initial state
+2026-10-26 21:51:11.191018 DEBUG BF_PORT SDS: 0:0:130: Error: -1 : turning it off
+2026-10-26 21:51:11.191023 DEBUG BF_PORT SDS: 0:0:131: Error: -1 : setting initial state
+2026-10-26 21:51:11.191028 DEBUG BF_PORT SDS: 0:0:131: Error: -1 : turning it off
+2026-10-26 21:51:11.191034 DEBUG BF_PORT SDS: 0:0:132: Error: -1 : setting initial state
+2026-10-26 21:51:11.191039 DEBUG BF_PORT SDS: 0:0:132: Error: -1 : turning it off
+2026-10-26 21:51:11.191045 DEBUG BF_PORT SDS: 0:0:133: Error: -1 : setting initial state
+2026-10-26 21:51:11.191050 DEBUG BF_PORT SDS: 0:0:133: Error: -1 : turning it off
+2026-10-26 21:51:11.191056 DEBUG BF_PORT SDS: 0:0:134: Error: -1 : setting initial state
+2026-10-26 21:51:11.191061 DEBUG BF_PORT SDS: 0:0:134: Error: -1 : turning it off
+2026-10-26 21:51:11.191067 DEBUG BF_PORT SDS: 0:0:135: Error: -1 : setting initial state
+2026-10-26 21:51:11.191072 DEBUG BF_PORT SDS: 0:0:135: Error: -1 : turning it off
+2026-10-26 21:51:11.191078 DEBUG BF_PORT SDS: 0:0:136: Error: -1 : setting initial state
+2026-10-26 21:51:11.191083 DEBUG BF_PORT SDS: 0:0:136: Error: -1 : turning it off
+2026-10-26 21:51:11.191089 DEBUG BF_PORT SDS: 0:0:137: Error: -1 : setting initial state
+2026-10-26 21:51:11.191094 DEBUG BF_PORT SDS: 0:0:137: Error: -1 : turning it off
+2026-10-26 21:51:11.191100 DEBUG BF_PORT SDS: 0:0:138: Error: -1 : setting initial state
+2026-10-26 21:51:11.191105 DEBUG BF_PORT SDS: 0:0:138: Error: -1 : turning it off
+2026-10-26 21:51:11.191110 DEBUG BF_PORT SDS: 0:0:139: Error: -1 : setting initial state
+2026-10-26 21:51:11.191116 DEBUG BF_PORT SDS: 0:0:139: Error: -1 : turning it off
+2026-10-26 21:51:11.191122 DEBUG BF_PORT SDS: 0:0:140: Error: -1 : setting initial state
+2026-10-26 21:51:11.191127 DEBUG BF_PORT SDS: 0:0:140: Error: -1 : turning it off
+2026-10-26 21:51:11.191135 DEBUG BF_PORT SDS: 0:0:141: Error: -1 : setting initial state
+2026-10-26 21:51:11.191141 DEBUG BF_PORT SDS: 0:0:141: Error: -1 : turning it off
+2026-10-26 21:51:11.191149 DEBUG BF_PORT SDS: 0:0:142: Error: -1 : setting initial state
+2026-10-26 21:51:11.191155 DEBUG BF_PORT SDS: 0:0:142: Error: -1 : turning it off
+2026-10-26 21:51:11.191160 DEBUG BF_PORT SDS: 0:0:143: Error: -1 : setting initial state
+2026-10-26 21:51:11.191165 DEBUG BF_PORT SDS: 0:0:143: Error: -1 : turning it off
+2026-10-26 21:51:11.191175 DEBUG BF_PORT SDS: 0:1:1: Error: -1 : setting initial state
+2026-10-26 21:51:11.191181 DEBUG BF_PORT SDS: 0:1:1: Error: -1 : turning it off
+2026-10-26 21:51:11.191187 DEBUG BF_PORT SDS: 0:1:2: Error: -1 : setting initial state
+2026-10-26 21:51:11.191193 DEBUG BF_PORT SDS: 0:1:2: Error: -1 : turning it off
+2026-10-26 21:51:11.191198 DEBUG BF_PORT SDS: 0:1:3: Error: -1 : setting initial state
+2026-10-26 21:51:11.191204 DEBUG BF_PORT SDS: 0:1:3: Error: -1 : turning it off
+2026-10-26 21:51:11.191209 DEBUG BF_PORT SDS: 0:1:4: Error: -1 : setting initial state
+2026-10-26 21:51:11.191214 DEBUG BF_PORT SDS: 0:1:4: Error: -1 : turning it off
+2026-10-26 21:51:11.191220 DEBUG BF_PORT SDS: 0:1:5: Error: -1 : setting initial state
+2026-10-26 21:51:11.191225 DEBUG BF_PORT SDS: 0:1:5: Error: -1 : turning it off
+2026-10-26 21:51:11.191231 DEBUG BF_PORT SDS: 0:1:6: Error: -1 : setting initial state
+2026-10-26 21:51:11.191236 DEBUG BF_PORT SDS: 0:1:6: Error: -1 : turning it off
+2026-10-26 21:51:11.191242 DEBUG BF_PORT SDS: 0:1:7: Error: -1 : setting initial state
+2026-10-26 21:51:11.191247 DEBUG BF_PORT SDS: 0:1:7: Error: -1 : turning it off
+2026-10-26 21:51:11.191253 DEBUG BF_PORT SDS: 0:1:8: Error: -1 : setting initial state
+2026-10-26 21:51:11.191258 DEBUG BF_PORT SDS: 0:1:8: Error: -1 : turning it off
+2026-10-26 21:51:11.191264 DEBUG BF_PORT SDS: 0:1:9: Error: -1 : setting initial state
+2026-10-26 21:51:11.191270 DEBUG BF_PORT SDS: 0:1:9: Error: -1 : turning it off
+2026-10-26 21:51:11.191275 DEBUG BF_PORT SDS: 0:1:10: Error: -1 : setting initial state
+2026-10-26 21:51:11.191281 DEBUG BF_PORT SDS: 0:1:10: Error: -1 : turning it off
+2026-10-26 21:51:11.191286 DEBUG BF_PORT SDS: 0:1:11: Error: -1 : setting initial state
+2026-10-26 21:51:11.191292 DEBUG BF_PORT SDS: 0:1:11: Error: -1 : turning it off
+2026-10-26 21:51:11.191297 DEBUG BF_PORT SDS: 0:1:12: Error: -1 : setting initial state
+2026-10-26 21:51:11.191303 DEBUG BF_PORT SDS: 0:1:12: Error: -1 : turning it off
+2026-10-26 21:51:11.191309 DEBUG BF_PORT SDS: 0:1:13: Error: -1 : setting initial state
+2026-10-26 21:51:11.191314 DEBUG BF_PORT SDS: 0:1:13: Error: -1 : turning it off
+2026-10-26 21:51:11.191320 DEBUG BF_PORT SDS: 0:1:14: Error: -1 : setting initial state
+2026-10-26 21:51:11.191325 DEBUG BF_PORT SDS: 0:1:14: Error: -1 : turning it off
+2026-10-26 21:51:11.191331 DEBUG BF_PORT SDS: 0:1:15: Error: -1 : setting initial state
+2026-10-26 21:51:11.191336 DEBUG BF_PORT SDS: 0:1:15: Error: -1 : turning it off
+2026-10-26 21:51:11.191341 DEBUG BF_PORT SDS: 0:1:16: Error: -1 : setting initial state
+2026-10-26 21:51:11.191347 DEBUG BF_PORT SDS: 0:1:16: Error: -1 : turning it off
+2026-10-26 21:51:11.191352 DEBUG BF_PORT SDS: 0:1:17: Error: -1 : setting initial state
+2026-10-26 21:51:11.191358 DEBUG BF_PORT SDS: 0:1:17: Error: -1 : turning it off
+2026-10-26 21:51:11.191364 DEBUG BF_PORT SDS: 0:1:18: Error: -1 : setting initial state
+2026-10-26 21:51:11.191369 DEBUG BF_PORT SDS: 0:1:18: Error: -1 : turning it off
+2026-10-26 21:51:11.191375 DEBUG BF_PORT SDS: 0:1:19: Error: -1 : setting initial state
+2026-10-26 21:51:11.191380 DEBUG BF_PORT SDS: 0:1:19: Error: -1 : turning it off
+2026-10-26 21:51:11.191385 DEBUG BF_PORT SDS: 0:1:20: Error: -1 : setting initial state
+2026-10-26 21:51:11.191391 DEBUG BF_PORT SDS: 0:1:20: Error: -1 : turning it off
+2026-10-26 21:51:11.191397 DEBUG BF_PORT SDS: 0:1:21: Error: -1 : setting initial state
+2026-10-26 21:51:11.191402 DEBUG BF_PORT SDS: 0:1:21: Error: -1 : turning it off
+2026-10-26 21:51:11.191407 DEBUG BF_PORT SDS: 0:1:22: Error: -1 : setting initial state
+2026-10-26 21:51:11.191413 DEBUG BF_PORT SDS: 0:1:22: Error: -1 : turning it off
+2026-10-26 21:51:11.191418 DEBUG BF_PORT SDS: 0:1:23: Error: -1 : setting initial state
+2026-10-26 21:51:11.191423 DEBUG BF_PORT SDS: 0:1:23: Error: -1 : turning it off
+2026-10-26 21:51:11.191429 DEBUG BF_PORT SDS: 0:1:24: Error: -1 : setting initial state
+2026-10-26 21:51:11.191434 DEBUG BF_PORT SDS: 0:1:24: Error: -1 : turning it off
+2026-10-26 21:51:11.191440 DEBUG BF_PORT SDS: 0:1:25: Error: -1 : setting initial state
+2026-10-26 21:51:11.191449 DEBUG BF_PORT SDS: 0:1:25: Error: -1 : turning it off
+2026-10-26 21:51:11.191454 DEBUG BF_PORT SDS: 0:1:26: Error: -1 : setting initial state
+2026-10-26 21:51:11.191460 DEBUG BF_PORT SDS: 0:1:26: Error: -1 : turning it off
+2026-10-26 21:51:11.191465 DEBUG BF_PORT SDS: 0:1:27: Error: -1 : setting initial state
+2026-10-26 21:51:11.191471 DEBUG BF_PORT SDS: 0:1:27: Error: -1 : turning it off
+2026-10-26 21:51:11.191476 DEBUG BF_PORT SDS: 0:1:28: Error: -1 : setting initial state
+2026-10-26 21:51:11.191481 DEBUG BF_PORT SDS: 0:1:28: Error: -1 : turning it off
+2026-10-26 21:51:11.191487 DEBUG BF_PORT SDS: 0:1:29: Error: -1 : setting initial state
+2026-10-26 21:51:11.191492 DEBUG BF_PORT SDS: 0:1:29: Error: -1 : turning it off
+2026-10-26 21:51:11.191499 DEBUG BF_PORT SDS: 0:1:30: Error: -1 : setting initial state
+2026-10-26 21:51:11.191506 DEBUG BF_PORT SDS: 0:1:30: Error: -1 : turning it off
+2026-10-26 21:51:11.191512 DEBUG BF_PORT SDS: 0:1:31: Error: -1 : setting initial state
+2026-10-26 21:51:11.191517 DEBUG BF_PORT SDS: 0:1:31: Error: -1 : turning it off
+2026-10-26 21:51:11.191523 DEBUG BF_PORT SDS: 0:1:32: Error: -1 : setting initial state
+2026-10-26 21:51:11.191529 DEBUG BF_PORT SDS: 0:1:32: Error: -1 : turning it off
+2026-10-26 21:51:11.191534 DEBUG BF_PORT SDS: 0:1:34: Error: -1 : setting initial state
+2026-10-26 21:51:11.191540 DEBUG BF_PORT SDS: 0:1:34: Error: -1 : turning it off
+2026-10-26 21:51:11.191545 DEBUG BF_PORT SDS: 0:1:35: Error: -1 : setting initial state
+2026-10-26 21:51:11.191551 DEBUG BF_PORT SDS: 0:1:35: Error: -1 : turning it off
+2026-10-26 21:51:11.191556 DEBUG BF_PORT SDS: 0:1:36: Error: -1 : setting initial state
+2026-10-26 21:51:11.191562 DEBUG BF_PORT SDS: 0:1:36: Error: -1 : turning it off
+2026-10-26 21:51:11.191567 DEBUG BF_PORT SDS: 0:1:37: Error: -1 : setting initial state
+2026-10-26 21:51:11.191572 DEBUG BF_PORT SDS: 0:1:37: Error: -1 : turning it off
+2026-10-26 21:51:11.191578 DEBUG BF_PORT SDS: 0:1:38: Error: -1 : setting initial state
+2026-10-26 21:51:11.191583 DEBUG BF_PORT SDS: 0:1:38: Error: -1 : turning it off
+2026-10-26 21:51:11.191589 DEBUG BF_PORT SDS: 0:1:39: Error: -1 : setting initial state
+2026-10-26 21:51:11.191594 DEBUG BF_PORT SDS: 0:1:39: Error: -1 : turning it off
+2026-10-26 21:51:11.191600 DEBUG BF_PORT SDS: 0:1:40: Error: -1 : setting initial state
+2026-10-26 21:51:11.191605 DEBUG BF_PORT SDS: 0:1:40: Error: -1 : turning it off
+2026-10-26 21:51:11.191610 DEBUG BF_PORT SDS: 0:1:41: Error: -1 : setting initial state
+2026-10-26 21:51:11.191615 DEBUG BF_PORT SDS: 0:1:41: Error: -1 : turning it off
+2026-10-26 21:51:11.191621 DEBUG BF_PORT SDS: 0:1:42: Error: -1 : setting initial state
+2026-10-26 21:51:11.191627 DEBUG BF_PORT SDS: 0:1:42: Error: -1 : turning it off
+2026-10-26 21:51:11.191633 DEBUG BF_PORT SDS: 0:1:43: Error: -1 : setting initial state
+2026-10-26 21:51:11.191638 DEBUG BF_PORT SDS: 0:1:43: Error: -1 : turning it off
+2026-10-26 21:51:11.191644 DEBUG BF_PORT SDS: 0:1:44: Error: -1 : setting initial state
+2026-10-26 21:51:11.191649 DEBUG BF_PORT SDS: 0:1:44: Error: -1 : turning it off
+2026-10-26 21:51:11.191654 DEBUG BF_PORT SDS: 0:1:45: Error: -1 : setting initial state
+2026-10-26 21:51:11.191660 DEBUG BF_PORT SDS: 0:1:45: Error: -1 : turning it off
+2026-10-26 21:51:11.191665 DEBUG BF_PORT SDS: 0:1:46: Error: -1 : setting initial state
+2026-10-26 21:51:11.191671 DEBUG BF_PORT SDS: 0:1:46: Error: -1 : turning it off
+2026-10-26 21:51:11.191676 DEBUG BF_PORT SDS: 0:1:47: Error: -1 : setting initial state
+2026-10-26 21:51:11.191681 DEBUG BF_PORT SDS: 0:1:47: Error: -1 : turning it off
+2026-10-26 21:51:11.191687 DEBUG BF_PORT SDS: 0:1:48: Error: -1 : setting initial state
+2026-10-26 21:51:11.191692 DEBUG BF_PORT SDS: 0:1:48: Error: -1 : turning it off
+2026-10-26 21:51:11.191698 DEBUG BF_PORT SDS: 0:1:49: Error: -1 : setting initial state
+2026-10-26 21:51:11.191703 DEBUG BF_PORT SDS: 0:1:49: Error: -1 : turning it off
+2026-10-26 21:51:11.191709 DEBUG BF_PORT SDS: 0:1:50: Error: -1 : setting initial state
+2026-10-26 21:51:11.191718 DEBUG BF_PORT SDS: 0:1:50: Error: -1 : turning it off
+2026-10-26 21:51:11.191724 DEBUG BF_PORT SDS: 0:1:51: Error: -1 : setting initial state
+2026-10-26 21:51:11.191729 DEBUG BF_PORT SDS: 0:1:51: Error: -1 : turning it off
+2026-10-26 21:51:11.191735 DEBUG BF_PORT SDS: 0:1:52: Error: -1 : setting initial state
+2026-10-26 21:51:11.191740 DEBUG BF_PORT SDS: 0:1:52: Error: -1 : turning it off
+2026-10-26 21:51:11.191745 DEBUG BF_PORT SDS: 0:1:53: Error: -1 : setting initial state
+2026-10-26 21:51:11.191751 DEBUG BF_PORT SDS: 0:1:53: Error: -1 : turning it off
+2026-10-26 21:51:11.191756 DEBUG BF_PORT SDS: 0:1:54: Error: -1 : setting initial state
+2026-10-26 21:51:11.191762 DEBUG BF_PORT SDS: 0:1:54: Error: -1 : turning it off
+2026-10-26 21:51:11.191767 DEBUG BF_PORT SDS: 0:1:55: Error: -1 : setting initial state
+2026-10-26 21:51:11.191773 DEBUG BF_PORT SDS: 0:1:55: Error: -1 : turning it off
+2026-10-26 21:51:11.191778 DEBUG BF_PORT SDS: 0:1:56: Error: -1 : setting initial state
+2026-10-26 21:51:11.191783 DEBUG BF_PORT SDS: 0:1:56: Error: -1 : turning it off
+2026-10-26 21:51:11.191789 DEBUG BF_PORT SDS: 0:1:57: Error: -1 : setting initial state
+2026-10-26 21:51:11.191794 DEBUG BF_PORT SDS: 0:1:57: Error: -1 : turning it off
+2026-10-26 21:51:11.191800 DEBUG BF_PORT SDS: 0:1:58: Error: -1 : setting initial state
+2026-10-26 21:51:11.191805 DEBUG BF_PORT SDS: 0:1:58: Error: -1 : turning it off
+2026-10-26 21:51:11.191811 DEBUG BF_PORT SDS: 0:1:59: Error: -1 : setting initial state
+2026-10-26 21:51:11.191816 DEBUG BF_PORT SDS: 0:1:59: Error: -1 : turning it off
+2026-10-26 21:51:11.191821 DEBUG BF_PORT SDS: 0:1:60: Error: -1 : setting initial state
+2026-10-26 21:51:11.191827 DEBUG BF_PORT SDS: 0:1:60: Error: -1 : turning it off
+2026-10-26 21:51:11.191832 DEBUG BF_PORT SDS: 0:1:61: Error: -1 : setting initial state
+2026-10-26 21:51:11.191837 DEBUG BF_PORT SDS: 0:1:61: Error: -1 : turning it off
+2026-10-26 21:51:11.191843 DEBUG BF_PORT SDS: 0:1:62: Error: -1 : setting initial state
+2026-10-26 21:51:11.191848 DEBUG BF_PORT SDS: 0:1:62: Error: -1 : turning it off
+2026-10-26 21:51:11.191855 DEBUG BF_PORT SDS: 0:1:63: Error: -1 : setting initial state
+2026-10-26 21:51:11.191862 DEBUG BF_PORT SDS: 0:1:63: Error: -1 : turning it off
+2026-10-26 21:51:11.191868 DEBUG BF_PORT SDS: 0:1:64: Error: -1 : setting initial state
+2026-10-26 21:51:11.191873 DEBUG BF_PORT SDS: 0:1:64: Error: -1 : turning it off
+2026-10-26 21:51:11.191879 DEBUG BF_PORT SDS: 0:1:65: Error: -1 : setting initial state
+2026-10-26 21:51:11.191884 DEBUG BF_PORT SDS: 0:1:65: Error: -1 : turning it off
+2026-10-26 21:51:11.191890 DEBUG BF_PORT SDS: 0:1:66: Error: -1 : setting initial state
+2026-10-26 21:51:11.191895 DEBUG BF_PORT SDS: 0:1:66: Error: -1 : turning it off
+2026-10-26 21:51:11.191901 DEBUG BF_PORT SDS: 0:1:67: Error: -1 : setting initial state
+2026-10-26 21:51:11.191906 DEBUG BF_PORT SDS: 0:1:67: Error: -1 : turning it off
+2026-10-26 21:51:11.191912 DEBUG BF_PORT SDS: 0:1:68: Error: -1 : setting initial state
+2026-10-26 21:51:11.191917 DEBUG BF_PORT SDS: 0:1:68: Error: -1 : turning it off
+2026-10-26 21:51:11.191922 DEBUG BF_PORT SDS: 0:1:69: Error: -1 : setting initial state
+2026-10-26 21:51:11.191928 DEBUG BF_PORT SDS: 0:1:69: Error: -1 : turning it off
+2026-10-26 21:51:11.191934 DEBUG BF_PORT SDS: 0:1:70: Error: -1 : setting initial state
+2026-10-26 21:51:11.191939 DEBUG BF_PORT SDS: 0:1:70: Error: -1 : turning it off
+2026-10-26 21:51:11.191944 DEBUG BF_PORT SDS: 0:1:71: Error: -1 : setting initial state
+2026-10-26 21:51:11.191950 DEBUG BF_PORT SDS: 0:1:71: Error: -1 : turning it off
+2026-10-26 21:51:11.191955 DEBUG BF_PORT SDS: 0:1:72: Error: -1 : setting initial state
+2026-10-26 21:51:11.191960 DEBUG BF_PORT SDS: 0:1:72: Error: -1 : turning it off
+2026-10-26 21:51:11.191966 DEBUG BF_PORT SDS: 0:1:73: Error: -1 : setting initial state
+2026-10-26 21:51:11.191971 DEBUG BF_PORT SDS: 0:1:73: Error: -1 : turning it off
+2026-10-26 21:51:11.191977 DEBUG BF_PORT SDS: 0:1:74: Error: -1 : setting initial state
+2026-10-26 21:51:11.191982 DEBUG BF_PORT SDS: 0:1:74: Error: -1 : turning it off
+2026-10-26 21:51:11.191991 DEBUG BF_PORT SDS: 0:1:75: Error: -1 : setting initial state
+2026-10-26 21:51:11.191996 DEBUG BF_PORT SDS: 0:1:75: Error: -1 : turning it off
+2026-10-26 21:51:11.192002 DEBUG BF_PORT SDS: 0:1:76: Error: -1 : setting initial state
+2026-10-26 21:51:11.192007 DEBUG BF_PORT SDS: 0:1:76: Error: -1 : turning it off
+2026-10-26 21:51:11.192012 DEBUG BF_PORT SDS: 0:1:77: Error: -1 : setting initial state
+2026-10-26 21:51:11.192018 DEBUG BF_PORT SDS: 0:1:77: Error: -1 : turning it off
+2026-10-26 21:51:11.192024 DEBUG BF_PORT SDS: 0:1:78: Error: -1 : setting initial state
+2026-10-26 21:51:11.192029 DEBUG BF_PORT SDS: 0:1:78: Error: -1 : turning it off
+2026-10-26 21:51:11.192034 DEBUG BF_PORT SDS: 0:1:79: Error: -1 : setting initial state
+2026-10-26 21:51:11.192040 DEBUG BF_PORT SDS: 0:1:79: Error: -1 : turning it off
+2026-10-26 21:51:11.192046 DEBUG BF_PORT SDS: 0:1:80: Error: -1 : setting initial state
+2026-10-26 21:51:11.192051 DEBUG BF_PORT SDS: 0:1:80: Error: -1 : turning it off
+2026-10-26 21:51:11.192057 DEBUG BF_PORT SDS: 0:1:81: Error: -1 : setting initial state
+2026-10-26 21:51:11.192062 DEBUG BF_PORT SDS: 0:1:81: Error: -1 : turning it off
+2026-10-26 21:51:11.192068 DEBUG BF_PORT SDS: 0:1:82: Error: -1 : setting initial state
+2026-10-26 21:51:11.192073 DEBUG BF_PORT SDS: 0:1:82: Error: -1 : turning it off
+2026-10-26 21:51:11.192078 DEBUG BF_PORT SDS: 0:1:83: Error: -1 : setting initial state
+2026-10-26 21:51:11.192084 DEBUG BF_PORT SDS: 0:1:83: Error: -1 : turning it off
+2026-10-26 21:51:11.192089 DEBUG BF_PORT SDS: 0:1:84: Error: -1 : setting initial state
+2026-10-26 21:51:11.192094 DEBUG BF_PORT SDS: 0:1:84: Error: -1 : turning it off
+2026-10-26 21:51:11.192100 DEBUG BF_PORT SDS: 0:1:85: Error: -1 : setting initial state
+2026-10-26 21:51:11.192106 DEBUG BF_PORT SDS: 0:1:85: Error: -1 : turning it off
+2026-10-26 21:51:11.192111 DEBUG BF_PORT SDS: 0:1:86: Error: -1 : setting initial state
+2026-10-26 21:51:11.192116 DEBUG BF_PORT SDS: 0:1:86: Error: -1 : turning it off
+2026-10-26 21:51:11.192122 DEBUG BF_PORT SDS: 0:1:87: Error: -1 : setting initial state
+2026-10-26 21:51:11.192127 DEBUG BF_PORT SDS: 0:1:87: Error: -1 : turning it off
+2026-10-26 21:51:11.192133 DEBUG BF_PORT SDS: 0:1:88: Error: -1 : setting initial state
+2026-10-26 21:51:11.192139 DEBUG BF_PORT SDS: 0:1:88: Error: -1 : turning it off
+2026-10-26 21:51:11.192144 DEBUG BF_PORT SDS: 0:1:89: Error: -1 : setting initial state
+2026-10-26 21:51:11.192149 DEBUG BF_PORT SDS: 0:1:89: Error: -1 : turning it off
+2026-10-26 21:51:11.192155 DEBUG BF_PORT SDS: 0:1:90: Error: -1 : setting initial state
+2026-10-26 21:51:11.192160 DEBUG BF_PORT SDS: 0:1:90: Error: -1 : turning it off
+2026-10-26 21:51:11.192166 DEBUG BF_PORT SDS: 0:1:91: Error: -1 : setting initial state
+2026-10-26 21:51:11.192171 DEBUG BF_PORT SDS: 0:1:91: Error: -1 : turning it off
+2026-10-26 21:51:11.192177 DEBUG BF_PORT SDS: 0:1:92: Error: -1 : setting initial state
+2026-10-26 21:51:11.192182 DEBUG BF_PORT SDS: 0:1:92: Error: -1 : turning it off
+2026-10-26 21:51:11.192187 DEBUG BF_PORT SDS: 0:1:93: Error: -1 : setting initial state
+2026-10-26 21:51:11.192193 DEBUG BF_PORT SDS: 0:1:93: Error: -1 : turning it off
+2026-10-26 21:51:11.192198 DEBUG BF_PORT SDS: 0:1:94: Error: -1 : setting initial state
+2026-10-26 21:51:11.192203 DEBUG BF_PORT SDS: 0:1:94: Error: -1 : turning it off
+2026-10-26 21:51:11.192211 DEBUG BF_PORT SDS: 0:1:95: Error: -1 : setting initial state
+2026-10-26 21:51:11.192217 DEBUG BF_PORT SDS: 0:1:95: Error: -1 : turning it off
+2026-10-26 21:51:11.192223 DEBUG BF_PORT SDS: 0:1:96: Error: -1 : setting initial state
+2026-10-26 21:51:11.192229 DEBUG BF_PORT SDS: 0:1:96: Error: -1 : turning it off
+2026-10-26 21:51:11.192234 DEBUG BF_PORT SDS: 0:1:97: Error: -1 : setting initial state
+2026-10-26 21:51:11.192239 DEBUG BF_PORT SDS: 0:1:97: Error: -1 : turning it off
+2026-10-26 21:51:11.192245 DEBUG BF_PORT SDS: 0:1:98: Error: -1 : setting initial state
+2026-10-26 21:51:11.192250 DEBUG BF_PORT SDS: 0:1:98: Error: -1 : turning it off
+2026-10-26 21:51:11.192259 DEBUG BF_PORT SDS: 0:1:99: Error: -1 : setting initial state
+2026-10-26 21:51:11.192264 DEBUG BF_PORT SDS: 0:1:99: Error: -1 : turning it off
+2026-10-26 21:51:11.192270 DEBUG BF_PORT SDS: 0:1:100: Error: -1 : setting initial state
+2026-10-26 21:51:11.192275 DEBUG BF_PORT SDS: 0:1:100: Error: -1 : turning it off
+2026-10-26 21:51:11.192280 DEBUG BF_PORT SDS: 0:1:101: Error: -1 : setting initial state
+2026-10-26 21:51:11.192286 DEBUG BF_PORT SDS: 0:1:101: Error: -1 : turning it off
+2026-10-26 21:51:11.192291 DEBUG BF_PORT SDS: 0:1:102: Error: -1 : setting initial state
+2026-10-26 21:51:11.192297 DEBUG BF_PORT SDS: 0:1:102: Error: -1 : turning it off
+2026-10-26 21:51:11.192302 DEBUG BF_PORT SDS: 0:1:103: Error: -1 : setting initial state
+2026-10-26 21:51:11.192308 DEBUG BF_PORT SDS: 0:1:103: Error: -1 : turning it off
+2026-10-26 21:51:11.192313 DEBUG BF_PORT SDS: 0:1:104: Error: -1 : setting initial state
+2026-10-26 21:51:11.192319 DEBUG BF_PORT SDS: 0:1:104: Error: -1 : turning it off
+2026-10-26 21:51:11.192324 DEBUG BF_PORT SDS: 0:1:105: Error: -1 : setting initial state
+2026-10-26 21:51:11.192329 DEBUG BF_PORT SDS: 0:1:105: Error: -1 : turning it off
+2026-10-26 21:51:11.192335 DEBUG BF_PORT SDS: 0:1:106: Error: -1 : setting initial state
+2026-10-26 21:51:11.192340 DEBUG BF_PORT SDS: 0:1:106: Error: -1 : turning it off
+2026-10-26 21:51:11.192346 DEBUG BF_PORT SDS: 0:1:107: Error: -1 : setting initial state
+2026-10-26 21:51:11.192351 DEBUG BF_PORT SDS: 0:1:107: Error: -1 : turning it off
+2026-10-26 21:51:11.192357 DEBUG BF_PORT SDS: 0:1:108: Error: -1 : setting initial state
+2026-10-26 21:51:11.192362 DEBUG BF_PORT SDS: 0:1:108: Error: -1 : turning it off
+2026-10-26 21:51:11.192367 DEBUG BF_PORT SDS: 0:1:109: Error: -1 : setting initial state
+2026-10-26 21:51:11.192372 DEBUG BF_PORT SDS: 0:1:109: Error: -1 : turning it off
+2026-10-26 21:51:11.192378 DEBUG BF_PORT SDS: 0:1:110: Error: -1 : setting initial state
+2026-10-26 21:51:11.192383 DEBUG BF_PORT SDS: 0:1:110: Error: -1 : turning it off
+2026-10-26 21:51:11.192389 DEBUG BF_PORT SDS: 0:1:111: Error: -1 : setting initial state
+2026-10-26 21:51:11.192394 DEBUG BF_PORT SDS: 0:1:111: Error: -1 : turning it off
+2026-10-26 21:51:11.192400 DEBUG BF_PORT SDS: 0:1:112: Error: -1 : setting initial state
+2026-10-26 21:51:11.192405 DEBUG BF_PORT SDS: 0:1:112: Error: -1 : turning it off
+2026-10-26 21:51:11.192411 DEBUG BF_PORT SDS: 0:1:113: Error: -1 : setting initial state
+2026-10-26 21:51:11.192416 DEBUG BF_PORT SDS: 0:1:113: Error: -1 : turning it off
+2026-10-26 21:51:11.192422 DEBUG BF_PORT SDS: 0:1:114: Error: -1 : setting initial state
+2026-10-26 21:51:11.192427 DEBUG BF_PORT SDS: 0:1:114: Error: -1 : turning it off
+2026-10-26 21:51:11.192433 DEBUG BF_PORT SDS: 0:1:115: Error: -1 : setting initial state
+2026-10-26 21:51:11.192438 DEBUG BF_PORT SDS: 0:1:115: Error: -1 : turning it off
+2026-10-26 21:51:11.192443 DEBUG BF_PORT SDS: 0:1:116: Error: -1 : setting initial state
+2026-10-26 21:51:11.192449 DEBUG BF_PORT SDS: 0:1:116: Error: -1 : turning it off
+2026-10-26 21:51:11.192454 DEBUG BF_PORT SDS: 0:1:117: Error: -1 : setting initial state
+2026-10-26 21:51:11.192459 DEBUG BF_PORT SDS: 0:1:117: Error: -1 : turning it off
+2026-10-26 21:51:11.192465 DEBUG BF_PORT SDS: 0:1:118: Error: -1 : setting initial state
+2026-10-26 21:51:11.192471 DEBUG BF_PORT SDS: 0:1:118: Error: -1 : turning it off
+2026-10-26 21:51:11.192476 DEBUG BF_PORT SDS: 0:1:119: Error: -1 : setting initial state
+2026-10-26 21:51:11.192481 DEBUG BF_PORT SDS: 0:1:119: Error: -1 : turning it off
+2026-10-26 21:51:11.192487 DEBUG BF_PORT SDS: 0:1:120: Error: -1 : setting initial state
+2026-10-26 21:51:11.192492 DEBUG BF_PORT SDS: 0:1:120: Error: -1 : turning it off
+2026-10-26 21:51:11.192498 DEBUG BF_PORT SDS: 0:1:121: Error: -1 : setting initial state
+2026-10-26 21:51:11.192503 DEBUG BF_PORT SDS: 0:1:121: Error: -1 : turning it off
+2026-10-26 21:51:11.192509 DEBUG BF_PORT SDS: 0:1:122: Error: -1 : setting initial state
+2026-10-26 21:51:11.192514 DEBUG BF_PORT SDS: 0:1:122: Error: -1 : turning it off
+2026-10-26 21:51:11.192523 DEBUG BF_PORT SDS: 0:1:123: Error: -1 : setting initial state
+2026-10-26 21:51:11.192528 DEBUG BF_PORT SDS: 0:1:123: Error: -1 : turning it off
+2026-10-26 21:51:11.192534 DEBUG BF_PORT SDS: 0:1:124: Error: -1 : setting initial state
+2026-10-26 21:51:11.192539 DEBUG BF_PORT SDS: 0:1:124: Error: -1 : turning it off
+2026-10-26 21:51:11.192545 DEBUG BF_PORT SDS: 0:1:125: Error: -1 : setting initial state
+2026-10-26 21:51:11.192550 DEBUG BF_PORT SDS: 0:1:125: Error: -1 : turning it off
+2026-10-26 21:51:11.192556 DEBUG BF_PORT SDS: 0:1:126: Error: -1 : setting initial state
+2026-10-26 21:51:11.192561 DEBUG BF_PORT SDS: 0:1:126: Error: -1 : turning it off
+2026-10-26 21:51:11.192570 DEBUG BF_PORT SDS: 0:1:127: Error: -1 : setting initial state
+2026-10-26 21:51:11.192575 DEBUG BF_PORT SDS: 0:1:127: Error: -1 : turning it off
+2026-10-26 21:51:11.192581 DEBUG BF_PORT SDS: 0:1:128: Error: -1 : setting initial state
+2026-10-26 21:51:11.192587 DEBUG BF_PORT SDS: 0:1:128: Error: -1 : turning it off
+2026-10-26 21:51:11.192592 DEBUG BF_PORT SDS: 0:1:129: Error: -1 : setting initial state
+2026-10-26 21:51:11.192598 DEBUG BF_PORT SDS: 0:1:129: Error: -1 : turning it off
+2026-10-26 21:51:11.198895 ERROR BF_PIPE pipe_mgr_ctx_json_parse:6882: Could not open configuration file: /home/philip/Projects/DNP3/defense4/timing/case4_architecture/integration/core/response_only_rearm/stage_experiments/ctl_timing_01/evidence/m12p_c69_sdk9132/compile_local/out/p0/context.json.
+
+2026-10-26 21:51:11.198941 ERROR BF_PIPE pipe_mgr_rmt_import : Error in parsing the context jSON file
+2026-10-26 21:51:11.198960 ERROR BF_PIPE pipe_mgr_add_rmt_device: failed to import rmt config
+2026-10-26 21:51:11.198989 ERROR BF_PIPE pipe_mgr_add_device: failed to instantiate device No system resources 2
+2026-10-26 21:51:11.199011 ERROR BF_DVM Device add handling failed for dev 0, sts No system resources (2), Client pipe-mgr 
+2026-10-26 21:51:11.199024 ERROR BF_DVM Device add failed for dev 0, sts No system resources (2)
+2026-10-26 21:51:11.199143 ERROR BF_TM TM: tm_remove_device called without valid tm_ctx for device 0
+2026-10-26 21:51:11.199985 ERROR BF_PIPE pipe_mgr_remove_device: failed to de-instantiate device 0, err Object not found
+2026-10-26 21:51:11.200010 DEBUG BF_PORT port_mgr_dev_remove:101:0
+2026-10-26 21:51:11.200024 DEBUG BF_PORT port_mgr_tof1_dev_remove:198:0
+2026-10-26 21:51:11.200160 ERROR BF_SWITCHD ERROR: bf_device_add failed(2) for dev_id 0
+2026-10-26 21:51:11.200437 ERROR BF_SWITCHD ERROR: bf_switchd_device_add failed(No system resources) for dev_id 0
+2026-10-26 21:51:11.200458 DEBUG BF_SWITCHD bf_switchd: initialized 0 devices
+2026-10-26 21:51:11.200472 DEBUG BF_SWITCHD bf_switchd: spawning cli server thread
+2026-10-26 21:51:11.200587 DEBUG BF_SWITCHD bf_switchd: running in background; driver shell is disabled
+2026-10-26 21:51:11.200599 DEBUG BF_SWITCHD bf_switchd: server started - listening on port 9999

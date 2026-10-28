@@ -1,0 +1,17 @@
+### MUTATION: retained_logs: delete model.out unconditionally (old policy)
+3 failed, 12 passed in 0.25s
+### MUTATION: retained_logs: silently accept distinct preserved stdout
+1 failed, 14 passed in 0.20s
+### MUTATION: model_config: skip verified-artifact refusal
+1 failed, 14 passed in 0.20s
+### MUTATION: model_config: drop omitted-pipeline check
+1 failed, 14 passed in 0.19s
+### MUTATION: model_config: do not rebase context
+1 failed, 14 passed in 0.20s
+### MUTATION: model_config: skip original conf hash check
+1 failed, 14 passed in 0.20s
+### restored sources
+scripts/model/retained_logs.py: OK
+scripts/model/model_config.py: OK
+### GREEN
+15 passed in 0.19s

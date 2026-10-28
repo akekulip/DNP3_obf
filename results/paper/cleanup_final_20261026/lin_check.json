@@ -1,0 +1,256 @@
+{
+  "draft": "/home/philip/Projects/DNP3/results/paper/cleanup_final_20261026/main_flat.tex",
+  "kind": "tex",
+  "is_fragment": false,
+  "n_sentences": 326,
+  "n_sections": 32,
+  "exit_code": 0,
+  "checks": [
+    {
+      "name": "forbidden_names",
+      "status": "PASS",
+      "summary": "no forbidden project or system name",
+      "numbers": {
+        "hits": 0
+      },
+      "detail": []
+    },
+    {
+      "name": "stale_labels",
+      "status": "PASS",
+      "summary": "no stale arm label",
+      "numbers": {
+        "hits": 0
+      },
+      "detail": []
+    },
+    {
+      "name": "firstness",
+      "status": "PASS",
+      "summary": "no firstness claim",
+      "numbers": {
+        "hits": 0
+      },
+      "detail": []
+    },
+    {
+      "name": "em_dashes",
+      "status": "PASS",
+      "summary": "no em dashes",
+      "numbers": {
+        "em_dashes": 0
+      },
+      "detail": []
+    },
+    {
+      "name": "size_claims",
+      "status": "PASS",
+      "summary": "1 size sentence(s) as ours, review against the claim matrix (13 context)",
+      "numbers": {
+        "claimed": 1,
+        "context_mentions": 13
+      },
+      "detail": [
+        "CLAIM: Using the control-unit syntax, including sizes and indices, we can split, pad, and schedule control units according to different operations while maintaining protocol compliance."
+      ]
+    },
+    {
+      "name": "structure",
+      "status": "PASS",
+      "summary": "required sections present and ordered; RO labels defined and reused; Limitations present",
+      "numbers": {
+        "sections": {
+          "introduction": 1,
+          "background": 2,
+          "design overview": 6,
+          "obfuscation infrastructure": 10,
+          "obfuscation strategies": 14,
+          "objectives and constraints": 18,
+          "evaluation": 19,
+          "related work": 26,
+          "conclusion": 27
+        },
+        "labels_defined": [
+          "RO1",
+          "RO2",
+          "RO3"
+        ],
+        "labels_reused_in_eval": [
+          "RO1",
+          "RO2",
+          "RO3"
+        ]
+      },
+      "detail": [
+        "section 0: \\refname",
+        "section 1: introduction",
+        "section 2: background",
+        "section 6: nomad design overview",
+        "section 10: obfuscation infrastructure",
+        "section 14: obfuscation strategies",
+        "section 18: obfuscation objectives and constraints",
+        "section 19: evaluation",
+        "section 26: related work",
+        "section 27: conclusion",
+        "section 28: acknowledgments",
+        "section 29: security support documented by ied vendors",
+        "section 30: implementation on tofino-1",
+        "section 31: references"
+      ]
+    },
+    {
+      "name": "figures_after_refs",
+      "status": "PASS",
+      "summary": "no figure after References (PDF checked)",
+      "numbers": {
+        "pdf_checked": true
+      },
+      "detail": []
+    },
+    {
+      "name": "citations",
+      "status": "PASS",
+      "summary": "all 53 cited keys resolve",
+      "numbers": {
+        "cited": 53,
+        "missing": []
+      },
+      "detail": []
+    },
+    {
+      "name": "contribution_grammar",
+      "status": "PASS",
+      "summary": "all 4 contribution headlines verb-first",
+      "numbers": {
+        "headlines": 4,
+        "not_verb_first": 0
+      },
+      "detail": []
+    },
+    {
+      "name": "sentence_health",
+      "status": "WARN",
+      "summary": "12 sentence(s) with no obvious finite verb",
+      "numbers": {
+        "fragments": 0,
+        "verbless_warnings": 12,
+        "sentences": 326
+      },
+      "detail": [
+        "no-verb?: All transactions complete within 53~ms without retransmission.",
+        "no-verb?: itemize\nBackground\n[1]\n\nICS Network Communications\nLike many ICSs, power grids comprise cyber and physical infrastructures.",
+        "no-verb?: Threat Model\n\n \n\nAssumptions on Adversary's Capability.",
+        "no-verb?: and configure the DNP3 protocol with different parameters.",
+        "no-verb?: itemize[leftmargin=,labelindent=0pt,labelsep=12pt, listparindent= 12pt,topsep=0pt, itemsep=0pt, parsep=0pt]\n\n Obfuscation over Plain-text.",
+        "no-verb?: No Reliance on De-obfuscation.",
+        "no-verb?: Classifier\n\nThe classifier parses every TCP segment between the master and the outstation down to the DNP3 application layer.",
+        "no-verb?: Every value appears once, in the same order, and the response grows to 61~bytes.",
+        "no-verb?: A small operation-dependent offset.",
+        "no-verb?: At X = 5, 15 and 20~ms, the three operations agree within 3~Xs, at about 0, +7 and +11~Xs.",
+        "no-verb?: All 25 devices of mature or legacy generations document none.",
+        "no-verb?: References\nIEEEtran\nReferences\n\ndocument"
+      ]
+    },
+    {
+      "name": "acronyms",
+      "status": "WARN",
+      "summary": "13 acronym(s) used before definition",
+      "numbers": {
+        "undefined": [
+          "ASIC",
+          "FRONT",
+          "GE",
+          "IED",
+          "ION7550",
+          "NOMAD",
+          "P416",
+          "PLC",
+          "RESPONSE",
+          "RI",
+          "SRAM",
+          "TCAM",
+          "X0"
+        ]
+      },
+      "detail": [
+        "ASIC: ble network switches, using specialized ASIC to change communication patterns at",
+        "FRONT: er splits traffic across paths~[1], and FRONT, Surakav and RegulaTor trade bandw",
+        "GE: , namely, SEL, SE, Rockwell Automation, GE Vernova, and Siemens. With a stratifi",
+        "IED: structure connects field devices, e.g., IEDs (intelligent electronic devices), P",
+        "ION7550: 51A~[1] and the Schneider Electric (SE) ION7550 power meter~[1], to demonstrate",
+        "NOMAD: E PLACEHOLDER]\\\\[3pt] #1}}} document NOMAD: In-Network Traffic Obfuscation Ag",
+        "P416: e three modules of Section~[1] as three P416 programs for the Tofino Native Arch",
+        "PLC: IEDs (intelligent electronic devices), PLCs (programmable logic controllers), a",
+        "RESPONSE: lting change of state in an UNSOLICITED RESPONSE, and PRT, which Formby et al.\\",
+        "RI: University of Rhode Island\\\\ Kingston, RI, U.S.A\\\\ philip.akekudaga@uri.edu} H",
+        "SRAM: Us include various storage units (e.g., SRAM, TCAM) to store network knowledge a",
+        "TCAM: lude various storage units (e.g., SRAM, TCAM) to store network knowledge and ari",
+        "X0: ing the reductions are 0.130, 0.000 and X0.042, with intervals that include zero"
+      ]
+    },
+    {
+      "name": "readability",
+      "status": "WARN",
+      "summary": "too dense: overall flesch 31.9 / fk 14.8; dense sections ['Obfuscation Infrastructure', 'References']",
+      "numbers": {
+        "overall_flesch": 31.9,
+        "overall_fk_grade": 14.8,
+        "flesch_floor": 15.0,
+        "fk_ceiling": 18.0
+      },
+      "detail": [
+        "\\refname: flesch 27.8 fk 15.9",
+        "Introduction: flesch 16.2 fk 17.1",
+        "NOMAD Design Overview: flesch 32.8 fk 12.5",
+        "Obfuscation Infrastructure: flesch 32.4 fk 18.8",
+        "Obfuscation Strategies: flesch 39.3 fk 13.6",
+        "Obfuscation Objectives and Constraints: flesch 47.9 fk 12.8",
+        "Evaluation: flesch 34.5 fk 14.2",
+        "Related Work: flesch 24.1 fk 16.2",
+        "Conclusion: flesch 23.5 fk 17.6",
+        "Security Support Documented by IED Vendors: flesch 25.0 fk 15.9",
+        "Implementation on Tofino-1: flesch 48.2 fk 12.3",
+        "References: flesch -72.2 fk 24.3"
+      ]
+    },
+    {
+      "name": "fact_hygiene",
+      "status": "PASS",
+      "summary": "no duplicate marquee examples or year slips",
+      "numbers": {},
+      "detail": []
+    },
+    {
+      "name": "connective_spine",
+      "status": "PASS",
+      "summary": "informational: 9.8% of sentences lead with a connective (not scored)",
+      "numbers": {
+        "overall_fraction": 0.098,
+        "by_connective": {
+          "however": 6,
+          "consequently": 8,
+          "because": 9,
+          "unfortunately": 1,
+          "instead": 2,
+          "for example": 5,
+          "since": 1
+        }
+      },
+      "detail": []
+    },
+    {
+      "name": "voice_fingerprint",
+      "status": "PASS",
+      "summary": "voice measured; no AI-pattern flags",
+      "numbers": {
+        "words_per_sentence_mean": 24.3,
+        "we_per_100_sentences": 19.9,
+        "hedges_per_1000_words": 5.29,
+        "flesch_reading_ease": 31.7,
+        "fk_grade": 14.9,
+        "ai_flags": {}
+      },
+      "detail": []
+    }
+  ]
+}

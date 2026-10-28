@@ -1,0 +1,34 @@
+.........................................F.............................. [ 74%]
+.........................                                                [100%]
+=================================== FAILURES ===================================
+______ test_action_observation_mapping_is_bound_to_current_action_bodies _______
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-3151/test_action_observation_mappin0')
+
+    def test_action_observation_mapping_is_bound_to_current_action_bodies(tmp_path):
+        import telemetry_from_log as observation
+        source = ROOT / 'p4/response_only.p4'
+>       assert observation.verified_observations(source)['actions']
+
+tests/model/test_current_closure.py:62: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+source = PosixPath('/home/philip/Projects/DNP3/p4/response_only.p4')
+
+    def verified_observations(source=None):
+        source = Path(source) if source is not None else Path(os.environ['PORT_MAP']).with_name('response_only.p4')
+        text = source.read_text()
+        declared = json.loads(OBSERVATIONS.read_text())
+        actions = {}
+        for role, end in (('n_Ingress','n_IgDeparser'), ('r_Egress','r_EgDeparser'), ('t_Ingress','t_IngressDeparser')):
+            region = text[text.index('control ' + role + '('):text.index('control ' + end + '(')]
+            actions.update(_actions(region, role))
+        for name, expected in declared['action_body_sha256'].items():
+            if name not in actions or hashlib.sha256(actions[name].encode()).hexdigest() != expected:
+>               raise ValueError('model observation semantics need review for changed P4 action: ' + name)
+E               ValueError: model observation semantics need review for changed P4 action: n_Ingress.busy_retry_ack
+
+scripts/model/telemetry_from_log.py:50: ValueError
+=========================== short test summary info ============================
+FAILED tests/model/test_current_closure.py::test_action_observation_mapping_is_bound_to_current_action_bodies
+1 failed, 96 passed in 9.25s

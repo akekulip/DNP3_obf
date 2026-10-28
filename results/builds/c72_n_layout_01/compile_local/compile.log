@@ -1,0 +1,10 @@
+/home/philip/Projects/DNP3/results/builds/c72_n_layout_01/compile_local/source/response_only.p4(375): [--Werror=duplicate] error: first_close_ack: Duplicates declaration first_close_ack
+ action first_close_ack(){hdr.origin.normalized_epoch=(bit<32>)phase;hdr.event.event=16w0x0111;}
+        ^^^^^^^^^^^^^^^
+/home/philip/Projects/DNP3/results/builds/c72_n_layout_01/compile_local/source/response_only.p4(373)
+ action first_close_ack(){hdr.origin.normalized_epoch=m.desired;hdr.event.event=16w0x0111;}
+        ^^^^^^^^^^^^^^^
+[--Werror=overlimit] error: 1 errors encountered, aborting compilation
+
+2 errors, 0 warnings generated.
+

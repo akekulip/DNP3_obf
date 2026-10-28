@@ -1,1 +1,0 @@
-paper_inputs/compiler: copies of ctl_timing_01/evidence/m11_09/compiler_table.csv (compile_switch_9132 rows) and of compile_switch_9132/out/p{0,1}/logs/mau.resources.log (Average row), each log checked against the hash in the compile manifest.

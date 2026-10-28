@@ -1,159 +1,0 @@
-2026-10-12 23:53:40.606829 BF_SWITCHD DEBUG - bf_switchd: system services initialized
-2026-10-12 23:53:40.606911 BF_SWITCHD DEBUG - bf_switchd: loading conf_file /home/decps/Philip_repo/dnp3-defense4/response_only_composite/response_only_hw_baseline_single_loss_01_separate_ack_combined_t6.conf...
-2026-10-12 23:53:40.606948 BF_SWITCHD DEBUG - bf_switchd: processing device configuration...
-2026-10-12 23:53:40.607018 BF_SWITCHD DEBUG - Configuration for dev_id 0
-2026-10-12 23:53:40.607037 BF_SWITCHD DEBUG -   Family        : tofino
-2026-10-12 23:53:40.607054 BF_SWITCHD DEBUG -   pci_sysfs_str : /sys/devices/pci0000:00/0000:00:03.0/0000:04:00.0
-2026-10-12 23:53:40.607070 BF_SWITCHD DEBUG -   pci_int_mode  : 0
-2026-10-12 23:53:40.607086 BF_SWITCHD DEBUG -   sds_fw_path   : share/tofino_sds_fw/avago/firmware
-2026-10-12 23:53:40.607101 BF_SWITCHD DEBUG - bf_switchd: processing P4 configuration...
-2026-10-12 23:53:40.607152 BF_SWITCHD DEBUG - coal_mirror_enable=0 coal_min=0 sessions_num=0
-2026-10-12 23:53:40.607175 BF_SWITCHD DEBUG - P4 profile for dev_id 0
-2026-10-12 23:53:40.607191 BF_SWITCHD DEBUG - num P4 programs 1
-2026-10-12 23:53:40.607207 BF_SWITCHD DEBUG -   p4_name: response_only
-2026-10-12 23:53:40.607223 BF_SWITCHD DEBUG -   p4_pipeline_name: p0
-2026-10-12 23:53:40.607239 BF_SWITCHD DEBUG -     libpd: 
-2026-10-12 23:53:40.607255 BF_SWITCHD DEBUG -     libpdthrift: 
-2026-10-12 23:53:40.607271 BF_SWITCHD DEBUG -     context: /home/decps/Philip_repo/dnp3-defense4/response_only_composite/out_mirror_fix_01/p0/context.json
-2026-10-12 23:53:40.607288 BF_SWITCHD DEBUG -     config: /home/decps/Philip_repo/dnp3-defense4/response_only_composite/out_mirror_fix_01/p0/tofino.bin
-2026-10-12 23:53:40.607304 BF_SWITCHD DEBUG -   Pipes in scope [
-2026-10-12 23:53:40.607320 BF_SWITCHD DEBUG - 0 
-2026-10-12 23:53:40.607336 BF_SWITCHD DEBUG - ]
-2026-10-12 23:53:40.607358 BF_SWITCHD DEBUG -   diag: 
-2026-10-12 23:53:40.607374 BF_SWITCHD DEBUG -   accton diag: 
-2026-10-12 23:53:40.607390 BF_SWITCHD DEBUG -   p4_pipeline_name: p1
-2026-10-12 23:53:40.607406 BF_SWITCHD DEBUG -     libpd: 
-2026-10-12 23:53:40.607421 BF_SWITCHD DEBUG -     libpdthrift: 
-2026-10-12 23:53:40.607447 BF_SWITCHD DEBUG -     context: /home/decps/Philip_repo/dnp3-defense4/response_only_composite/out_mirror_fix_01/p1/context.json
-2026-10-12 23:53:40.607463 BF_SWITCHD DEBUG -     config: /home/decps/Philip_repo/dnp3-defense4/response_only_composite/out_mirror_fix_01/p1/tofino.bin
-2026-10-12 23:53:40.607479 BF_SWITCHD DEBUG -   Pipes in scope [
-2026-10-12 23:53:40.607495 BF_SWITCHD DEBUG - 1 
-2026-10-12 23:53:40.607511 BF_SWITCHD DEBUG - ]
-2026-10-12 23:53:40.607526 BF_SWITCHD DEBUG -   diag: 
-2026-10-12 23:53:40.607542 BF_SWITCHD DEBUG -   accton diag: 
-2026-10-12 23:53:40.607557 BF_SWITCHD DEBUG -   Agent[0]: /home/decps/Downloads/bf-sde-9.13.2/install/lib/libpltfm_mgr.so
-2026-10-12 23:53:40.625537 BF_SWITCHD DEBUG - bf_switchd: library /home/decps/Downloads/bf-sde-9.13.2/install/lib/libpltfm_mgr.so loaded
-2026-10-12 23:53:40.626560 BF_SWITCHD DEBUG - bf_switchd: agent[0] initialized
-2026-10-12 23:53:42.789509 BF_SWITCHD DEBUG - Device 0: Operational mode set to ASIC
-2026-10-12 23:53:42.789603 BF_SWITCHD DEBUG - Initialized the device types using platforms infra API
-2026-10-12 23:53:42.789634 BF_SWITCHD DEBUG - ASIC detected at PCI /sys/class/bf/bf0/device
-2026-10-12 23:53:42.789721 BF_SWITCHD DEBUG - ASIC pci device id is 16 (0x0010)
-Health monitor started 
-Starting PD-API RPC server on port 9090
-2026-10-12 23:53:42.805382 BF_SWITCHD DEBUG - bf_switchd: drivers initialized
-Setting core_pll_ctrl0=cd44cbfe
-/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\2026-10-12 23:53:47.583656 BF_PLTFM ERROR - ChkSum not matched for 33
-
-2026-10-12 23:53:47.885586 BF_SWITCHD DEBUG - bf_switchd: dev_id 0 initialized
-2026-10-12 23:53:47.885598 BF_SWITCHD DEBUG - bf_switchd: initialized 1 devices
-Adding Thrift service for bf-platforms to server
-2026-10-12 23:53:47.885701 BF_SWITCHD DEBUG - bf_switchd: thrift initialized for agent : 0
-2026-10-12 23:53:47.885715 BF_SWITCHD DEBUG - bf_switchd: spawning cli server thread
-2026-10-12 23:53:47.885879 BF_SWITCHD DEBUG - bf_switchd: spawning driver shell
-2026-10-12 23:53:47.885937 BF_SWITCHD DEBUG - bf_switchd: server started - listening on port 9999
-
-        ********************************************
-        *      WARNING: Authorised Access Only     *
-        ********************************************
-    
-bfshell> 2026-10-12 23:53:54.749193 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 8 is not valid
-2026-10-12 23:53:54.749340 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:54.801098 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 9 is not valid
-2026-10-12 23:53:54.801250 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:54.838105 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 10 is not valid
-2026-10-12 23:53:54.838253 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:54.864651 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 11 is not valid
-2026-10-12 23:53:54.864774 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:54.892376 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 16 is not valid
-2026-10-12 23:53:54.892464 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:54.937870 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 48 is not valid
-2026-10-12 23:53:54.937988 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:54.965013 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 49 is not valid
-2026-10-12 23:53:54.965125 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:54.991959 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 50 is not valid
-2026-10-12 23:53:54.992087 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:55.024800 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 51 is not valid
-2026-10-12 23:53:55.024937 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:55.051657 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 64 is not valid
-2026-10-12 23:53:55.051829 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:55.077623 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 164 is not valid
-2026-10-12 23:53:55.077760 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:55.117810 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 172 is not valid
-2026-10-12 23:53:55.117944 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:55.158252 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 180 is not valid
-2026-10-12 23:53:55.158373 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:55.183537 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 181 is not valid
-2026-10-12 23:53:55.183628 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:55.211518 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 182 is not valid
-2026-10-12 23:53:55.211652 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:55.237648 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 183 is not valid
-2026-10-12 23:53:55.237730 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:55.264298 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 188 is not valid
-2026-10-12 23:53:55.264427 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:55.295921 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 189 is not valid
-2026-10-12 23:53:55.296053 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:55.327477 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 190 is not valid
-2026-10-12 23:53:55.327606 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:53:55.358349 BF_BFRT ERROR - tableEntryGet_internal:893 $PORT: dev_port 191 is not valid
-2026-10-12 23:53:55.358481 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$PORT Object not found
-2026-10-12 23:54:32.636932 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$mirror.cfg Object not found
-2026-10-12 23:54:34.463208 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:tf1.pktgen.port_cfg Operation not supported
-2026-10-12 23:54:34.468080 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:tf1.pktgen.port_cfg Operation not supported
-2026-10-12 23:54:34.470763 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:tf1.pktgen.pkt_buffer Operation not supported
-2026-10-12 23:54:34.474959 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:tf1.pktgen.pkt_buffer Operation not supported
-2026-10-12 23:54:36.993952 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 16 for key exceeds the size of the table 16
-2026-10-12 23:54:36.994133 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:36.995977 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 17 for key exceeds the size of the table 16
-2026-10-12 23:54:36.996096 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:36.997549 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 18 for key exceeds the size of the table 16
-2026-10-12 23:54:36.997677 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:36.999087 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 19 for key exceeds the size of the table 16
-2026-10-12 23:54:36.999187 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:37.000714 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 20 for key exceeds the size of the table 16
-2026-10-12 23:54:37.000816 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:37.002170 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 21 for key exceeds the size of the table 16
-2026-10-12 23:54:37.002259 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:37.003617 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 22 for key exceeds the size of the table 16
-2026-10-12 23:54:37.003738 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:37.005095 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 23 for key exceeds the size of the table 16
-2026-10-12 23:54:37.005192 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:37.006698 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 24 for key exceeds the size of the table 16
-2026-10-12 23:54:37.006774 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:43.939337 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 16 for key exceeds the size of the table 16
-2026-10-12 23:54:43.939508 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:43.941581 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 17 for key exceeds the size of the table 16
-2026-10-12 23:54:43.941722 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:43.943672 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 18 for key exceeds the size of the table 16
-2026-10-12 23:54:43.943790 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:43.945334 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 19 for key exceeds the size of the table 16
-2026-10-12 23:54:43.945455 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:43.946982 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 20 for key exceeds the size of the table 16
-2026-10-12 23:54:43.947091 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:43.948546 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 21 for key exceeds the size of the table 16
-2026-10-12 23:54:43.948643 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:43.949981 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 22 for key exceeds the size of the table 16
-2026-10-12 23:54:43.950082 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:43.951504 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 23 for key exceeds the size of the table 16
-2026-10-12 23:54:43.951593 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:43.953057 BF_BFRT ERROR - verify_key_for_idx_tbls:1141 p1.t_Ingress.outcomes : ERROR Idx 24 for key exceeds the size of the table 16
-2026-10-12 23:54:43.953170 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p1.t_Ingress.outcomes Invalid arguments
-2026-10-12 23:54:46.176430 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.connection Object not found
-2026-10-12 23:54:46.180784 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.connection Object not found
-2026-10-12 23:54:46.183650 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.connection Object not found
-2026-10-12 23:54:46.186320 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.connection Object not found
-2026-10-12 23:54:46.188840 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.data_connection Object not found
-2026-10-12 23:54:46.191321 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.data_connection Object not found
-2026-10-12 23:54:46.193806 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.read_connection Object not found
-2026-10-12 23:54:46.196304 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.read_connection Object not found
-2026-10-12 23:54:46.198815 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.ports Object not found
-2026-10-12 23:54:46.201254 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.ports Object not found
-2026-10-12 23:54:46.204403 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.ports Object not found
-2026-10-12 23:54:46.207108 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.ports Object not found
-2026-10-12 23:54:46.209817 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.n_Ingress.ports Object not found
-2026-10-12 23:54:46.212598 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.r_Egress.odd_ip_t Object not found
-2026-10-12 23:54:46.215351 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.r_Egress.odd_ip_t Object not found
-2026-10-12 23:54:46.218552 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.r_Egress.conn Object not found
-2026-10-12 23:54:46.221548 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:p0.r_Egress.conn Object not found
-2026-10-12 23:54:46.226786 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:$mirror.cfg Object not found
-2026-10-12 23:54:46.236994 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:tf1.pktgen.pkt_buffer Operation not supported
-2026-10-12 23:54:46.240758 BF_BFRT ERROR - BF_RT_SERVER:table_read:2659 Entry not found in table:tf1.pktgen.port_cfg Operation not supported

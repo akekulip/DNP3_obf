@@ -1,0 +1,65 @@
+--- results/builds/c72_ne_04/response_only.p4
++++ results/builds/c72_n_pair_01/response_only.p4
+@@ -410,13 +410,33 @@
+  action abort_work(){next_stage();hdr.event.code=8w255;hdr.t0.setInvalid();}
+  @stage(9) table terminal_t{key={m.epoch_diff:exact;m.kind:ternary;m.stage:ternary;m.owner_op:ternary;m.owner_diff:exact;}actions={next_stage;abort_work;carry_current;}size=8;const entries={(32w0,8w8,_,_,32w0):next_stage();(32w0,8w25,_,_,32w0):next_stage();(32w0,8w24,_,_,32w0):next_stage();(32w0,8w10,_,_,32w0):next_stage();(32w0,8w12,_,_,32w0):next_stage();(32w0,8w17,2w2,_,32w0):next_stage();(32w0,_,_,1w1,32w0):carry_current();}const default_action=abort_work();}
+  
+-Register<bit<32>,bit<1>>(1,0) application;
+-RegisterAction<bit<32>,bit<1>,bit<32>>(application) write_application={void apply(inout bit<32> v,out bit<32> r){v=m.compare_application;r=v;}};
+-RegisterAction<bit<32>,bit<1>,bit<32>>(application) read_op_application={void apply(inout bit<32> v,out bit<32> r){r=v-m.compare_application;}};RegisterAction<bit<32>,bit<1>,bit<32>>(application) read_rsp_application={void apply(inout bit<32> v,out bit<32> r){r=v-m.compare_application;}};
+-action compare_rsp_application(){m.diff_application=read_rsp_application.execute(1w0);}
+-action compare_application(){m.diff_application=read_op_application.execute(1w0);}
+-RegisterAction<bit<32>,bit<1>,bit<32>>(application) invalidate_application={void apply(inout bit<32> v,out bit<32> r){v=32w0xffffffff;r=v;}};action forget_application(){invalidate_application.execute(1w0);}action store_application(){write_application.execute(1w0);}
+-table application_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}actions={store_application;forget_application;compare_application;compare_rsp_application;NoAction;}size=6;const entries={(2w1,8w9,32w1,32w0):forget_application();(2w0,8w5,32w4,_):compare_application();(2w1,8w5,32w1,32w0):store_application();(2w1,8w7,32w1,32w0):store_application();(2w0,8w7,32w4,_):compare_application();(2w0,8w6,32w4,_):compare_rsp_application();}const default_action=NoAction();}
++/* Paired layout: first is the original application32; second is the original native_start32. */
++Register<n_object_pair_t,bit<1>>(1,{0,0}) pair_application_native_start;
++RegisterAction<n_object_pair_t,bit<1>,bit<32>>(pair_application_native_start) write_app_off={
++ void apply(inout n_object_pair_t v,out bit<32> r){v.first=m.compare_application;v.second=m.compare_native_start;r=32w0;}};
++RegisterAction<n_object_pair_t,bit<1>,bit<32>>(pair_application_native_start) invalidate_app_only={
++ void apply(inout n_object_pair_t v,out bit<32> r){v.first=32w0xffffffff;r=32w0;}};
++RegisterAction<n_object_pair_t,bit<1>,bit<32>>(pair_application_native_start) read_app_only={
++ void apply(inout n_object_pair_t v,out bit<32> r){r=v.first-m.compare_application;}};
++RegisterAction<n_object_pair_t,bit<1>,n_object_pair_t>(pair_application_native_start) read_app_off={
++ void apply(inout n_object_pair_t v,out n_object_pair_t r){
++  r.first=v.first-m.compare_application;
++  if(v.second!=m.compare_native_start){r.second=32w1;}else{r.second=32w0;}
++ }};
++action store_app_off(){write_app_off.execute(1w0);}
++action forget_app_only(){invalidate_app_only.execute(1w0);}
++action compare_app_only(){m.diff_application=read_app_only.execute(1w0);}
++action compare_app_off(){n_object_pair_t compared;compared=read_app_off.execute(1w0);m.diff_application=compared.first;m.diff_real_off=(bit<8>)compared.second;}
++table app_off_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}
++ actions={store_app_off;forget_app_only;compare_app_only;compare_app_off;NoAction;}size=6;
++ const entries={
++  (2w1,8w9,32w1,32w0):forget_app_only();
++  (2w0,8w5,32w4,_):compare_app_only();
++  (2w1,8w5,32w1,32w0):store_app_off();
++  (2w1,8w7,32w1,32w0):store_app_off();
++  (2w0,8w7,32w4,_):compare_app_off();
++  (2w0,8w6,32w4,_):compare_app_off();
++ }const default_action=NoAction();}
+ Register<n_object_pair_t,bit<1>>(1,{0,0}) pair_real_links_real_tcp_src;
+ RegisterAction<n_object_pair_t,bit<1>,bit<32>>(pair_real_links_real_tcp_src) write_real_links={void apply(inout n_object_pair_t v,out bit<32> r){v.first=m.compare_real_links;v.second=m.compare_real_tcp_src;r=32w0;}};
+ RegisterAction<n_object_pair_t,bit<1>,bit<8>>(pair_real_links_real_tcp_src) read_real_links={void apply(inout n_object_pair_t v,out bit<8> r){if(v.first!=m.compare_real_links||v.second!=m.compare_real_tcp_src){r=8w1;}else{r=8w0;}}};
+@@ -429,12 +449,6 @@
+ action store_real_tcp_dst(){write_real_tcp_dst.execute(1w0);}
+ action compare_real_tcp_dst(){m.diff_real_tcp_dst=read_real_tcp_dst.execute(1w0);}
+ table real_tcp_dst_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}actions={store_real_tcp_dst;compare_real_tcp_dst;NoAction;}size=3;const entries={(2w1,8w5,32w1,32w0):store_real_tcp_dst();(2w0,8w7,32w4,_):compare_real_tcp_dst();(2w0,8w6,32w4,_):compare_real_tcp_dst();}const default_action=NoAction();}
+-Register<bit<32>,bit<1>>(1,0) pair_real_off_native_start;
+-RegisterAction<bit<32>,bit<1>,bit<32>>(pair_real_off_native_start) write_real_off={void apply(inout bit<32> v,out bit<32> r){v=m.compare_native_start;r=32w0;}};
+-RegisterAction<bit<32>,bit<1>,bit<8>>(pair_real_off_native_start) read_real_off={void apply(inout bit<32> v,out bit<8> r){if(v!=m.compare_native_start){r=8w1;}else{r=8w0;}}};
+-action store_real_off(){write_real_off.execute(1w0);}
+-action compare_real_off(){m.diff_real_off=read_real_off.execute(1w0);}
+-table real_off_t{key={m.stage:ternary;m.kind:ternary;m.work_phase:ternary;m.epoch_diff:ternary;}actions={store_real_off;compare_real_off;NoAction;}size=4;const entries={(2w1,8w5,32w1,32w0):store_real_off();(2w1,8w7,32w1,32w0):store_real_off();(2w0,8w7,32w4,_):compare_real_off();(2w0,8w6,32w4,_):compare_real_off();}const default_action=NoAction();}
+ Register<n_object_pair_t,bit<1>>(1,{0,0}) pair_native_end_server_start;
+ RegisterAction<n_object_pair_t,bit<1>,bit<32>>(pair_native_end_server_start) write_native_end={void apply(inout n_object_pair_t v,out bit<32> r){v.first=m.compare_native_end;v.second=m.compare_server_start;r=32w0;}};
+ RegisterAction<n_object_pair_t,bit<1>,bit<8>>(pair_native_end_server_start) read_native_end={void apply(inout n_object_pair_t v,out bit<8> r){if(v.first!=m.compare_native_end||v.second!=m.compare_server_start){r=8w1;}else{r=8w0;}}};
+@@ -550,7 +564,7 @@
+     if((bit<8>)m.stage==8w0&&m.work_phase==32w4&&(m.work_op==8w1||(m.kind==8w4&&(bit<8>)m.shape_valid==8w1))){snapshot_t.apply();}
+     owner_t.apply();
+     if(m.packet_kind==8w5||m.packet_kind==8w6||m.packet_kind==8w7){
+-     real_links_t.apply();real_tcp_dst_t.apply();real_off_t.apply();native_end_t.apply();application_t.apply();
++     real_links_t.apply();real_tcp_dst_t.apply();native_end_t.apply();app_off_t.apply();
+     }
+     read_app_t.apply();
+     if((bit<8>)m.stage==8w0){

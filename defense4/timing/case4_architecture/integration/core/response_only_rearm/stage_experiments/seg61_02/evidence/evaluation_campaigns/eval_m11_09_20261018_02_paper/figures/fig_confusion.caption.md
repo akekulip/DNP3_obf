@@ -1,1 +1,0 @@
-Confusion matrices of the joint attacker at D = 10 ms, J = 2.4 ms (row-normalized). The fixed attacker labels every Timing+Size exchange READ; the adaptive attacker cannot separate READ from SELECT and recognizes OPERATE in 51% of cases.

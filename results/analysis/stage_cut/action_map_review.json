@@ -1,0 +1,59 @@
+{
+  "schema": "current-action-map-review-v1",
+  "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+  "previous_map_sha256": "b8dcedee34dbd04e2cf3d6fb28633c9204b1ee5cb1b8c64a50fa732c4969435e",
+  "numeric_observation_mapping_unchanged": true,
+  "changed_counting_action_bodies": {
+    "n_Ingress.busy_retry": {
+      "observation": [
+        "p0.n_Ingress.count_busy",
+        2
+      ],
+      "review": "The former16-bit event value is emitted as the identical phase/code bytes; retry/restart operation and observation cell are unchanged."
+    },
+    "n_Ingress.busy_retry_ack": {
+      "observation": [
+        "p0.n_Ingress.count_busy",
+        6
+      ],
+      "review": "The former16-bit event value is emitted as the identical phase/code bytes; retry/restart operation and observation cell are unchanged."
+    },
+    "n_Ingress.busy_retry_rst": {
+      "observation": [
+        "p0.n_Ingress.count_busy",
+        2
+      ],
+      "review": "The former16-bit event value is emitted as the identical phase/code bytes; retry/restart operation and observation cell are unchanged."
+    },
+    "n_Ingress.reset_restart_master": {
+      "observation": [
+        "p0.n_Ingress.count_busy",
+        5
+      ],
+      "review": "The former16-bit event value is emitted as the identical phase/code bytes; retry/restart operation and observation cell are unchanged."
+    },
+    "n_Ingress.reset_restart_out": {
+      "observation": [
+        "p0.n_Ingress.count_busy",
+        5
+      ],
+      "review": "The former16-bit event value is emitted as the identical phase/code bytes; retry/restart operation and observation cell are unchanged."
+    }
+  },
+  "t_egress_counting_actions_unchanged": true,
+  "non_counting_transition_actions": {
+    "n_Ingress.next_stage": "Advance only the phase byte and choose the private N return path.",
+    "n_Ingress.abort_work": "Advance once, change the event code to255 and invalidate the optional timestamp header.",
+    "n_Ingress.carry_current": "Advance once and carry the current desired work phase.",
+    "n_Ingress.first_close": "Emit phase1/code4 with the current close authority and work generation.",
+    "n_Ingress.first_close_qualified": "Emit the same close event with its statically qualified close phase.",
+    "n_Ingress.first_close_ack_qualified": "Emit phase1/code17 with its statically qualified close phase.",
+    "n_Ingress.terminal_open": "Emit OPEN toward T with the current envelope and no active work generation.",
+    "n_Ingress.terminal_strip": "Select the recorded output port and construct the private E-return marker.",
+    "n_Ingress.terminal_ack": "Apply terminal_strip and choose the normalized ACK return marker.",
+    "n_Ingress.terminal_synack": "Apply terminal_strip and choose the SYN-ACK return marker.",
+    "n_Ingress.terminal_abort": "Invalidate private work headers and mark the packet dropped."
+  },
+  "binding": "Exact canonical source hash plus every mapped/countless transition action body hash. No transition action receives an invented counter cell.",
+  "review_result": "accepted for functional model observations; no physical BFRT or timing claim"
+}

@@ -1,1 +1,0 @@
-**The same measurements over the entire measured range.** Identical 1 ms bins anchored at 0 ms and no overflow category, so every tail out to the largest observation, 113.5 ms in (a) and 78.4 ms in (b), is drawn.

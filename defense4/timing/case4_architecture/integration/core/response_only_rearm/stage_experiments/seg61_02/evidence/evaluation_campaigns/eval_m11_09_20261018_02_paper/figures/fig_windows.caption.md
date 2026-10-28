@@ -1,1 +1,0 @@
-Windowed multinomial Naive Bayes on CLRT (oracle-assisted, operation-grouped windows). (a) Balanced accuracy per condition against window size K; under Timing+Size the fixed attacker is at chance and the adaptive one varies widely. (b) Held-out windows per condition and arm fall from 192 to 24 as K grows; at K = 64 the median window spans 2.8 s untimed and about 10 s timed.

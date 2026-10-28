@@ -1,1 +1,0 @@
-Signed median CLRT − D of the timed arms per condition and operation. At D = 5, 15 and 20 ms the three operations sit within 3 µs of each other (about 0, +7 and +11 µs). At D = 10 ms, in all five J conditions, READ and SELECT arrive 20–29 µs early while OPERATE stays within 5 µs of D.

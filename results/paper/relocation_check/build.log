@@ -1,0 +1,195 @@
+==============================================================================
+build.sh  draft=/home/philip/Projects/DNP3/paper/main.tex
+==============================================================================
+[build] tectonic --only-cached --keep-logs -o /home/philip/Projects/DNP3/results/paper/relocation_check
+note: "version 2" Tectonic command-line interface activated
+note: using only cached resource files
+note: Running TeX ...
+warning: algorithmic.sty:11: 
+Invalid UTF-8 byte or sequence at line 11 replaced by U+FFFD.
+warning: sections/01_introduction:42: Underfull \vbox (badness 1248) has occurred while \output is active
+warning: sections/02_background:31: Overfull \hbox (14.02522pt too wide) in paragraph at lines 29--31
+warning: sections/02_background:44: Underfull \hbox (badness 1515) in paragraph at lines 42--44
+warning: sections/07_evaluation:95: Underfull \vbox (badness 2698) has occurred while \output is active
+warning: sections/09_conclusion:6: Underfull \vbox (badness 10000) has occurred while \output is active
+note: Running BibTeX on main.aux ...
+note: warnings were issued by BibTeX; use --print and/or --keep-logs for details.
+note: Rerunning TeX because bibtex was run ...
+warning: algorithmic.sty:11: 
+Invalid UTF-8 byte or sequence at line 11 replaced by U+FFFD.
+warning: sections/01_introduction:42: Underfull \vbox (badness 1248) has occurred while \output is active
+warning: sections/02_background:31: Overfull \hbox (14.02522pt too wide) in paragraph at lines 29--31
+warning: sections/02_background:44: Underfull \hbox (badness 1515) in paragraph at lines 42--44
+warning: sections/07_evaluation:95: Underfull \vbox (badness 2698) has occurred while \output is active
+warning: sections/09_conclusion:6: Underfull \vbox (badness 10000) has occurred while \output is active
+warning: main.bbl:267: Underfull \hbox (badness 2617) in paragraph at lines 260--267
+note: Rerunning TeX because "main.out" changed ...
+warning: algorithmic.sty:11: 
+Invalid UTF-8 byte or sequence at line 11 replaced by U+FFFD.
+warning: sections/01_introduction:42: Underfull \vbox (badness 1248) has occurred while \output is active
+warning: sections/02_background:31: Overfull \hbox (14.02522pt too wide) in paragraph at lines 29--31
+warning: sections/02_background:44: Underfull \hbox (badness 1515) in paragraph at lines 42--44
+warning: sections/07_evaluation:95: Underfull \vbox (badness 2698) has occurred while \output is active
+warning: main.bbl:267: Underfull \hbox (badness 2617) in paragraph at lines 260--267
+warning: warnings were issued by the TeX engine; use --print and/or --keep-logs for details.
+note: Running xdvipdfmx ...
+note: Writing `/home/philip/Projects/DNP3/results/paper/relocation_check/main.blg` (570 B)
+note: Writing `/home/philip/Projects/DNP3/results/paper/relocation_check/main.pdf` (482.115234375 KiB)
+note: Writing `/home/philip/Projects/DNP3/results/paper/relocation_check/main.log` (25.0859375 KiB)
+note: Skipped writing 3 intermediate files (use --keep-intermediates to keep them)
+[build] PDF -> /home/philip/Projects/DNP3/results/paper/relocation_check/main.pdf
+[gate] flattened /home/philip/Projects/DNP3/paper/main.tex -> /home/philip/Projects/DNP3/results/paper/relocation_check/main_flat.tex
+
+[gate] /home/philip/.venvs/research/bin/python lin_check.py /home/philip/Projects/DNP3/results/paper/relocation_check/main_flat.tex
+==============================================================================
+lin_check  -  manuscript gate (Dr. Lin writing guide, 2026-08-26 brief)
+draft: /home/philip/Projects/DNP3/results/paper/relocation_check/main_flat.tex  (tex, 326 sentences, 7985 words, 32 sections)
+==============================================================================
+[PASS] forbidden_names        [hard]  no forbidden project or system name
+         hits                       = 0
+[PASS] stale_labels           [hard]  no stale arm label
+         hits                       = 0
+[PASS] firstness               no firstness claim
+         hits                       = 0
+[PASS] em_dashes              [hard]  no em dashes
+         em_dashes                  = 0
+[PASS] size_claims            [hard]  1 size sentence(s) as ours, review against the claim matrix (13 context)
+         claimed                    = 1
+         context_mentions           = 13
+           - CLAIM: Using the control-unit syntax, including sizes and indices, we can split, pad, and schedule control units according to different operations while maintaining protocol compliance.
+[PASS] structure              [hard]  required sections present and ordered; RO labels defined and reused; Limitations present
+         sections                   = {'introduction': 1, 'background': 2, 'design overview': 6, 'obfuscation infrastructure': 10, 'obfuscation strategies': 14, 'objectives and constraints': 18, 'evaluation': 19, 'related work': 26, 'conclusion': 27}
+         labels_defined             = ['RO1', 'RO2', 'RO3']
+         labels_reused_in_eval      = ['RO1', 'RO2', 'RO3']
+           - section 0: \refname
+           - section 1: introduction
+           - section 2: background
+           - section 6: nomad design overview
+           - section 10: obfuscation infrastructure
+           - section 14: obfuscation strategies
+           - section 18: obfuscation objectives and constraints
+           - section 19: evaluation
+           - section 26: related work
+           - section 27: conclusion
+           - section 28: acknowledgments
+           - section 29: security support documented by ied vendors
+           - section 30: implementation on tofino-1
+           - section 31: references
+[PASS] figures_after_refs     [hard]  no figure after References (PDF checked)
+         pdf_checked                = True
+[PASS] citations              [hard]  all 53 cited keys resolve
+         cited                      = 53
+         missing                    = []
+[PASS] contribution_grammar    all 4 contribution headlines verb-first
+         headlines                  = 4
+         not_verb_first             = 0
+[WARN] sentence_health        [hard]  12 sentence(s) with no obvious finite verb
+         fragments                  = 0
+         verbless_warnings          = 12
+         sentences                  = 326
+           - no-verb?: All transactions complete within 53~ms without retransmission.
+           - no-verb?: itemize
+Background
+[1]
+
+ICS Network Communications
+Like many ICSs, power grids comprise cyber and physical infrastructures.
+           - no-verb?: Threat Model
+
+ 
+
+Assumptions on Adversary's Capability.
+           - no-verb?: and configure the DNP3 protocol with different parameters.
+           - no-verb?: itemize[leftmargin=,labelindent=0pt,labelsep=12pt, listparindent= 12pt,topsep=0pt, itemsep=0pt, parsep=0pt]
+
+ Obfuscation over Plain-text.
+           - no-verb?: No Reliance on De-obfuscation.
+           - no-verb?: Classifier
+
+The classifier parses every TCP segment between the master and the outstation down to the DNP3 application layer.
+           - no-verb?: Every value appears once, in the same order, and the response grows to 61~bytes.
+           - no-verb?: A small operation-dependent offset.
+           - no-verb?: At X = 5, 15 and 20~ms, the three operations agree within 3~Xs, at about 0, +7 and +11~Xs.
+           - no-verb?: All 25 devices of mature or legacy generations document none.
+           - no-verb?: References
+IEEEtran
+References
+
+document
+[WARN] acronyms                13 acronym(s) used before definition
+         undefined                  = ['ASIC', 'FRONT', 'GE', 'IED', 'ION7550', 'NOMAD', 'P416', 'PLC', 'RESPONSE', 'RI', 'SRAM', 'TCAM', 'X0']
+           - ASIC: ble network switches, using specialized ASIC to change communication patterns at
+           - FRONT: er splits traffic across paths~[1], and FRONT, Surakav and RegulaTor trade bandw
+           - GE: , namely, SEL, SE, Rockwell Automation, GE Vernova, and Siemens. With a stratifi
+           - IED: structure connects field devices, e.g., IEDs (intelligent electronic devices), P
+           - ION7550: 51A~[1] and the Schneider Electric (SE) ION7550 power meter~[1], to demonstrate
+           - NOMAD: E PLACEHOLDER]\\[3pt] #1}}} document NOMAD: In-Network Traffic Obfuscation Ag
+           - P416: e three modules of Section~[1] as three P416 programs for the Tofino Native Arch
+           - PLC: IEDs (intelligent electronic devices), PLCs (programmable logic controllers), a
+           - RESPONSE: lting change of state in an UNSOLICITED RESPONSE, and PRT, which Formby et al.\
+           - RI: University of Rhode Island\\ Kingston, RI, U.S.A\\ philip.akekudaga@uri.edu} H
+           - SRAM: Us include various storage units (e.g., SRAM, TCAM) to store network knowledge a
+           - TCAM: lude various storage units (e.g., SRAM, TCAM) to store network knowledge and ari
+           - X0: ing the reductions are 0.130, 0.000 and X0.042, with intervals that include zero
+[WARN] readability             too dense: overall flesch 31.9 / fk 14.8; dense sections ['Obfuscation Infrastructure', 'References']
+         overall_flesch             = 31.9
+         overall_fk_grade           = 14.8
+         flesch_floor               = 15.0
+         fk_ceiling                 = 18.0
+           - \refname: flesch 27.8 fk 15.9
+           - Introduction: flesch 16.2 fk 17.1
+           - NOMAD Design Overview: flesch 32.8 fk 12.5
+           - Obfuscation Infrastructure: flesch 32.4 fk 18.8
+           - Obfuscation Strategies: flesch 39.3 fk 13.6
+           - Obfuscation Objectives and Constraints: flesch 47.9 fk 12.8
+           - Evaluation: flesch 34.5 fk 14.2
+           - Related Work: flesch 24.1 fk 16.2
+           - Conclusion: flesch 23.5 fk 17.6
+           - Security Support Documented by IED Vendors: flesch 25.0 fk 15.9
+           - Implementation on Tofino-1: flesch 48.2 fk 12.3
+           - References: flesch -72.2 fk 24.3
+[PASS] fact_hygiene            no duplicate marquee examples or year slips
+[PASS] connective_spine        informational: 9.8% of sentences lead with a connective (not scored)
+         overall_fraction           = 0.098
+         by_connective              = {'however': 6, 'consequently': 8, 'because': 9, 'unfortunately': 1, 'instead': 2, 'for example': 5, 'since': 1}
+[PASS] voice_fingerprint       voice measured; no AI-pattern flags
+         words_per_sentence_mean    = 24.3
+         we_per_100_sentences       = 19.9
+         hedges_per_1000_words      = 5.29
+         flesch_reading_ease        = 31.7
+         fk_grade                   = 14.9
+         ai_flags                   = {}
+------------------------------------------------------------------------------
+RESULT: PASS  (no hard-check failures)
+        warnings: sentence_health, acronyms, readability
+==============================================================================
+
+[gate] report  -> /home/philip/Projects/DNP3/results/paper/relocation_check/lin_check.txt
+[gate] json    -> /home/philip/Projects/DNP3/results/paper/relocation_check/lin_check.json
+
+  [ 1] VERBATIM 120 words  Device fingerprinting is an essential step in cyber
+  [ 2] VERBATIM 102 words  To disrupt device fingerprinting, many studies present network
+  [ 3] VERBATIM 174 words  Unfortunately, these methods cannot be directly applied to
+  [ 4] VERBATIM 158 words  In this paper, we present NOMAD, an in-network
+  [ 5] VERBATIM  83 words  Like many ICSs, power grids comprise cyber and
+  [ 6] VERBATIM 103 words  ICS network protocols, e.g., DNP3 and Modbus, are
+  [ 7] VERBATIM 168 words  Because physical devices may use different algorithms or
+  [ 8] VERBATIM 151 words  Network switches with programmable network data plane enabled
+  [ 9] VERBATIM  30 words  In this section, we first present the threat
+  [10] VERBATIM 160 words  Assumptions on Adversary's Capability. We assume the adversary
+  [11] VERBATIM  75 words  Adversary's Goal. The aim of the adversary is
+  [12] VERBATIM 154 words  Before describing NOMAD's design goal, we use a
+  [13] VERBATIM 146 words  Second, different IEDs can configure network protocols differently,
+  [14] VERBATIM  14 words  To counter unique ICS device fingerprinting, we design
+  [15] VERBATIM  48 words  Obfuscation over Plain-text. Despite ICS network protocols are
+  [16] VERBATIM  35 words  Flexible Obfuscation. Features from different types of network
+  [17] VERBATIM  26 words  Low Runtime Overhead. Maintaining constant latency while applying
+  [18] VERBATIM  40 words  No Reliance on De-obfuscation. If we follow existing
+  [19] VERBATIM  50 words  Trusted Components. To make these objectives possible, we
+  [20] VERBATIM 134 words  As shown in Fig., NOMAD includes two components:
+LIN VERBATIM CHECK: PASS  (20 protected paragraphs word for word)
+------------------------------------------------------------------------------
+compile rc=0   gate rc=0   verbatim rc=0
+recorded results/paper/relocation_check/PDF_MANIFEST.json
+outputs: /home/philip/Projects/DNP3/results/paper/relocation_check
+BUILD RESULT: PASS

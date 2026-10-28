@@ -1,9 +1,0 @@
-# hw_vepa campaign tooling — Python pins. See PINNING.md for OpenDNP3 and host-tool pins.
-#
-# The analyzers (wire_check.py, clrt_check.py) and orchestrators (run.py, vision_run.py) use the Python
-# standard library only (Python >= 3.8). There are no mandatory third-party packages, which is why
-# `python3 -m pytest tests/` works on a fresh clone with no install step.
-#
-# Optional: scapy is only needed if you want to cross-check the captures with an independent, non-repo
-# decoder. The pinned research environment carries this version.
-# scapy==2.7.0

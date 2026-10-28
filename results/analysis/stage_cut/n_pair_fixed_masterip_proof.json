@@ -1,0 +1,76 @@
+{
+  "scope": "Approved current fixed-endpoint profile only; not arbitrary raw BFRT policies",
+  "conclusion": "Stored master-IP comparison is redundant for current qualified paths, conditional on a stable master-IP binding invariant.",
+  "source_references": [
+    {
+      "path": "p4/response_only.p4",
+      "symbols": [
+        "n_IgParser.start: enabled initialized0",
+        "configure: sole data-path enabled1 writer",
+        "data_connection: exact IPv4/TCP four-tuple lookup, defaultNoAction",
+        "guard: kind5/6/7 normal/return admissions require enabled1; generic abort/reject returns become kind255",
+        "real_links_t: stores onlystage1kind5 and compares onlystage0kind6/7",
+        "compare_select_inputs: masterIP=hdr.ip.src",
+        "compare_operate_inputs: masterIP=hdr.ip.src",
+        "compare_response_inputs: masterIP=hdr.ip.dst"
+      ]
+    },
+    {
+      "path": "scripts/hardware/rows.py",
+      "lines": [
+        38,
+        53,
+        58
+      ],
+      "facts": "One master/outstation pair supplied per build; exactly inverse fwd4/rev4 data_connection rows."
+    },
+    {
+      "path": "scripts/hardware/installer_base.py",
+      "lines": [
+        161,
+        166,
+        168
+      ],
+      "facts": "One endpoints()/rows.build() call per install plan."
+    },
+    {
+      "path": "scripts/model/cp_base.py",
+      "lines": [
+        69,
+        80,
+        90
+      ],
+      "facts": "Same tuple/directions for FIRST and RETURN port connection rows."
+    },
+    {
+      "path": "scripts/hardware/vision_run.py",
+      "lines": [
+        498,
+        514
+      ],
+      "facts": "Reconnect uses same IP pair and varies TCP port; unknown-port connection is unbound."
+    }
+  ],
+  "direct_model_driver_callers": [
+    "scripts/model/model_abandon.py",
+    "scripts/model/model_contention.py",
+    "scripts/model/model_control_timing.py",
+    "scripts/model/model_dup.py",
+    "scripts/model/model_packets.py",
+    "scripts/model/model_rearm.py",
+    "scripts/model/model_repeat.py",
+    "scripts/model/model_select_lifecycle.py",
+    "scripts/model/model_smoke.py"
+  ],
+  "qualified_path_reasoning": [
+    "SELECT store only after exact master->relay data_connection lookup and guard admission.",
+    "OPERATE comparison uses request ip.src from the same installed request tuple.",
+    "SELECT/OPERATE responses use reply ip.dst from the exact inverse tuple.",
+    "Both FIRST and recirculated packets repeat the same IP/TCP tuple lookup; internal header split does not alter IPv4 endpoints.",
+    "An invalid/unconfigured generic return takes kind255; no object-store/compare row matches it.",
+    "READ paths use separate read_connection and do not execute these control-object stores/comparisons."
+  ],
+  "minimum_policy_invariant_to_lock": "All qualified control request bindings must use the same master IPv4 address, replies must have that address as destination, and this address must remain constant while associated N object state is retained. Current profile meets this through exactly two reciprocal four-tuple rows.",
+  "falsifier_outside_current_profile": "Raw BFRT can install asymmetric/two-master rows or rebind masterIP while old N state survives. size2 alone does not guarantee reciprocity or one-master identity. A future multi-master policy must restore explicit binding state/checks or isolate state per master before using this reduction.",
+  "verification_class": "Source/control-plane/driver inspection; no SDK compile, model trial, or hardware result for the proposed DL/native_start repack."
+}

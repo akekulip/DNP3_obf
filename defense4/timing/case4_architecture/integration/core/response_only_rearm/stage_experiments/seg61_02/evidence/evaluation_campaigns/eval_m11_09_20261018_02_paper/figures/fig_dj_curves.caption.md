@@ -1,1 +1,0 @@
-Reduction in balanced accuracy, No obfuscation minus Timing+Size, along D (J = 2.4 ms) and J (D = 10 ms), with conditional 95% paired-block bootstrap intervals. Fixed joint: 0.61–0.64; adaptive joint: 0.50–0.61; adaptive metadata diagnostic: 0.15–0.27.

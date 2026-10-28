@@ -1,0 +1,14 @@
+{
+  "reviewed_source_sha256": "4b7ead7edbbdf33973f980e332a1ed5c2d7bf3d76e602f31565f20f0c0765f75",
+  "reviewed_N_control_sha256": "9cf98a7bb89a88338aff8b60cfe8865f41646984344133a9377bb174a65c783d",
+  "concrete_defects": [],
+  "terminal_branch_cases": 18432,
+  "terminal_scope": "zero/nonzero epoch/owner classes, all256 kinds, all4 metadata stages, owner_op0/1; return_abort path kind255 included",
+  "early_snapshot": "No concrete defect: epoch, generation, wire_ack, normalized_epoch, lap/retry and m.stage are ready; owner_command precedes snapshot; deferred expected_cell assignment follows owner_t and precedes first_event. Intermediate real/application/read-app tables do not consume moved snapshot fields or change its inputs. Metadata stage/kind remain separate from header phase/code.",
+  "close_phase_fusion": "No concrete defect found: close qualifiers write same zero-extended16-bit phase; unqualified m.desired remains stage0 initialized zero. Existing frozen-table priority differential test passes.",
+  "header_layout": "phase8 followed by code8 preserves original16-bit event wire bytes; readers reconstruct high/low slices consistently.",
+  "limitations": [
+    "Read-only source review and bounded differential checks only; not an SDK model/hardware result.",
+    "Existing close-phase equivalence test samples each rule and mask boundaries rather than exhaustive32-bit space."
+  ]
+}

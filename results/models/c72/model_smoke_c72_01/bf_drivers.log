@@ -1,0 +1,1643 @@
+2026-10-26 21:47:59.533684 DEBUG BF_SWITCHD bf_switchd: system services initialized
+2026-10-26 21:47:59.533735 DEBUG BF_SWITCHD bf_switchd: loading conf_file /home/philip/Projects/DNP3/results/models/c72/model_smoke_c72_01/noagent.conf...
+2026-10-26 21:47:59.533767 DEBUG BF_SWITCHD bf_switchd: processing device configuration...
+2026-10-26 21:47:59.533820 DEBUG BF_SWITCHD Configuration for dev_id 0
+2026-10-26 21:47:59.533836 DEBUG BF_SWITCHD   Family        : tofino
+2026-10-26 21:47:59.533852 DEBUG BF_SWITCHD   pci_sysfs_str : /sys/devices/pci0000:00/0000:00:03.0/0000:05:00.0
+2026-10-26 21:47:59.533866 DEBUG BF_SWITCHD   pci_int_mode  : 0
+2026-10-26 21:47:59.533881 DEBUG BF_SWITCHD   sds_fw_path   : share/tofino_sds_fw/avago/firmware
+2026-10-26 21:47:59.533896 DEBUG BF_SWITCHD bf_switchd: processing P4 configuration...
+2026-10-26 21:47:59.589973 DEBUG BF_SWITCHD coal_mirror_enable=0 coal_min=0 sessions_num=0
+2026-10-26 21:47:59.597593 DEBUG BF_SWITCHD P4 profile for dev_id 0
+2026-10-26 21:47:59.597612 DEBUG BF_SWITCHD num P4 programs 1
+2026-10-26 21:47:59.597627 DEBUG BF_SWITCHD   p4_name: response_only
+2026-10-26 21:47:59.597642 DEBUG BF_SWITCHD   p4_pipeline_name: p0
+2026-10-26 21:47:59.597657 DEBUG BF_SWITCHD     libpd: 
+2026-10-26 21:47:59.597671 DEBUG BF_SWITCHD     libpdthrift: 
+2026-10-26 21:47:59.597688 DEBUG BF_SWITCHD     context: /home/philip/Projects/DNP3/results/builds/c72/compile_local/out/p0/context.json
+2026-10-26 21:47:59.597703 DEBUG BF_SWITCHD     config: /home/philip/Projects/DNP3/results/builds/c72/compile_local/out/p0/tofino.bin
+2026-10-26 21:47:59.597718 DEBUG BF_SWITCHD   Pipes in scope [
+2026-10-26 21:47:59.597733 DEBUG BF_SWITCHD 0 
+2026-10-26 21:47:59.597756 DEBUG BF_SWITCHD 2 
+2026-10-26 21:47:59.597771 DEBUG BF_SWITCHD ]
+2026-10-26 21:47:59.597792 DEBUG BF_SWITCHD   diag: 
+2026-10-26 21:47:59.597807 DEBUG BF_SWITCHD   accton diag: 
+2026-10-26 21:47:59.597822 DEBUG BF_SWITCHD   p4_pipeline_name: p1
+2026-10-26 21:47:59.597837 DEBUG BF_SWITCHD     libpd: 
+2026-10-26 21:47:59.597852 DEBUG BF_SWITCHD     libpdthrift: 
+2026-10-26 21:47:59.597867 DEBUG BF_SWITCHD     context: /home/philip/Projects/DNP3/results/builds/c72/compile_local/out/p1/context.json
+2026-10-26 21:47:59.597882 DEBUG BF_SWITCHD     config: /home/philip/Projects/DNP3/results/builds/c72/compile_local/out/p1/tofino.bin
+2026-10-26 21:47:59.597897 DEBUG BF_SWITCHD   Pipes in scope [
+2026-10-26 21:47:59.597911 DEBUG BF_SWITCHD 1 
+2026-10-26 21:47:59.597926 DEBUG BF_SWITCHD 3 
+2026-10-26 21:47:59.597941 DEBUG BF_SWITCHD ]
+2026-10-26 21:47:59.597956 DEBUG BF_SWITCHD   diag: 
+2026-10-26 21:47:59.597971 DEBUG BF_SWITCHD   accton diag: 
+2026-10-26 21:48:00.035639 DEBUG BF_SWITCHD bf_switch: Operational mode set to default: MODEL
+2026-10-26 21:48:00.035676 DEBUG BF_DVM BF-SDE vesion: 9.13.2
+2026-10-26 21:48:00.058420 INFO  BF_PM pm_fsm_queues_init:340 pm_fsm_queues_init:340 Initializing all FSM queues
+2026-10-26 21:48:00.058463 INFO  BF_PM pm_fsm_queues_init:346 pm_fsm_queues_init:346 Initializing all FSM queues done
+2026-10-26 21:48:00.153495 INFO  BF_TM TM: Registered for device and port discovery
+2026-10-26 21:48:00.360889 DEBUG BF_SWITCHD bf_switchd: drivers initialized
+2026-10-26 21:48:00.360913 DEBUG BF_SWITCHD bf_switchd: initializing dru_sim service
+2026-10-26 21:48:00.394673 DEBUG BF_SWITCHD bf_switchd: library libdru_sim.so loaded
+2026-10-26 21:48:01.123439 INFO  BF_DVM bf_pktmgr_device_add dev id 0, is_sw_model 1
+2026-10-26 21:48:01.124068 DEBUG BF_LLD  Efuse settings dev 0 subdev 0
+2026-10-26 21:48:01.124083 DEBUG BF_LLD                0 : resubmit_disable
+2026-10-26 21:48:01.124093 DEBUG BF_LLD                0 : mau_tcam_reduction
+2026-10-26 21:48:01.124101 DEBUG BF_LLD                0 : mau_sram_reduction
+2026-10-26 21:48:01.124110 DEBUG BF_LLD                0 : packet_generator_disable
+2026-10-26 21:48:01.124117 DEBUG BF_LLD                0 : pipe_disable
+2026-10-26 21:48:01.124127 DEBUG BF_LLD                0 : mau_stage_disable
+2026-10-26 21:48:01.124133 DEBUG BF_LLD 0000000000000000 : port_disable (hi)
+2026-10-26 21:48:01.124140 DEBUG BF_LLD 0000000000000000 : port_disable (lo)
+2026-10-26 21:48:01.124157 DEBUG BF_LLD 0000000000000000 : tm_memory_disable
+2026-10-26 21:48:01.124165 DEBUG BF_LLD                0 : port_speed_reduction
+2026-10-26 21:48:01.124173 DEBUG BF_LLD                0 : cpu_port_speed_reduction
+2026-10-26 21:48:01.124181 DEBUG BF_LLD                0 : pcie_lane_reduction
+2026-10-26 21:48:01.124189 DEBUG BF_LLD                0 : baresync_disable
+2026-10-26 21:48:01.124197 DEBUG BF_LLD                0 : frequency_reduction
+2026-10-26 21:48:01.124204 DEBUG BF_LLD                0 : frequency_check_disable
+2026-10-26 21:48:01.124212 DEBUG BF_LLD                0 : versioning
+2026-10-26 21:48:01.124221 DEBUG BF_LLD                0 : chip_part_number
+2026-10-26 21:48:01.124229 DEBUG BF_LLD                1 : part_revision_number
+2026-10-26 21:48:01.124237 DEBUG BF_LLD                0 : package_id
+2026-10-26 21:48:01.124244 DEBUG BF_LLD 0000000000000000 : chip_id
+2026-10-26 21:48:01.124252 DEBUG BF_LLD                0 : pmro_and_skew
+2026-10-26 21:48:01.124259 DEBUG BF_LLD                0 : voltage_scaling
+2026-10-26 21:48:01.124267 DEBUG BF_LLD                0 : die-config
+2026-10-26 21:48:01.124275 DEBUG BF_LLD                0 : constant0
+2026-10-26 21:48:01.124282 DEBUG BF_LLD                0 : constant1
+2026-10-26 21:48:01.124289 DEBUG BF_LLD                0 : serdes disable even
+2026-10-26 21:48:01.124297 DEBUG BF_LLD                0 : serdes disable odd
+2026-10-26 21:48:01.124307 DEBUG BF_LLD Wafer-id: 
+2026-10-26 21:48:01.124341 DEBUG BF_LLD dev 0 subdev 0: SPI idcode: 0bad0bad (rc=0)
+2026-10-26 21:48:01.124384 DEBUG BF_LLD TCU: 0 : WARNING: device requires Power-on Reset: <0bad0bad>
+2026-10-26 21:48:01.124393 DEBUG BF_LLD TCU: 0 : Flush..
+2026-10-26 21:48:01.127181 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.127218 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.127232 DEBUG BF_LLD TCU: 0 : Flush done
+2026-10-26 21:48:01.127245 DEBUG BF_LLD TCU: 0 : Repair..
+2026-10-26 21:48:01.128003 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.128192 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.131185 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.131375 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.133735 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.133927 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.134689 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.134879 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.135638 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.135826 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.136432 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.136619 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.137225 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.137412 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.138021 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.138213 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.238655 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.238870 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.239499 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.239535 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.240009 DEBUG BF_LLD tcu_wrack register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.240018 DEBUG BF_LLD ERROR: tcu_wrack register value is not correct on dev=0. Expected : 0x01 , Actual : 0xbad0bad
+2026-10-26 21:48:01.240059 DEBUG BF_LLD tcu_status register value on dev=0. Val : 0xbad0bad
+2026-10-26 21:48:01.240068 DEBUG BF_LLD ERROR: tcu_status register value is not correct on dev=0. Expected : 0x2a , Actual : 0xbad0bad
+2026-10-26 21:48:01.255536 DEBUG BF_LLD TCU: 0 : Repair done.
+2026-10-26 21:48:01.277081 DEBUG BF_LLD EFUSE: Set core clk to 1.22GHz, dev=0, PLL ctrl0 value=0xcd44cbfe
+2026-10-26 21:48:01.387357 DEBUG BF_LLD Core PLL has not locked even after 100 ms; PLL Lock chip 0 dbg_rst 0
+2026-10-26 21:48:02.956910 DEBUG BF_LLD [Unreset] Done after 1 polls
+2026-10-26 21:48:03.072640 DEBUG BF_LLD DR flush still asserted: dev 0 mbus bad0bad cbus bad0bad pbus bad0bad tbus 1
+2026-10-26 21:48:05.956404 INFO  BF_DVM bf_device_add dev id 0, is_sw_model 1
+2026-10-26 21:48:05.956450 DEBUG BF_PORT port_mgr_dev_add:57:0:0(warm_init_mode)
+2026-10-26 21:48:05.956464 DEBUG BF_PORT port_mgr_tof1_dev_add:76:0
+2026-10-26 21:48:05.956533 INFO  BF_PORT set chip part revision number, dev 0, part rev 1
+2026-10-26 21:48:05.956568 DEBUG BF_PORT 0:-:-: sbus master fw: 101d_2001
+2026-10-26 21:48:05.956575 DEBUG BF_PORT 0:-:-: PCIe serdes fw: 1066_2147
+2026-10-26 21:48:05.956584 DEBUG BF_PORT 0:-:-:      serdes fw: 1091_244d
+2026-10-26 21:48:05.973329 INFO  BF_PORT port_mgr_mac_block_init: core clock speed in ns = 0.819672
+2026-10-26 21:48:06.057165 DEBUG BF_PORT Unknown process id: 0x0
+
+2026-10-26 21:48:06.075060 DEBUG BF_PORT Error ocurred while trying to determine the number of devices on chip 0, SBus ring 0. aapl->return_code: 0, 0xfe 0x02 0x02 0x00: 0.
+
+2026-10-26 21:48:06.075238 DEBUG BF_PORT SDS: SBMs disabled. No FW upload
+2026-10-26 21:48:06.075371 DEBUG BF_PORT SDS: SBus CLK divider set to 5 (x32 mode)
+2026-10-26 21:48:06.093630 DEBUG BF_PORT SDS: 0:0:11: Error: -1 : setting initial state
+2026-10-26 21:48:06.093676 DEBUG BF_PORT SDS: 0:0:11: Error: -1 : turning it off
+2026-10-26 21:48:06.093692 DEBUG BF_PORT SDS: 0:0:12: Error: -1 : setting initial state
+2026-10-26 21:48:06.093704 DEBUG BF_PORT SDS: 0:0:12: Error: -1 : turning it off
+2026-10-26 21:48:06.093717 DEBUG BF_PORT SDS: 0:0:13: Error: -1 : setting initial state
+2026-10-26 21:48:06.093729 DEBUG BF_PORT SDS: 0:0:13: Error: -1 : turning it off
+2026-10-26 21:48:06.093741 DEBUG BF_PORT SDS: 0:0:14: Error: -1 : setting initial state
+2026-10-26 21:48:06.093753 DEBUG BF_PORT SDS: 0:0:14: Error: -1 : turning it off
+2026-10-26 21:48:06.093766 DEBUG BF_PORT SDS: 0:0:15: Error: -1 : setting initial state
+2026-10-26 21:48:06.093778 DEBUG BF_PORT SDS: 0:0:15: Error: -1 : turning it off
+2026-10-26 21:48:06.093790 DEBUG BF_PORT SDS: 0:0:16: Error: -1 : setting initial state
+2026-10-26 21:48:06.093802 DEBUG BF_PORT SDS: 0:0:16: Error: -1 : turning it off
+2026-10-26 21:48:06.093814 DEBUG BF_PORT SDS: 0:0:17: Error: -1 : setting initial state
+2026-10-26 21:48:06.093827 DEBUG BF_PORT SDS: 0:0:17: Error: -1 : turning it off
+2026-10-26 21:48:06.093840 DEBUG BF_PORT SDS: 0:0:18: Error: -1 : setting initial state
+2026-10-26 21:48:06.093852 DEBUG BF_PORT SDS: 0:0:18: Error: -1 : turning it off
+2026-10-26 21:48:06.093864 DEBUG BF_PORT SDS: 0:0:19: Error: -1 : setting initial state
+2026-10-26 21:48:06.093876 DEBUG BF_PORT SDS: 0:0:19: Error: -1 : turning it off
+2026-10-26 21:48:06.093889 DEBUG BF_PORT SDS: 0:0:20: Error: -1 : setting initial state
+2026-10-26 21:48:06.093900 DEBUG BF_PORT SDS: 0:0:20: Error: -1 : turning it off
+2026-10-26 21:48:06.093913 DEBUG BF_PORT SDS: 0:0:21: Error: -1 : setting initial state
+2026-10-26 21:48:06.093926 DEBUG BF_PORT SDS: 0:0:21: Error: -1 : turning it off
+2026-10-26 21:48:06.093938 DEBUG BF_PORT SDS: 0:0:22: Error: -1 : setting initial state
+2026-10-26 21:48:06.093950 DEBUG BF_PORT SDS: 0:0:22: Error: -1 : turning it off
+2026-10-26 21:48:06.093962 DEBUG BF_PORT SDS: 0:0:23: Error: -1 : setting initial state
+2026-10-26 21:48:06.093974 DEBUG BF_PORT SDS: 0:0:23: Error: -1 : turning it off
+2026-10-26 21:48:06.093987 DEBUG BF_PORT SDS: 0:0:24: Error: -1 : setting initial state
+2026-10-26 21:48:06.093998 DEBUG BF_PORT SDS: 0:0:24: Error: -1 : turning it off
+2026-10-26 21:48:06.094022 DEBUG BF_PORT SDS: 0:0:25: Error: -1 : setting initial state
+2026-10-26 21:48:06.094034 DEBUG BF_PORT SDS: 0:0:25: Error: -1 : turning it off
+2026-10-26 21:48:06.094046 DEBUG BF_PORT SDS: 0:0:26: Error: -1 : setting initial state
+2026-10-26 21:48:06.094058 DEBUG BF_PORT SDS: 0:0:26: Error: -1 : turning it off
+2026-10-26 21:48:06.094071 DEBUG BF_PORT SDS: 0:0:27: Error: -1 : setting initial state
+2026-10-26 21:48:06.094082 DEBUG BF_PORT SDS: 0:0:27: Error: -1 : turning it off
+2026-10-26 21:48:06.094095 DEBUG BF_PORT SDS: 0:0:28: Error: -1 : setting initial state
+2026-10-26 21:48:06.094106 DEBUG BF_PORT SDS: 0:0:28: Error: -1 : turning it off
+2026-10-26 21:48:06.094118 DEBUG BF_PORT SDS: 0:0:29: Error: -1 : setting initial state
+2026-10-26 21:48:06.094130 DEBUG BF_PORT SDS: 0:0:29: Error: -1 : turning it off
+2026-10-26 21:48:06.094142 DEBUG BF_PORT SDS: 0:0:30: Error: -1 : setting initial state
+2026-10-26 21:48:06.094154 DEBUG BF_PORT SDS: 0:0:30: Error: -1 : turning it off
+2026-10-26 21:48:06.094166 DEBUG BF_PORT SDS: 0:0:31: Error: -1 : setting initial state
+2026-10-26 21:48:06.094178 DEBUG BF_PORT SDS: 0:0:31: Error: -1 : turning it off
+2026-10-26 21:48:06.094190 DEBUG BF_PORT SDS: 0:0:32: Error: -1 : setting initial state
+2026-10-26 21:48:06.094202 DEBUG BF_PORT SDS: 0:0:32: Error: -1 : turning it off
+2026-10-26 21:48:06.094214 DEBUG BF_PORT SDS: 0:0:33: Error: -1 : setting initial state
+2026-10-26 21:48:06.094226 DEBUG BF_PORT SDS: 0:0:33: Error: -1 : turning it off
+2026-10-26 21:48:06.094238 DEBUG BF_PORT SDS: 0:0:34: Error: -1 : setting initial state
+2026-10-26 21:48:06.094249 DEBUG BF_PORT SDS: 0:0:34: Error: -1 : turning it off
+2026-10-26 21:48:06.094262 DEBUG BF_PORT SDS: 0:0:35: Error: -1 : setting initial state
+2026-10-26 21:48:06.094274 DEBUG BF_PORT SDS: 0:0:35: Error: -1 : turning it off
+2026-10-26 21:48:06.094286 DEBUG BF_PORT SDS: 0:0:36: Error: -1 : setting initial state
+2026-10-26 21:48:06.094297 DEBUG BF_PORT SDS: 0:0:36: Error: -1 : turning it off
+2026-10-26 21:48:06.094310 DEBUG BF_PORT SDS: 0:0:37: Error: -1 : setting initial state
+2026-10-26 21:48:06.094321 DEBUG BF_PORT SDS: 0:0:37: Error: -1 : turning it off
+2026-10-26 21:48:06.094333 DEBUG BF_PORT SDS: 0:0:38: Error: -1 : setting initial state
+2026-10-26 21:48:06.094345 DEBUG BF_PORT SDS: 0:0:38: Error: -1 : turning it off
+2026-10-26 21:48:06.094357 DEBUG BF_PORT SDS: 0:0:39: Error: -1 : setting initial state
+2026-10-26 21:48:06.094369 DEBUG BF_PORT SDS: 0:0:39: Error: -1 : turning it off
+2026-10-26 21:48:06.094381 DEBUG BF_PORT SDS: 0:0:40: Error: -1 : setting initial state
+2026-10-26 21:48:06.094393 DEBUG BF_PORT SDS: 0:0:40: Error: -1 : turning it off
+2026-10-26 21:48:06.094405 DEBUG BF_PORT SDS: 0:0:41: Error: -1 : setting initial state
+2026-10-26 21:48:06.094416 DEBUG BF_PORT SDS: 0:0:41: Error: -1 : turning it off
+2026-10-26 21:48:06.094429 DEBUG BF_PORT SDS: 0:0:42: Error: -1 : setting initial state
+2026-10-26 21:48:06.094440 DEBUG BF_PORT SDS: 0:0:42: Error: -1 : turning it off
+2026-10-26 21:48:06.094453 DEBUG BF_PORT SDS: 0:0:44: Error: -1 : setting initial state
+2026-10-26 21:48:06.094465 DEBUG BF_PORT SDS: 0:0:44: Error: -1 : turning it off
+2026-10-26 21:48:06.094477 DEBUG BF_PORT SDS: 0:0:45: Error: -1 : setting initial state
+2026-10-26 21:48:06.094488 DEBUG BF_PORT SDS: 0:0:45: Error: -1 : turning it off
+2026-10-26 21:48:06.094500 DEBUG BF_PORT SDS: 0:0:46: Error: -1 : setting initial state
+2026-10-26 21:48:06.094512 DEBUG BF_PORT SDS: 0:0:46: Error: -1 : turning it off
+2026-10-26 21:48:06.094524 DEBUG BF_PORT SDS: 0:0:47: Error: -1 : setting initial state
+2026-10-26 21:48:06.094537 DEBUG BF_PORT SDS: 0:0:47: Error: -1 : turning it off
+2026-10-26 21:48:06.094549 DEBUG BF_PORT SDS: 0:0:48: Error: -1 : setting initial state
+2026-10-26 21:48:06.094561 DEBUG BF_PORT SDS: 0:0:48: Error: -1 : turning it off
+2026-10-26 21:48:06.094573 DEBUG BF_PORT SDS: 0:0:49: Error: -1 : setting initial state
+2026-10-26 21:48:06.094585 DEBUG BF_PORT SDS: 0:0:49: Error: -1 : turning it off
+2026-10-26 21:48:06.094604 DEBUG BF_PORT SDS: 0:0:50: Error: -1 : setting initial state
+2026-10-26 21:48:06.094616 DEBUG BF_PORT SDS: 0:0:50: Error: -1 : turning it off
+2026-10-26 21:48:06.094628 DEBUG BF_PORT SDS: 0:0:51: Error: -1 : setting initial state
+2026-10-26 21:48:06.094639 DEBUG BF_PORT SDS: 0:0:51: Error: -1 : turning it off
+2026-10-26 21:48:06.094652 DEBUG BF_PORT SDS: 0:0:52: Error: -1 : setting initial state
+2026-10-26 21:48:06.094663 DEBUG BF_PORT SDS: 0:0:52: Error: -1 : turning it off
+2026-10-26 21:48:06.094676 DEBUG BF_PORT SDS: 0:0:53: Error: -1 : setting initial state
+2026-10-26 21:48:06.094687 DEBUG BF_PORT SDS: 0:0:53: Error: -1 : turning it off
+2026-10-26 21:48:06.094699 DEBUG BF_PORT SDS: 0:0:54: Error: -1 : setting initial state
+2026-10-26 21:48:06.094711 DEBUG BF_PORT SDS: 0:0:54: Error: -1 : turning it off
+2026-10-26 21:48:06.094723 DEBUG BF_PORT SDS: 0:0:55: Error: -1 : setting initial state
+2026-10-26 21:48:06.094735 DEBUG BF_PORT SDS: 0:0:55: Error: -1 : turning it off
+2026-10-26 21:48:06.094747 DEBUG BF_PORT SDS: 0:0:56: Error: -1 : setting initial state
+2026-10-26 21:48:06.094759 DEBUG BF_PORT SDS: 0:0:56: Error: -1 : turning it off
+2026-10-26 21:48:06.094771 DEBUG BF_PORT SDS: 0:0:57: Error: -1 : setting initial state
+2026-10-26 21:48:06.094783 DEBUG BF_PORT SDS: 0:0:57: Error: -1 : turning it off
+2026-10-26 21:48:06.094795 DEBUG BF_PORT SDS: 0:0:58: Error: -1 : setting initial state
+2026-10-26 21:48:06.094806 DEBUG BF_PORT SDS: 0:0:58: Error: -1 : turning it off
+2026-10-26 21:48:06.094818 DEBUG BF_PORT SDS: 0:0:59: Error: -1 : setting initial state
+2026-10-26 21:48:06.094830 DEBUG BF_PORT SDS: 0:0:59: Error: -1 : turning it off
+2026-10-26 21:48:06.094842 DEBUG BF_PORT SDS: 0:0:60: Error: -1 : setting initial state
+2026-10-26 21:48:06.094854 DEBUG BF_PORT SDS: 0:0:60: Error: -1 : turning it off
+2026-10-26 21:48:06.094866 DEBUG BF_PORT SDS: 0:0:61: Error: -1 : setting initial state
+2026-10-26 21:48:06.094878 DEBUG BF_PORT SDS: 0:0:61: Error: -1 : turning it off
+2026-10-26 21:48:06.094890 DEBUG BF_PORT SDS: 0:0:62: Error: -1 : setting initial state
+2026-10-26 21:48:06.094902 DEBUG BF_PORT SDS: 0:0:62: Error: -1 : turning it off
+2026-10-26 21:48:06.094914 DEBUG BF_PORT SDS: 0:0:63: Error: -1 : setting initial state
+2026-10-26 21:48:06.094925 DEBUG BF_PORT SDS: 0:0:63: Error: -1 : turning it off
+2026-10-26 21:48:06.094938 DEBUG BF_PORT SDS: 0:0:64: Error: -1 : setting initial state
+2026-10-26 21:48:06.094950 DEBUG BF_PORT SDS: 0:0:64: Error: -1 : turning it off
+2026-10-26 21:48:06.094962 DEBUG BF_PORT SDS: 0:0:65: Error: -1 : setting initial state
+2026-10-26 21:48:06.094974 DEBUG BF_PORT SDS: 0:0:65: Error: -1 : turning it off
+2026-10-26 21:48:06.094986 DEBUG BF_PORT SDS: 0:0:66: Error: -1 : setting initial state
+2026-10-26 21:48:06.094998 DEBUG BF_PORT SDS: 0:0:66: Error: -1 : turning it off
+2026-10-26 21:48:06.095010 DEBUG BF_PORT SDS: 0:0:67: Error: -1 : setting initial state
+2026-10-26 21:48:06.095021 DEBUG BF_PORT SDS: 0:0:67: Error: -1 : turning it off
+2026-10-26 21:48:06.095034 DEBUG BF_PORT SDS: 0:0:68: Error: -1 : setting initial state
+2026-10-26 21:48:06.095045 DEBUG BF_PORT SDS: 0:0:68: Error: -1 : turning it off
+2026-10-26 21:48:06.095057 DEBUG BF_PORT SDS: 0:0:69: Error: -1 : setting initial state
+2026-10-26 21:48:06.095069 DEBUG BF_PORT SDS: 0:0:69: Error: -1 : turning it off
+2026-10-26 21:48:06.095082 DEBUG BF_PORT SDS: 0:0:70: Error: -1 : setting initial state
+2026-10-26 21:48:06.095093 DEBUG BF_PORT SDS: 0:0:70: Error: -1 : turning it off
+2026-10-26 21:48:06.095105 DEBUG BF_PORT SDS: 0:0:71: Error: -1 : setting initial state
+2026-10-26 21:48:06.095117 DEBUG BF_PORT SDS: 0:0:71: Error: -1 : turning it off
+2026-10-26 21:48:06.095129 DEBUG BF_PORT SDS: 0:0:72: Error: -1 : setting initial state
+2026-10-26 21:48:06.095142 DEBUG BF_PORT SDS: 0:0:72: Error: -1 : turning it off
+2026-10-26 21:48:06.095154 DEBUG BF_PORT SDS: 0:0:73: Error: -1 : setting initial state
+2026-10-26 21:48:06.095166 DEBUG BF_PORT SDS: 0:0:73: Error: -1 : turning it off
+2026-10-26 21:48:06.095178 DEBUG BF_PORT SDS: 0:0:74: Error: -1 : setting initial state
+2026-10-26 21:48:06.095196 DEBUG BF_PORT SDS: 0:0:74: Error: -1 : turning it off
+2026-10-26 21:48:06.095209 DEBUG BF_PORT SDS: 0:0:75: Error: -1 : setting initial state
+2026-10-26 21:48:06.095221 DEBUG BF_PORT SDS: 0:0:75: Error: -1 : turning it off
+2026-10-26 21:48:06.095233 DEBUG BF_PORT SDS: 0:0:76: Error: -1 : setting initial state
+2026-10-26 21:48:06.095245 DEBUG BF_PORT SDS: 0:0:76: Error: -1 : turning it off
+2026-10-26 21:48:06.095257 DEBUG BF_PORT SDS: 0:0:77: Error: -1 : setting initial state
+2026-10-26 21:48:06.095268 DEBUG BF_PORT SDS: 0:0:77: Error: -1 : turning it off
+2026-10-26 21:48:06.095281 DEBUG BF_PORT SDS: 0:0:78: Error: -1 : setting initial state
+2026-10-26 21:48:06.095292 DEBUG BF_PORT SDS: 0:0:78: Error: -1 : turning it off
+2026-10-26 21:48:06.095304 DEBUG BF_PORT SDS: 0:0:79: Error: -1 : setting initial state
+2026-10-26 21:48:06.095316 DEBUG BF_PORT SDS: 0:0:79: Error: -1 : turning it off
+2026-10-26 21:48:06.095329 DEBUG BF_PORT SDS: 0:0:80: Error: -1 : setting initial state
+2026-10-26 21:48:06.095341 DEBUG BF_PORT SDS: 0:0:80: Error: -1 : turning it off
+2026-10-26 21:48:06.095353 DEBUG BF_PORT SDS: 0:0:81: Error: -1 : setting initial state
+2026-10-26 21:48:06.095365 DEBUG BF_PORT SDS: 0:0:81: Error: -1 : turning it off
+2026-10-26 21:48:06.095377 DEBUG BF_PORT SDS: 0:0:82: Error: -1 : setting initial state
+2026-10-26 21:48:06.095388 DEBUG BF_PORT SDS: 0:0:82: Error: -1 : turning it off
+2026-10-26 21:48:06.095400 DEBUG BF_PORT SDS: 0:0:83: Error: -1 : setting initial state
+2026-10-26 21:48:06.095412 DEBUG BF_PORT SDS: 0:0:83: Error: -1 : turning it off
+2026-10-26 21:48:06.095424 DEBUG BF_PORT SDS: 0:0:84: Error: -1 : setting initial state
+2026-10-26 21:48:06.095436 DEBUG BF_PORT SDS: 0:0:84: Error: -1 : turning it off
+2026-10-26 21:48:06.095449 DEBUG BF_PORT SDS: 0:0:85: Error: -1 : setting initial state
+2026-10-26 21:48:06.095460 DEBUG BF_PORT SDS: 0:0:85: Error: -1 : turning it off
+2026-10-26 21:48:06.095473 DEBUG BF_PORT SDS: 0:0:86: Error: -1 : setting initial state
+2026-10-26 21:48:06.095484 DEBUG BF_PORT SDS: 0:0:86: Error: -1 : turning it off
+2026-10-26 21:48:06.095497 DEBUG BF_PORT SDS: 0:0:87: Error: -1 : setting initial state
+2026-10-26 21:48:06.095509 DEBUG BF_PORT SDS: 0:0:87: Error: -1 : turning it off
+2026-10-26 21:48:06.095522 DEBUG BF_PORT SDS: 0:0:88: Error: -1 : setting initial state
+2026-10-26 21:48:06.095534 DEBUG BF_PORT SDS: 0:0:88: Error: -1 : turning it off
+2026-10-26 21:48:06.095546 DEBUG BF_PORT SDS: 0:0:89: Error: -1 : setting initial state
+2026-10-26 21:48:06.095558 DEBUG BF_PORT SDS: 0:0:89: Error: -1 : turning it off
+2026-10-26 21:48:06.095570 DEBUG BF_PORT SDS: 0:0:90: Error: -1 : setting initial state
+2026-10-26 21:48:06.095581 DEBUG BF_PORT SDS: 0:0:90: Error: -1 : turning it off
+2026-10-26 21:48:06.095593 DEBUG BF_PORT SDS: 0:0:91: Error: -1 : setting initial state
+2026-10-26 21:48:06.095605 DEBUG BF_PORT SDS: 0:0:91: Error: -1 : turning it off
+2026-10-26 21:48:06.095617 DEBUG BF_PORT SDS: 0:0:92: Error: -1 : setting initial state
+2026-10-26 21:48:06.095629 DEBUG BF_PORT SDS: 0:0:92: Error: -1 : turning it off
+2026-10-26 21:48:06.095641 DEBUG BF_PORT SDS: 0:0:93: Error: -1 : setting initial state
+2026-10-26 21:48:06.095652 DEBUG BF_PORT SDS: 0:0:93: Error: -1 : turning it off
+2026-10-26 21:48:06.095665 DEBUG BF_PORT SDS: 0:0:94: Error: -1 : setting initial state
+2026-10-26 21:48:06.095676 DEBUG BF_PORT SDS: 0:0:94: Error: -1 : turning it off
+2026-10-26 21:48:06.095688 DEBUG BF_PORT SDS: 0:0:95: Error: -1 : setting initial state
+2026-10-26 21:48:06.095700 DEBUG BF_PORT SDS: 0:0:95: Error: -1 : turning it off
+2026-10-26 21:48:06.095712 DEBUG BF_PORT SDS: 0:0:96: Error: -1 : setting initial state
+2026-10-26 21:48:06.095724 DEBUG BF_PORT SDS: 0:0:96: Error: -1 : turning it off
+2026-10-26 21:48:06.095736 DEBUG BF_PORT SDS: 0:0:97: Error: -1 : setting initial state
+2026-10-26 21:48:06.095748 DEBUG BF_PORT SDS: 0:0:97: Error: -1 : turning it off
+2026-10-26 21:48:06.095760 DEBUG BF_PORT SDS: 0:0:98: Error: -1 : setting initial state
+2026-10-26 21:48:06.095780 DEBUG BF_PORT SDS: 0:0:98: Error: -1 : turning it off
+2026-10-26 21:48:06.095793 DEBUG BF_PORT SDS: 0:0:99: Error: -1 : setting initial state
+2026-10-26 21:48:06.095804 DEBUG BF_PORT SDS: 0:0:99: Error: -1 : turning it off
+2026-10-26 21:48:06.095817 DEBUG BF_PORT SDS: 0:0:100: Error: -1 : setting initial state
+2026-10-26 21:48:06.095829 DEBUG BF_PORT SDS: 0:0:100: Error: -1 : turning it off
+2026-10-26 21:48:06.095841 DEBUG BF_PORT SDS: 0:0:101: Error: -1 : setting initial state
+2026-10-26 21:48:06.095853 DEBUG BF_PORT SDS: 0:0:101: Error: -1 : turning it off
+2026-10-26 21:48:06.095865 DEBUG BF_PORT SDS: 0:0:102: Error: -1 : setting initial state
+2026-10-26 21:48:06.095877 DEBUG BF_PORT SDS: 0:0:102: Error: -1 : turning it off
+2026-10-26 21:48:06.095889 DEBUG BF_PORT SDS: 0:0:103: Error: -1 : setting initial state
+2026-10-26 21:48:06.095901 DEBUG BF_PORT SDS: 0:0:103: Error: -1 : turning it off
+2026-10-26 21:48:06.095913 DEBUG BF_PORT SDS: 0:0:104: Error: -1 : setting initial state
+2026-10-26 21:48:06.095925 DEBUG BF_PORT SDS: 0:0:104: Error: -1 : turning it off
+2026-10-26 21:48:06.095937 DEBUG BF_PORT SDS: 0:0:105: Error: -1 : setting initial state
+2026-10-26 21:48:06.095949 DEBUG BF_PORT SDS: 0:0:105: Error: -1 : turning it off
+2026-10-26 21:48:06.095961 DEBUG BF_PORT SDS: 0:0:106: Error: -1 : setting initial state
+2026-10-26 21:48:06.095972 DEBUG BF_PORT SDS: 0:0:106: Error: -1 : turning it off
+2026-10-26 21:48:06.095984 DEBUG BF_PORT SDS: 0:0:107: Error: -1 : setting initial state
+2026-10-26 21:48:06.095996 DEBUG BF_PORT SDS: 0:0:107: Error: -1 : turning it off
+2026-10-26 21:48:06.096008 DEBUG BF_PORT SDS: 0:0:108: Error: -1 : setting initial state
+2026-10-26 21:48:06.096020 DEBUG BF_PORT SDS: 0:0:108: Error: -1 : turning it off
+2026-10-26 21:48:06.096032 DEBUG BF_PORT SDS: 0:0:109: Error: -1 : setting initial state
+2026-10-26 21:48:06.096043 DEBUG BF_PORT SDS: 0:0:109: Error: -1 : turning it off
+2026-10-26 21:48:06.096056 DEBUG BF_PORT SDS: 0:0:110: Error: -1 : setting initial state
+2026-10-26 21:48:06.096068 DEBUG BF_PORT SDS: 0:0:110: Error: -1 : turning it off
+2026-10-26 21:48:06.096080 DEBUG BF_PORT SDS: 0:0:111: Error: -1 : setting initial state
+2026-10-26 21:48:06.096091 DEBUG BF_PORT SDS: 0:0:111: Error: -1 : turning it off
+2026-10-26 21:48:06.096104 DEBUG BF_PORT SDS: 0:0:112: Error: -1 : setting initial state
+2026-10-26 21:48:06.096115 DEBUG BF_PORT SDS: 0:0:112: Error: -1 : turning it off
+2026-10-26 21:48:06.096127 DEBUG BF_PORT SDS: 0:0:113: Error: -1 : setting initial state
+2026-10-26 21:48:06.096139 DEBUG BF_PORT SDS: 0:0:113: Error: -1 : turning it off
+2026-10-26 21:48:06.096151 DEBUG BF_PORT SDS: 0:0:114: Error: -1 : setting initial state
+2026-10-26 21:48:06.096163 DEBUG BF_PORT SDS: 0:0:114: Error: -1 : turning it off
+2026-10-26 21:48:06.096175 DEBUG BF_PORT SDS: 0:0:115: Error: -1 : setting initial state
+2026-10-26 21:48:06.096187 DEBUG BF_PORT SDS: 0:0:115: Error: -1 : turning it off
+2026-10-26 21:48:06.096200 DEBUG BF_PORT SDS: 0:0:116: Error: -1 : setting initial state
+2026-10-26 21:48:06.096211 DEBUG BF_PORT SDS: 0:0:116: Error: -1 : turning it off
+2026-10-26 21:48:06.096223 DEBUG BF_PORT SDS: 0:0:117: Error: -1 : setting initial state
+2026-10-26 21:48:06.096235 DEBUG BF_PORT SDS: 0:0:117: Error: -1 : turning it off
+2026-10-26 21:48:06.096247 DEBUG BF_PORT SDS: 0:0:118: Error: -1 : setting initial state
+2026-10-26 21:48:06.096259 DEBUG BF_PORT SDS: 0:0:118: Error: -1 : turning it off
+2026-10-26 21:48:06.096271 DEBUG BF_PORT SDS: 0:0:119: Error: -1 : setting initial state
+2026-10-26 21:48:06.096283 DEBUG BF_PORT SDS: 0:0:119: Error: -1 : turning it off
+2026-10-26 21:48:06.096295 DEBUG BF_PORT SDS: 0:0:120: Error: -1 : setting initial state
+2026-10-26 21:48:06.096307 DEBUG BF_PORT SDS: 0:0:120: Error: -1 : turning it off
+2026-10-26 21:48:06.096319 DEBUG BF_PORT SDS: 0:0:121: Error: -1 : setting initial state
+2026-10-26 21:48:06.096330 DEBUG BF_PORT SDS: 0:0:121: Error: -1 : turning it off
+2026-10-26 21:48:06.096342 DEBUG BF_PORT SDS: 0:0:122: Error: -1 : setting initial state
+2026-10-26 21:48:06.096360 DEBUG BF_PORT SDS: 0:0:122: Error: -1 : turning it off
+2026-10-26 21:48:06.096373 DEBUG BF_PORT SDS: 0:0:123: Error: -1 : setting initial state
+2026-10-26 21:48:06.096384 DEBUG BF_PORT SDS: 0:0:123: Error: -1 : turning it off
+2026-10-26 21:48:06.096397 DEBUG BF_PORT SDS: 0:0:124: Error: -1 : setting initial state
+2026-10-26 21:48:06.096408 DEBUG BF_PORT SDS: 0:0:124: Error: -1 : turning it off
+2026-10-26 21:48:06.096420 DEBUG BF_PORT SDS: 0:0:125: Error: -1 : setting initial state
+2026-10-26 21:48:06.096432 DEBUG BF_PORT SDS: 0:0:125: Error: -1 : turning it off
+2026-10-26 21:48:06.096444 DEBUG BF_PORT SDS: 0:0:126: Error: -1 : setting initial state
+2026-10-26 21:48:06.096456 DEBUG BF_PORT SDS: 0:0:126: Error: -1 : turning it off
+2026-10-26 21:48:06.096468 DEBUG BF_PORT SDS: 0:0:127: Error: -1 : setting initial state
+2026-10-26 21:48:06.096480 DEBUG BF_PORT SDS: 0:0:127: Error: -1 : turning it off
+2026-10-26 21:48:06.096492 DEBUG BF_PORT SDS: 0:0:128: Error: -1 : setting initial state
+2026-10-26 21:48:06.096504 DEBUG BF_PORT SDS: 0:0:128: Error: -1 : turning it off
+2026-10-26 21:48:06.096517 DEBUG BF_PORT SDS: 0:0:129: Error: -1 : setting initial state
+2026-10-26 21:48:06.096528 DEBUG BF_PORT SDS: 0:0:129: Error: -1 : turning it off
+2026-10-26 21:48:06.096541 DEBUG BF_PORT SDS: 0:0:130: Error: -1 : setting initial state
+2026-10-26 21:48:06.096552 DEBUG BF_PORT SDS: 0:0:130: Error: -1 : turning it off
+2026-10-26 21:48:06.096564 DEBUG BF_PORT SDS: 0:0:131: Error: -1 : setting initial state
+2026-10-26 21:48:06.096576 DEBUG BF_PORT SDS: 0:0:131: Error: -1 : turning it off
+2026-10-26 21:48:06.096588 DEBUG BF_PORT SDS: 0:0:132: Error: -1 : setting initial state
+2026-10-26 21:48:06.096600 DEBUG BF_PORT SDS: 0:0:132: Error: -1 : turning it off
+2026-10-26 21:48:06.096612 DEBUG BF_PORT SDS: 0:0:133: Error: -1 : setting initial state
+2026-10-26 21:48:06.096624 DEBUG BF_PORT SDS: 0:0:133: Error: -1 : turning it off
+2026-10-26 21:48:06.096636 DEBUG BF_PORT SDS: 0:0:134: Error: -1 : setting initial state
+2026-10-26 21:48:06.096648 DEBUG BF_PORT SDS: 0:0:134: Error: -1 : turning it off
+2026-10-26 21:48:06.096660 DEBUG BF_PORT SDS: 0:0:135: Error: -1 : setting initial state
+2026-10-26 21:48:06.096672 DEBUG BF_PORT SDS: 0:0:135: Error: -1 : turning it off
+2026-10-26 21:48:06.096684 DEBUG BF_PORT SDS: 0:0:136: Error: -1 : setting initial state
+2026-10-26 21:48:06.096695 DEBUG BF_PORT SDS: 0:0:136: Error: -1 : turning it off
+2026-10-26 21:48:06.096707 DEBUG BF_PORT SDS: 0:0:137: Error: -1 : setting initial state
+2026-10-26 21:48:06.096719 DEBUG BF_PORT SDS: 0:0:137: Error: -1 : turning it off
+2026-10-26 21:48:06.096731 DEBUG BF_PORT SDS: 0:0:138: Error: -1 : setting initial state
+2026-10-26 21:48:06.096743 DEBUG BF_PORT SDS: 0:0:138: Error: -1 : turning it off
+2026-10-26 21:48:06.096756 DEBUG BF_PORT SDS: 0:0:139: Error: -1 : setting initial state
+2026-10-26 21:48:06.096767 DEBUG BF_PORT SDS: 0:0:139: Error: -1 : turning it off
+2026-10-26 21:48:06.096780 DEBUG BF_PORT SDS: 0:0:140: Error: -1 : setting initial state
+2026-10-26 21:48:06.096791 DEBUG BF_PORT SDS: 0:0:140: Error: -1 : turning it off
+2026-10-26 21:48:06.096803 DEBUG BF_PORT SDS: 0:0:141: Error: -1 : setting initial state
+2026-10-26 21:48:06.096815 DEBUG BF_PORT SDS: 0:0:141: Error: -1 : turning it off
+2026-10-26 21:48:06.096828 DEBUG BF_PORT SDS: 0:0:142: Error: -1 : setting initial state
+2026-10-26 21:48:06.096839 DEBUG BF_PORT SDS: 0:0:142: Error: -1 : turning it off
+2026-10-26 21:48:06.096851 DEBUG BF_PORT SDS: 0:0:143: Error: -1 : setting initial state
+2026-10-26 21:48:06.096863 DEBUG BF_PORT SDS: 0:0:143: Error: -1 : turning it off
+2026-10-26 21:48:06.096876 DEBUG BF_PORT SDS: 0:1:1: Error: -1 : setting initial state
+2026-10-26 21:48:06.096888 DEBUG BF_PORT SDS: 0:1:1: Error: -1 : turning it off
+2026-10-26 21:48:06.096901 DEBUG BF_PORT SDS: 0:1:2: Error: -1 : setting initial state
+2026-10-26 21:48:06.096912 DEBUG BF_PORT SDS: 0:1:2: Error: -1 : turning it off
+2026-10-26 21:48:06.096924 DEBUG BF_PORT SDS: 0:1:3: Error: -1 : setting initial state
+2026-10-26 21:48:06.096942 DEBUG BF_PORT SDS: 0:1:3: Error: -1 : turning it off
+2026-10-26 21:48:06.096955 DEBUG BF_PORT SDS: 0:1:4: Error: -1 : setting initial state
+2026-10-26 21:48:06.096966 DEBUG BF_PORT SDS: 0:1:4: Error: -1 : turning it off
+2026-10-26 21:48:06.096979 DEBUG BF_PORT SDS: 0:1:5: Error: -1 : setting initial state
+2026-10-26 21:48:06.096991 DEBUG BF_PORT SDS: 0:1:5: Error: -1 : turning it off
+2026-10-26 21:48:06.097003 DEBUG BF_PORT SDS: 0:1:6: Error: -1 : setting initial state
+2026-10-26 21:48:06.097015 DEBUG BF_PORT SDS: 0:1:6: Error: -1 : turning it off
+2026-10-26 21:48:06.097027 DEBUG BF_PORT SDS: 0:1:7: Error: -1 : setting initial state
+2026-10-26 21:48:06.097039 DEBUG BF_PORT SDS: 0:1:7: Error: -1 : turning it off
+2026-10-26 21:48:06.097051 DEBUG BF_PORT SDS: 0:1:8: Error: -1 : setting initial state
+2026-10-26 21:48:06.097062 DEBUG BF_PORT SDS: 0:1:8: Error: -1 : turning it off
+2026-10-26 21:48:06.097075 DEBUG BF_PORT SDS: 0:1:9: Error: -1 : setting initial state
+2026-10-26 21:48:06.097086 DEBUG BF_PORT SDS: 0:1:9: Error: -1 : turning it off
+2026-10-26 21:48:06.097098 DEBUG BF_PORT SDS: 0:1:10: Error: -1 : setting initial state
+2026-10-26 21:48:06.097110 DEBUG BF_PORT SDS: 0:1:10: Error: -1 : turning it off
+2026-10-26 21:48:06.097122 DEBUG BF_PORT SDS: 0:1:11: Error: -1 : setting initial state
+2026-10-26 21:48:06.097134 DEBUG BF_PORT SDS: 0:1:11: Error: -1 : turning it off
+2026-10-26 21:48:06.097146 DEBUG BF_PORT SDS: 0:1:12: Error: -1 : setting initial state
+2026-10-26 21:48:06.097158 DEBUG BF_PORT SDS: 0:1:12: Error: -1 : turning it off
+2026-10-26 21:48:06.097170 DEBUG BF_PORT SDS: 0:1:13: Error: -1 : setting initial state
+2026-10-26 21:48:06.097182 DEBUG BF_PORT SDS: 0:1:13: Error: -1 : turning it off
+2026-10-26 21:48:06.097195 DEBUG BF_PORT SDS: 0:1:14: Error: -1 : setting initial state
+2026-10-26 21:48:06.097206 DEBUG BF_PORT SDS: 0:1:14: Error: -1 : turning it off
+2026-10-26 21:48:06.097218 DEBUG BF_PORT SDS: 0:1:15: Error: -1 : setting initial state
+2026-10-26 21:48:06.097230 DEBUG BF_PORT SDS: 0:1:15: Error: -1 : turning it off
+2026-10-26 21:48:06.097242 DEBUG BF_PORT SDS: 0:1:16: Error: -1 : setting initial state
+2026-10-26 21:48:06.097254 DEBUG BF_PORT SDS: 0:1:16: Error: -1 : turning it off
+2026-10-26 21:48:06.097266 DEBUG BF_PORT SDS: 0:1:17: Error: -1 : setting initial state
+2026-10-26 21:48:06.097278 DEBUG BF_PORT SDS: 0:1:17: Error: -1 : turning it off
+2026-10-26 21:48:06.097291 DEBUG BF_PORT SDS: 0:1:18: Error: -1 : setting initial state
+2026-10-26 21:48:06.097302 DEBUG BF_PORT SDS: 0:1:18: Error: -1 : turning it off
+2026-10-26 21:48:06.097314 DEBUG BF_PORT SDS: 0:1:19: Error: -1 : setting initial state
+2026-10-26 21:48:06.097326 DEBUG BF_PORT SDS: 0:1:19: Error: -1 : turning it off
+2026-10-26 21:48:06.097338 DEBUG BF_PORT SDS: 0:1:20: Error: -1 : setting initial state
+2026-10-26 21:48:06.097349 DEBUG BF_PORT SDS: 0:1:20: Error: -1 : turning it off
+2026-10-26 21:48:06.097362 DEBUG BF_PORT SDS: 0:1:21: Error: -1 : setting initial state
+2026-10-26 21:48:06.097374 DEBUG BF_PORT SDS: 0:1:21: Error: -1 : turning it off
+2026-10-26 21:48:06.097386 DEBUG BF_PORT SDS: 0:1:22: Error: -1 : setting initial state
+2026-10-26 21:48:06.097398 DEBUG BF_PORT SDS: 0:1:22: Error: -1 : turning it off
+2026-10-26 21:48:06.097410 DEBUG BF_PORT SDS: 0:1:23: Error: -1 : setting initial state
+2026-10-26 21:48:06.097422 DEBUG BF_PORT SDS: 0:1:23: Error: -1 : turning it off
+2026-10-26 21:48:06.097434 DEBUG BF_PORT SDS: 0:1:24: Error: -1 : setting initial state
+2026-10-26 21:48:06.097445 DEBUG BF_PORT SDS: 0:1:24: Error: -1 : turning it off
+2026-10-26 21:48:06.097458 DEBUG BF_PORT SDS: 0:1:25: Error: -1 : setting initial state
+2026-10-26 21:48:06.097482 DEBUG BF_PORT SDS: 0:1:25: Error: -1 : turning it off
+2026-10-26 21:48:06.097498 DEBUG BF_PORT SDS: 0:1:26: Error: -1 : setting initial state
+2026-10-26 21:48:06.097509 DEBUG BF_PORT SDS: 0:1:26: Error: -1 : turning it off
+2026-10-26 21:48:06.097521 DEBUG BF_PORT SDS: 0:1:27: Error: -1 : setting initial state
+2026-10-26 21:48:06.097533 DEBUG BF_PORT SDS: 0:1:27: Error: -1 : turning it off
+2026-10-26 21:48:06.097556 DEBUG BF_PORT SDS: 0:1:28: Error: -1 : setting initial state
+2026-10-26 21:48:06.097567 DEBUG BF_PORT SDS: 0:1:28: Error: -1 : turning it off
+2026-10-26 21:48:06.097581 DEBUG BF_PORT SDS: 0:1:29: Error: -1 : setting initial state
+2026-10-26 21:48:06.097593 DEBUG BF_PORT SDS: 0:1:29: Error: -1 : turning it off
+2026-10-26 21:48:06.097605 DEBUG BF_PORT SDS: 0:1:30: Error: -1 : setting initial state
+2026-10-26 21:48:06.097617 DEBUG BF_PORT SDS: 0:1:30: Error: -1 : turning it off
+2026-10-26 21:48:06.097629 DEBUG BF_PORT SDS: 0:1:31: Error: -1 : setting initial state
+2026-10-26 21:48:06.097641 DEBUG BF_PORT SDS: 0:1:31: Error: -1 : turning it off
+2026-10-26 21:48:06.097653 DEBUG BF_PORT SDS: 0:1:32: Error: -1 : setting initial state
+2026-10-26 21:48:06.097664 DEBUG BF_PORT SDS: 0:1:32: Error: -1 : turning it off
+2026-10-26 21:48:06.097677 DEBUG BF_PORT SDS: 0:1:34: Error: -1 : setting initial state
+2026-10-26 21:48:06.097689 DEBUG BF_PORT SDS: 0:1:34: Error: -1 : turning it off
+2026-10-26 21:48:06.097701 DEBUG BF_PORT SDS: 0:1:35: Error: -1 : setting initial state
+2026-10-26 21:48:06.097712 DEBUG BF_PORT SDS: 0:1:35: Error: -1 : turning it off
+2026-10-26 21:48:06.097725 DEBUG BF_PORT SDS: 0:1:36: Error: -1 : setting initial state
+2026-10-26 21:48:06.097736 DEBUG BF_PORT SDS: 0:1:36: Error: -1 : turning it off
+2026-10-26 21:48:06.097748 DEBUG BF_PORT SDS: 0:1:37: Error: -1 : setting initial state
+2026-10-26 21:48:06.097760 DEBUG BF_PORT SDS: 0:1:37: Error: -1 : turning it off
+2026-10-26 21:48:06.097773 DEBUG BF_PORT SDS: 0:1:38: Error: -1 : setting initial state
+2026-10-26 21:48:06.097785 DEBUG BF_PORT SDS: 0:1:38: Error: -1 : turning it off
+2026-10-26 21:48:06.097797 DEBUG BF_PORT SDS: 0:1:39: Error: -1 : setting initial state
+2026-10-26 21:48:06.097809 DEBUG BF_PORT SDS: 0:1:39: Error: -1 : turning it off
+2026-10-26 21:48:06.097821 DEBUG BF_PORT SDS: 0:1:40: Error: -1 : setting initial state
+2026-10-26 21:48:06.097833 DEBUG BF_PORT SDS: 0:1:40: Error: -1 : turning it off
+2026-10-26 21:48:06.097845 DEBUG BF_PORT SDS: 0:1:41: Error: -1 : setting initial state
+2026-10-26 21:48:06.097857 DEBUG BF_PORT SDS: 0:1:41: Error: -1 : turning it off
+2026-10-26 21:48:06.097869 DEBUG BF_PORT SDS: 0:1:42: Error: -1 : setting initial state
+2026-10-26 21:48:06.097881 DEBUG BF_PORT SDS: 0:1:42: Error: -1 : turning it off
+2026-10-26 21:48:06.097893 DEBUG BF_PORT SDS: 0:1:43: Error: -1 : setting initial state
+2026-10-26 21:48:06.097904 DEBUG BF_PORT SDS: 0:1:43: Error: -1 : turning it off
+2026-10-26 21:48:06.097917 DEBUG BF_PORT SDS: 0:1:44: Error: -1 : setting initial state
+2026-10-26 21:48:06.097928 DEBUG BF_PORT SDS: 0:1:44: Error: -1 : turning it off
+2026-10-26 21:48:06.097941 DEBUG BF_PORT SDS: 0:1:45: Error: -1 : setting initial state
+2026-10-26 21:48:06.097953 DEBUG BF_PORT SDS: 0:1:45: Error: -1 : turning it off
+2026-10-26 21:48:06.097965 DEBUG BF_PORT SDS: 0:1:46: Error: -1 : setting initial state
+2026-10-26 21:48:06.097977 DEBUG BF_PORT SDS: 0:1:46: Error: -1 : turning it off
+2026-10-26 21:48:06.097989 DEBUG BF_PORT SDS: 0:1:47: Error: -1 : setting initial state
+2026-10-26 21:48:06.098001 DEBUG BF_PORT SDS: 0:1:47: Error: -1 : turning it off
+2026-10-26 21:48:06.098014 DEBUG BF_PORT SDS: 0:1:48: Error: -1 : setting initial state
+2026-10-26 21:48:06.098025 DEBUG BF_PORT SDS: 0:1:48: Error: -1 : turning it off
+2026-10-26 21:48:06.098037 DEBUG BF_PORT SDS: 0:1:49: Error: -1 : setting initial state
+2026-10-26 21:48:06.098049 DEBUG BF_PORT SDS: 0:1:49: Error: -1 : turning it off
+2026-10-26 21:48:06.098061 DEBUG BF_PORT SDS: 0:1:50: Error: -1 : setting initial state
+2026-10-26 21:48:06.098073 DEBUG BF_PORT SDS: 0:1:50: Error: -1 : turning it off
+2026-10-26 21:48:06.098085 DEBUG BF_PORT SDS: 0:1:51: Error: -1 : setting initial state
+2026-10-26 21:48:06.098097 DEBUG BF_PORT SDS: 0:1:51: Error: -1 : turning it off
+2026-10-26 21:48:06.098109 DEBUG BF_PORT SDS: 0:1:52: Error: -1 : setting initial state
+2026-10-26 21:48:06.098121 DEBUG BF_PORT SDS: 0:1:52: Error: -1 : turning it off
+2026-10-26 21:48:06.098140 DEBUG BF_PORT SDS: 0:1:53: Error: -1 : setting initial state
+2026-10-26 21:48:06.098151 DEBUG BF_PORT SDS: 0:1:53: Error: -1 : turning it off
+2026-10-26 21:48:06.098164 DEBUG BF_PORT SDS: 0:1:54: Error: -1 : setting initial state
+2026-10-26 21:48:06.098176 DEBUG BF_PORT SDS: 0:1:54: Error: -1 : turning it off
+2026-10-26 21:48:06.098188 DEBUG BF_PORT SDS: 0:1:55: Error: -1 : setting initial state
+2026-10-26 21:48:06.098199 DEBUG BF_PORT SDS: 0:1:55: Error: -1 : turning it off
+2026-10-26 21:48:06.098212 DEBUG BF_PORT SDS: 0:1:56: Error: -1 : setting initial state
+2026-10-26 21:48:06.098224 DEBUG BF_PORT SDS: 0:1:56: Error: -1 : turning it off
+2026-10-26 21:48:06.098236 DEBUG BF_PORT SDS: 0:1:57: Error: -1 : setting initial state
+2026-10-26 21:48:06.098248 DEBUG BF_PORT SDS: 0:1:57: Error: -1 : turning it off
+2026-10-26 21:48:06.098260 DEBUG BF_PORT SDS: 0:1:58: Error: -1 : setting initial state
+2026-10-26 21:48:06.098272 DEBUG BF_PORT SDS: 0:1:58: Error: -1 : turning it off
+2026-10-26 21:48:06.098284 DEBUG BF_PORT SDS: 0:1:59: Error: -1 : setting initial state
+2026-10-26 21:48:06.098295 DEBUG BF_PORT SDS: 0:1:59: Error: -1 : turning it off
+2026-10-26 21:48:06.098308 DEBUG BF_PORT SDS: 0:1:60: Error: -1 : setting initial state
+2026-10-26 21:48:06.098319 DEBUG BF_PORT SDS: 0:1:60: Error: -1 : turning it off
+2026-10-26 21:48:06.098332 DEBUG BF_PORT SDS: 0:1:61: Error: -1 : setting initial state
+2026-10-26 21:48:06.098344 DEBUG BF_PORT SDS: 0:1:61: Error: -1 : turning it off
+2026-10-26 21:48:06.098356 DEBUG BF_PORT SDS: 0:1:62: Error: -1 : setting initial state
+2026-10-26 21:48:06.098368 DEBUG BF_PORT SDS: 0:1:62: Error: -1 : turning it off
+2026-10-26 21:48:06.098380 DEBUG BF_PORT SDS: 0:1:63: Error: -1 : setting initial state
+2026-10-26 21:48:06.098392 DEBUG BF_PORT SDS: 0:1:63: Error: -1 : turning it off
+2026-10-26 21:48:06.098404 DEBUG BF_PORT SDS: 0:1:64: Error: -1 : setting initial state
+2026-10-26 21:48:06.098416 DEBUG BF_PORT SDS: 0:1:64: Error: -1 : turning it off
+2026-10-26 21:48:06.098428 DEBUG BF_PORT SDS: 0:1:65: Error: -1 : setting initial state
+2026-10-26 21:48:06.098440 DEBUG BF_PORT SDS: 0:1:65: Error: -1 : turning it off
+2026-10-26 21:48:06.098453 DEBUG BF_PORT SDS: 0:1:66: Error: -1 : setting initial state
+2026-10-26 21:48:06.098464 DEBUG BF_PORT SDS: 0:1:66: Error: -1 : turning it off
+2026-10-26 21:48:06.098476 DEBUG BF_PORT SDS: 0:1:67: Error: -1 : setting initial state
+2026-10-26 21:48:06.098488 DEBUG BF_PORT SDS: 0:1:67: Error: -1 : turning it off
+2026-10-26 21:48:06.098500 DEBUG BF_PORT SDS: 0:1:68: Error: -1 : setting initial state
+2026-10-26 21:48:06.098513 DEBUG BF_PORT SDS: 0:1:68: Error: -1 : turning it off
+2026-10-26 21:48:06.098525 DEBUG BF_PORT SDS: 0:1:69: Error: -1 : setting initial state
+2026-10-26 21:48:06.098536 DEBUG BF_PORT SDS: 0:1:69: Error: -1 : turning it off
+2026-10-26 21:48:06.098549 DEBUG BF_PORT SDS: 0:1:70: Error: -1 : setting initial state
+2026-10-26 21:48:06.098560 DEBUG BF_PORT SDS: 0:1:70: Error: -1 : turning it off
+2026-10-26 21:48:06.098572 DEBUG BF_PORT SDS: 0:1:71: Error: -1 : setting initial state
+2026-10-26 21:48:06.098584 DEBUG BF_PORT SDS: 0:1:71: Error: -1 : turning it off
+2026-10-26 21:48:06.098596 DEBUG BF_PORT SDS: 0:1:72: Error: -1 : setting initial state
+2026-10-26 21:48:06.098610 DEBUG BF_PORT SDS: 0:1:72: Error: -1 : turning it off
+2026-10-26 21:48:06.098630 DEBUG BF_PORT SDS: 0:1:73: Error: -1 : setting initial state
+2026-10-26 21:48:06.098647 DEBUG BF_PORT SDS: 0:1:73: Error: -1 : turning it off
+2026-10-26 21:48:06.098661 DEBUG BF_PORT SDS: 0:1:74: Error: -1 : setting initial state
+2026-10-26 21:48:06.098673 DEBUG BF_PORT SDS: 0:1:74: Error: -1 : turning it off
+2026-10-26 21:48:06.098685 DEBUG BF_PORT SDS: 0:1:75: Error: -1 : setting initial state
+2026-10-26 21:48:06.098697 DEBUG BF_PORT SDS: 0:1:75: Error: -1 : turning it off
+2026-10-26 21:48:06.098714 DEBUG BF_PORT SDS: 0:1:76: Error: -1 : setting initial state
+2026-10-26 21:48:06.098729 DEBUG BF_PORT SDS: 0:1:76: Error: -1 : turning it off
+2026-10-26 21:48:06.098742 DEBUG BF_PORT SDS: 0:1:77: Error: -1 : setting initial state
+2026-10-26 21:48:06.098761 DEBUG BF_PORT SDS: 0:1:77: Error: -1 : turning it off
+2026-10-26 21:48:06.098774 DEBUG BF_PORT SDS: 0:1:78: Error: -1 : setting initial state
+2026-10-26 21:48:06.098788 DEBUG BF_PORT SDS: 0:1:78: Error: -1 : turning it off
+2026-10-26 21:48:06.098805 DEBUG BF_PORT SDS: 0:1:79: Error: -1 : setting initial state
+2026-10-26 21:48:06.098817 DEBUG BF_PORT SDS: 0:1:79: Error: -1 : turning it off
+2026-10-26 21:48:06.098829 DEBUG BF_PORT SDS: 0:1:80: Error: -1 : setting initial state
+2026-10-26 21:48:06.098841 DEBUG BF_PORT SDS: 0:1:80: Error: -1 : turning it off
+2026-10-26 21:48:06.098853 DEBUG BF_PORT SDS: 0:1:81: Error: -1 : setting initial state
+2026-10-26 21:48:06.098866 DEBUG BF_PORT SDS: 0:1:81: Error: -1 : turning it off
+2026-10-26 21:48:06.098884 DEBUG BF_PORT SDS: 0:1:82: Error: -1 : setting initial state
+2026-10-26 21:48:06.098896 DEBUG BF_PORT SDS: 0:1:82: Error: -1 : turning it off
+2026-10-26 21:48:06.098908 DEBUG BF_PORT SDS: 0:1:83: Error: -1 : setting initial state
+2026-10-26 21:48:06.098920 DEBUG BF_PORT SDS: 0:1:83: Error: -1 : turning it off
+2026-10-26 21:48:06.098933 DEBUG BF_PORT SDS: 0:1:84: Error: -1 : setting initial state
+2026-10-26 21:48:06.098946 DEBUG BF_PORT SDS: 0:1:84: Error: -1 : turning it off
+2026-10-26 21:48:06.098963 DEBUG BF_PORT SDS: 0:1:85: Error: -1 : setting initial state
+2026-10-26 21:48:06.098975 DEBUG BF_PORT SDS: 0:1:85: Error: -1 : turning it off
+2026-10-26 21:48:06.098988 DEBUG BF_PORT SDS: 0:1:86: Error: -1 : setting initial state
+2026-10-26 21:48:06.099000 DEBUG BF_PORT SDS: 0:1:86: Error: -1 : turning it off
+2026-10-26 21:48:06.099012 DEBUG BF_PORT SDS: 0:1:87: Error: -1 : setting initial state
+2026-10-26 21:48:06.099025 DEBUG BF_PORT SDS: 0:1:87: Error: -1 : turning it off
+2026-10-26 21:48:06.099043 DEBUG BF_PORT SDS: 0:1:88: Error: -1 : setting initial state
+2026-10-26 21:48:06.099055 DEBUG BF_PORT SDS: 0:1:88: Error: -1 : turning it off
+2026-10-26 21:48:06.099067 DEBUG BF_PORT SDS: 0:1:89: Error: -1 : setting initial state
+2026-10-26 21:48:06.099079 DEBUG BF_PORT SDS: 0:1:89: Error: -1 : turning it off
+2026-10-26 21:48:06.099092 DEBUG BF_PORT SDS: 0:1:90: Error: -1 : setting initial state
+2026-10-26 21:48:06.099104 DEBUG BF_PORT SDS: 0:1:90: Error: -1 : turning it off
+2026-10-26 21:48:06.099121 DEBUG BF_PORT SDS: 0:1:91: Error: -1 : setting initial state
+2026-10-26 21:48:06.099134 DEBUG BF_PORT SDS: 0:1:91: Error: -1 : turning it off
+2026-10-26 21:48:06.099146 DEBUG BF_PORT SDS: 0:1:92: Error: -1 : setting initial state
+2026-10-26 21:48:06.099158 DEBUG BF_PORT SDS: 0:1:92: Error: -1 : turning it off
+2026-10-26 21:48:06.099170 DEBUG BF_PORT SDS: 0:1:93: Error: -1 : setting initial state
+2026-10-26 21:48:06.099182 DEBUG BF_PORT SDS: 0:1:93: Error: -1 : turning it off
+2026-10-26 21:48:06.099200 DEBUG BF_PORT SDS: 0:1:94: Error: -1 : setting initial state
+2026-10-26 21:48:06.099213 DEBUG BF_PORT SDS: 0:1:94: Error: -1 : turning it off
+2026-10-26 21:48:06.099225 DEBUG BF_PORT SDS: 0:1:95: Error: -1 : setting initial state
+2026-10-26 21:48:06.099237 DEBUG BF_PORT SDS: 0:1:95: Error: -1 : turning it off
+2026-10-26 21:48:06.099249 DEBUG BF_PORT SDS: 0:1:96: Error: -1 : setting initial state
+2026-10-26 21:48:06.099261 DEBUG BF_PORT SDS: 0:1:96: Error: -1 : turning it off
+2026-10-26 21:48:06.099279 DEBUG BF_PORT SDS: 0:1:97: Error: -1 : setting initial state
+2026-10-26 21:48:06.099291 DEBUG BF_PORT SDS: 0:1:97: Error: -1 : turning it off
+2026-10-26 21:48:06.099304 DEBUG BF_PORT SDS: 0:1:98: Error: -1 : setting initial state
+2026-10-26 21:48:06.099316 DEBUG BF_PORT SDS: 0:1:98: Error: -1 : turning it off
+2026-10-26 21:48:06.099328 DEBUG BF_PORT SDS: 0:1:99: Error: -1 : setting initial state
+2026-10-26 21:48:06.099340 DEBUG BF_PORT SDS: 0:1:99: Error: -1 : turning it off
+2026-10-26 21:48:06.099357 DEBUG BF_PORT SDS: 0:1:100: Error: -1 : setting initial state
+2026-10-26 21:48:06.099370 DEBUG BF_PORT SDS: 0:1:100: Error: -1 : turning it off
+2026-10-26 21:48:06.099383 DEBUG BF_PORT SDS: 0:1:101: Error: -1 : setting initial state
+2026-10-26 21:48:06.099402 DEBUG BF_PORT SDS: 0:1:101: Error: -1 : turning it off
+2026-10-26 21:48:06.099415 DEBUG BF_PORT SDS: 0:1:102: Error: -1 : setting initial state
+2026-10-26 21:48:06.099429 DEBUG BF_PORT SDS: 0:1:102: Error: -1 : turning it off
+2026-10-26 21:48:06.099446 DEBUG BF_PORT SDS: 0:1:103: Error: -1 : setting initial state
+2026-10-26 21:48:06.099458 DEBUG BF_PORT SDS: 0:1:103: Error: -1 : turning it off
+2026-10-26 21:48:06.099471 DEBUG BF_PORT SDS: 0:1:104: Error: -1 : setting initial state
+2026-10-26 21:48:06.099482 DEBUG BF_PORT SDS: 0:1:104: Error: -1 : turning it off
+2026-10-26 21:48:06.099494 DEBUG BF_PORT SDS: 0:1:105: Error: -1 : setting initial state
+2026-10-26 21:48:06.099508 DEBUG BF_PORT SDS: 0:1:105: Error: -1 : turning it off
+2026-10-26 21:48:06.099525 DEBUG BF_PORT SDS: 0:1:106: Error: -1 : setting initial state
+2026-10-26 21:48:06.099537 DEBUG BF_PORT SDS: 0:1:106: Error: -1 : turning it off
+2026-10-26 21:48:06.099550 DEBUG BF_PORT SDS: 0:1:107: Error: -1 : setting initial state
+2026-10-26 21:48:06.099561 DEBUG BF_PORT SDS: 0:1:107: Error: -1 : turning it off
+2026-10-26 21:48:06.099573 DEBUG BF_PORT SDS: 0:1:108: Error: -1 : setting initial state
+2026-10-26 21:48:06.099587 DEBUG BF_PORT SDS: 0:1:108: Error: -1 : turning it off
+2026-10-26 21:48:06.099604 DEBUG BF_PORT SDS: 0:1:109: Error: -1 : setting initial state
+2026-10-26 21:48:06.099616 DEBUG BF_PORT SDS: 0:1:109: Error: -1 : turning it off
+2026-10-26 21:48:06.099628 DEBUG BF_PORT SDS: 0:1:110: Error: -1 : setting initial state
+2026-10-26 21:48:06.099640 DEBUG BF_PORT SDS: 0:1:110: Error: -1 : turning it off
+2026-10-26 21:48:06.099652 DEBUG BF_PORT SDS: 0:1:111: Error: -1 : setting initial state
+2026-10-26 21:48:06.099665 DEBUG BF_PORT SDS: 0:1:111: Error: -1 : turning it off
+2026-10-26 21:48:06.099683 DEBUG BF_PORT SDS: 0:1:112: Error: -1 : setting initial state
+2026-10-26 21:48:06.099695 DEBUG BF_PORT SDS: 0:1:112: Error: -1 : turning it off
+2026-10-26 21:48:06.099707 DEBUG BF_PORT SDS: 0:1:113: Error: -1 : setting initial state
+2026-10-26 21:48:06.099719 DEBUG BF_PORT SDS: 0:1:113: Error: -1 : turning it off
+2026-10-26 21:48:06.099732 DEBUG BF_PORT SDS: 0:1:114: Error: -1 : setting initial state
+2026-10-26 21:48:06.099743 DEBUG BF_PORT SDS: 0:1:114: Error: -1 : turning it off
+2026-10-26 21:48:06.099762 DEBUG BF_PORT SDS: 0:1:115: Error: -1 : setting initial state
+2026-10-26 21:48:06.099775 DEBUG BF_PORT SDS: 0:1:115: Error: -1 : turning it off
+2026-10-26 21:48:06.099787 DEBUG BF_PORT SDS: 0:1:116: Error: -1 : setting initial state
+2026-10-26 21:48:06.099799 DEBUG BF_PORT SDS: 0:1:116: Error: -1 : turning it off
+2026-10-26 21:48:06.099811 DEBUG BF_PORT SDS: 0:1:117: Error: -1 : setting initial state
+2026-10-26 21:48:06.099822 DEBUG BF_PORT SDS: 0:1:117: Error: -1 : turning it off
+2026-10-26 21:48:06.099841 DEBUG BF_PORT SDS: 0:1:118: Error: -1 : setting initial state
+2026-10-26 21:48:06.099853 DEBUG BF_PORT SDS: 0:1:118: Error: -1 : turning it off
+2026-10-26 21:48:06.099866 DEBUG BF_PORT SDS: 0:1:119: Error: -1 : setting initial state
+2026-10-26 21:48:06.099877 DEBUG BF_PORT SDS: 0:1:119: Error: -1 : turning it off
+2026-10-26 21:48:06.099890 DEBUG BF_PORT SDS: 0:1:120: Error: -1 : setting initial state
+2026-10-26 21:48:06.099901 DEBUG BF_PORT SDS: 0:1:120: Error: -1 : turning it off
+2026-10-26 21:48:06.099919 DEBUG BF_PORT SDS: 0:1:121: Error: -1 : setting initial state
+2026-10-26 21:48:06.099932 DEBUG BF_PORT SDS: 0:1:121: Error: -1 : turning it off
+2026-10-26 21:48:06.099945 DEBUG BF_PORT SDS: 0:1:122: Error: -1 : setting initial state
+2026-10-26 21:48:06.099957 DEBUG BF_PORT SDS: 0:1:122: Error: -1 : turning it off
+2026-10-26 21:48:06.099969 DEBUG BF_PORT SDS: 0:1:123: Error: -1 : setting initial state
+2026-10-26 21:48:06.099981 DEBUG BF_PORT SDS: 0:1:123: Error: -1 : turning it off
+2026-10-26 21:48:06.099998 DEBUG BF_PORT SDS: 0:1:124: Error: -1 : setting initial state
+2026-10-26 21:48:06.100012 DEBUG BF_PORT SDS: 0:1:124: Error: -1 : turning it off
+2026-10-26 21:48:06.100024 DEBUG BF_PORT SDS: 0:1:125: Error: -1 : setting initial state
+2026-10-26 21:48:06.100043 DEBUG BF_PORT SDS: 0:1:125: Error: -1 : turning it off
+2026-10-26 21:48:06.100056 DEBUG BF_PORT SDS: 0:1:126: Error: -1 : setting initial state
+2026-10-26 21:48:06.100070 DEBUG BF_PORT SDS: 0:1:126: Error: -1 : turning it off
+2026-10-26 21:48:06.100087 DEBUG BF_PORT SDS: 0:1:127: Error: -1 : setting initial state
+2026-10-26 21:48:06.100099 DEBUG BF_PORT SDS: 0:1:127: Error: -1 : turning it off
+2026-10-26 21:48:06.100111 DEBUG BF_PORT SDS: 0:1:128: Error: -1 : setting initial state
+2026-10-26 21:48:06.100123 DEBUG BF_PORT SDS: 0:1:128: Error: -1 : turning it off
+2026-10-26 21:48:06.100135 DEBUG BF_PORT SDS: 0:1:129: Error: -1 : setting initial state
+2026-10-26 21:48:06.100148 DEBUG BF_PORT SDS: 0:1:129: Error: -1 : turning it off
+2026-10-26 21:48:06.930653 INFO  BF_MC Allocated RDM addresses 0x200 - 0x303
+2026-10-26 21:48:06.930696 INFO  BF_MC Write LAG node at addr 0x200 with id 255 and next node 0x201 0x0000_00000000ff00201c
+2026-10-26 21:48:06.930703 INFO  BF_MC Write LAG node at addr 0x201 with id 255 and next node 0x202 0x00ff_00202c00ff00201c
+2026-10-26 21:48:06.930709 INFO  BF_MC Write LAG node at addr 0x202 with id 255 and next node 0x203 0x0000_00000000ff00203c
+2026-10-26 21:48:06.930714 INFO  BF_MC Write LAG node at addr 0x203 with id 255 and next node 0x204 0x00ff_00204c00ff00203c
+2026-10-26 21:48:06.930720 INFO  BF_MC Write LAG node at addr 0x204 with id 255 and next node 0x205 0x0000_00000000ff00205c
+2026-10-26 21:48:06.930725 INFO  BF_MC Write LAG node at addr 0x205 with id 255 and next node 0x206 0x00ff_00206c00ff00205c
+2026-10-26 21:48:06.930730 INFO  BF_MC Write LAG node at addr 0x206 with id 255 and next node 0x207 0x0000_00000000ff00207c
+2026-10-26 21:48:06.930735 INFO  BF_MC Write LAG node at addr 0x207 with id 255 and next node 0x208 0x00ff_00208c00ff00207c
+2026-10-26 21:48:06.930741 INFO  BF_MC Write LAG node at addr 0x208 with id 255 and next node 0x209 0x0000_00000000ff00209c
+2026-10-26 21:48:06.930746 INFO  BF_MC Write LAG node at addr 0x209 with id 255 and next node 0x20a 0x00ff_0020ac00ff00209c
+2026-10-26 21:48:06.930751 INFO  BF_MC Write LAG node at addr 0x20a with id 255 and next node 0x20b 0x0000_00000000ff0020bc
+2026-10-26 21:48:06.930756 INFO  BF_MC Write LAG node at addr 0x20b with id 255 and next node 0x20c 0x00ff_0020cc00ff0020bc
+2026-10-26 21:48:06.930762 INFO  BF_MC Write LAG node at addr 0x20c with id 255 and next node 0x20d 0x0000_00000000ff0020dc
+2026-10-26 21:48:06.930767 INFO  BF_MC Write LAG node at addr 0x20d with id 255 and next node 0x20e 0x00ff_0020ec00ff0020dc
+2026-10-26 21:48:06.930772 INFO  BF_MC Write LAG node at addr 0x20e with id 255 and next node 0x20f 0x0000_00000000ff0020fc
+2026-10-26 21:48:06.930778 INFO  BF_MC Write LAG node at addr 0x20f with id 255 and next node 0x210 0x00ff_00210c00ff0020fc
+2026-10-26 21:48:06.930783 INFO  BF_MC Write LAG node at addr 0x210 with id 255 and next node 0x211 0x0000_00000000ff00211c
+2026-10-26 21:48:06.930789 INFO  BF_MC Write LAG node at addr 0x211 with id 255 and next node 0x212 0x00ff_00212c00ff00211c
+2026-10-26 21:48:06.930794 INFO  BF_MC Write LAG node at addr 0x212 with id 255 and next node 0x213 0x0000_00000000ff00213c
+2026-10-26 21:48:06.930799 INFO  BF_MC Write LAG node at addr 0x213 with id 255 and next node 0x214 0x00ff_00214c00ff00213c
+2026-10-26 21:48:06.930804 INFO  BF_MC Write LAG node at addr 0x214 with id 255 and next node 0x215 0x0000_00000000ff00215c
+2026-10-26 21:48:06.930810 INFO  BF_MC Write LAG node at addr 0x215 with id 255 and next node 0x216 0x00ff_00216c00ff00215c
+2026-10-26 21:48:06.930815 INFO  BF_MC Write LAG node at addr 0x216 with id 255 and next node 0x217 0x0000_00000000ff00217c
+2026-10-26 21:48:06.930820 INFO  BF_MC Write LAG node at addr 0x217 with id 255 and next node 0x218 0x00ff_00218c00ff00217c
+2026-10-26 21:48:06.930825 INFO  BF_MC Write LAG node at addr 0x218 with id 255 and next node 0x219 0x0000_00000000ff00219c
+2026-10-26 21:48:06.930831 INFO  BF_MC Write LAG node at addr 0x219 with id 255 and next node 0x21a 0x00ff_0021ac00ff00219c
+2026-10-26 21:48:06.930836 INFO  BF_MC Write LAG node at addr 0x21a with id 255 and next node 0x21b 0x0000_00000000ff0021bc
+2026-10-26 21:48:06.930847 INFO  BF_MC Write LAG node at addr 0x21b with id 255 and next node 0x21c 0x00ff_0021cc00ff0021bc
+2026-10-26 21:48:06.930853 INFO  BF_MC Write LAG node at addr 0x21c with id 255 and next node 0x21d 0x0000_00000000ff0021dc
+2026-10-26 21:48:06.930858 INFO  BF_MC Write LAG node at addr 0x21d with id 255 and next node 0x21e 0x00ff_0021ec00ff0021dc
+2026-10-26 21:48:06.930863 INFO  BF_MC Write LAG node at addr 0x21e with id 255 and next node 0x21f 0x0000_00000000ff0021fc
+2026-10-26 21:48:06.930868 INFO  BF_MC Write LAG node at addr 0x21f with id 255 and next node 0x220 0x00ff_00220c00ff0021fc
+2026-10-26 21:48:06.930874 INFO  BF_MC Write LAG node at addr 0x220 with id 255 and next node 0x221 0x0000_00000000ff00221c
+2026-10-26 21:48:06.930880 INFO  BF_MC Write LAG node at addr 0x221 with id 255 and next node 0x222 0x00ff_00222c00ff00221c
+2026-10-26 21:48:06.930885 INFO  BF_MC Write LAG node at addr 0x222 with id 255 and next node 0x223 0x0000_00000000ff00223c
+2026-10-26 21:48:06.930890 INFO  BF_MC Write LAG node at addr 0x223 with id 255 and next node 0x224 0x00ff_00224c00ff00223c
+2026-10-26 21:48:06.930895 INFO  BF_MC Write LAG node at addr 0x224 with id 255 and next node 0x225 0x0000_00000000ff00225c
+2026-10-26 21:48:06.930900 INFO  BF_MC Write LAG node at addr 0x225 with id 255 and next node 0x226 0x00ff_00226c00ff00225c
+2026-10-26 21:48:06.930906 INFO  BF_MC Write LAG node at addr 0x226 with id 255 and next node 0x227 0x0000_00000000ff00227c
+2026-10-26 21:48:06.930911 INFO  BF_MC Write LAG node at addr 0x227 with id 255 and next node 0x228 0x00ff_00228c00ff00227c
+2026-10-26 21:48:06.930916 INFO  BF_MC Write LAG node at addr 0x228 with id 255 and next node 0x229 0x0000_00000000ff00229c
+2026-10-26 21:48:06.930921 INFO  BF_MC Write LAG node at addr 0x229 with id 255 and next node 0x22a 0x00ff_0022ac00ff00229c
+2026-10-26 21:48:06.930926 INFO  BF_MC Write LAG node at addr 0x22a with id 255 and next node 0x22b 0x0000_00000000ff0022bc
+2026-10-26 21:48:06.930931 INFO  BF_MC Write LAG node at addr 0x22b with id 255 and next node 0x22c 0x00ff_0022cc00ff0022bc
+2026-10-26 21:48:06.930937 INFO  BF_MC Write LAG node at addr 0x22c with id 255 and next node 0x22d 0x0000_00000000ff0022dc
+2026-10-26 21:48:06.930942 INFO  BF_MC Write LAG node at addr 0x22d with id 255 and next node 0x22e 0x00ff_0022ec00ff0022dc
+2026-10-26 21:48:06.930947 INFO  BF_MC Write LAG node at addr 0x22e with id 255 and next node 0x22f 0x0000_00000000ff0022fc
+2026-10-26 21:48:06.930952 INFO  BF_MC Write LAG node at addr 0x22f with id 255 and next node 0x230 0x00ff_00230c00ff0022fc
+2026-10-26 21:48:06.930957 INFO  BF_MC Write LAG node at addr 0x230 with id 255 and next node 0x231 0x0000_00000000ff00231c
+2026-10-26 21:48:06.930963 INFO  BF_MC Write LAG node at addr 0x231 with id 255 and next node 0x232 0x00ff_00232c00ff00231c
+2026-10-26 21:48:06.930968 INFO  BF_MC Write LAG node at addr 0x232 with id 255 and next node 0x233 0x0000_00000000ff00233c
+2026-10-26 21:48:06.930973 INFO  BF_MC Write LAG node at addr 0x233 with id 255 and next node 0x234 0x00ff_00234c00ff00233c
+2026-10-26 21:48:06.930978 INFO  BF_MC Write LAG node at addr 0x234 with id 255 and next node 0x235 0x0000_00000000ff00235c
+2026-10-26 21:48:06.930983 INFO  BF_MC Write LAG node at addr 0x235 with id 255 and next node 0x236 0x00ff_00236c00ff00235c
+2026-10-26 21:48:06.930989 INFO  BF_MC Write LAG node at addr 0x236 with id 255 and next node 0x237 0x0000_00000000ff00237c
+2026-10-26 21:48:06.930994 INFO  BF_MC Write LAG node at addr 0x237 with id 255 and next node 0x238 0x00ff_00238c00ff00237c
+2026-10-26 21:48:06.930999 INFO  BF_MC Write LAG node at addr 0x238 with id 255 and next node 0x239 0x0000_00000000ff00239c
+2026-10-26 21:48:06.931004 INFO  BF_MC Write LAG node at addr 0x239 with id 255 and next node 0x23a 0x00ff_0023ac00ff00239c
+2026-10-26 21:48:06.931009 INFO  BF_MC Write LAG node at addr 0x23a with id 255 and next node 0x23b 0x0000_00000000ff0023bc
+2026-10-26 21:48:06.931015 INFO  BF_MC Write LAG node at addr 0x23b with id 255 and next node 0x23c 0x00ff_0023cc00ff0023bc
+2026-10-26 21:48:06.931023 INFO  BF_MC Write LAG node at addr 0x23c with id 255 and next node 0x23d 0x0000_00000000ff0023dc
+2026-10-26 21:48:06.931028 INFO  BF_MC Write LAG node at addr 0x23d with id 255 and next node 0x23e 0x00ff_0023ec00ff0023dc
+2026-10-26 21:48:06.931033 INFO  BF_MC Write LAG node at addr 0x23e with id 255 and next node 0x23f 0x0000_00000000ff0023fc
+2026-10-26 21:48:06.931039 INFO  BF_MC Write LAG node at addr 0x23f with id 255 and next node 0x240 0x00ff_00240c00ff0023fc
+2026-10-26 21:48:06.931044 INFO  BF_MC Write LAG node at addr 0x240 with id 255 and next node 0x241 0x0000_00000000ff00241c
+2026-10-26 21:48:06.931049 INFO  BF_MC Write LAG node at addr 0x241 with id 255 and next node 0x242 0x00ff_00242c00ff00241c
+2026-10-26 21:48:06.931054 INFO  BF_MC Write LAG node at addr 0x242 with id 255 and next node 0x243 0x0000_00000000ff00243c
+2026-10-26 21:48:06.931059 INFO  BF_MC Write LAG node at addr 0x243 with id 255 and next node 0x244 0x00ff_00244c00ff00243c
+2026-10-26 21:48:06.931064 INFO  BF_MC Write LAG node at addr 0x244 with id 255 and next node 0x245 0x0000_00000000ff00245c
+2026-10-26 21:48:06.931070 INFO  BF_MC Write LAG node at addr 0x245 with id 255 and next node 0x246 0x00ff_00246c00ff00245c
+2026-10-26 21:48:06.931075 INFO  BF_MC Write LAG node at addr 0x246 with id 255 and next node 0x247 0x0000_00000000ff00247c
+2026-10-26 21:48:06.931080 INFO  BF_MC Write LAG node at addr 0x247 with id 255 and next node 0x248 0x00ff_00248c00ff00247c
+2026-10-26 21:48:06.931085 INFO  BF_MC Write LAG node at addr 0x248 with id 255 and next node 0x249 0x0000_00000000ff00249c
+2026-10-26 21:48:06.931090 INFO  BF_MC Write LAG node at addr 0x249 with id 255 and next node 0x24a 0x00ff_0024ac00ff00249c
+2026-10-26 21:48:06.931096 INFO  BF_MC Write LAG node at addr 0x24a with id 255 and next node 0x24b 0x0000_00000000ff0024bc
+2026-10-26 21:48:06.931101 INFO  BF_MC Write LAG node at addr 0x24b with id 255 and next node 0x24c 0x00ff_0024cc00ff0024bc
+2026-10-26 21:48:06.931106 INFO  BF_MC Write LAG node at addr 0x24c with id 255 and next node 0x24d 0x0000_00000000ff0024dc
+2026-10-26 21:48:06.931111 INFO  BF_MC Write LAG node at addr 0x24d with id 255 and next node 0x24e 0x00ff_0024ec00ff0024dc
+2026-10-26 21:48:06.931116 INFO  BF_MC Write LAG node at addr 0x24e with id 255 and next node 0x24f 0x0000_00000000ff0024fc
+2026-10-26 21:48:06.931121 INFO  BF_MC Write LAG node at addr 0x24f with id 255 and next node 0x250 0x00ff_00250c00ff0024fc
+2026-10-26 21:48:06.931126 INFO  BF_MC Write LAG node at addr 0x250 with id 255 and next node 0x251 0x0000_00000000ff00251c
+2026-10-26 21:48:06.931131 INFO  BF_MC Write LAG node at addr 0x251 with id 255 and next node 0x252 0x00ff_00252c00ff00251c
+2026-10-26 21:48:06.931137 INFO  BF_MC Write LAG node at addr 0x252 with id 255 and next node 0x253 0x0000_00000000ff00253c
+2026-10-26 21:48:06.931142 INFO  BF_MC Write LAG node at addr 0x253 with id 255 and next node 0x254 0x00ff_00254c00ff00253c
+2026-10-26 21:48:06.931147 INFO  BF_MC Write LAG node at addr 0x254 with id 255 and next node 0x255 0x0000_00000000ff00255c
+2026-10-26 21:48:06.931153 INFO  BF_MC Write LAG node at addr 0x255 with id 255 and next node 0x256 0x00ff_00256c00ff00255c
+2026-10-26 21:48:06.931158 INFO  BF_MC Write LAG node at addr 0x256 with id 255 and next node 0x257 0x0000_00000000ff00257c
+2026-10-26 21:48:06.931163 INFO  BF_MC Write LAG node at addr 0x257 with id 255 and next node 0x258 0x00ff_00258c00ff00257c
+2026-10-26 21:48:06.931168 INFO  BF_MC Write LAG node at addr 0x258 with id 255 and next node 0x259 0x0000_00000000ff00259c
+2026-10-26 21:48:06.931174 INFO  BF_MC Write LAG node at addr 0x259 with id 255 and next node 0x25a 0x00ff_0025ac00ff00259c
+2026-10-26 21:48:06.931179 INFO  BF_MC Write LAG node at addr 0x25a with id 255 and next node 0x25b 0x0000_00000000ff0025bc
+2026-10-26 21:48:06.931184 INFO  BF_MC Write LAG node at addr 0x25b with id 255 and next node 0x25c 0x00ff_0025cc00ff0025bc
+2026-10-26 21:48:06.931189 INFO  BF_MC Write LAG node at addr 0x25c with id 255 and next node 0x25d 0x0000_00000000ff0025dc
+2026-10-26 21:48:06.931197 INFO  BF_MC Write LAG node at addr 0x25d with id 255 and next node 0x25e 0x00ff_0025ec00ff0025dc
+2026-10-26 21:48:06.931202 INFO  BF_MC Write LAG node at addr 0x25e with id 255 and next node 0x25f 0x0000_00000000ff0025fc
+2026-10-26 21:48:06.931208 INFO  BF_MC Write LAG node at addr 0x25f with id 255 and next node 0x260 0x00ff_00260c00ff0025fc
+2026-10-26 21:48:06.931213 INFO  BF_MC Write LAG node at addr 0x260 with id 255 and next node 0x261 0x0000_00000000ff00261c
+2026-10-26 21:48:06.931218 INFO  BF_MC Write LAG node at addr 0x261 with id 255 and next node 0x262 0x00ff_00262c00ff00261c
+2026-10-26 21:48:06.931224 INFO  BF_MC Write LAG node at addr 0x262 with id 255 and next node 0x263 0x0000_00000000ff00263c
+2026-10-26 21:48:06.931229 INFO  BF_MC Write LAG node at addr 0x263 with id 255 and next node 0x264 0x00ff_00264c00ff00263c
+2026-10-26 21:48:06.931234 INFO  BF_MC Write LAG node at addr 0x264 with id 255 and next node 0x265 0x0000_00000000ff00265c
+2026-10-26 21:48:06.931239 INFO  BF_MC Write LAG node at addr 0x265 with id 255 and next node 0x266 0x00ff_00266c00ff00265c
+2026-10-26 21:48:06.931245 INFO  BF_MC Write LAG node at addr 0x266 with id 255 and next node 0x267 0x0000_00000000ff00267c
+2026-10-26 21:48:06.931250 INFO  BF_MC Write LAG node at addr 0x267 with id 255 and next node 0x268 0x00ff_00268c00ff00267c
+2026-10-26 21:48:06.931255 INFO  BF_MC Write LAG node at addr 0x268 with id 255 and next node 0x269 0x0000_00000000ff00269c
+2026-10-26 21:48:06.931260 INFO  BF_MC Write LAG node at addr 0x269 with id 255 and next node 0x26a 0x00ff_0026ac00ff00269c
+2026-10-26 21:48:06.931265 INFO  BF_MC Write LAG node at addr 0x26a with id 255 and next node 0x26b 0x0000_00000000ff0026bc
+2026-10-26 21:48:06.931270 INFO  BF_MC Write LAG node at addr 0x26b with id 255 and next node 0x26c 0x00ff_0026cc00ff0026bc
+2026-10-26 21:48:06.931275 INFO  BF_MC Write LAG node at addr 0x26c with id 255 and next node 0x26d 0x0000_00000000ff0026dc
+2026-10-26 21:48:06.931281 INFO  BF_MC Write LAG node at addr 0x26d with id 255 and next node 0x26e 0x00ff_0026ec00ff0026dc
+2026-10-26 21:48:06.931286 INFO  BF_MC Write LAG node at addr 0x26e with id 255 and next node 0x26f 0x0000_00000000ff0026fc
+2026-10-26 21:48:06.931291 INFO  BF_MC Write LAG node at addr 0x26f with id 255 and next node 0x270 0x00ff_00270c00ff0026fc
+2026-10-26 21:48:06.931297 INFO  BF_MC Write LAG node at addr 0x270 with id 255 and next node 0x271 0x0000_00000000ff00271c
+2026-10-26 21:48:06.931302 INFO  BF_MC Write LAG node at addr 0x271 with id 255 and next node 0x272 0x00ff_00272c00ff00271c
+2026-10-26 21:48:06.931307 INFO  BF_MC Write LAG node at addr 0x272 with id 255 and next node 0x273 0x0000_00000000ff00273c
+2026-10-26 21:48:06.931312 INFO  BF_MC Write LAG node at addr 0x273 with id 255 and next node 0x274 0x00ff_00274c00ff00273c
+2026-10-26 21:48:06.931317 INFO  BF_MC Write LAG node at addr 0x274 with id 255 and next node 0x275 0x0000_00000000ff00275c
+2026-10-26 21:48:06.931322 INFO  BF_MC Write LAG node at addr 0x275 with id 255 and next node 0x276 0x00ff_00276c00ff00275c
+2026-10-26 21:48:06.931328 INFO  BF_MC Write LAG node at addr 0x276 with id 255 and next node 0x277 0x0000_00000000ff00277c
+2026-10-26 21:48:06.931333 INFO  BF_MC Write LAG node at addr 0x277 with id 255 and next node 0x278 0x00ff_00278c00ff00277c
+2026-10-26 21:48:06.931338 INFO  BF_MC Write LAG node at addr 0x278 with id 255 and next node 0x279 0x0000_00000000ff00279c
+2026-10-26 21:48:06.931343 INFO  BF_MC Write LAG node at addr 0x279 with id 255 and next node 0x27a 0x00ff_0027ac00ff00279c
+2026-10-26 21:48:06.931348 INFO  BF_MC Write LAG node at addr 0x27a with id 255 and next node 0x27b 0x0000_00000000ff0027bc
+2026-10-26 21:48:06.931353 INFO  BF_MC Write LAG node at addr 0x27b with id 255 and next node 0x27c 0x00ff_0027cc00ff0027bc
+2026-10-26 21:48:06.931358 INFO  BF_MC Write LAG node at addr 0x27c with id 255 and next node 0x27d 0x0000_00000000ff0027dc
+2026-10-26 21:48:06.931364 INFO  BF_MC Write LAG node at addr 0x27d with id 255 and next node 0x27e 0x00ff_0027ec00ff0027dc
+2026-10-26 21:48:06.931372 INFO  BF_MC Write LAG node at addr 0x27e with id 255 and next node 0x27f 0x0000_00000000ff0027fc
+2026-10-26 21:48:06.931377 INFO  BF_MC Write LAG node at addr 0x27f with id 255 and next node 0x280 0x00ff_00280c00ff0027fc
+2026-10-26 21:48:06.931382 INFO  BF_MC Write LAG node at addr 0x280 with id 255 and next node 0x281 0x0000_00000000ff00281c
+2026-10-26 21:48:06.931388 INFO  BF_MC Write LAG node at addr 0x281 with id 255 and next node 0x282 0x00ff_00282c00ff00281c
+2026-10-26 21:48:06.931393 INFO  BF_MC Write LAG node at addr 0x282 with id 255 and next node 0x283 0x0000_00000000ff00283c
+2026-10-26 21:48:06.931398 INFO  BF_MC Write LAG node at addr 0x283 with id 255 and next node 0x284 0x00ff_00284c00ff00283c
+2026-10-26 21:48:06.931404 INFO  BF_MC Write LAG node at addr 0x284 with id 255 and next node 0x285 0x0000_00000000ff00285c
+2026-10-26 21:48:06.931409 INFO  BF_MC Write LAG node at addr 0x285 with id 255 and next node 0x286 0x00ff_00286c00ff00285c
+2026-10-26 21:48:06.931414 INFO  BF_MC Write LAG node at addr 0x286 with id 255 and next node 0x287 0x0000_00000000ff00287c
+2026-10-26 21:48:06.931419 INFO  BF_MC Write LAG node at addr 0x287 with id 255 and next node 0x288 0x00ff_00288c00ff00287c
+2026-10-26 21:48:06.931424 INFO  BF_MC Write LAG node at addr 0x288 with id 255 and next node 0x289 0x0000_00000000ff00289c
+2026-10-26 21:48:06.931430 INFO  BF_MC Write LAG node at addr 0x289 with id 255 and next node 0x28a 0x00ff_0028ac00ff00289c
+2026-10-26 21:48:06.931435 INFO  BF_MC Write LAG node at addr 0x28a with id 255 and next node 0x28b 0x0000_00000000ff0028bc
+2026-10-26 21:48:06.931440 INFO  BF_MC Write LAG node at addr 0x28b with id 255 and next node 0x28c 0x00ff_0028cc00ff0028bc
+2026-10-26 21:48:06.931445 INFO  BF_MC Write LAG node at addr 0x28c with id 255 and next node 0x28d 0x0000_00000000ff0028dc
+2026-10-26 21:48:06.931450 INFO  BF_MC Write LAG node at addr 0x28d with id 255 and next node 0x28e 0x00ff_0028ec00ff0028dc
+2026-10-26 21:48:06.931455 INFO  BF_MC Write LAG node at addr 0x28e with id 255 and next node 0x28f 0x0000_00000000ff0028fc
+2026-10-26 21:48:06.931460 INFO  BF_MC Write LAG node at addr 0x28f with id 255 and next node 0x290 0x00ff_00290c00ff0028fc
+2026-10-26 21:48:06.931466 INFO  BF_MC Write LAG node at addr 0x290 with id 255 and next node 0x291 0x0000_00000000ff00291c
+2026-10-26 21:48:06.931471 INFO  BF_MC Write LAG node at addr 0x291 with id 255 and next node 0x292 0x00ff_00292c00ff00291c
+2026-10-26 21:48:06.931476 INFO  BF_MC Write LAG node at addr 0x292 with id 255 and next node 0x293 0x0000_00000000ff00293c
+2026-10-26 21:48:06.931482 INFO  BF_MC Write LAG node at addr 0x293 with id 255 and next node 0x294 0x00ff_00294c00ff00293c
+2026-10-26 21:48:06.931487 INFO  BF_MC Write LAG node at addr 0x294 with id 255 and next node 0x295 0x0000_00000000ff00295c
+2026-10-26 21:48:06.931492 INFO  BF_MC Write LAG node at addr 0x295 with id 255 and next node 0x296 0x00ff_00296c00ff00295c
+2026-10-26 21:48:06.931497 INFO  BF_MC Write LAG node at addr 0x296 with id 255 and next node 0x297 0x0000_00000000ff00297c
+2026-10-26 21:48:06.931502 INFO  BF_MC Write LAG node at addr 0x297 with id 255 and next node 0x298 0x00ff_00298c00ff00297c
+2026-10-26 21:48:06.931507 INFO  BF_MC Write LAG node at addr 0x298 with id 255 and next node 0x299 0x0000_00000000ff00299c
+2026-10-26 21:48:06.931513 INFO  BF_MC Write LAG node at addr 0x299 with id 255 and next node 0x29a 0x00ff_0029ac00ff00299c
+2026-10-26 21:48:06.931518 INFO  BF_MC Write LAG node at addr 0x29a with id 255 and next node 0x29b 0x0000_00000000ff0029bc
+2026-10-26 21:48:06.931523 INFO  BF_MC Write LAG node at addr 0x29b with id 255 and next node 0x29c 0x00ff_0029cc00ff0029bc
+2026-10-26 21:48:06.931528 INFO  BF_MC Write LAG node at addr 0x29c with id 255 and next node 0x29d 0x0000_00000000ff0029dc
+2026-10-26 21:48:06.931533 INFO  BF_MC Write LAG node at addr 0x29d with id 255 and next node 0x29e 0x00ff_0029ec00ff0029dc
+2026-10-26 21:48:06.931538 INFO  BF_MC Write LAG node at addr 0x29e with id 255 and next node 0x29f 0x0000_00000000ff0029fc
+2026-10-26 21:48:06.931547 INFO  BF_MC Write LAG node at addr 0x29f with id 255 and next node 0x2a0 0x00ff_002a0c00ff0029fc
+2026-10-26 21:48:06.931553 INFO  BF_MC Write LAG node at addr 0x2a0 with id 255 and next node 0x2a1 0x0000_00000000ff002a1c
+2026-10-26 21:48:06.931558 INFO  BF_MC Write LAG node at addr 0x2a1 with id 255 and next node 0x2a2 0x00ff_002a2c00ff002a1c
+2026-10-26 21:48:06.931564 INFO  BF_MC Write LAG node at addr 0x2a2 with id 255 and next node 0x2a3 0x0000_00000000ff002a3c
+2026-10-26 21:48:06.931569 INFO  BF_MC Write LAG node at addr 0x2a3 with id 255 and next node 0x2a4 0x00ff_002a4c00ff002a3c
+2026-10-26 21:48:06.931574 INFO  BF_MC Write LAG node at addr 0x2a4 with id 255 and next node 0x2a5 0x0000_00000000ff002a5c
+2026-10-26 21:48:06.931579 INFO  BF_MC Write LAG node at addr 0x2a5 with id 255 and next node 0x2a6 0x00ff_002a6c00ff002a5c
+2026-10-26 21:48:06.931585 INFO  BF_MC Write LAG node at addr 0x2a6 with id 255 and next node 0x2a7 0x0000_00000000ff002a7c
+2026-10-26 21:48:06.931590 INFO  BF_MC Write LAG node at addr 0x2a7 with id 255 and next node 0x2a8 0x00ff_002a8c00ff002a7c
+2026-10-26 21:48:06.931595 INFO  BF_MC Write LAG node at addr 0x2a8 with id 255 and next node 0x2a9 0x0000_00000000ff002a9c
+2026-10-26 21:48:06.931600 INFO  BF_MC Write LAG node at addr 0x2a9 with id 255 and next node 0x2aa 0x00ff_002aac00ff002a9c
+2026-10-26 21:48:06.931605 INFO  BF_MC Write LAG node at addr 0x2aa with id 255 and next node 0x2ab 0x0000_00000000ff002abc
+2026-10-26 21:48:06.931611 INFO  BF_MC Write LAG node at addr 0x2ab with id 255 and next node 0x2ac 0x00ff_002acc00ff002abc
+2026-10-26 21:48:06.931616 INFO  BF_MC Write LAG node at addr 0x2ac with id 255 and next node 0x2ad 0x0000_00000000ff002adc
+2026-10-26 21:48:06.931621 INFO  BF_MC Write LAG node at addr 0x2ad with id 255 and next node 0x2ae 0x00ff_002aec00ff002adc
+2026-10-26 21:48:06.931626 INFO  BF_MC Write LAG node at addr 0x2ae with id 255 and next node 0x2af 0x0000_00000000ff002afc
+2026-10-26 21:48:06.931631 INFO  BF_MC Write LAG node at addr 0x2af with id 255 and next node 0x2b0 0x00ff_002b0c00ff002afc
+2026-10-26 21:48:06.931636 INFO  BF_MC Write LAG node at addr 0x2b0 with id 255 and next node 0x2b1 0x0000_00000000ff002b1c
+2026-10-26 21:48:06.931642 INFO  BF_MC Write LAG node at addr 0x2b1 with id 255 and next node 0x2b2 0x00ff_002b2c00ff002b1c
+2026-10-26 21:48:06.931647 INFO  BF_MC Write LAG node at addr 0x2b2 with id 255 and next node 0x2b3 0x0000_00000000ff002b3c
+2026-10-26 21:48:06.931652 INFO  BF_MC Write LAG node at addr 0x2b3 with id 255 and next node 0x2b4 0x00ff_002b4c00ff002b3c
+2026-10-26 21:48:06.931657 INFO  BF_MC Write LAG node at addr 0x2b4 with id 255 and next node 0x2b5 0x0000_00000000ff002b5c
+2026-10-26 21:48:06.931662 INFO  BF_MC Write LAG node at addr 0x2b5 with id 255 and next node 0x2b6 0x00ff_002b6c00ff002b5c
+2026-10-26 21:48:06.931667 INFO  BF_MC Write LAG node at addr 0x2b6 with id 255 and next node 0x2b7 0x0000_00000000ff002b7c
+2026-10-26 21:48:06.931672 INFO  BF_MC Write LAG node at addr 0x2b7 with id 255 and next node 0x2b8 0x00ff_002b8c00ff002b7c
+2026-10-26 21:48:06.931677 INFO  BF_MC Write LAG node at addr 0x2b8 with id 255 and next node 0x2b9 0x0000_00000000ff002b9c
+2026-10-26 21:48:06.931682 INFO  BF_MC Write LAG node at addr 0x2b9 with id 255 and next node 0x2ba 0x00ff_002bac00ff002b9c
+2026-10-26 21:48:06.931688 INFO  BF_MC Write LAG node at addr 0x2ba with id 255 and next node 0x2bb 0x0000_00000000ff002bbc
+2026-10-26 21:48:06.931693 INFO  BF_MC Write LAG node at addr 0x2bb with id 255 and next node 0x2bc 0x00ff_002bcc00ff002bbc
+2026-10-26 21:48:06.931698 INFO  BF_MC Write LAG node at addr 0x2bc with id 255 and next node 0x2bd 0x0000_00000000ff002bdc
+2026-10-26 21:48:06.931703 INFO  BF_MC Write LAG node at addr 0x2bd with id 255 and next node 0x2be 0x00ff_002bec00ff002bdc
+2026-10-26 21:48:06.931708 INFO  BF_MC Write LAG node at addr 0x2be with id 255 and next node 0x2bf 0x0000_00000000ff002bfc
+2026-10-26 21:48:06.931714 INFO  BF_MC Write LAG node at addr 0x2bf with id 255 and next node 0x2c0 0x00ff_002c0c00ff002bfc
+2026-10-26 21:48:06.931722 INFO  BF_MC Write LAG node at addr 0x2c0 with id 255 and next node 0x2c1 0x0000_00000000ff002c1c
+2026-10-26 21:48:06.931727 INFO  BF_MC Write LAG node at addr 0x2c1 with id 255 and next node 0x2c2 0x00ff_002c2c00ff002c1c
+2026-10-26 21:48:06.931732 INFO  BF_MC Write LAG node at addr 0x2c2 with id 255 and next node 0x2c3 0x0000_00000000ff002c3c
+2026-10-26 21:48:06.931737 INFO  BF_MC Write LAG node at addr 0x2c3 with id 255 and next node 0x2c4 0x00ff_002c4c00ff002c3c
+2026-10-26 21:48:06.931742 INFO  BF_MC Write LAG node at addr 0x2c4 with id 255 and next node 0x2c5 0x0000_00000000ff002c5c
+2026-10-26 21:48:06.931748 INFO  BF_MC Write LAG node at addr 0x2c5 with id 255 and next node 0x2c6 0x00ff_002c6c00ff002c5c
+2026-10-26 21:48:06.931753 INFO  BF_MC Write LAG node at addr 0x2c6 with id 255 and next node 0x2c7 0x0000_00000000ff002c7c
+2026-10-26 21:48:06.931758 INFO  BF_MC Write LAG node at addr 0x2c7 with id 255 and next node 0x2c8 0x00ff_002c8c00ff002c7c
+2026-10-26 21:48:06.931763 INFO  BF_MC Write LAG node at addr 0x2c8 with id 255 and next node 0x2c9 0x0000_00000000ff002c9c
+2026-10-26 21:48:06.931768 INFO  BF_MC Write LAG node at addr 0x2c9 with id 255 and next node 0x2ca 0x00ff_002cac00ff002c9c
+2026-10-26 21:48:06.931773 INFO  BF_MC Write LAG node at addr 0x2ca with id 255 and next node 0x2cb 0x0000_00000000ff002cbc
+2026-10-26 21:48:06.931779 INFO  BF_MC Write LAG node at addr 0x2cb with id 255 and next node 0x2cc 0x00ff_002ccc00ff002cbc
+2026-10-26 21:48:06.931784 INFO  BF_MC Write LAG node at addr 0x2cc with id 255 and next node 0x2cd 0x0000_00000000ff002cdc
+2026-10-26 21:48:06.931789 INFO  BF_MC Write LAG node at addr 0x2cd with id 255 and next node 0x2ce 0x00ff_002cec00ff002cdc
+2026-10-26 21:48:06.931794 INFO  BF_MC Write LAG node at addr 0x2ce with id 255 and next node 0x2cf 0x0000_00000000ff002cfc
+2026-10-26 21:48:06.931799 INFO  BF_MC Write LAG node at addr 0x2cf with id 255 and next node 0x2d0 0x00ff_002d0c00ff002cfc
+2026-10-26 21:48:06.931805 INFO  BF_MC Write LAG node at addr 0x2d0 with id 255 and next node 0x2d1 0x0000_00000000ff002d1c
+2026-10-26 21:48:06.931810 INFO  BF_MC Write LAG node at addr 0x2d1 with id 255 and next node 0x2d2 0x00ff_002d2c00ff002d1c
+2026-10-26 21:48:06.931815 INFO  BF_MC Write LAG node at addr 0x2d2 with id 255 and next node 0x2d3 0x0000_00000000ff002d3c
+2026-10-26 21:48:06.931820 INFO  BF_MC Write LAG node at addr 0x2d3 with id 255 and next node 0x2d4 0x00ff_002d4c00ff002d3c
+2026-10-26 21:48:06.931825 INFO  BF_MC Write LAG node at addr 0x2d4 with id 255 and next node 0x2d5 0x0000_00000000ff002d5c
+2026-10-26 21:48:06.931830 INFO  BF_MC Write LAG node at addr 0x2d5 with id 255 and next node 0x2d6 0x00ff_002d6c00ff002d5c
+2026-10-26 21:48:06.931836 INFO  BF_MC Write LAG node at addr 0x2d6 with id 255 and next node 0x2d7 0x0000_00000000ff002d7c
+2026-10-26 21:48:06.931841 INFO  BF_MC Write LAG node at addr 0x2d7 with id 255 and next node 0x2d8 0x00ff_002d8c00ff002d7c
+2026-10-26 21:48:06.931846 INFO  BF_MC Write LAG node at addr 0x2d8 with id 255 and next node 0x2d9 0x0000_00000000ff002d9c
+2026-10-26 21:48:06.931851 INFO  BF_MC Write LAG node at addr 0x2d9 with id 255 and next node 0x2da 0x00ff_002dac00ff002d9c
+2026-10-26 21:48:06.931856 INFO  BF_MC Write LAG node at addr 0x2da with id 255 and next node 0x2db 0x0000_00000000ff002dbc
+2026-10-26 21:48:06.931861 INFO  BF_MC Write LAG node at addr 0x2db with id 255 and next node 0x2dc 0x00ff_002dcc00ff002dbc
+2026-10-26 21:48:06.931866 INFO  BF_MC Write LAG node at addr 0x2dc with id 255 and next node 0x2dd 0x0000_00000000ff002ddc
+2026-10-26 21:48:06.931872 INFO  BF_MC Write LAG node at addr 0x2dd with id 255 and next node 0x2de 0x00ff_002dec00ff002ddc
+2026-10-26 21:48:06.931877 INFO  BF_MC Write LAG node at addr 0x2de with id 255 and next node 0x2df 0x0000_00000000ff002dfc
+2026-10-26 21:48:06.931882 INFO  BF_MC Write LAG node at addr 0x2df with id 255 and next node 0x2e0 0x00ff_002e0c00ff002dfc
+2026-10-26 21:48:06.931887 INFO  BF_MC Write LAG node at addr 0x2e0 with id 255 and next node 0x2e1 0x0000_00000000ff002e1c
+2026-10-26 21:48:06.931895 INFO  BF_MC Write LAG node at addr 0x2e1 with id 255 and next node 0x2e2 0x00ff_002e2c00ff002e1c
+2026-10-26 21:48:06.931901 INFO  BF_MC Write LAG node at addr 0x2e2 with id 255 and next node 0x2e3 0x0000_00000000ff002e3c
+2026-10-26 21:48:06.931906 INFO  BF_MC Write LAG node at addr 0x2e3 with id 255 and next node 0x2e4 0x00ff_002e4c00ff002e3c
+2026-10-26 21:48:06.931911 INFO  BF_MC Write LAG node at addr 0x2e4 with id 255 and next node 0x2e5 0x0000_00000000ff002e5c
+2026-10-26 21:48:06.931916 INFO  BF_MC Write LAG node at addr 0x2e5 with id 255 and next node 0x2e6 0x00ff_002e6c00ff002e5c
+2026-10-26 21:48:06.931921 INFO  BF_MC Write LAG node at addr 0x2e6 with id 255 and next node 0x2e7 0x0000_00000000ff002e7c
+2026-10-26 21:48:06.931926 INFO  BF_MC Write LAG node at addr 0x2e7 with id 255 and next node 0x2e8 0x00ff_002e8c00ff002e7c
+2026-10-26 21:48:06.931932 INFO  BF_MC Write LAG node at addr 0x2e8 with id 255 and next node 0x2e9 0x0000_00000000ff002e9c
+2026-10-26 21:48:06.931937 INFO  BF_MC Write LAG node at addr 0x2e9 with id 255 and next node 0x2ea 0x00ff_002eac00ff002e9c
+2026-10-26 21:48:06.931942 INFO  BF_MC Write LAG node at addr 0x2ea with id 255 and next node 0x2eb 0x0000_00000000ff002ebc
+2026-10-26 21:48:06.931947 INFO  BF_MC Write LAG node at addr 0x2eb with id 255 and next node 0x2ec 0x00ff_002ecc00ff002ebc
+2026-10-26 21:48:06.931953 INFO  BF_MC Write LAG node at addr 0x2ec with id 255 and next node 0x2ed 0x0000_00000000ff002edc
+2026-10-26 21:48:06.931958 INFO  BF_MC Write LAG node at addr 0x2ed with id 255 and next node 0x2ee 0x00ff_002eec00ff002edc
+2026-10-26 21:48:06.931963 INFO  BF_MC Write LAG node at addr 0x2ee with id 255 and next node 0x2ef 0x0000_00000000ff002efc
+2026-10-26 21:48:06.931968 INFO  BF_MC Write LAG node at addr 0x2ef with id 255 and next node 0x2f0 0x00ff_002f0c00ff002efc
+2026-10-26 21:48:06.931974 INFO  BF_MC Write LAG node at addr 0x2f0 with id 255 and next node 0x2f1 0x0000_00000000ff002f1c
+2026-10-26 21:48:06.931979 INFO  BF_MC Write LAG node at addr 0x2f1 with id 255 and next node 0x2f2 0x00ff_002f2c00ff002f1c
+2026-10-26 21:48:06.931984 INFO  BF_MC Write LAG node at addr 0x2f2 with id 255 and next node 0x2f3 0x0000_00000000ff002f3c
+2026-10-26 21:48:06.931989 INFO  BF_MC Write LAG node at addr 0x2f3 with id 255 and next node 0x2f4 0x00ff_002f4c00ff002f3c
+2026-10-26 21:48:06.931994 INFO  BF_MC Write LAG node at addr 0x2f4 with id 255 and next node 0x2f5 0x0000_00000000ff002f5c
+2026-10-26 21:48:06.932000 INFO  BF_MC Write LAG node at addr 0x2f5 with id 255 and next node 0x2f6 0x00ff_002f6c00ff002f5c
+2026-10-26 21:48:06.932005 INFO  BF_MC Write LAG node at addr 0x2f6 with id 255 and next node 0x2f7 0x0000_00000000ff002f7c
+2026-10-26 21:48:06.932010 INFO  BF_MC Write LAG node at addr 0x2f7 with id 255 and next node 0x2f8 0x00ff_002f8c00ff002f7c
+2026-10-26 21:48:06.932015 INFO  BF_MC Write LAG node at addr 0x2f8 with id 255 and next node 0x2f9 0x0000_00000000ff002f9c
+2026-10-26 21:48:06.932020 INFO  BF_MC Write LAG node at addr 0x2f9 with id 255 and next node 0x2fa 0x00ff_002fac00ff002f9c
+2026-10-26 21:48:06.932025 INFO  BF_MC Write LAG node at addr 0x2fa with id 255 and next node 0x2fb 0x0000_00000000ff002fbc
+2026-10-26 21:48:06.932031 INFO  BF_MC Write LAG node at addr 0x2fb with id 255 and next node 0x2fc 0x00ff_002fcc00ff002fbc
+2026-10-26 21:48:06.932036 INFO  BF_MC Write LAG node at addr 0x2fc with id 255 and next node 0x2fd 0x0000_00000000ff002fdc
+2026-10-26 21:48:06.932041 INFO  BF_MC Write LAG node at addr 0x2fd with id 255 and next node 0x2fe 0x00ff_002fec00ff002fdc
+2026-10-26 21:48:06.932046 INFO  BF_MC Write LAG node at addr 0x2fe with id 255 and next node 0x2ff 0x0000_00000000ff002ffc
+2026-10-26 21:48:06.932052 INFO  BF_MC Write LAG node at addr 0x2ff with id 255 and next node 0x300 0x00ff_00300c00ff002ffc
+2026-10-26 21:48:06.932057 INFO  BF_MC Write LAG node at addr 0x300 with id 255 and next node 0x301 0x0000_00000000ff00301c
+2026-10-26 21:48:06.932062 INFO  BF_MC Write LAG node at addr 0x301 with id 255 and next node 0x302 0x00ff_00302c00ff00301c
+2026-10-26 21:48:06.932070 INFO  BF_MC Write LAG node at addr 0x302 with id 255 and next node 0x303 0x0000_00000000ff00303c
+2026-10-26 21:48:06.932075 INFO  BF_MC Write LAG node at addr 0x303 with id 255 and next node 0 0x00ff_00000c00ff00303c
+2026-10-26 21:48:06.932081 INFO  BF_MC Allocated RDM addresses 0x11e0 - 0x11ff
+2026-10-26 21:48:06.932092 INFO  BF_MC Write L1End node at addr 0x11e0, rid 0, l2 0x301
+2026-10-26 21:48:06.932098 INFO  BF_MC Write L1End node at addr 0x11e1, rid 0, l2 0x300
+2026-10-26 21:48:06.932103 INFO  BF_MC Write L1End node at addr 0x11e2, rid 0, l2 0x2ff
+2026-10-26 21:48:06.932108 INFO  BF_MC Write L1End node at addr 0x11e3, rid 0, l2 0x2fe
+2026-10-26 21:48:06.932113 INFO  BF_MC Write L1End node at addr 0x11e4, rid 0, l2 0x2fd
+2026-10-26 21:48:06.932118 INFO  BF_MC Write L1End node at addr 0x11e5, rid 0, l2 0x2fc
+2026-10-26 21:48:06.932123 INFO  BF_MC Write L1End node at addr 0x11e6, rid 0, l2 0x2fb
+2026-10-26 21:48:06.932129 INFO  BF_MC Write L1End node at addr 0x11e7, rid 0, l2 0x2fa
+2026-10-26 21:48:06.932134 INFO  BF_MC Write L1End node at addr 0x11e8, rid 0, l2 0x2f8
+2026-10-26 21:48:06.932139 INFO  BF_MC Write L1End node at addr 0x11e9, rid 0, l2 0x2f6
+2026-10-26 21:48:06.932144 INFO  BF_MC Write L1End node at addr 0x11ea, rid 0, l2 0x2f4
+2026-10-26 21:48:06.932149 INFO  BF_MC Write L1End node at addr 0x11eb, rid 0, l2 0x2f2
+2026-10-26 21:48:06.932154 INFO  BF_MC Write L1End node at addr 0x11ec, rid 0, l2 0x2f0
+2026-10-26 21:48:06.932159 INFO  BF_MC Write L1End node at addr 0x11ed, rid 0, l2 0x2ee
+2026-10-26 21:48:06.932164 INFO  BF_MC Write L1End node at addr 0x11ee, rid 0, l2 0x2ec
+2026-10-26 21:48:06.932169 INFO  BF_MC Write L1End node at addr 0x11ef, rid 0, l2 0x2ea
+2026-10-26 21:48:06.932174 INFO  BF_MC Write L1End node at addr 0x11f0, rid 0, l2 0x2e8
+2026-10-26 21:48:06.932179 INFO  BF_MC Write L1End node at addr 0x11f1, rid 0, l2 0x2e6
+2026-10-26 21:48:06.932184 INFO  BF_MC Write L1End node at addr 0x11f2, rid 0, l2 0x2e4
+2026-10-26 21:48:06.932189 INFO  BF_MC Write L1End node at addr 0x11f3, rid 0, l2 0x2e0
+2026-10-26 21:48:06.932194 INFO  BF_MC Write L1End node at addr 0x11f4, rid 0, l2 0x2dc
+2026-10-26 21:48:06.932199 INFO  BF_MC Write L1End node at addr 0x11f5, rid 0, l2 0x2d8
+2026-10-26 21:48:06.932204 INFO  BF_MC Write L1End node at addr 0x11f6, rid 0, l2 0x2d4
+2026-10-26 21:48:06.932210 INFO  BF_MC Write L1End node at addr 0x11f7, rid 0, l2 0x2cc
+2026-10-26 21:48:06.932215 INFO  BF_MC Write L1End node at addr 0x11f8, rid 0, l2 0x2c4
+2026-10-26 21:48:06.932220 INFO  BF_MC Write L1End node at addr 0x11f9, rid 0, l2 0x2bc
+2026-10-26 21:48:06.932225 INFO  BF_MC Write L1End node at addr 0x11fa, rid 0, l2 0x2a0
+2026-10-26 21:48:06.932230 INFO  BF_MC Write L1End node at addr 0x11fb, rid 0, l2 0x287
+2026-10-26 21:48:06.932235 INFO  BF_MC Write L1End node at addr 0x11fc, rid 0, l2 0x26e
+2026-10-26 21:48:06.932240 INFO  BF_MC Write L1End node at addr 0x11fd, rid 0, l2 0x255
+2026-10-26 21:48:06.932245 INFO  BF_MC Write L1End node at addr 0x11fe, rid 0, l2 0x23c
+2026-10-26 21:48:06.932250 INFO  BF_MC Write L1End node at addr 0x11ff, rid 0, l2 0x200
+2026-10-26 21:48:06.932256 INFO  BF_MC Allocated RDM addresses 0x2000 - 0x2103
+2026-10-26 21:48:06.932261 INFO  BF_MC Write LAG node at addr 0x2000 with id 255 and next node 0x2001 0x0000_00000000ff02001c
+2026-10-26 21:48:06.932266 INFO  BF_MC Write LAG node at addr 0x2001 with id 255 and next node 0x2002 0x00ff_02002c00ff02001c
+2026-10-26 21:48:06.932272 INFO  BF_MC Write LAG node at addr 0x2002 with id 255 and next node 0x2003 0x0000_00000000ff02003c
+2026-10-26 21:48:06.932277 INFO  BF_MC Write LAG node at addr 0x2003 with id 255 and next node 0x2004 0x00ff_02004c00ff02003c
+2026-10-26 21:48:06.932282 INFO  BF_MC Write LAG node at addr 0x2004 with id 255 and next node 0x2005 0x0000_00000000ff02005c
+2026-10-26 21:48:06.932288 INFO  BF_MC Write LAG node at addr 0x2005 with id 255 and next node 0x2006 0x00ff_02006c00ff02005c
+2026-10-26 21:48:06.932293 INFO  BF_MC Write LAG node at addr 0x2006 with id 255 and next node 0x2007 0x0000_00000000ff02007c
+2026-10-26 21:48:06.932301 INFO  BF_MC Write LAG node at addr 0x2007 with id 255 and next node 0x2008 0x00ff_02008c00ff02007c
+2026-10-26 21:48:06.932306 INFO  BF_MC Write LAG node at addr 0x2008 with id 255 and next node 0x2009 0x0000_00000000ff02009c
+2026-10-26 21:48:06.932312 INFO  BF_MC Write LAG node at addr 0x2009 with id 255 and next node 0x200a 0x00ff_0200ac00ff02009c
+2026-10-26 21:48:06.932317 INFO  BF_MC Write LAG node at addr 0x200a with id 255 and next node 0x200b 0x0000_00000000ff0200bc
+2026-10-26 21:48:06.932322 INFO  BF_MC Write LAG node at addr 0x200b with id 255 and next node 0x200c 0x00ff_0200cc00ff0200bc
+2026-10-26 21:48:06.932327 INFO  BF_MC Write LAG node at addr 0x200c with id 255 and next node 0x200d 0x0000_00000000ff0200dc
+2026-10-26 21:48:06.932333 INFO  BF_MC Write LAG node at addr 0x200d with id 255 and next node 0x200e 0x00ff_0200ec00ff0200dc
+2026-10-26 21:48:06.932338 INFO  BF_MC Write LAG node at addr 0x200e with id 255 and next node 0x200f 0x0000_00000000ff0200fc
+2026-10-26 21:48:06.932343 INFO  BF_MC Write LAG node at addr 0x200f with id 255 and next node 0x2010 0x00ff_02010c00ff0200fc
+2026-10-26 21:48:06.932348 INFO  BF_MC Write LAG node at addr 0x2010 with id 255 and next node 0x2011 0x0000_00000000ff02011c
+2026-10-26 21:48:06.932353 INFO  BF_MC Write LAG node at addr 0x2011 with id 255 and next node 0x2012 0x00ff_02012c00ff02011c
+2026-10-26 21:48:06.932358 INFO  BF_MC Write LAG node at addr 0x2012 with id 255 and next node 0x2013 0x0000_00000000ff02013c
+2026-10-26 21:48:06.932364 INFO  BF_MC Write LAG node at addr 0x2013 with id 255 and next node 0x2014 0x00ff_02014c00ff02013c
+2026-10-26 21:48:06.932369 INFO  BF_MC Write LAG node at addr 0x2014 with id 255 and next node 0x2015 0x0000_00000000ff02015c
+2026-10-26 21:48:06.932374 INFO  BF_MC Write LAG node at addr 0x2015 with id 255 and next node 0x2016 0x00ff_02016c00ff02015c
+2026-10-26 21:48:06.932380 INFO  BF_MC Write LAG node at addr 0x2016 with id 255 and next node 0x2017 0x0000_00000000ff02017c
+2026-10-26 21:48:06.932385 INFO  BF_MC Write LAG node at addr 0x2017 with id 255 and next node 0x2018 0x00ff_02018c00ff02017c
+2026-10-26 21:48:06.932390 INFO  BF_MC Write LAG node at addr 0x2018 with id 255 and next node 0x2019 0x0000_00000000ff02019c
+2026-10-26 21:48:06.932395 INFO  BF_MC Write LAG node at addr 0x2019 with id 255 and next node 0x201a 0x00ff_0201ac00ff02019c
+2026-10-26 21:48:06.932400 INFO  BF_MC Write LAG node at addr 0x201a with id 255 and next node 0x201b 0x0000_00000000ff0201bc
+2026-10-26 21:48:06.932405 INFO  BF_MC Write LAG node at addr 0x201b with id 255 and next node 0x201c 0x00ff_0201cc00ff0201bc
+2026-10-26 21:48:06.932410 INFO  BF_MC Write LAG node at addr 0x201c with id 255 and next node 0x201d 0x0000_00000000ff0201dc
+2026-10-26 21:48:06.932416 INFO  BF_MC Write LAG node at addr 0x201d with id 255 and next node 0x201e 0x00ff_0201ec00ff0201dc
+2026-10-26 21:48:06.932421 INFO  BF_MC Write LAG node at addr 0x201e with id 255 and next node 0x201f 0x0000_00000000ff0201fc
+2026-10-26 21:48:06.932427 INFO  BF_MC Write LAG node at addr 0x201f with id 255 and next node 0x2020 0x00ff_02020c00ff0201fc
+2026-10-26 21:48:06.932432 INFO  BF_MC Write LAG node at addr 0x2020 with id 255 and next node 0x2021 0x0000_00000000ff02021c
+2026-10-26 21:48:06.932437 INFO  BF_MC Write LAG node at addr 0x2021 with id 255 and next node 0x2022 0x00ff_02022c00ff02021c
+2026-10-26 21:48:06.932442 INFO  BF_MC Write LAG node at addr 0x2022 with id 255 and next node 0x2023 0x0000_00000000ff02023c
+2026-10-26 21:48:06.932447 INFO  BF_MC Write LAG node at addr 0x2023 with id 255 and next node 0x2024 0x00ff_02024c00ff02023c
+2026-10-26 21:48:06.932453 INFO  BF_MC Write LAG node at addr 0x2024 with id 255 and next node 0x2025 0x0000_00000000ff02025c
+2026-10-26 21:48:06.932458 INFO  BF_MC Write LAG node at addr 0x2025 with id 255 and next node 0x2026 0x00ff_02026c00ff02025c
+2026-10-26 21:48:06.932463 INFO  BF_MC Write LAG node at addr 0x2026 with id 255 and next node 0x2027 0x0000_00000000ff02027c
+2026-10-26 21:48:06.932471 INFO  BF_MC Write LAG node at addr 0x2027 with id 255 and next node 0x2028 0x00ff_02028c00ff02027c
+2026-10-26 21:48:06.932476 INFO  BF_MC Write LAG node at addr 0x2028 with id 255 and next node 0x2029 0x0000_00000000ff02029c
+2026-10-26 21:48:06.932482 INFO  BF_MC Write LAG node at addr 0x2029 with id 255 and next node 0x202a 0x00ff_0202ac00ff02029c
+2026-10-26 21:48:06.932487 INFO  BF_MC Write LAG node at addr 0x202a with id 255 and next node 0x202b 0x0000_00000000ff0202bc
+2026-10-26 21:48:06.932492 INFO  BF_MC Write LAG node at addr 0x202b with id 255 and next node 0x202c 0x00ff_0202cc00ff0202bc
+2026-10-26 21:48:06.932497 INFO  BF_MC Write LAG node at addr 0x202c with id 255 and next node 0x202d 0x0000_00000000ff0202dc
+2026-10-26 21:48:06.932502 INFO  BF_MC Write LAG node at addr 0x202d with id 255 and next node 0x202e 0x00ff_0202ec00ff0202dc
+2026-10-26 21:48:06.932508 INFO  BF_MC Write LAG node at addr 0x202e with id 255 and next node 0x202f 0x0000_00000000ff0202fc
+2026-10-26 21:48:06.932513 INFO  BF_MC Write LAG node at addr 0x202f with id 255 and next node 0x2030 0x00ff_02030c00ff0202fc
+2026-10-26 21:48:06.932518 INFO  BF_MC Write LAG node at addr 0x2030 with id 255 and next node 0x2031 0x0000_00000000ff02031c
+2026-10-26 21:48:06.932523 INFO  BF_MC Write LAG node at addr 0x2031 with id 255 and next node 0x2032 0x00ff_02032c00ff02031c
+2026-10-26 21:48:06.932528 INFO  BF_MC Write LAG node at addr 0x2032 with id 255 and next node 0x2033 0x0000_00000000ff02033c
+2026-10-26 21:48:06.932534 INFO  BF_MC Write LAG node at addr 0x2033 with id 255 and next node 0x2034 0x00ff_02034c00ff02033c
+2026-10-26 21:48:06.932539 INFO  BF_MC Write LAG node at addr 0x2034 with id 255 and next node 0x2035 0x0000_00000000ff02035c
+2026-10-26 21:48:06.932544 INFO  BF_MC Write LAG node at addr 0x2035 with id 255 and next node 0x2036 0x00ff_02036c00ff02035c
+2026-10-26 21:48:06.932549 INFO  BF_MC Write LAG node at addr 0x2036 with id 255 and next node 0x2037 0x0000_00000000ff02037c
+2026-10-26 21:48:06.932554 INFO  BF_MC Write LAG node at addr 0x2037 with id 255 and next node 0x2038 0x00ff_02038c00ff02037c
+2026-10-26 21:48:06.932559 INFO  BF_MC Write LAG node at addr 0x2038 with id 255 and next node 0x2039 0x0000_00000000ff02039c
+2026-10-26 21:48:06.932565 INFO  BF_MC Write LAG node at addr 0x2039 with id 255 and next node 0x203a 0x00ff_0203ac00ff02039c
+2026-10-26 21:48:06.932570 INFO  BF_MC Write LAG node at addr 0x203a with id 255 and next node 0x203b 0x0000_00000000ff0203bc
+2026-10-26 21:48:06.932575 INFO  BF_MC Write LAG node at addr 0x203b with id 255 and next node 0x203c 0x00ff_0203cc00ff0203bc
+2026-10-26 21:48:06.932580 INFO  BF_MC Write LAG node at addr 0x203c with id 255 and next node 0x203d 0x0000_00000000ff0203dc
+2026-10-26 21:48:06.932585 INFO  BF_MC Write LAG node at addr 0x203d with id 255 and next node 0x203e 0x00ff_0203ec00ff0203dc
+2026-10-26 21:48:06.932591 INFO  BF_MC Write LAG node at addr 0x203e with id 255 and next node 0x203f 0x0000_00000000ff0203fc
+2026-10-26 21:48:06.932596 INFO  BF_MC Write LAG node at addr 0x203f with id 255 and next node 0x2040 0x00ff_02040c00ff0203fc
+2026-10-26 21:48:06.932601 INFO  BF_MC Write LAG node at addr 0x2040 with id 255 and next node 0x2041 0x0000_00000000ff02041c
+2026-10-26 21:48:06.932606 INFO  BF_MC Write LAG node at addr 0x2041 with id 255 and next node 0x2042 0x00ff_02042c00ff02041c
+2026-10-26 21:48:06.932611 INFO  BF_MC Write LAG node at addr 0x2042 with id 255 and next node 0x2043 0x0000_00000000ff02043c
+2026-10-26 21:48:06.932617 INFO  BF_MC Write LAG node at addr 0x2043 with id 255 and next node 0x2044 0x00ff_02044c00ff02043c
+2026-10-26 21:48:06.932622 INFO  BF_MC Write LAG node at addr 0x2044 with id 255 and next node 0x2045 0x0000_00000000ff02045c
+2026-10-26 21:48:06.932627 INFO  BF_MC Write LAG node at addr 0x2045 with id 255 and next node 0x2046 0x00ff_02046c00ff02045c
+2026-10-26 21:48:06.932632 INFO  BF_MC Write LAG node at addr 0x2046 with id 255 and next node 0x2047 0x0000_00000000ff02047c
+2026-10-26 21:48:06.932638 INFO  BF_MC Write LAG node at addr 0x2047 with id 255 and next node 0x2048 0x00ff_02048c00ff02047c
+2026-10-26 21:48:06.932646 INFO  BF_MC Write LAG node at addr 0x2048 with id 255 and next node 0x2049 0x0000_00000000ff02049c
+2026-10-26 21:48:06.932651 INFO  BF_MC Write LAG node at addr 0x2049 with id 255 and next node 0x204a 0x00ff_0204ac00ff02049c
+2026-10-26 21:48:06.932656 INFO  BF_MC Write LAG node at addr 0x204a with id 255 and next node 0x204b 0x0000_00000000ff0204bc
+2026-10-26 21:48:06.932661 INFO  BF_MC Write LAG node at addr 0x204b with id 255 and next node 0x204c 0x00ff_0204cc00ff0204bc
+2026-10-26 21:48:06.932667 INFO  BF_MC Write LAG node at addr 0x204c with id 255 and next node 0x204d 0x0000_00000000ff0204dc
+2026-10-26 21:48:06.932672 INFO  BF_MC Write LAG node at addr 0x204d with id 255 and next node 0x204e 0x00ff_0204ec00ff0204dc
+2026-10-26 21:48:06.932677 INFO  BF_MC Write LAG node at addr 0x204e with id 255 and next node 0x204f 0x0000_00000000ff0204fc
+2026-10-26 21:48:06.932682 INFO  BF_MC Write LAG node at addr 0x204f with id 255 and next node 0x2050 0x00ff_02050c00ff0204fc
+2026-10-26 21:48:06.932687 INFO  BF_MC Write LAG node at addr 0x2050 with id 255 and next node 0x2051 0x0000_00000000ff02051c
+2026-10-26 21:48:06.932693 INFO  BF_MC Write LAG node at addr 0x2051 with id 255 and next node 0x2052 0x00ff_02052c00ff02051c
+2026-10-26 21:48:06.932698 INFO  BF_MC Write LAG node at addr 0x2052 with id 255 and next node 0x2053 0x0000_00000000ff02053c
+2026-10-26 21:48:06.932703 INFO  BF_MC Write LAG node at addr 0x2053 with id 255 and next node 0x2054 0x00ff_02054c00ff02053c
+2026-10-26 21:48:06.932709 INFO  BF_MC Write LAG node at addr 0x2054 with id 255 and next node 0x2055 0x0000_00000000ff02055c
+2026-10-26 21:48:06.932714 INFO  BF_MC Write LAG node at addr 0x2055 with id 255 and next node 0x2056 0x00ff_02056c00ff02055c
+2026-10-26 21:48:06.932719 INFO  BF_MC Write LAG node at addr 0x2056 with id 255 and next node 0x2057 0x0000_00000000ff02057c
+2026-10-26 21:48:06.932724 INFO  BF_MC Write LAG node at addr 0x2057 with id 255 and next node 0x2058 0x00ff_02058c00ff02057c
+2026-10-26 21:48:06.932729 INFO  BF_MC Write LAG node at addr 0x2058 with id 255 and next node 0x2059 0x0000_00000000ff02059c
+2026-10-26 21:48:06.932735 INFO  BF_MC Write LAG node at addr 0x2059 with id 255 and next node 0x205a 0x00ff_0205ac00ff02059c
+2026-10-26 21:48:06.932741 INFO  BF_MC Write LAG node at addr 0x205a with id 255 and next node 0x205b 0x0000_00000000ff0205bc
+2026-10-26 21:48:06.932746 INFO  BF_MC Write LAG node at addr 0x205b with id 255 and next node 0x205c 0x00ff_0205cc00ff0205bc
+2026-10-26 21:48:06.932751 INFO  BF_MC Write LAG node at addr 0x205c with id 255 and next node 0x205d 0x0000_00000000ff0205dc
+2026-10-26 21:48:06.932756 INFO  BF_MC Write LAG node at addr 0x205d with id 255 and next node 0x205e 0x00ff_0205ec00ff0205dc
+2026-10-26 21:48:06.932762 INFO  BF_MC Write LAG node at addr 0x205e with id 255 and next node 0x205f 0x0000_00000000ff0205fc
+2026-10-26 21:48:06.932767 INFO  BF_MC Write LAG node at addr 0x205f with id 255 and next node 0x2060 0x00ff_02060c00ff0205fc
+2026-10-26 21:48:06.932773 INFO  BF_MC Write LAG node at addr 0x2060 with id 255 and next node 0x2061 0x0000_00000000ff02061c
+2026-10-26 21:48:06.932778 INFO  BF_MC Write LAG node at addr 0x2061 with id 255 and next node 0x2062 0x00ff_02062c00ff02061c
+2026-10-26 21:48:06.932783 INFO  BF_MC Write LAG node at addr 0x2062 with id 255 and next node 0x2063 0x0000_00000000ff02063c
+2026-10-26 21:48:06.932789 INFO  BF_MC Write LAG node at addr 0x2063 with id 255 and next node 0x2064 0x00ff_02064c00ff02063c
+2026-10-26 21:48:06.932794 INFO  BF_MC Write LAG node at addr 0x2064 with id 255 and next node 0x2065 0x0000_00000000ff02065c
+2026-10-26 21:48:06.932799 INFO  BF_MC Write LAG node at addr 0x2065 with id 255 and next node 0x2066 0x00ff_02066c00ff02065c
+2026-10-26 21:48:06.932804 INFO  BF_MC Write LAG node at addr 0x2066 with id 255 and next node 0x2067 0x0000_00000000ff02067c
+2026-10-26 21:48:06.932809 INFO  BF_MC Write LAG node at addr 0x2067 with id 255 and next node 0x2068 0x00ff_02068c00ff02067c
+2026-10-26 21:48:06.932817 INFO  BF_MC Write LAG node at addr 0x2068 with id 255 and next node 0x2069 0x0000_00000000ff02069c
+2026-10-26 21:48:06.932823 INFO  BF_MC Write LAG node at addr 0x2069 with id 255 and next node 0x206a 0x00ff_0206ac00ff02069c
+2026-10-26 21:48:06.932828 INFO  BF_MC Write LAG node at addr 0x206a with id 255 and next node 0x206b 0x0000_00000000ff0206bc
+2026-10-26 21:48:06.932833 INFO  BF_MC Write LAG node at addr 0x206b with id 255 and next node 0x206c 0x00ff_0206cc00ff0206bc
+2026-10-26 21:48:06.932838 INFO  BF_MC Write LAG node at addr 0x206c with id 255 and next node 0x206d 0x0000_00000000ff0206dc
+2026-10-26 21:48:06.932843 INFO  BF_MC Write LAG node at addr 0x206d with id 255 and next node 0x206e 0x00ff_0206ec00ff0206dc
+2026-10-26 21:48:06.932849 INFO  BF_MC Write LAG node at addr 0x206e with id 255 and next node 0x206f 0x0000_00000000ff0206fc
+2026-10-26 21:48:06.932854 INFO  BF_MC Write LAG node at addr 0x206f with id 255 and next node 0x2070 0x00ff_02070c00ff0206fc
+2026-10-26 21:48:06.932859 INFO  BF_MC Write LAG node at addr 0x2070 with id 255 and next node 0x2071 0x0000_00000000ff02071c
+2026-10-26 21:48:06.932864 INFO  BF_MC Write LAG node at addr 0x2071 with id 255 and next node 0x2072 0x00ff_02072c00ff02071c
+2026-10-26 21:48:06.932870 INFO  BF_MC Write LAG node at addr 0x2072 with id 255 and next node 0x2073 0x0000_00000000ff02073c
+2026-10-26 21:48:06.932875 INFO  BF_MC Write LAG node at addr 0x2073 with id 255 and next node 0x2074 0x00ff_02074c00ff02073c
+2026-10-26 21:48:06.932880 INFO  BF_MC Write LAG node at addr 0x2074 with id 255 and next node 0x2075 0x0000_00000000ff02075c
+2026-10-26 21:48:06.932886 INFO  BF_MC Write LAG node at addr 0x2075 with id 255 and next node 0x2076 0x00ff_02076c00ff02075c
+2026-10-26 21:48:06.932891 INFO  BF_MC Write LAG node at addr 0x2076 with id 255 and next node 0x2077 0x0000_00000000ff02077c
+2026-10-26 21:48:06.932896 INFO  BF_MC Write LAG node at addr 0x2077 with id 255 and next node 0x2078 0x00ff_02078c00ff02077c
+2026-10-26 21:48:06.932902 INFO  BF_MC Write LAG node at addr 0x2078 with id 255 and next node 0x2079 0x0000_00000000ff02079c
+2026-10-26 21:48:06.932907 INFO  BF_MC Write LAG node at addr 0x2079 with id 255 and next node 0x207a 0x00ff_0207ac00ff02079c
+2026-10-26 21:48:06.932912 INFO  BF_MC Write LAG node at addr 0x207a with id 255 and next node 0x207b 0x0000_00000000ff0207bc
+2026-10-26 21:48:06.932917 INFO  BF_MC Write LAG node at addr 0x207b with id 255 and next node 0x207c 0x00ff_0207cc00ff0207bc
+2026-10-26 21:48:06.932922 INFO  BF_MC Write LAG node at addr 0x207c with id 255 and next node 0x207d 0x0000_00000000ff0207dc
+2026-10-26 21:48:06.932928 INFO  BF_MC Write LAG node at addr 0x207d with id 255 and next node 0x207e 0x00ff_0207ec00ff0207dc
+2026-10-26 21:48:06.932933 INFO  BF_MC Write LAG node at addr 0x207e with id 255 and next node 0x207f 0x0000_00000000ff0207fc
+2026-10-26 21:48:06.932938 INFO  BF_MC Write LAG node at addr 0x207f with id 255 and next node 0x2080 0x00ff_02080c00ff0207fc
+2026-10-26 21:48:06.932943 INFO  BF_MC Write LAG node at addr 0x2080 with id 255 and next node 0x2081 0x0000_00000000ff02081c
+2026-10-26 21:48:06.932949 INFO  BF_MC Write LAG node at addr 0x2081 with id 255 and next node 0x2082 0x00ff_02082c00ff02081c
+2026-10-26 21:48:06.932954 INFO  BF_MC Write LAG node at addr 0x2082 with id 255 and next node 0x2083 0x0000_00000000ff02083c
+2026-10-26 21:48:06.932959 INFO  BF_MC Write LAG node at addr 0x2083 with id 255 and next node 0x2084 0x00ff_02084c00ff02083c
+2026-10-26 21:48:06.932964 INFO  BF_MC Write LAG node at addr 0x2084 with id 255 and next node 0x2085 0x0000_00000000ff02085c
+2026-10-26 21:48:06.932970 INFO  BF_MC Write LAG node at addr 0x2085 with id 255 and next node 0x2086 0x00ff_02086c00ff02085c
+2026-10-26 21:48:06.932975 INFO  BF_MC Write LAG node at addr 0x2086 with id 255 and next node 0x2087 0x0000_00000000ff02087c
+2026-10-26 21:48:06.932980 INFO  BF_MC Write LAG node at addr 0x2087 with id 255 and next node 0x2088 0x00ff_02088c00ff02087c
+2026-10-26 21:48:06.932985 INFO  BF_MC Write LAG node at addr 0x2088 with id 255 and next node 0x2089 0x0000_00000000ff02089c
+2026-10-26 21:48:06.932993 INFO  BF_MC Write LAG node at addr 0x2089 with id 255 and next node 0x208a 0x00ff_0208ac00ff02089c
+2026-10-26 21:48:06.932998 INFO  BF_MC Write LAG node at addr 0x208a with id 255 and next node 0x208b 0x0000_00000000ff0208bc
+2026-10-26 21:48:06.933004 INFO  BF_MC Write LAG node at addr 0x208b with id 255 and next node 0x208c 0x00ff_0208cc00ff0208bc
+2026-10-26 21:48:06.933009 INFO  BF_MC Write LAG node at addr 0x208c with id 255 and next node 0x208d 0x0000_00000000ff0208dc
+2026-10-26 21:48:06.933014 INFO  BF_MC Write LAG node at addr 0x208d with id 255 and next node 0x208e 0x00ff_0208ec00ff0208dc
+2026-10-26 21:48:06.933020 INFO  BF_MC Write LAG node at addr 0x208e with id 255 and next node 0x208f 0x0000_00000000ff0208fc
+2026-10-26 21:48:06.933025 INFO  BF_MC Write LAG node at addr 0x208f with id 255 and next node 0x2090 0x00ff_02090c00ff0208fc
+2026-10-26 21:48:06.933030 INFO  BF_MC Write LAG node at addr 0x2090 with id 255 and next node 0x2091 0x0000_00000000ff02091c
+2026-10-26 21:48:06.933035 INFO  BF_MC Write LAG node at addr 0x2091 with id 255 and next node 0x2092 0x00ff_02092c00ff02091c
+2026-10-26 21:48:06.933040 INFO  BF_MC Write LAG node at addr 0x2092 with id 255 and next node 0x2093 0x0000_00000000ff02093c
+2026-10-26 21:48:06.933045 INFO  BF_MC Write LAG node at addr 0x2093 with id 255 and next node 0x2094 0x00ff_02094c00ff02093c
+2026-10-26 21:48:06.933051 INFO  BF_MC Write LAG node at addr 0x2094 with id 255 and next node 0x2095 0x0000_00000000ff02095c
+2026-10-26 21:48:06.933056 INFO  BF_MC Write LAG node at addr 0x2095 with id 255 and next node 0x2096 0x00ff_02096c00ff02095c
+2026-10-26 21:48:06.933061 INFO  BF_MC Write LAG node at addr 0x2096 with id 255 and next node 0x2097 0x0000_00000000ff02097c
+2026-10-26 21:48:06.933066 INFO  BF_MC Write LAG node at addr 0x2097 with id 255 and next node 0x2098 0x00ff_02098c00ff02097c
+2026-10-26 21:48:06.933072 INFO  BF_MC Write LAG node at addr 0x2098 with id 255 and next node 0x2099 0x0000_00000000ff02099c
+2026-10-26 21:48:06.933077 INFO  BF_MC Write LAG node at addr 0x2099 with id 255 and next node 0x209a 0x00ff_0209ac00ff02099c
+2026-10-26 21:48:06.933082 INFO  BF_MC Write LAG node at addr 0x209a with id 255 and next node 0x209b 0x0000_00000000ff0209bc
+2026-10-26 21:48:06.933088 INFO  BF_MC Write LAG node at addr 0x209b with id 255 and next node 0x209c 0x00ff_0209cc00ff0209bc
+2026-10-26 21:48:06.933093 INFO  BF_MC Write LAG node at addr 0x209c with id 255 and next node 0x209d 0x0000_00000000ff0209dc
+2026-10-26 21:48:06.933098 INFO  BF_MC Write LAG node at addr 0x209d with id 255 and next node 0x209e 0x00ff_0209ec00ff0209dc
+2026-10-26 21:48:06.933103 INFO  BF_MC Write LAG node at addr 0x209e with id 255 and next node 0x209f 0x0000_00000000ff0209fc
+2026-10-26 21:48:06.933108 INFO  BF_MC Write LAG node at addr 0x209f with id 255 and next node 0x20a0 0x00ff_020a0c00ff0209fc
+2026-10-26 21:48:06.933114 INFO  BF_MC Write LAG node at addr 0x20a0 with id 255 and next node 0x20a1 0x0000_00000000ff020a1c
+2026-10-26 21:48:06.933119 INFO  BF_MC Write LAG node at addr 0x20a1 with id 255 and next node 0x20a2 0x00ff_020a2c00ff020a1c
+2026-10-26 21:48:06.933124 INFO  BF_MC Write LAG node at addr 0x20a2 with id 255 and next node 0x20a3 0x0000_00000000ff020a3c
+2026-10-26 21:48:06.933129 INFO  BF_MC Write LAG node at addr 0x20a3 with id 255 and next node 0x20a4 0x00ff_020a4c00ff020a3c
+2026-10-26 21:48:06.933134 INFO  BF_MC Write LAG node at addr 0x20a4 with id 255 and next node 0x20a5 0x0000_00000000ff020a5c
+2026-10-26 21:48:06.933140 INFO  BF_MC Write LAG node at addr 0x20a5 with id 255 and next node 0x20a6 0x00ff_020a6c00ff020a5c
+2026-10-26 21:48:06.933145 INFO  BF_MC Write LAG node at addr 0x20a6 with id 255 and next node 0x20a7 0x0000_00000000ff020a7c
+2026-10-26 21:48:06.933150 INFO  BF_MC Write LAG node at addr 0x20a7 with id 255 and next node 0x20a8 0x00ff_020a8c00ff020a7c
+2026-10-26 21:48:06.933155 INFO  BF_MC Write LAG node at addr 0x20a8 with id 255 and next node 0x20a9 0x0000_00000000ff020a9c
+2026-10-26 21:48:06.933164 INFO  BF_MC Write LAG node at addr 0x20a9 with id 255 and next node 0x20aa 0x00ff_020aac00ff020a9c
+2026-10-26 21:48:06.933169 INFO  BF_MC Write LAG node at addr 0x20aa with id 255 and next node 0x20ab 0x0000_00000000ff020abc
+2026-10-26 21:48:06.933174 INFO  BF_MC Write LAG node at addr 0x20ab with id 255 and next node 0x20ac 0x00ff_020acc00ff020abc
+2026-10-26 21:48:06.933179 INFO  BF_MC Write LAG node at addr 0x20ac with id 255 and next node 0x20ad 0x0000_00000000ff020adc
+2026-10-26 21:48:06.933185 INFO  BF_MC Write LAG node at addr 0x20ad with id 255 and next node 0x20ae 0x00ff_020aec00ff020adc
+2026-10-26 21:48:06.933190 INFO  BF_MC Write LAG node at addr 0x20ae with id 255 and next node 0x20af 0x0000_00000000ff020afc
+2026-10-26 21:48:06.933195 INFO  BF_MC Write LAG node at addr 0x20af with id 255 and next node 0x20b0 0x00ff_020b0c00ff020afc
+2026-10-26 21:48:06.933200 INFO  BF_MC Write LAG node at addr 0x20b0 with id 255 and next node 0x20b1 0x0000_00000000ff020b1c
+2026-10-26 21:48:06.933206 INFO  BF_MC Write LAG node at addr 0x20b1 with id 255 and next node 0x20b2 0x00ff_020b2c00ff020b1c
+2026-10-26 21:48:06.933211 INFO  BF_MC Write LAG node at addr 0x20b2 with id 255 and next node 0x20b3 0x0000_00000000ff020b3c
+2026-10-26 21:48:06.933216 INFO  BF_MC Write LAG node at addr 0x20b3 with id 255 and next node 0x20b4 0x00ff_020b4c00ff020b3c
+2026-10-26 21:48:06.933222 INFO  BF_MC Write LAG node at addr 0x20b4 with id 255 and next node 0x20b5 0x0000_00000000ff020b5c
+2026-10-26 21:48:06.933227 INFO  BF_MC Write LAG node at addr 0x20b5 with id 255 and next node 0x20b6 0x00ff_020b6c00ff020b5c
+2026-10-26 21:48:06.933233 INFO  BF_MC Write LAG node at addr 0x20b6 with id 255 and next node 0x20b7 0x0000_00000000ff020b7c
+2026-10-26 21:48:06.933238 INFO  BF_MC Write LAG node at addr 0x20b7 with id 255 and next node 0x20b8 0x00ff_020b8c00ff020b7c
+2026-10-26 21:48:06.933243 INFO  BF_MC Write LAG node at addr 0x20b8 with id 255 and next node 0x20b9 0x0000_00000000ff020b9c
+2026-10-26 21:48:06.933248 INFO  BF_MC Write LAG node at addr 0x20b9 with id 255 and next node 0x20ba 0x00ff_020bac00ff020b9c
+2026-10-26 21:48:06.933253 INFO  BF_MC Write LAG node at addr 0x20ba with id 255 and next node 0x20bb 0x0000_00000000ff020bbc
+2026-10-26 21:48:06.933259 INFO  BF_MC Write LAG node at addr 0x20bb with id 255 and next node 0x20bc 0x00ff_020bcc00ff020bbc
+2026-10-26 21:48:06.933264 INFO  BF_MC Write LAG node at addr 0x20bc with id 255 and next node 0x20bd 0x0000_00000000ff020bdc
+2026-10-26 21:48:06.933269 INFO  BF_MC Write LAG node at addr 0x20bd with id 255 and next node 0x20be 0x00ff_020bec00ff020bdc
+2026-10-26 21:48:06.933274 INFO  BF_MC Write LAG node at addr 0x20be with id 255 and next node 0x20bf 0x0000_00000000ff020bfc
+2026-10-26 21:48:06.933279 INFO  BF_MC Write LAG node at addr 0x20bf with id 255 and next node 0x20c0 0x00ff_020c0c00ff020bfc
+2026-10-26 21:48:06.933285 INFO  BF_MC Write LAG node at addr 0x20c0 with id 255 and next node 0x20c1 0x0000_00000000ff020c1c
+2026-10-26 21:48:06.933290 INFO  BF_MC Write LAG node at addr 0x20c1 with id 255 and next node 0x20c2 0x00ff_020c2c00ff020c1c
+2026-10-26 21:48:06.933295 INFO  BF_MC Write LAG node at addr 0x20c2 with id 255 and next node 0x20c3 0x0000_00000000ff020c3c
+2026-10-26 21:48:06.933300 INFO  BF_MC Write LAG node at addr 0x20c3 with id 255 and next node 0x20c4 0x00ff_020c4c00ff020c3c
+2026-10-26 21:48:06.933306 INFO  BF_MC Write LAG node at addr 0x20c4 with id 255 and next node 0x20c5 0x0000_00000000ff020c5c
+2026-10-26 21:48:06.933311 INFO  BF_MC Write LAG node at addr 0x20c5 with id 255 and next node 0x20c6 0x00ff_020c6c00ff020c5c
+2026-10-26 21:48:06.933316 INFO  BF_MC Write LAG node at addr 0x20c6 with id 255 and next node 0x20c7 0x0000_00000000ff020c7c
+2026-10-26 21:48:06.933321 INFO  BF_MC Write LAG node at addr 0x20c7 with id 255 and next node 0x20c8 0x00ff_020c8c00ff020c7c
+2026-10-26 21:48:06.933327 INFO  BF_MC Write LAG node at addr 0x20c8 with id 255 and next node 0x20c9 0x0000_00000000ff020c9c
+2026-10-26 21:48:06.933332 INFO  BF_MC Write LAG node at addr 0x20c9 with id 255 and next node 0x20ca 0x00ff_020cac00ff020c9c
+2026-10-26 21:48:06.933340 INFO  BF_MC Write LAG node at addr 0x20ca with id 255 and next node 0x20cb 0x0000_00000000ff020cbc
+2026-10-26 21:48:06.933346 INFO  BF_MC Write LAG node at addr 0x20cb with id 255 and next node 0x20cc 0x00ff_020ccc00ff020cbc
+2026-10-26 21:48:06.933351 INFO  BF_MC Write LAG node at addr 0x20cc with id 255 and next node 0x20cd 0x0000_00000000ff020cdc
+2026-10-26 21:48:06.933356 INFO  BF_MC Write LAG node at addr 0x20cd with id 255 and next node 0x20ce 0x00ff_020cec00ff020cdc
+2026-10-26 21:48:06.933361 INFO  BF_MC Write LAG node at addr 0x20ce with id 255 and next node 0x20cf 0x0000_00000000ff020cfc
+2026-10-26 21:48:06.933367 INFO  BF_MC Write LAG node at addr 0x20cf with id 255 and next node 0x20d0 0x00ff_020d0c00ff020cfc
+2026-10-26 21:48:06.933372 INFO  BF_MC Write LAG node at addr 0x20d0 with id 255 and next node 0x20d1 0x0000_00000000ff020d1c
+2026-10-26 21:48:06.933377 INFO  BF_MC Write LAG node at addr 0x20d1 with id 255 and next node 0x20d2 0x00ff_020d2c00ff020d1c
+2026-10-26 21:48:06.933382 INFO  BF_MC Write LAG node at addr 0x20d2 with id 255 and next node 0x20d3 0x0000_00000000ff020d3c
+2026-10-26 21:48:06.933387 INFO  BF_MC Write LAG node at addr 0x20d3 with id 255 and next node 0x20d4 0x00ff_020d4c00ff020d3c
+2026-10-26 21:48:06.933392 INFO  BF_MC Write LAG node at addr 0x20d4 with id 255 and next node 0x20d5 0x0000_00000000ff020d5c
+2026-10-26 21:48:06.933397 INFO  BF_MC Write LAG node at addr 0x20d5 with id 255 and next node 0x20d6 0x00ff_020d6c00ff020d5c
+2026-10-26 21:48:06.933403 INFO  BF_MC Write LAG node at addr 0x20d6 with id 255 and next node 0x20d7 0x0000_00000000ff020d7c
+2026-10-26 21:48:06.933408 INFO  BF_MC Write LAG node at addr 0x20d7 with id 255 and next node 0x20d8 0x00ff_020d8c00ff020d7c
+2026-10-26 21:48:06.933413 INFO  BF_MC Write LAG node at addr 0x20d8 with id 255 and next node 0x20d9 0x0000_00000000ff020d9c
+2026-10-26 21:48:06.933418 INFO  BF_MC Write LAG node at addr 0x20d9 with id 255 and next node 0x20da 0x00ff_020dac00ff020d9c
+2026-10-26 21:48:06.933423 INFO  BF_MC Write LAG node at addr 0x20da with id 255 and next node 0x20db 0x0000_00000000ff020dbc
+2026-10-26 21:48:06.933429 INFO  BF_MC Write LAG node at addr 0x20db with id 255 and next node 0x20dc 0x00ff_020dcc00ff020dbc
+2026-10-26 21:48:06.933434 INFO  BF_MC Write LAG node at addr 0x20dc with id 255 and next node 0x20dd 0x0000_00000000ff020ddc
+2026-10-26 21:48:06.933440 INFO  BF_MC Write LAG node at addr 0x20dd with id 255 and next node 0x20de 0x00ff_020dec00ff020ddc
+2026-10-26 21:48:06.933445 INFO  BF_MC Write LAG node at addr 0x20de with id 255 and next node 0x20df 0x0000_00000000ff020dfc
+2026-10-26 21:48:06.933450 INFO  BF_MC Write LAG node at addr 0x20df with id 255 and next node 0x20e0 0x00ff_020e0c00ff020dfc
+2026-10-26 21:48:06.933455 INFO  BF_MC Write LAG node at addr 0x20e0 with id 255 and next node 0x20e1 0x0000_00000000ff020e1c
+2026-10-26 21:48:06.933461 INFO  BF_MC Write LAG node at addr 0x20e1 with id 255 and next node 0x20e2 0x00ff_020e2c00ff020e1c
+2026-10-26 21:48:06.933466 INFO  BF_MC Write LAG node at addr 0x20e2 with id 255 and next node 0x20e3 0x0000_00000000ff020e3c
+2026-10-26 21:48:06.933479 INFO  BF_MC Write LAG node at addr 0x20e3 with id 255 and next node 0x20e4 0x00ff_020e4c00ff020e3c
+2026-10-26 21:48:06.933484 INFO  BF_MC Write LAG node at addr 0x20e4 with id 255 and next node 0x20e5 0x0000_00000000ff020e5c
+2026-10-26 21:48:06.933490 INFO  BF_MC Write LAG node at addr 0x20e5 with id 255 and next node 0x20e6 0x00ff_020e6c00ff020e5c
+2026-10-26 21:48:06.933495 INFO  BF_MC Write LAG node at addr 0x20e6 with id 255 and next node 0x20e7 0x0000_00000000ff020e7c
+2026-10-26 21:48:06.933500 INFO  BF_MC Write LAG node at addr 0x20e7 with id 255 and next node 0x20e8 0x00ff_020e8c00ff020e7c
+2026-10-26 21:48:06.933505 INFO  BF_MC Write LAG node at addr 0x20e8 with id 255 and next node 0x20e9 0x0000_00000000ff020e9c
+2026-10-26 21:48:06.933510 INFO  BF_MC Write LAG node at addr 0x20e9 with id 255 and next node 0x20ea 0x00ff_020eac00ff020e9c
+2026-10-26 21:48:06.933519 INFO  BF_MC Write LAG node at addr 0x20ea with id 255 and next node 0x20eb 0x0000_00000000ff020ebc
+2026-10-26 21:48:06.933524 INFO  BF_MC Write LAG node at addr 0x20eb with id 255 and next node 0x20ec 0x00ff_020ecc00ff020ebc
+2026-10-26 21:48:06.933529 INFO  BF_MC Write LAG node at addr 0x20ec with id 255 and next node 0x20ed 0x0000_00000000ff020edc
+2026-10-26 21:48:06.933535 INFO  BF_MC Write LAG node at addr 0x20ed with id 255 and next node 0x20ee 0x00ff_020eec00ff020edc
+2026-10-26 21:48:06.933540 INFO  BF_MC Write LAG node at addr 0x20ee with id 255 and next node 0x20ef 0x0000_00000000ff020efc
+2026-10-26 21:48:06.933545 INFO  BF_MC Write LAG node at addr 0x20ef with id 255 and next node 0x20f0 0x00ff_020f0c00ff020efc
+2026-10-26 21:48:06.933551 INFO  BF_MC Write LAG node at addr 0x20f0 with id 255 and next node 0x20f1 0x0000_00000000ff020f1c
+2026-10-26 21:48:06.933556 INFO  BF_MC Write LAG node at addr 0x20f1 with id 255 and next node 0x20f2 0x00ff_020f2c00ff020f1c
+2026-10-26 21:48:06.933561 INFO  BF_MC Write LAG node at addr 0x20f2 with id 255 and next node 0x20f3 0x0000_00000000ff020f3c
+2026-10-26 21:48:06.933566 INFO  BF_MC Write LAG node at addr 0x20f3 with id 255 and next node 0x20f4 0x00ff_020f4c00ff020f3c
+2026-10-26 21:48:06.933571 INFO  BF_MC Write LAG node at addr 0x20f4 with id 255 and next node 0x20f5 0x0000_00000000ff020f5c
+2026-10-26 21:48:06.933577 INFO  BF_MC Write LAG node at addr 0x20f5 with id 255 and next node 0x20f6 0x00ff_020f6c00ff020f5c
+2026-10-26 21:48:06.933582 INFO  BF_MC Write LAG node at addr 0x20f6 with id 255 and next node 0x20f7 0x0000_00000000ff020f7c
+2026-10-26 21:48:06.933587 INFO  BF_MC Write LAG node at addr 0x20f7 with id 255 and next node 0x20f8 0x00ff_020f8c00ff020f7c
+2026-10-26 21:48:06.933592 INFO  BF_MC Write LAG node at addr 0x20f8 with id 255 and next node 0x20f9 0x0000_00000000ff020f9c
+2026-10-26 21:48:06.933597 INFO  BF_MC Write LAG node at addr 0x20f9 with id 255 and next node 0x20fa 0x00ff_020fac00ff020f9c
+2026-10-26 21:48:06.933603 INFO  BF_MC Write LAG node at addr 0x20fa with id 255 and next node 0x20fb 0x0000_00000000ff020fbc
+2026-10-26 21:48:06.933608 INFO  BF_MC Write LAG node at addr 0x20fb with id 255 and next node 0x20fc 0x00ff_020fcc00ff020fbc
+2026-10-26 21:48:06.933614 INFO  BF_MC Write LAG node at addr 0x20fc with id 255 and next node 0x20fd 0x0000_00000000ff020fdc
+2026-10-26 21:48:06.933619 INFO  BF_MC Write LAG node at addr 0x20fd with id 255 and next node 0x20fe 0x00ff_020fec00ff020fdc
+2026-10-26 21:48:06.933624 INFO  BF_MC Write LAG node at addr 0x20fe with id 255 and next node 0x20ff 0x0000_00000000ff020ffc
+2026-10-26 21:48:06.933629 INFO  BF_MC Write LAG node at addr 0x20ff with id 255 and next node 0x2100 0x00ff_02100c00ff020ffc
+2026-10-26 21:48:06.933634 INFO  BF_MC Write LAG node at addr 0x2100 with id 255 and next node 0x2101 0x0000_00000000ff02101c
+2026-10-26 21:48:06.933640 INFO  BF_MC Write LAG node at addr 0x2101 with id 255 and next node 0x2102 0x00ff_02102c00ff02101c
+2026-10-26 21:48:06.933645 INFO  BF_MC Write LAG node at addr 0x2102 with id 255 and next node 0x2103 0x0000_00000000ff02103c
+2026-10-26 21:48:06.933650 INFO  BF_MC Write LAG node at addr 0x2103 with id 255 and next node 0 0x00ff_00000c00ff02103c
+2026-10-26 21:48:06.933656 INFO  BF_MC Allocated RDM addresses 0x31e0 - 0x31ff
+2026-10-26 21:48:06.933661 INFO  BF_MC Write L1End node at addr 0x31e0, rid 0, l2 0x2101
+2026-10-26 21:48:06.933666 INFO  BF_MC Write L1End node at addr 0x31e1, rid 0, l2 0x2100
+2026-10-26 21:48:06.933672 INFO  BF_MC Write L1End node at addr 0x31e2, rid 0, l2 0x20ff
+2026-10-26 21:48:06.933677 INFO  BF_MC Write L1End node at addr 0x31e3, rid 0, l2 0x20fe
+2026-10-26 21:48:06.933682 INFO  BF_MC Write L1End node at addr 0x31e4, rid 0, l2 0x20fd
+2026-10-26 21:48:06.933687 INFO  BF_MC Write L1End node at addr 0x31e5, rid 0, l2 0x20fc
+2026-10-26 21:48:06.933693 INFO  BF_MC Write L1End node at addr 0x31e6, rid 0, l2 0x20fb
+2026-10-26 21:48:06.933698 INFO  BF_MC Write L1End node at addr 0x31e7, rid 0, l2 0x20fa
+2026-10-26 21:48:06.933703 INFO  BF_MC Write L1End node at addr 0x31e8, rid 0, l2 0x20f8
+2026-10-26 21:48:06.933711 INFO  BF_MC Write L1End node at addr 0x31e9, rid 0, l2 0x20f6
+2026-10-26 21:48:06.933716 INFO  BF_MC Write L1End node at addr 0x31ea, rid 0, l2 0x20f4
+2026-10-26 21:48:06.933721 INFO  BF_MC Write L1End node at addr 0x31eb, rid 0, l2 0x20f2
+2026-10-26 21:48:06.933726 INFO  BF_MC Write L1End node at addr 0x31ec, rid 0, l2 0x20f0
+2026-10-26 21:48:06.933732 INFO  BF_MC Write L1End node at addr 0x31ed, rid 0, l2 0x20ee
+2026-10-26 21:48:06.933737 INFO  BF_MC Write L1End node at addr 0x31ee, rid 0, l2 0x20ec
+2026-10-26 21:48:06.933742 INFO  BF_MC Write L1End node at addr 0x31ef, rid 0, l2 0x20ea
+2026-10-26 21:48:06.933747 INFO  BF_MC Write L1End node at addr 0x31f0, rid 0, l2 0x20e8
+2026-10-26 21:48:06.933752 INFO  BF_MC Write L1End node at addr 0x31f1, rid 0, l2 0x20e6
+2026-10-26 21:48:06.933757 INFO  BF_MC Write L1End node at addr 0x31f2, rid 0, l2 0x20e4
+2026-10-26 21:48:06.933762 INFO  BF_MC Write L1End node at addr 0x31f3, rid 0, l2 0x20e0
+2026-10-26 21:48:06.933768 INFO  BF_MC Write L1End node at addr 0x31f4, rid 0, l2 0x20dc
+2026-10-26 21:48:06.933773 INFO  BF_MC Write L1End node at addr 0x31f5, rid 0, l2 0x20d8
+2026-10-26 21:48:06.933778 INFO  BF_MC Write L1End node at addr 0x31f6, rid 0, l2 0x20d4
+2026-10-26 21:48:06.933783 INFO  BF_MC Write L1End node at addr 0x31f7, rid 0, l2 0x20cc
+2026-10-26 21:48:06.933788 INFO  BF_MC Write L1End node at addr 0x31f8, rid 0, l2 0x20c4
+2026-10-26 21:48:06.933793 INFO  BF_MC Write L1End node at addr 0x31f9, rid 0, l2 0x20bc
+2026-10-26 21:48:06.933798 INFO  BF_MC Write L1End node at addr 0x31fa, rid 0, l2 0x20a0
+2026-10-26 21:48:06.933803 INFO  BF_MC Write L1End node at addr 0x31fb, rid 0, l2 0x2087
+2026-10-26 21:48:06.933808 INFO  BF_MC Write L1End node at addr 0x31fc, rid 0, l2 0x206e
+2026-10-26 21:48:06.933813 INFO  BF_MC Write L1End node at addr 0x31fd, rid 0, l2 0x2055
+2026-10-26 21:48:06.933819 INFO  BF_MC Write L1End node at addr 0x31fe, rid 0, l2 0x203c
+2026-10-26 21:48:06.933824 INFO  BF_MC Write L1End node at addr 0x31ff, rid 0, l2 0x2000
+2026-10-26 21:48:06.933829 INFO  BF_MC Allocated RDM addresses 0x4000 - 0x4103
+2026-10-26 21:48:06.933835 INFO  BF_MC Write LAG node at addr 0x4000 with id 255 and next node 0x4001 0x0000_00000000ff04001c
+2026-10-26 21:48:06.933840 INFO  BF_MC Write LAG node at addr 0x4001 with id 255 and next node 0x4002 0x00ff_04002c00ff04001c
+2026-10-26 21:48:06.933845 INFO  BF_MC Write LAG node at addr 0x4002 with id 255 and next node 0x4003 0x0000_00000000ff04003c
+2026-10-26 21:48:06.933851 INFO  BF_MC Write LAG node at addr 0x4003 with id 255 and next node 0x4004 0x00ff_04004c00ff04003c
+2026-10-26 21:48:06.933856 INFO  BF_MC Write LAG node at addr 0x4004 with id 255 and next node 0x4005 0x0000_00000000ff04005c
+2026-10-26 21:48:06.933861 INFO  BF_MC Write LAG node at addr 0x4005 with id 255 and next node 0x4006 0x00ff_04006c00ff04005c
+2026-10-26 21:48:06.933866 INFO  BF_MC Write LAG node at addr 0x4006 with id 255 and next node 0x4007 0x0000_00000000ff04007c
+2026-10-26 21:48:06.933872 INFO  BF_MC Write LAG node at addr 0x4007 with id 255 and next node 0x4008 0x00ff_04008c00ff04007c
+2026-10-26 21:48:06.933877 INFO  BF_MC Write LAG node at addr 0x4008 with id 255 and next node 0x4009 0x0000_00000000ff04009c
+2026-10-26 21:48:06.933882 INFO  BF_MC Write LAG node at addr 0x4009 with id 255 and next node 0x400a 0x00ff_0400ac00ff04009c
+2026-10-26 21:48:06.933887 INFO  BF_MC Write LAG node at addr 0x400a with id 255 and next node 0x400b 0x0000_00000000ff0400bc
+2026-10-26 21:48:06.933892 INFO  BF_MC Write LAG node at addr 0x400b with id 255 and next node 0x400c 0x00ff_0400cc00ff0400bc
+2026-10-26 21:48:06.933898 INFO  BF_MC Write LAG node at addr 0x400c with id 255 and next node 0x400d 0x0000_00000000ff0400dc
+2026-10-26 21:48:06.933903 INFO  BF_MC Write LAG node at addr 0x400d with id 255 and next node 0x400e 0x00ff_0400ec00ff0400dc
+2026-10-26 21:48:06.933908 INFO  BF_MC Write LAG node at addr 0x400e with id 255 and next node 0x400f 0x0000_00000000ff0400fc
+2026-10-26 21:48:06.933913 INFO  BF_MC Write LAG node at addr 0x400f with id 255 and next node 0x4010 0x00ff_04010c00ff0400fc
+2026-10-26 21:48:06.933921 INFO  BF_MC Write LAG node at addr 0x4010 with id 255 and next node 0x4011 0x0000_00000000ff04011c
+2026-10-26 21:48:06.933926 INFO  BF_MC Write LAG node at addr 0x4011 with id 255 and next node 0x4012 0x00ff_04012c00ff04011c
+2026-10-26 21:48:06.933932 INFO  BF_MC Write LAG node at addr 0x4012 with id 255 and next node 0x4013 0x0000_00000000ff04013c
+2026-10-26 21:48:06.933937 INFO  BF_MC Write LAG node at addr 0x4013 with id 255 and next node 0x4014 0x00ff_04014c00ff04013c
+2026-10-26 21:48:06.933942 INFO  BF_MC Write LAG node at addr 0x4014 with id 255 and next node 0x4015 0x0000_00000000ff04015c
+2026-10-26 21:48:06.933947 INFO  BF_MC Write LAG node at addr 0x4015 with id 255 and next node 0x4016 0x00ff_04016c00ff04015c
+2026-10-26 21:48:06.933953 INFO  BF_MC Write LAG node at addr 0x4016 with id 255 and next node 0x4017 0x0000_00000000ff04017c
+2026-10-26 21:48:06.933958 INFO  BF_MC Write LAG node at addr 0x4017 with id 255 and next node 0x4018 0x00ff_04018c00ff04017c
+2026-10-26 21:48:06.933963 INFO  BF_MC Write LAG node at addr 0x4018 with id 255 and next node 0x4019 0x0000_00000000ff04019c
+2026-10-26 21:48:06.933968 INFO  BF_MC Write LAG node at addr 0x4019 with id 255 and next node 0x401a 0x00ff_0401ac00ff04019c
+2026-10-26 21:48:06.933973 INFO  BF_MC Write LAG node at addr 0x401a with id 255 and next node 0x401b 0x0000_00000000ff0401bc
+2026-10-26 21:48:06.933979 INFO  BF_MC Write LAG node at addr 0x401b with id 255 and next node 0x401c 0x00ff_0401cc00ff0401bc
+2026-10-26 21:48:06.933984 INFO  BF_MC Write LAG node at addr 0x401c with id 255 and next node 0x401d 0x0000_00000000ff0401dc
+2026-10-26 21:48:06.933989 INFO  BF_MC Write LAG node at addr 0x401d with id 255 and next node 0x401e 0x00ff_0401ec00ff0401dc
+2026-10-26 21:48:06.933994 INFO  BF_MC Write LAG node at addr 0x401e with id 255 and next node 0x401f 0x0000_00000000ff0401fc
+2026-10-26 21:48:06.934000 INFO  BF_MC Write LAG node at addr 0x401f with id 255 and next node 0x4020 0x00ff_04020c00ff0401fc
+2026-10-26 21:48:06.934005 INFO  BF_MC Write LAG node at addr 0x4020 with id 255 and next node 0x4021 0x0000_00000000ff04021c
+2026-10-26 21:48:06.934010 INFO  BF_MC Write LAG node at addr 0x4021 with id 255 and next node 0x4022 0x00ff_04022c00ff04021c
+2026-10-26 21:48:06.934015 INFO  BF_MC Write LAG node at addr 0x4022 with id 255 and next node 0x4023 0x0000_00000000ff04023c
+2026-10-26 21:48:06.934021 INFO  BF_MC Write LAG node at addr 0x4023 with id 255 and next node 0x4024 0x00ff_04024c00ff04023c
+2026-10-26 21:48:06.934026 INFO  BF_MC Write LAG node at addr 0x4024 with id 255 and next node 0x4025 0x0000_00000000ff04025c
+2026-10-26 21:48:06.934031 INFO  BF_MC Write LAG node at addr 0x4025 with id 255 and next node 0x4026 0x00ff_04026c00ff04025c
+2026-10-26 21:48:06.934036 INFO  BF_MC Write LAG node at addr 0x4026 with id 255 and next node 0x4027 0x0000_00000000ff04027c
+2026-10-26 21:48:06.934042 INFO  BF_MC Write LAG node at addr 0x4027 with id 255 and next node 0x4028 0x00ff_04028c00ff04027c
+2026-10-26 21:48:06.934047 INFO  BF_MC Write LAG node at addr 0x4028 with id 255 and next node 0x4029 0x0000_00000000ff04029c
+2026-10-26 21:48:06.934052 INFO  BF_MC Write LAG node at addr 0x4029 with id 255 and next node 0x402a 0x00ff_0402ac00ff04029c
+2026-10-26 21:48:06.934057 INFO  BF_MC Write LAG node at addr 0x402a with id 255 and next node 0x402b 0x0000_00000000ff0402bc
+2026-10-26 21:48:06.934062 INFO  BF_MC Write LAG node at addr 0x402b with id 255 and next node 0x402c 0x00ff_0402cc00ff0402bc
+2026-10-26 21:48:06.934068 INFO  BF_MC Write LAG node at addr 0x402c with id 255 and next node 0x402d 0x0000_00000000ff0402dc
+2026-10-26 21:48:06.934073 INFO  BF_MC Write LAG node at addr 0x402d with id 255 and next node 0x402e 0x00ff_0402ec00ff0402dc
+2026-10-26 21:48:06.934078 INFO  BF_MC Write LAG node at addr 0x402e with id 255 and next node 0x402f 0x0000_00000000ff0402fc
+2026-10-26 21:48:06.934083 INFO  BF_MC Write LAG node at addr 0x402f with id 255 and next node 0x4030 0x00ff_04030c00ff0402fc
+2026-10-26 21:48:06.934091 INFO  BF_MC Write LAG node at addr 0x4030 with id 255 and next node 0x4031 0x0000_00000000ff04031c
+2026-10-26 21:48:06.934096 INFO  BF_MC Write LAG node at addr 0x4031 with id 255 and next node 0x4032 0x00ff_04032c00ff04031c
+2026-10-26 21:48:06.934102 INFO  BF_MC Write LAG node at addr 0x4032 with id 255 and next node 0x4033 0x0000_00000000ff04033c
+2026-10-26 21:48:06.934107 INFO  BF_MC Write LAG node at addr 0x4033 with id 255 and next node 0x4034 0x00ff_04034c00ff04033c
+2026-10-26 21:48:06.934112 INFO  BF_MC Write LAG node at addr 0x4034 with id 255 and next node 0x4035 0x0000_00000000ff04035c
+2026-10-26 21:48:06.934117 INFO  BF_MC Write LAG node at addr 0x4035 with id 255 and next node 0x4036 0x00ff_04036c00ff04035c
+2026-10-26 21:48:06.934122 INFO  BF_MC Write LAG node at addr 0x4036 with id 255 and next node 0x4037 0x0000_00000000ff04037c
+2026-10-26 21:48:06.934128 INFO  BF_MC Write LAG node at addr 0x4037 with id 255 and next node 0x4038 0x00ff_04038c00ff04037c
+2026-10-26 21:48:06.934134 INFO  BF_MC Write LAG node at addr 0x4038 with id 255 and next node 0x4039 0x0000_00000000ff04039c
+2026-10-26 21:48:06.934139 INFO  BF_MC Write LAG node at addr 0x4039 with id 255 and next node 0x403a 0x00ff_0403ac00ff04039c
+2026-10-26 21:48:06.934144 INFO  BF_MC Write LAG node at addr 0x403a with id 255 and next node 0x403b 0x0000_00000000ff0403bc
+2026-10-26 21:48:06.934149 INFO  BF_MC Write LAG node at addr 0x403b with id 255 and next node 0x403c 0x00ff_0403cc00ff0403bc
+2026-10-26 21:48:06.934154 INFO  BF_MC Write LAG node at addr 0x403c with id 255 and next node 0x403d 0x0000_00000000ff0403dc
+2026-10-26 21:48:06.934160 INFO  BF_MC Write LAG node at addr 0x403d with id 255 and next node 0x403e 0x00ff_0403ec00ff0403dc
+2026-10-26 21:48:06.934165 INFO  BF_MC Write LAG node at addr 0x403e with id 255 and next node 0x403f 0x0000_00000000ff0403fc
+2026-10-26 21:48:06.934171 INFO  BF_MC Write LAG node at addr 0x403f with id 255 and next node 0x4040 0x00ff_04040c00ff0403fc
+2026-10-26 21:48:06.934176 INFO  BF_MC Write LAG node at addr 0x4040 with id 255 and next node 0x4041 0x0000_00000000ff04041c
+2026-10-26 21:48:06.934181 INFO  BF_MC Write LAG node at addr 0x4041 with id 255 and next node 0x4042 0x00ff_04042c00ff04041c
+2026-10-26 21:48:06.934186 INFO  BF_MC Write LAG node at addr 0x4042 with id 255 and next node 0x4043 0x0000_00000000ff04043c
+2026-10-26 21:48:06.934192 INFO  BF_MC Write LAG node at addr 0x4043 with id 255 and next node 0x4044 0x00ff_04044c00ff04043c
+2026-10-26 21:48:06.934197 INFO  BF_MC Write LAG node at addr 0x4044 with id 255 and next node 0x4045 0x0000_00000000ff04045c
+2026-10-26 21:48:06.934202 INFO  BF_MC Write LAG node at addr 0x4045 with id 255 and next node 0x4046 0x00ff_04046c00ff04045c
+2026-10-26 21:48:06.934208 INFO  BF_MC Write LAG node at addr 0x4046 with id 255 and next node 0x4047 0x0000_00000000ff04047c
+2026-10-26 21:48:06.934213 INFO  BF_MC Write LAG node at addr 0x4047 with id 255 and next node 0x4048 0x00ff_04048c00ff04047c
+2026-10-26 21:48:06.934218 INFO  BF_MC Write LAG node at addr 0x4048 with id 255 and next node 0x4049 0x0000_00000000ff04049c
+2026-10-26 21:48:06.934223 INFO  BF_MC Write LAG node at addr 0x4049 with id 255 and next node 0x404a 0x00ff_0404ac00ff04049c
+2026-10-26 21:48:06.934229 INFO  BF_MC Write LAG node at addr 0x404a with id 255 and next node 0x404b 0x0000_00000000ff0404bc
+2026-10-26 21:48:06.934234 INFO  BF_MC Write LAG node at addr 0x404b with id 255 and next node 0x404c 0x00ff_0404cc00ff0404bc
+2026-10-26 21:48:06.934239 INFO  BF_MC Write LAG node at addr 0x404c with id 255 and next node 0x404d 0x0000_00000000ff0404dc
+2026-10-26 21:48:06.934245 INFO  BF_MC Write LAG node at addr 0x404d with id 255 and next node 0x404e 0x00ff_0404ec00ff0404dc
+2026-10-26 21:48:06.934250 INFO  BF_MC Write LAG node at addr 0x404e with id 255 and next node 0x404f 0x0000_00000000ff0404fc
+2026-10-26 21:48:06.934255 INFO  BF_MC Write LAG node at addr 0x404f with id 255 and next node 0x4050 0x00ff_04050c00ff0404fc
+2026-10-26 21:48:06.934260 INFO  BF_MC Write LAG node at addr 0x4050 with id 255 and next node 0x4051 0x0000_00000000ff04051c
+2026-10-26 21:48:06.934270 INFO  BF_MC Write LAG node at addr 0x4051 with id 255 and next node 0x4052 0x00ff_04052c00ff04051c
+2026-10-26 21:48:06.934276 INFO  BF_MC Write LAG node at addr 0x4052 with id 255 and next node 0x4053 0x0000_00000000ff04053c
+2026-10-26 21:48:06.934281 INFO  BF_MC Write LAG node at addr 0x4053 with id 255 and next node 0x4054 0x00ff_04054c00ff04053c
+2026-10-26 21:48:06.934287 INFO  BF_MC Write LAG node at addr 0x4054 with id 255 and next node 0x4055 0x0000_00000000ff04055c
+2026-10-26 21:48:06.934292 INFO  BF_MC Write LAG node at addr 0x4055 with id 255 and next node 0x4056 0x00ff_04056c00ff04055c
+2026-10-26 21:48:06.934297 INFO  BF_MC Write LAG node at addr 0x4056 with id 255 and next node 0x4057 0x0000_00000000ff04057c
+2026-10-26 21:48:06.934302 INFO  BF_MC Write LAG node at addr 0x4057 with id 255 and next node 0x4058 0x00ff_04058c00ff04057c
+2026-10-26 21:48:06.934307 INFO  BF_MC Write LAG node at addr 0x4058 with id 255 and next node 0x4059 0x0000_00000000ff04059c
+2026-10-26 21:48:06.934313 INFO  BF_MC Write LAG node at addr 0x4059 with id 255 and next node 0x405a 0x00ff_0405ac00ff04059c
+2026-10-26 21:48:06.934318 INFO  BF_MC Write LAG node at addr 0x405a with id 255 and next node 0x405b 0x0000_00000000ff0405bc
+2026-10-26 21:48:06.934323 INFO  BF_MC Write LAG node at addr 0x405b with id 255 and next node 0x405c 0x00ff_0405cc00ff0405bc
+2026-10-26 21:48:06.934329 INFO  BF_MC Write LAG node at addr 0x405c with id 255 and next node 0x405d 0x0000_00000000ff0405dc
+2026-10-26 21:48:06.934334 INFO  BF_MC Write LAG node at addr 0x405d with id 255 and next node 0x405e 0x00ff_0405ec00ff0405dc
+2026-10-26 21:48:06.934339 INFO  BF_MC Write LAG node at addr 0x405e with id 255 and next node 0x405f 0x0000_00000000ff0405fc
+2026-10-26 21:48:06.934345 INFO  BF_MC Write LAG node at addr 0x405f with id 255 and next node 0x4060 0x00ff_04060c00ff0405fc
+2026-10-26 21:48:06.934350 INFO  BF_MC Write LAG node at addr 0x4060 with id 255 and next node 0x4061 0x0000_00000000ff04061c
+2026-10-26 21:48:06.934355 INFO  BF_MC Write LAG node at addr 0x4061 with id 255 and next node 0x4062 0x00ff_04062c00ff04061c
+2026-10-26 21:48:06.934360 INFO  BF_MC Write LAG node at addr 0x4062 with id 255 and next node 0x4063 0x0000_00000000ff04063c
+2026-10-26 21:48:06.934365 INFO  BF_MC Write LAG node at addr 0x4063 with id 255 and next node 0x4064 0x00ff_04064c00ff04063c
+2026-10-26 21:48:06.934371 INFO  BF_MC Write LAG node at addr 0x4064 with id 255 and next node 0x4065 0x0000_00000000ff04065c
+2026-10-26 21:48:06.934376 INFO  BF_MC Write LAG node at addr 0x4065 with id 255 and next node 0x4066 0x00ff_04066c00ff04065c
+2026-10-26 21:48:06.934381 INFO  BF_MC Write LAG node at addr 0x4066 with id 255 and next node 0x4067 0x0000_00000000ff04067c
+2026-10-26 21:48:06.934386 INFO  BF_MC Write LAG node at addr 0x4067 with id 255 and next node 0x4068 0x00ff_04068c00ff04067c
+2026-10-26 21:48:06.934391 INFO  BF_MC Write LAG node at addr 0x4068 with id 255 and next node 0x4069 0x0000_00000000ff04069c
+2026-10-26 21:48:06.934397 INFO  BF_MC Write LAG node at addr 0x4069 with id 255 and next node 0x406a 0x00ff_0406ac00ff04069c
+2026-10-26 21:48:06.934402 INFO  BF_MC Write LAG node at addr 0x406a with id 255 and next node 0x406b 0x0000_00000000ff0406bc
+2026-10-26 21:48:06.934407 INFO  BF_MC Write LAG node at addr 0x406b with id 255 and next node 0x406c 0x00ff_0406cc00ff0406bc
+2026-10-26 21:48:06.934412 INFO  BF_MC Write LAG node at addr 0x406c with id 255 and next node 0x406d 0x0000_00000000ff0406dc
+2026-10-26 21:48:06.934417 INFO  BF_MC Write LAG node at addr 0x406d with id 255 and next node 0x406e 0x00ff_0406ec00ff0406dc
+2026-10-26 21:48:06.934423 INFO  BF_MC Write LAG node at addr 0x406e with id 255 and next node 0x406f 0x0000_00000000ff0406fc
+2026-10-26 21:48:06.934428 INFO  BF_MC Write LAG node at addr 0x406f with id 255 and next node 0x4070 0x00ff_04070c00ff0406fc
+2026-10-26 21:48:06.934433 INFO  BF_MC Write LAG node at addr 0x4070 with id 255 and next node 0x4071 0x0000_00000000ff04071c
+2026-10-26 21:48:06.934442 INFO  BF_MC Write LAG node at addr 0x4071 with id 255 and next node 0x4072 0x00ff_04072c00ff04071c
+2026-10-26 21:48:06.934447 INFO  BF_MC Write LAG node at addr 0x4072 with id 255 and next node 0x4073 0x0000_00000000ff04073c
+2026-10-26 21:48:06.934452 INFO  BF_MC Write LAG node at addr 0x4073 with id 255 and next node 0x4074 0x00ff_04074c00ff04073c
+2026-10-26 21:48:06.934457 INFO  BF_MC Write LAG node at addr 0x4074 with id 255 and next node 0x4075 0x0000_00000000ff04075c
+2026-10-26 21:48:06.934463 INFO  BF_MC Write LAG node at addr 0x4075 with id 255 and next node 0x4076 0x00ff_04076c00ff04075c
+2026-10-26 21:48:06.934468 INFO  BF_MC Write LAG node at addr 0x4076 with id 255 and next node 0x4077 0x0000_00000000ff04077c
+2026-10-26 21:48:06.934473 INFO  BF_MC Write LAG node at addr 0x4077 with id 255 and next node 0x4078 0x00ff_04078c00ff04077c
+2026-10-26 21:48:06.934478 INFO  BF_MC Write LAG node at addr 0x4078 with id 255 and next node 0x4079 0x0000_00000000ff04079c
+2026-10-26 21:48:06.934484 INFO  BF_MC Write LAG node at addr 0x4079 with id 255 and next node 0x407a 0x00ff_0407ac00ff04079c
+2026-10-26 21:48:06.934489 INFO  BF_MC Write LAG node at addr 0x407a with id 255 and next node 0x407b 0x0000_00000000ff0407bc
+2026-10-26 21:48:06.934494 INFO  BF_MC Write LAG node at addr 0x407b with id 255 and next node 0x407c 0x00ff_0407cc00ff0407bc
+2026-10-26 21:48:06.934499 INFO  BF_MC Write LAG node at addr 0x407c with id 255 and next node 0x407d 0x0000_00000000ff0407dc
+2026-10-26 21:48:06.934504 INFO  BF_MC Write LAG node at addr 0x407d with id 255 and next node 0x407e 0x00ff_0407ec00ff0407dc
+2026-10-26 21:48:06.934510 INFO  BF_MC Write LAG node at addr 0x407e with id 255 and next node 0x407f 0x0000_00000000ff0407fc
+2026-10-26 21:48:06.934515 INFO  BF_MC Write LAG node at addr 0x407f with id 255 and next node 0x4080 0x00ff_04080c00ff0407fc
+2026-10-26 21:48:06.934520 INFO  BF_MC Write LAG node at addr 0x4080 with id 255 and next node 0x4081 0x0000_00000000ff04081c
+2026-10-26 21:48:06.934526 INFO  BF_MC Write LAG node at addr 0x4081 with id 255 and next node 0x4082 0x00ff_04082c00ff04081c
+2026-10-26 21:48:06.934531 INFO  BF_MC Write LAG node at addr 0x4082 with id 255 and next node 0x4083 0x0000_00000000ff04083c
+2026-10-26 21:48:06.934536 INFO  BF_MC Write LAG node at addr 0x4083 with id 255 and next node 0x4084 0x00ff_04084c00ff04083c
+2026-10-26 21:48:06.934541 INFO  BF_MC Write LAG node at addr 0x4084 with id 255 and next node 0x4085 0x0000_00000000ff04085c
+2026-10-26 21:48:06.934547 INFO  BF_MC Write LAG node at addr 0x4085 with id 255 and next node 0x4086 0x00ff_04086c00ff04085c
+2026-10-26 21:48:06.934552 INFO  BF_MC Write LAG node at addr 0x4086 with id 255 and next node 0x4087 0x0000_00000000ff04087c
+2026-10-26 21:48:06.934557 INFO  BF_MC Write LAG node at addr 0x4087 with id 255 and next node 0x4088 0x00ff_04088c00ff04087c
+2026-10-26 21:48:06.934562 INFO  BF_MC Write LAG node at addr 0x4088 with id 255 and next node 0x4089 0x0000_00000000ff04089c
+2026-10-26 21:48:06.934567 INFO  BF_MC Write LAG node at addr 0x4089 with id 255 and next node 0x408a 0x00ff_0408ac00ff04089c
+2026-10-26 21:48:06.934573 INFO  BF_MC Write LAG node at addr 0x408a with id 255 and next node 0x408b 0x0000_00000000ff0408bc
+2026-10-26 21:48:06.934578 INFO  BF_MC Write LAG node at addr 0x408b with id 255 and next node 0x408c 0x00ff_0408cc00ff0408bc
+2026-10-26 21:48:06.934583 INFO  BF_MC Write LAG node at addr 0x408c with id 255 and next node 0x408d 0x0000_00000000ff0408dc
+2026-10-26 21:48:06.934588 INFO  BF_MC Write LAG node at addr 0x408d with id 255 and next node 0x408e 0x00ff_0408ec00ff0408dc
+2026-10-26 21:48:06.934594 INFO  BF_MC Write LAG node at addr 0x408e with id 255 and next node 0x408f 0x0000_00000000ff0408fc
+2026-10-26 21:48:06.934599 INFO  BF_MC Write LAG node at addr 0x408f with id 255 and next node 0x4090 0x00ff_04090c00ff0408fc
+2026-10-26 21:48:06.934604 INFO  BF_MC Write LAG node at addr 0x4090 with id 255 and next node 0x4091 0x0000_00000000ff04091c
+2026-10-26 21:48:06.934609 INFO  BF_MC Write LAG node at addr 0x4091 with id 255 and next node 0x4092 0x00ff_04092c00ff04091c
+2026-10-26 21:48:06.934620 INFO  BF_MC Write LAG node at addr 0x4092 with id 255 and next node 0x4093 0x0000_00000000ff04093c
+2026-10-26 21:48:06.934625 INFO  BF_MC Write LAG node at addr 0x4093 with id 255 and next node 0x4094 0x00ff_04094c00ff04093c
+2026-10-26 21:48:06.934630 INFO  BF_MC Write LAG node at addr 0x4094 with id 255 and next node 0x4095 0x0000_00000000ff04095c
+2026-10-26 21:48:06.934635 INFO  BF_MC Write LAG node at addr 0x4095 with id 255 and next node 0x4096 0x00ff_04096c00ff04095c
+2026-10-26 21:48:06.934641 INFO  BF_MC Write LAG node at addr 0x4096 with id 255 and next node 0x4097 0x0000_00000000ff04097c
+2026-10-26 21:48:06.934647 INFO  BF_MC Write LAG node at addr 0x4097 with id 255 and next node 0x4098 0x00ff_04098c00ff04097c
+2026-10-26 21:48:06.934652 INFO  BF_MC Write LAG node at addr 0x4098 with id 255 and next node 0x4099 0x0000_00000000ff04099c
+2026-10-26 21:48:06.934657 INFO  BF_MC Write LAG node at addr 0x4099 with id 255 and next node 0x409a 0x00ff_0409ac00ff04099c
+2026-10-26 21:48:06.934662 INFO  BF_MC Write LAG node at addr 0x409a with id 255 and next node 0x409b 0x0000_00000000ff0409bc
+2026-10-26 21:48:06.934668 INFO  BF_MC Write LAG node at addr 0x409b with id 255 and next node 0x409c 0x00ff_0409cc00ff0409bc
+2026-10-26 21:48:06.934674 INFO  BF_MC Write LAG node at addr 0x409c with id 255 and next node 0x409d 0x0000_00000000ff0409dc
+2026-10-26 21:48:06.934679 INFO  BF_MC Write LAG node at addr 0x409d with id 255 and next node 0x409e 0x00ff_0409ec00ff0409dc
+2026-10-26 21:48:06.934684 INFO  BF_MC Write LAG node at addr 0x409e with id 255 and next node 0x409f 0x0000_00000000ff0409fc
+2026-10-26 21:48:06.934689 INFO  BF_MC Write LAG node at addr 0x409f with id 255 and next node 0x40a0 0x00ff_040a0c00ff0409fc
+2026-10-26 21:48:06.934695 INFO  BF_MC Write LAG node at addr 0x40a0 with id 255 and next node 0x40a1 0x0000_00000000ff040a1c
+2026-10-26 21:48:06.934700 INFO  BF_MC Write LAG node at addr 0x40a1 with id 255 and next node 0x40a2 0x00ff_040a2c00ff040a1c
+2026-10-26 21:48:06.934705 INFO  BF_MC Write LAG node at addr 0x40a2 with id 255 and next node 0x40a3 0x0000_00000000ff040a3c
+2026-10-26 21:48:06.934710 INFO  BF_MC Write LAG node at addr 0x40a3 with id 255 and next node 0x40a4 0x00ff_040a4c00ff040a3c
+2026-10-26 21:48:06.934715 INFO  BF_MC Write LAG node at addr 0x40a4 with id 255 and next node 0x40a5 0x0000_00000000ff040a5c
+2026-10-26 21:48:06.934721 INFO  BF_MC Write LAG node at addr 0x40a5 with id 255 and next node 0x40a6 0x00ff_040a6c00ff040a5c
+2026-10-26 21:48:06.934726 INFO  BF_MC Write LAG node at addr 0x40a6 with id 255 and next node 0x40a7 0x0000_00000000ff040a7c
+2026-10-26 21:48:06.934731 INFO  BF_MC Write LAG node at addr 0x40a7 with id 255 and next node 0x40a8 0x00ff_040a8c00ff040a7c
+2026-10-26 21:48:06.934736 INFO  BF_MC Write LAG node at addr 0x40a8 with id 255 and next node 0x40a9 0x0000_00000000ff040a9c
+2026-10-26 21:48:06.934742 INFO  BF_MC Write LAG node at addr 0x40a9 with id 255 and next node 0x40aa 0x00ff_040aac00ff040a9c
+2026-10-26 21:48:06.934747 INFO  BF_MC Write LAG node at addr 0x40aa with id 255 and next node 0x40ab 0x0000_00000000ff040abc
+2026-10-26 21:48:06.934752 INFO  BF_MC Write LAG node at addr 0x40ab with id 255 and next node 0x40ac 0x00ff_040acc00ff040abc
+2026-10-26 21:48:06.934758 INFO  BF_MC Write LAG node at addr 0x40ac with id 255 and next node 0x40ad 0x0000_00000000ff040adc
+2026-10-26 21:48:06.934763 INFO  BF_MC Write LAG node at addr 0x40ad with id 255 and next node 0x40ae 0x00ff_040aec00ff040adc
+2026-10-26 21:48:06.934769 INFO  BF_MC Write LAG node at addr 0x40ae with id 255 and next node 0x40af 0x0000_00000000ff040afc
+2026-10-26 21:48:06.934774 INFO  BF_MC Write LAG node at addr 0x40af with id 255 and next node 0x40b0 0x00ff_040b0c00ff040afc
+2026-10-26 21:48:06.934779 INFO  BF_MC Write LAG node at addr 0x40b0 with id 255 and next node 0x40b1 0x0000_00000000ff040b1c
+2026-10-26 21:48:06.934785 INFO  BF_MC Write LAG node at addr 0x40b1 with id 255 and next node 0x40b2 0x00ff_040b2c00ff040b1c
+2026-10-26 21:48:06.934793 INFO  BF_MC Write LAG node at addr 0x40b2 with id 255 and next node 0x40b3 0x0000_00000000ff040b3c
+2026-10-26 21:48:06.934799 INFO  BF_MC Write LAG node at addr 0x40b3 with id 255 and next node 0x40b4 0x00ff_040b4c00ff040b3c
+2026-10-26 21:48:06.934804 INFO  BF_MC Write LAG node at addr 0x40b4 with id 255 and next node 0x40b5 0x0000_00000000ff040b5c
+2026-10-26 21:48:06.934810 INFO  BF_MC Write LAG node at addr 0x40b5 with id 255 and next node 0x40b6 0x00ff_040b6c00ff040b5c
+2026-10-26 21:48:06.934815 INFO  BF_MC Write LAG node at addr 0x40b6 with id 255 and next node 0x40b7 0x0000_00000000ff040b7c
+2026-10-26 21:48:06.934820 INFO  BF_MC Write LAG node at addr 0x40b7 with id 255 and next node 0x40b8 0x00ff_040b8c00ff040b7c
+2026-10-26 21:48:06.934825 INFO  BF_MC Write LAG node at addr 0x40b8 with id 255 and next node 0x40b9 0x0000_00000000ff040b9c
+2026-10-26 21:48:06.934831 INFO  BF_MC Write LAG node at addr 0x40b9 with id 255 and next node 0x40ba 0x00ff_040bac00ff040b9c
+2026-10-26 21:48:06.934837 INFO  BF_MC Write LAG node at addr 0x40ba with id 255 and next node 0x40bb 0x0000_00000000ff040bbc
+2026-10-26 21:48:06.934842 INFO  BF_MC Write LAG node at addr 0x40bb with id 255 and next node 0x40bc 0x00ff_040bcc00ff040bbc
+2026-10-26 21:48:06.934847 INFO  BF_MC Write LAG node at addr 0x40bc with id 255 and next node 0x40bd 0x0000_00000000ff040bdc
+2026-10-26 21:48:06.934852 INFO  BF_MC Write LAG node at addr 0x40bd with id 255 and next node 0x40be 0x00ff_040bec00ff040bdc
+2026-10-26 21:48:06.934858 INFO  BF_MC Write LAG node at addr 0x40be with id 255 and next node 0x40bf 0x0000_00000000ff040bfc
+2026-10-26 21:48:06.934863 INFO  BF_MC Write LAG node at addr 0x40bf with id 255 and next node 0x40c0 0x00ff_040c0c00ff040bfc
+2026-10-26 21:48:06.934868 INFO  BF_MC Write LAG node at addr 0x40c0 with id 255 and next node 0x40c1 0x0000_00000000ff040c1c
+2026-10-26 21:48:06.934873 INFO  BF_MC Write LAG node at addr 0x40c1 with id 255 and next node 0x40c2 0x00ff_040c2c00ff040c1c
+2026-10-26 21:48:06.934878 INFO  BF_MC Write LAG node at addr 0x40c2 with id 255 and next node 0x40c3 0x0000_00000000ff040c3c
+2026-10-26 21:48:06.934884 INFO  BF_MC Write LAG node at addr 0x40c3 with id 255 and next node 0x40c4 0x00ff_040c4c00ff040c3c
+2026-10-26 21:48:06.934889 INFO  BF_MC Write LAG node at addr 0x40c4 with id 255 and next node 0x40c5 0x0000_00000000ff040c5c
+2026-10-26 21:48:06.934894 INFO  BF_MC Write LAG node at addr 0x40c5 with id 255 and next node 0x40c6 0x00ff_040c6c00ff040c5c
+2026-10-26 21:48:06.934899 INFO  BF_MC Write LAG node at addr 0x40c6 with id 255 and next node 0x40c7 0x0000_00000000ff040c7c
+2026-10-26 21:48:06.934905 INFO  BF_MC Write LAG node at addr 0x40c7 with id 255 and next node 0x40c8 0x00ff_040c8c00ff040c7c
+2026-10-26 21:48:06.934910 INFO  BF_MC Write LAG node at addr 0x40c8 with id 255 and next node 0x40c9 0x0000_00000000ff040c9c
+2026-10-26 21:48:06.934915 INFO  BF_MC Write LAG node at addr 0x40c9 with id 255 and next node 0x40ca 0x00ff_040cac00ff040c9c
+2026-10-26 21:48:06.934920 INFO  BF_MC Write LAG node at addr 0x40ca with id 255 and next node 0x40cb 0x0000_00000000ff040cbc
+2026-10-26 21:48:06.934926 INFO  BF_MC Write LAG node at addr 0x40cb with id 255 and next node 0x40cc 0x00ff_040ccc00ff040cbc
+2026-10-26 21:48:06.934931 INFO  BF_MC Write LAG node at addr 0x40cc with id 255 and next node 0x40cd 0x0000_00000000ff040cdc
+2026-10-26 21:48:06.934936 INFO  BF_MC Write LAG node at addr 0x40cd with id 255 and next node 0x40ce 0x00ff_040cec00ff040cdc
+2026-10-26 21:48:06.934942 INFO  BF_MC Write LAG node at addr 0x40ce with id 255 and next node 0x40cf 0x0000_00000000ff040cfc
+2026-10-26 21:48:06.934947 INFO  BF_MC Write LAG node at addr 0x40cf with id 255 and next node 0x40d0 0x00ff_040d0c00ff040cfc
+2026-10-26 21:48:06.934953 INFO  BF_MC Write LAG node at addr 0x40d0 with id 255 and next node 0x40d1 0x0000_00000000ff040d1c
+2026-10-26 21:48:06.934958 INFO  BF_MC Write LAG node at addr 0x40d1 with id 255 and next node 0x40d2 0x00ff_040d2c00ff040d1c
+2026-10-26 21:48:06.934963 INFO  BF_MC Write LAG node at addr 0x40d2 with id 255 and next node 0x40d3 0x0000_00000000ff040d3c
+2026-10-26 21:48:06.934972 INFO  BF_MC Write LAG node at addr 0x40d3 with id 255 and next node 0x40d4 0x00ff_040d4c00ff040d3c
+2026-10-26 21:48:06.934977 INFO  BF_MC Write LAG node at addr 0x40d4 with id 255 and next node 0x40d5 0x0000_00000000ff040d5c
+2026-10-26 21:48:06.934982 INFO  BF_MC Write LAG node at addr 0x40d5 with id 255 and next node 0x40d6 0x00ff_040d6c00ff040d5c
+2026-10-26 21:48:06.934988 INFO  BF_MC Write LAG node at addr 0x40d6 with id 255 and next node 0x40d7 0x0000_00000000ff040d7c
+2026-10-26 21:48:06.934993 INFO  BF_MC Write LAG node at addr 0x40d7 with id 255 and next node 0x40d8 0x00ff_040d8c00ff040d7c
+2026-10-26 21:48:06.934998 INFO  BF_MC Write LAG node at addr 0x40d8 with id 255 and next node 0x40d9 0x0000_00000000ff040d9c
+2026-10-26 21:48:06.935004 INFO  BF_MC Write LAG node at addr 0x40d9 with id 255 and next node 0x40da 0x00ff_040dac00ff040d9c
+2026-10-26 21:48:06.935009 INFO  BF_MC Write LAG node at addr 0x40da with id 255 and next node 0x40db 0x0000_00000000ff040dbc
+2026-10-26 21:48:06.935014 INFO  BF_MC Write LAG node at addr 0x40db with id 255 and next node 0x40dc 0x00ff_040dcc00ff040dbc
+2026-10-26 21:48:06.935019 INFO  BF_MC Write LAG node at addr 0x40dc with id 255 and next node 0x40dd 0x0000_00000000ff040ddc
+2026-10-26 21:48:06.935025 INFO  BF_MC Write LAG node at addr 0x40dd with id 255 and next node 0x40de 0x00ff_040dec00ff040ddc
+2026-10-26 21:48:06.935030 INFO  BF_MC Write LAG node at addr 0x40de with id 255 and next node 0x40df 0x0000_00000000ff040dfc
+2026-10-26 21:48:06.935035 INFO  BF_MC Write LAG node at addr 0x40df with id 255 and next node 0x40e0 0x00ff_040e0c00ff040dfc
+2026-10-26 21:48:06.935040 INFO  BF_MC Write LAG node at addr 0x40e0 with id 255 and next node 0x40e1 0x0000_00000000ff040e1c
+2026-10-26 21:48:06.935045 INFO  BF_MC Write LAG node at addr 0x40e1 with id 255 and next node 0x40e2 0x00ff_040e2c00ff040e1c
+2026-10-26 21:48:06.935050 INFO  BF_MC Write LAG node at addr 0x40e2 with id 255 and next node 0x40e3 0x0000_00000000ff040e3c
+2026-10-26 21:48:06.935056 INFO  BF_MC Write LAG node at addr 0x40e3 with id 255 and next node 0x40e4 0x00ff_040e4c00ff040e3c
+2026-10-26 21:48:06.935061 INFO  BF_MC Write LAG node at addr 0x40e4 with id 255 and next node 0x40e5 0x0000_00000000ff040e5c
+2026-10-26 21:48:06.935066 INFO  BF_MC Write LAG node at addr 0x40e5 with id 255 and next node 0x40e6 0x00ff_040e6c00ff040e5c
+2026-10-26 21:48:06.935071 INFO  BF_MC Write LAG node at addr 0x40e6 with id 255 and next node 0x40e7 0x0000_00000000ff040e7c
+2026-10-26 21:48:06.935077 INFO  BF_MC Write LAG node at addr 0x40e7 with id 255 and next node 0x40e8 0x00ff_040e8c00ff040e7c
+2026-10-26 21:48:06.935082 INFO  BF_MC Write LAG node at addr 0x40e8 with id 255 and next node 0x40e9 0x0000_00000000ff040e9c
+2026-10-26 21:48:06.935088 INFO  BF_MC Write LAG node at addr 0x40e9 with id 255 and next node 0x40ea 0x00ff_040eac00ff040e9c
+2026-10-26 21:48:06.935093 INFO  BF_MC Write LAG node at addr 0x40ea with id 255 and next node 0x40eb 0x0000_00000000ff040ebc
+2026-10-26 21:48:06.935098 INFO  BF_MC Write LAG node at addr 0x40eb with id 255 and next node 0x40ec 0x00ff_040ecc00ff040ebc
+2026-10-26 21:48:06.935103 INFO  BF_MC Write LAG node at addr 0x40ec with id 255 and next node 0x40ed 0x0000_00000000ff040edc
+2026-10-26 21:48:06.935108 INFO  BF_MC Write LAG node at addr 0x40ed with id 255 and next node 0x40ee 0x00ff_040eec00ff040edc
+2026-10-26 21:48:06.935114 INFO  BF_MC Write LAG node at addr 0x40ee with id 255 and next node 0x40ef 0x0000_00000000ff040efc
+2026-10-26 21:48:06.935119 INFO  BF_MC Write LAG node at addr 0x40ef with id 255 and next node 0x40f0 0x00ff_040f0c00ff040efc
+2026-10-26 21:48:06.935124 INFO  BF_MC Write LAG node at addr 0x40f0 with id 255 and next node 0x40f1 0x0000_00000000ff040f1c
+2026-10-26 21:48:06.935129 INFO  BF_MC Write LAG node at addr 0x40f1 with id 255 and next node 0x40f2 0x00ff_040f2c00ff040f1c
+2026-10-26 21:48:06.935134 INFO  BF_MC Write LAG node at addr 0x40f2 with id 255 and next node 0x40f3 0x0000_00000000ff040f3c
+2026-10-26 21:48:06.935142 INFO  BF_MC Write LAG node at addr 0x40f3 with id 255 and next node 0x40f4 0x00ff_040f4c00ff040f3c
+2026-10-26 21:48:06.935148 INFO  BF_MC Write LAG node at addr 0x40f4 with id 255 and next node 0x40f5 0x0000_00000000ff040f5c
+2026-10-26 21:48:06.935153 INFO  BF_MC Write LAG node at addr 0x40f5 with id 255 and next node 0x40f6 0x00ff_040f6c00ff040f5c
+2026-10-26 21:48:06.935158 INFO  BF_MC Write LAG node at addr 0x40f6 with id 255 and next node 0x40f7 0x0000_00000000ff040f7c
+2026-10-26 21:48:06.935164 INFO  BF_MC Write LAG node at addr 0x40f7 with id 255 and next node 0x40f8 0x00ff_040f8c00ff040f7c
+2026-10-26 21:48:06.935169 INFO  BF_MC Write LAG node at addr 0x40f8 with id 255 and next node 0x40f9 0x0000_00000000ff040f9c
+2026-10-26 21:48:06.935174 INFO  BF_MC Write LAG node at addr 0x40f9 with id 255 and next node 0x40fa 0x00ff_040fac00ff040f9c
+2026-10-26 21:48:06.935179 INFO  BF_MC Write LAG node at addr 0x40fa with id 255 and next node 0x40fb 0x0000_00000000ff040fbc
+2026-10-26 21:48:06.935185 INFO  BF_MC Write LAG node at addr 0x40fb with id 255 and next node 0x40fc 0x00ff_040fcc00ff040fbc
+2026-10-26 21:48:06.935190 INFO  BF_MC Write LAG node at addr 0x40fc with id 255 and next node 0x40fd 0x0000_00000000ff040fdc
+2026-10-26 21:48:06.935195 INFO  BF_MC Write LAG node at addr 0x40fd with id 255 and next node 0x40fe 0x00ff_040fec00ff040fdc
+2026-10-26 21:48:06.935200 INFO  BF_MC Write LAG node at addr 0x40fe with id 255 and next node 0x40ff 0x0000_00000000ff040ffc
+2026-10-26 21:48:06.935206 INFO  BF_MC Write LAG node at addr 0x40ff with id 255 and next node 0x4100 0x00ff_04100c00ff040ffc
+2026-10-26 21:48:06.935211 INFO  BF_MC Write LAG node at addr 0x4100 with id 255 and next node 0x4101 0x0000_00000000ff04101c
+2026-10-26 21:48:06.935216 INFO  BF_MC Write LAG node at addr 0x4101 with id 255 and next node 0x4102 0x00ff_04102c00ff04101c
+2026-10-26 21:48:06.935221 INFO  BF_MC Write LAG node at addr 0x4102 with id 255 and next node 0x4103 0x0000_00000000ff04103c
+2026-10-26 21:48:06.935227 INFO  BF_MC Write LAG node at addr 0x4103 with id 255 and next node 0 0x00ff_00000c00ff04103c
+2026-10-26 21:48:06.935233 INFO  BF_MC Allocated RDM addresses 0x51e0 - 0x51ff
+2026-10-26 21:48:06.935239 INFO  BF_MC Write L1End node at addr 0x51e0, rid 0, l2 0x4101
+2026-10-26 21:48:06.935244 INFO  BF_MC Write L1End node at addr 0x51e1, rid 0, l2 0x4100
+2026-10-26 21:48:06.935249 INFO  BF_MC Write L1End node at addr 0x51e2, rid 0, l2 0x40ff
+2026-10-26 21:48:06.935254 INFO  BF_MC Write L1End node at addr 0x51e3, rid 0, l2 0x40fe
+2026-10-26 21:48:06.935259 INFO  BF_MC Write L1End node at addr 0x51e4, rid 0, l2 0x40fd
+2026-10-26 21:48:06.935264 INFO  BF_MC Write L1End node at addr 0x51e5, rid 0, l2 0x40fc
+2026-10-26 21:48:06.935269 INFO  BF_MC Write L1End node at addr 0x51e6, rid 0, l2 0x40fb
+2026-10-26 21:48:06.935275 INFO  BF_MC Write L1End node at addr 0x51e7, rid 0, l2 0x40fa
+2026-10-26 21:48:06.935280 INFO  BF_MC Write L1End node at addr 0x51e8, rid 0, l2 0x40f8
+2026-10-26 21:48:06.935285 INFO  BF_MC Write L1End node at addr 0x51e9, rid 0, l2 0x40f6
+2026-10-26 21:48:06.935290 INFO  BF_MC Write L1End node at addr 0x51ea, rid 0, l2 0x40f4
+2026-10-26 21:48:06.935295 INFO  BF_MC Write L1End node at addr 0x51eb, rid 0, l2 0x40f2
+2026-10-26 21:48:06.935300 INFO  BF_MC Write L1End node at addr 0x51ec, rid 0, l2 0x40f0
+2026-10-26 21:48:06.935305 INFO  BF_MC Write L1End node at addr 0x51ed, rid 0, l2 0x40ee
+2026-10-26 21:48:06.935311 INFO  BF_MC Write L1End node at addr 0x51ee, rid 0, l2 0x40ec
+2026-10-26 21:48:06.935316 INFO  BF_MC Write L1End node at addr 0x51ef, rid 0, l2 0x40ea
+2026-10-26 21:48:06.935321 INFO  BF_MC Write L1End node at addr 0x51f0, rid 0, l2 0x40e8
+2026-10-26 21:48:06.935326 INFO  BF_MC Write L1End node at addr 0x51f1, rid 0, l2 0x40e6
+2026-10-26 21:48:06.935331 INFO  BF_MC Write L1End node at addr 0x51f2, rid 0, l2 0x40e4
+2026-10-26 21:48:06.935337 INFO  BF_MC Write L1End node at addr 0x51f3, rid 0, l2 0x40e0
+2026-10-26 21:48:06.935342 INFO  BF_MC Write L1End node at addr 0x51f4, rid 0, l2 0x40dc
+2026-10-26 21:48:06.935350 INFO  BF_MC Write L1End node at addr 0x51f5, rid 0, l2 0x40d8
+2026-10-26 21:48:06.935355 INFO  BF_MC Write L1End node at addr 0x51f6, rid 0, l2 0x40d4
+2026-10-26 21:48:06.935360 INFO  BF_MC Write L1End node at addr 0x51f7, rid 0, l2 0x40cc
+2026-10-26 21:48:06.935365 INFO  BF_MC Write L1End node at addr 0x51f8, rid 0, l2 0x40c4
+2026-10-26 21:48:06.935370 INFO  BF_MC Write L1End node at addr 0x51f9, rid 0, l2 0x40bc
+2026-10-26 21:48:06.935375 INFO  BF_MC Write L1End node at addr 0x51fa, rid 0, l2 0x40a0
+2026-10-26 21:48:06.935380 INFO  BF_MC Write L1End node at addr 0x51fb, rid 0, l2 0x4087
+2026-10-26 21:48:06.935385 INFO  BF_MC Write L1End node at addr 0x51fc, rid 0, l2 0x406e
+2026-10-26 21:48:06.935390 INFO  BF_MC Write L1End node at addr 0x51fd, rid 0, l2 0x4055
+2026-10-26 21:48:06.935395 INFO  BF_MC Write L1End node at addr 0x51fe, rid 0, l2 0x403c
+2026-10-26 21:48:06.935401 INFO  BF_MC Write L1End node at addr 0x51ff, rid 0, l2 0x4000
+2026-10-26 21:48:06.935407 INFO  BF_MC Allocated RDM addresses 0x6000 - 0x6103
+2026-10-26 21:48:06.935412 INFO  BF_MC Write LAG node at addr 0x6000 with id 255 and next node 0x6001 0x0000_00000000ff06001c
+2026-10-26 21:48:06.935417 INFO  BF_MC Write LAG node at addr 0x6001 with id 255 and next node 0x6002 0x00ff_06002c00ff06001c
+2026-10-26 21:48:06.935423 INFO  BF_MC Write LAG node at addr 0x6002 with id 255 and next node 0x6003 0x0000_00000000ff06003c
+2026-10-26 21:48:06.935428 INFO  BF_MC Write LAG node at addr 0x6003 with id 255 and next node 0x6004 0x00ff_06004c00ff06003c
+2026-10-26 21:48:06.935433 INFO  BF_MC Write LAG node at addr 0x6004 with id 255 and next node 0x6005 0x0000_00000000ff06005c
+2026-10-26 21:48:06.935438 INFO  BF_MC Write LAG node at addr 0x6005 with id 255 and next node 0x6006 0x00ff_06006c00ff06005c
+2026-10-26 21:48:06.935444 INFO  BF_MC Write LAG node at addr 0x6006 with id 255 and next node 0x6007 0x0000_00000000ff06007c
+2026-10-26 21:48:06.935449 INFO  BF_MC Write LAG node at addr 0x6007 with id 255 and next node 0x6008 0x00ff_06008c00ff06007c
+2026-10-26 21:48:06.935454 INFO  BF_MC Write LAG node at addr 0x6008 with id 255 and next node 0x6009 0x0000_00000000ff06009c
+2026-10-26 21:48:06.935459 INFO  BF_MC Write LAG node at addr 0x6009 with id 255 and next node 0x600a 0x00ff_0600ac00ff06009c
+2026-10-26 21:48:06.935465 INFO  BF_MC Write LAG node at addr 0x600a with id 255 and next node 0x600b 0x0000_00000000ff0600bc
+2026-10-26 21:48:06.935470 INFO  BF_MC Write LAG node at addr 0x600b with id 255 and next node 0x600c 0x00ff_0600cc00ff0600bc
+2026-10-26 21:48:06.935475 INFO  BF_MC Write LAG node at addr 0x600c with id 255 and next node 0x600d 0x0000_00000000ff0600dc
+2026-10-26 21:48:06.935480 INFO  BF_MC Write LAG node at addr 0x600d with id 255 and next node 0x600e 0x00ff_0600ec00ff0600dc
+2026-10-26 21:48:06.935486 INFO  BF_MC Write LAG node at addr 0x600e with id 255 and next node 0x600f 0x0000_00000000ff0600fc
+2026-10-26 21:48:06.935491 INFO  BF_MC Write LAG node at addr 0x600f with id 255 and next node 0x6010 0x00ff_06010c00ff0600fc
+2026-10-26 21:48:06.935496 INFO  BF_MC Write LAG node at addr 0x6010 with id 255 and next node 0x6011 0x0000_00000000ff06011c
+2026-10-26 21:48:06.935501 INFO  BF_MC Write LAG node at addr 0x6011 with id 255 and next node 0x6012 0x00ff_06012c00ff06011c
+2026-10-26 21:48:06.935507 INFO  BF_MC Write LAG node at addr 0x6012 with id 255 and next node 0x6013 0x0000_00000000ff06013c
+2026-10-26 21:48:06.935512 INFO  BF_MC Write LAG node at addr 0x6013 with id 255 and next node 0x6014 0x00ff_06014c00ff06013c
+2026-10-26 21:48:06.935517 INFO  BF_MC Write LAG node at addr 0x6014 with id 255 and next node 0x6015 0x0000_00000000ff06015c
+2026-10-26 21:48:06.935523 INFO  BF_MC Write LAG node at addr 0x6015 with id 255 and next node 0x6016 0x00ff_06016c00ff06015c
+2026-10-26 21:48:06.935528 INFO  BF_MC Write LAG node at addr 0x6016 with id 255 and next node 0x6017 0x0000_00000000ff06017c
+2026-10-26 21:48:06.935533 INFO  BF_MC Write LAG node at addr 0x6017 with id 255 and next node 0x6018 0x00ff_06018c00ff06017c
+2026-10-26 21:48:06.935542 INFO  BF_MC Write LAG node at addr 0x6018 with id 255 and next node 0x6019 0x0000_00000000ff06019c
+2026-10-26 21:48:06.935547 INFO  BF_MC Write LAG node at addr 0x6019 with id 255 and next node 0x601a 0x00ff_0601ac00ff06019c
+2026-10-26 21:48:06.935552 INFO  BF_MC Write LAG node at addr 0x601a with id 255 and next node 0x601b 0x0000_00000000ff0601bc
+2026-10-26 21:48:06.935558 INFO  BF_MC Write LAG node at addr 0x601b with id 255 and next node 0x601c 0x00ff_0601cc00ff0601bc
+2026-10-26 21:48:06.935563 INFO  BF_MC Write LAG node at addr 0x601c with id 255 and next node 0x601d 0x0000_00000000ff0601dc
+2026-10-26 21:48:06.935568 INFO  BF_MC Write LAG node at addr 0x601d with id 255 and next node 0x601e 0x00ff_0601ec00ff0601dc
+2026-10-26 21:48:06.935574 INFO  BF_MC Write LAG node at addr 0x601e with id 255 and next node 0x601f 0x0000_00000000ff0601fc
+2026-10-26 21:48:06.935579 INFO  BF_MC Write LAG node at addr 0x601f with id 255 and next node 0x6020 0x00ff_06020c00ff0601fc
+2026-10-26 21:48:06.935584 INFO  BF_MC Write LAG node at addr 0x6020 with id 255 and next node 0x6021 0x0000_00000000ff06021c
+2026-10-26 21:48:06.935590 INFO  BF_MC Write LAG node at addr 0x6021 with id 255 and next node 0x6022 0x00ff_06022c00ff06021c
+2026-10-26 21:48:06.935595 INFO  BF_MC Write LAG node at addr 0x6022 with id 255 and next node 0x6023 0x0000_00000000ff06023c
+2026-10-26 21:48:06.935600 INFO  BF_MC Write LAG node at addr 0x6023 with id 255 and next node 0x6024 0x00ff_06024c00ff06023c
+2026-10-26 21:48:06.935606 INFO  BF_MC Write LAG node at addr 0x6024 with id 255 and next node 0x6025 0x0000_00000000ff06025c
+2026-10-26 21:48:06.935611 INFO  BF_MC Write LAG node at addr 0x6025 with id 255 and next node 0x6026 0x00ff_06026c00ff06025c
+2026-10-26 21:48:06.935616 INFO  BF_MC Write LAG node at addr 0x6026 with id 255 and next node 0x6027 0x0000_00000000ff06027c
+2026-10-26 21:48:06.935621 INFO  BF_MC Write LAG node at addr 0x6027 with id 255 and next node 0x6028 0x00ff_06028c00ff06027c
+2026-10-26 21:48:06.935627 INFO  BF_MC Write LAG node at addr 0x6028 with id 255 and next node 0x6029 0x0000_00000000ff06029c
+2026-10-26 21:48:06.935632 INFO  BF_MC Write LAG node at addr 0x6029 with id 255 and next node 0x602a 0x00ff_0602ac00ff06029c
+2026-10-26 21:48:06.935637 INFO  BF_MC Write LAG node at addr 0x602a with id 255 and next node 0x602b 0x0000_00000000ff0602bc
+2026-10-26 21:48:06.935643 INFO  BF_MC Write LAG node at addr 0x602b with id 255 and next node 0x602c 0x00ff_0602cc00ff0602bc
+2026-10-26 21:48:06.935648 INFO  BF_MC Write LAG node at addr 0x602c with id 255 and next node 0x602d 0x0000_00000000ff0602dc
+2026-10-26 21:48:06.935653 INFO  BF_MC Write LAG node at addr 0x602d with id 255 and next node 0x602e 0x00ff_0602ec00ff0602dc
+2026-10-26 21:48:06.935659 INFO  BF_MC Write LAG node at addr 0x602e with id 255 and next node 0x602f 0x0000_00000000ff0602fc
+2026-10-26 21:48:06.935664 INFO  BF_MC Write LAG node at addr 0x602f with id 255 and next node 0x6030 0x00ff_06030c00ff0602fc
+2026-10-26 21:48:06.935669 INFO  BF_MC Write LAG node at addr 0x6030 with id 255 and next node 0x6031 0x0000_00000000ff06031c
+2026-10-26 21:48:06.935674 INFO  BF_MC Write LAG node at addr 0x6031 with id 255 and next node 0x6032 0x00ff_06032c00ff06031c
+2026-10-26 21:48:06.935679 INFO  BF_MC Write LAG node at addr 0x6032 with id 255 and next node 0x6033 0x0000_00000000ff06033c
+2026-10-26 21:48:06.935685 INFO  BF_MC Write LAG node at addr 0x6033 with id 255 and next node 0x6034 0x00ff_06034c00ff06033c
+2026-10-26 21:48:06.935690 INFO  BF_MC Write LAG node at addr 0x6034 with id 255 and next node 0x6035 0x0000_00000000ff06035c
+2026-10-26 21:48:06.935695 INFO  BF_MC Write LAG node at addr 0x6035 with id 255 and next node 0x6036 0x00ff_06036c00ff06035c
+2026-10-26 21:48:06.935700 INFO  BF_MC Write LAG node at addr 0x6036 with id 255 and next node 0x6037 0x0000_00000000ff06037c
+2026-10-26 21:48:06.935706 INFO  BF_MC Write LAG node at addr 0x6037 with id 255 and next node 0x6038 0x00ff_06038c00ff06037c
+2026-10-26 21:48:06.935711 INFO  BF_MC Write LAG node at addr 0x6038 with id 255 and next node 0x6039 0x0000_00000000ff06039c
+2026-10-26 21:48:06.935719 INFO  BF_MC Write LAG node at addr 0x6039 with id 255 and next node 0x603a 0x00ff_0603ac00ff06039c
+2026-10-26 21:48:06.935724 INFO  BF_MC Write LAG node at addr 0x603a with id 255 and next node 0x603b 0x0000_00000000ff0603bc
+2026-10-26 21:48:06.935729 INFO  BF_MC Write LAG node at addr 0x603b with id 255 and next node 0x603c 0x00ff_0603cc00ff0603bc
+2026-10-26 21:48:06.935735 INFO  BF_MC Write LAG node at addr 0x603c with id 255 and next node 0x603d 0x0000_00000000ff0603dc
+2026-10-26 21:48:06.935741 INFO  BF_MC Write LAG node at addr 0x603d with id 255 and next node 0x603e 0x00ff_0603ec00ff0603dc
+2026-10-26 21:48:06.935747 INFO  BF_MC Write LAG node at addr 0x603e with id 255 and next node 0x603f 0x0000_00000000ff0603fc
+2026-10-26 21:48:06.935752 INFO  BF_MC Write LAG node at addr 0x603f with id 255 and next node 0x6040 0x00ff_06040c00ff0603fc
+2026-10-26 21:48:06.935757 INFO  BF_MC Write LAG node at addr 0x6040 with id 255 and next node 0x6041 0x0000_00000000ff06041c
+2026-10-26 21:48:06.935763 INFO  BF_MC Write LAG node at addr 0x6041 with id 255 and next node 0x6042 0x00ff_06042c00ff06041c
+2026-10-26 21:48:06.935768 INFO  BF_MC Write LAG node at addr 0x6042 with id 255 and next node 0x6043 0x0000_00000000ff06043c
+2026-10-26 21:48:06.935773 INFO  BF_MC Write LAG node at addr 0x6043 with id 255 and next node 0x6044 0x00ff_06044c00ff06043c
+2026-10-26 21:48:06.935778 INFO  BF_MC Write LAG node at addr 0x6044 with id 255 and next node 0x6045 0x0000_00000000ff06045c
+2026-10-26 21:48:06.935783 INFO  BF_MC Write LAG node at addr 0x6045 with id 255 and next node 0x6046 0x00ff_06046c00ff06045c
+2026-10-26 21:48:06.935789 INFO  BF_MC Write LAG node at addr 0x6046 with id 255 and next node 0x6047 0x0000_00000000ff06047c
+2026-10-26 21:48:06.935794 INFO  BF_MC Write LAG node at addr 0x6047 with id 255 and next node 0x6048 0x00ff_06048c00ff06047c
+2026-10-26 21:48:06.935799 INFO  BF_MC Write LAG node at addr 0x6048 with id 255 and next node 0x6049 0x0000_00000000ff06049c
+2026-10-26 21:48:06.935804 INFO  BF_MC Write LAG node at addr 0x6049 with id 255 and next node 0x604a 0x00ff_0604ac00ff06049c
+2026-10-26 21:48:06.935809 INFO  BF_MC Write LAG node at addr 0x604a with id 255 and next node 0x604b 0x0000_00000000ff0604bc
+2026-10-26 21:48:06.935815 INFO  BF_MC Write LAG node at addr 0x604b with id 255 and next node 0x604c 0x00ff_0604cc00ff0604bc
+2026-10-26 21:48:06.935820 INFO  BF_MC Write LAG node at addr 0x604c with id 255 and next node 0x604d 0x0000_00000000ff0604dc
+2026-10-26 21:48:06.935825 INFO  BF_MC Write LAG node at addr 0x604d with id 255 and next node 0x604e 0x00ff_0604ec00ff0604dc
+2026-10-26 21:48:06.935831 INFO  BF_MC Write LAG node at addr 0x604e with id 255 and next node 0x604f 0x0000_00000000ff0604fc
+2026-10-26 21:48:06.935836 INFO  BF_MC Write LAG node at addr 0x604f with id 255 and next node 0x6050 0x00ff_06050c00ff0604fc
+2026-10-26 21:48:06.935841 INFO  BF_MC Write LAG node at addr 0x6050 with id 255 and next node 0x6051 0x0000_00000000ff06051c
+2026-10-26 21:48:06.935846 INFO  BF_MC Write LAG node at addr 0x6051 with id 255 and next node 0x6052 0x00ff_06052c00ff06051c
+2026-10-26 21:48:06.935851 INFO  BF_MC Write LAG node at addr 0x6052 with id 255 and next node 0x6053 0x0000_00000000ff06053c
+2026-10-26 21:48:06.935857 INFO  BF_MC Write LAG node at addr 0x6053 with id 255 and next node 0x6054 0x00ff_06054c00ff06053c
+2026-10-26 21:48:06.935862 INFO  BF_MC Write LAG node at addr 0x6054 with id 255 and next node 0x6055 0x0000_00000000ff06055c
+2026-10-26 21:48:06.935867 INFO  BF_MC Write LAG node at addr 0x6055 with id 255 and next node 0x6056 0x00ff_06056c00ff06055c
+2026-10-26 21:48:06.935872 INFO  BF_MC Write LAG node at addr 0x6056 with id 255 and next node 0x6057 0x0000_00000000ff06057c
+2026-10-26 21:48:06.935877 INFO  BF_MC Write LAG node at addr 0x6057 with id 255 and next node 0x6058 0x00ff_06058c00ff06057c
+2026-10-26 21:48:06.935882 INFO  BF_MC Write LAG node at addr 0x6058 with id 255 and next node 0x6059 0x0000_00000000ff06059c
+2026-10-26 21:48:06.935890 INFO  BF_MC Write LAG node at addr 0x6059 with id 255 and next node 0x605a 0x00ff_0605ac00ff06059c
+2026-10-26 21:48:06.935896 INFO  BF_MC Write LAG node at addr 0x605a with id 255 and next node 0x605b 0x0000_00000000ff0605bc
+2026-10-26 21:48:06.935901 INFO  BF_MC Write LAG node at addr 0x605b with id 255 and next node 0x605c 0x00ff_0605cc00ff0605bc
+2026-10-26 21:48:06.935907 INFO  BF_MC Write LAG node at addr 0x605c with id 255 and next node 0x605d 0x0000_00000000ff0605dc
+2026-10-26 21:48:06.935912 INFO  BF_MC Write LAG node at addr 0x605d with id 255 and next node 0x605e 0x00ff_0605ec00ff0605dc
+2026-10-26 21:48:06.935917 INFO  BF_MC Write LAG node at addr 0x605e with id 255 and next node 0x605f 0x0000_00000000ff0605fc
+2026-10-26 21:48:06.935923 INFO  BF_MC Write LAG node at addr 0x605f with id 255 and next node 0x6060 0x00ff_06060c00ff0605fc
+2026-10-26 21:48:06.935928 INFO  BF_MC Write LAG node at addr 0x6060 with id 255 and next node 0x6061 0x0000_00000000ff06061c
+2026-10-26 21:48:06.935933 INFO  BF_MC Write LAG node at addr 0x6061 with id 255 and next node 0x6062 0x00ff_06062c00ff06061c
+2026-10-26 21:48:06.935938 INFO  BF_MC Write LAG node at addr 0x6062 with id 255 and next node 0x6063 0x0000_00000000ff06063c
+2026-10-26 21:48:06.935944 INFO  BF_MC Write LAG node at addr 0x6063 with id 255 and next node 0x6064 0x00ff_06064c00ff06063c
+2026-10-26 21:48:06.935949 INFO  BF_MC Write LAG node at addr 0x6064 with id 255 and next node 0x6065 0x0000_00000000ff06065c
+2026-10-26 21:48:06.935954 INFO  BF_MC Write LAG node at addr 0x6065 with id 255 and next node 0x6066 0x00ff_06066c00ff06065c
+2026-10-26 21:48:06.935959 INFO  BF_MC Write LAG node at addr 0x6066 with id 255 and next node 0x6067 0x0000_00000000ff06067c
+2026-10-26 21:48:06.935964 INFO  BF_MC Write LAG node at addr 0x6067 with id 255 and next node 0x6068 0x00ff_06068c00ff06067c
+2026-10-26 21:48:06.935970 INFO  BF_MC Write LAG node at addr 0x6068 with id 255 and next node 0x6069 0x0000_00000000ff06069c
+2026-10-26 21:48:06.935975 INFO  BF_MC Write LAG node at addr 0x6069 with id 255 and next node 0x606a 0x00ff_0606ac00ff06069c
+2026-10-26 21:48:06.935981 INFO  BF_MC Write LAG node at addr 0x606a with id 255 and next node 0x606b 0x0000_00000000ff0606bc
+2026-10-26 21:48:06.935986 INFO  BF_MC Write LAG node at addr 0x606b with id 255 and next node 0x606c 0x00ff_0606cc00ff0606bc
+2026-10-26 21:48:06.935991 INFO  BF_MC Write LAG node at addr 0x606c with id 255 and next node 0x606d 0x0000_00000000ff0606dc
+2026-10-26 21:48:06.935997 INFO  BF_MC Write LAG node at addr 0x606d with id 255 and next node 0x606e 0x00ff_0606ec00ff0606dc
+2026-10-26 21:48:06.936002 INFO  BF_MC Write LAG node at addr 0x606e with id 255 and next node 0x606f 0x0000_00000000ff0606fc
+2026-10-26 21:48:06.936007 INFO  BF_MC Write LAG node at addr 0x606f with id 255 and next node 0x6070 0x00ff_06070c00ff0606fc
+2026-10-26 21:48:06.936012 INFO  BF_MC Write LAG node at addr 0x6070 with id 255 and next node 0x6071 0x0000_00000000ff06071c
+2026-10-26 21:48:06.936017 INFO  BF_MC Write LAG node at addr 0x6071 with id 255 and next node 0x6072 0x00ff_06072c00ff06071c
+2026-10-26 21:48:06.936023 INFO  BF_MC Write LAG node at addr 0x6072 with id 255 and next node 0x6073 0x0000_00000000ff06073c
+2026-10-26 21:48:06.936028 INFO  BF_MC Write LAG node at addr 0x6073 with id 255 and next node 0x6074 0x00ff_06074c00ff06073c
+2026-10-26 21:48:06.936033 INFO  BF_MC Write LAG node at addr 0x6074 with id 255 and next node 0x6075 0x0000_00000000ff06075c

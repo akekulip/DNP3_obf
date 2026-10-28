@@ -1,0 +1,54 @@
+--- results/builds/c69_baseline/response_only.p4
++++ results/builds/c72_e_wend_01/response_only.p4
+@@ -1099,20 +1099,31 @@
+     RegisterAction<bit<32>, r_slot_t, bit<32>>(img_wend) wend_arm = {
+         void apply(inout bit<32> v) { v = m.qx; } };
+     RegisterAction<bit<32>, r_slot_t, bit<32>>(img_wend) wend_commit = {
+-        void apply(inout bit<32> v, out bit<32> rv) { rv = v + m.qx; v = v + m.t; } };
++        void apply(inout bit<32> v, out bit<32> rv) { rv = v; v = v + m.t; } };
+     RegisterAction<bit<32>, r_slot_t, bit<32>>(img_wend) wend_fwd = {
+-        void apply(inout bit<32> v, out bit<32> rv) { rv = v + m.qx; } };
++        void apply(inout bit<32> v, out bit<32> rv) { rv = v; } };
+     RegisterAction<bit<32>, r_slot_t, bit<32>>(img_wend) wend_rev = {
+         void apply(inout bit<32> v, out bit<32> rv) { rv = m.qx - v; } };
+     action do_wend_arm() { wend_arm.execute(m.idx); }
+-    action do_wend_commit() { hdr.tcp.seq = wend_commit.execute(m.idx); }
+-    action do_wend_fwd() { hdr.tcp.seq = wend_fwd.execute(m.idx); }
++    action do_wend_commit() { m.r = wend_commit.execute(m.idx); }
++    action do_wend_fwd() { m.r = wend_fwd.execute(m.idx); }
+     action do_wend_rev() { m.r = wend_rev.execute(m.idx); }
+     table img_wend_t {
+-        key = { m.first_synack : ternary; m.dir : exact; m.shape : ternary; m.result : ternary; }
++        key = { m.first_synack : ternary; m.dir : exact; m.shape : ternary;
++                m.front_ret : ternary; m.grant : ternary; }
+         actions = { do_wend_arm; do_wend_commit; do_wend_fwd; do_wend_rev; NoAction; } size = 8;
+         const default_action = NoAction();
+-        const entries = {(1w1, 1, (bit<3>)r_SH_SYNACK_OK, _): do_wend_arm();(_, 1, 3w4 &&& 3w7, r_OUT_COMMIT): do_wend_commit();(_, 1, 3w4 &&& 3w7, _): do_wend_fwd();(_, 2, (bit<3>)r_SH_ACK, _): do_wend_rev();}
++        const entries = {
++            (1w1, 1, (bit<3>)r_SH_SYNACK_OK, _, _) : do_wend_arm();
++            (_, 1, 3w4 &&& 3w7, 0, 1) : do_wend_commit();
++            (_, 1, 3w4 &&& 3w7, _, _) : do_wend_fwd();
++            (_, 2, (bit<3>)r_SH_ACK, _, _) : do_wend_rev();
++        }
++    }
++    action finish_forward_sequence() { hdr.tcp.seq = m.r + m.qx; }
++    table finish_forward_sequence_t {
++        actions = { finish_forward_sequence; } size = 1;
++        const default_action = finish_forward_sequence();
+     }
+ 
+     /* ============ padder transform, gated by the mapper's pad decision ============ */
+@@ -1237,9 +1248,12 @@
+         }
+         if ((bit<8>)m.dir == 1 && ((bit<8>)m.shape == r_SH_ACK || (bit<8>)m.shape == r_SH_NOACK)) {
+             fwd_prep_t.apply();
+-            if ((bit<8>)m.mode == 1) { classify_fwd.apply(); }
+         }
+         if (((bit<8>)m.dir == 1 && (bit<8>)m.shape == r_SH_SYNACK_OK) || (bit<8>)m.mode == 1) { img_wend_t.apply(); }
++        if ((bit<8>)m.dir == 1 && ((bit<8>)m.shape == r_SH_ACK || (bit<8>)m.shape == r_SH_NOACK) && (bit<8>)m.mode == 1) {
++            classify_fwd.apply();
++            if ((bit<8>)m.shape == r_SH_ACK) { finish_forward_sequence_t.apply(); }
++        }
+         /* pad only on commit or replay; the verdict r_that allowed either also fixes the profile */
+         if (m.pad == 1) {
+             if (m.read_shape == 1) { read_pad_t.apply(); } else { ctl_pad_t.apply(); }

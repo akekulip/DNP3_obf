@@ -1,0 +1,199 @@
+{
+  "scope": "read-only final compiler allocation diagnosis; no source edits or compile trials",
+  "inspected_compile": "results/builds/c72_ne_01/compile_local",
+  "actual_N_tail": {
+    "snapshot_t": 8,
+    "owner_t": 9,
+    "sequence_guard": 9,
+    "real_links_t": 9,
+    "object_match": 10,
+    "first_event": 11,
+    "terminal_t": 10,
+    "read_terminal_t": 10
+  },
+  "annotation_behavior": "compile.log lines119-128 explicitly warn requested stage9 could not be met; successful compiler exit does not prove stage target",
+  "true_late_path": "real_links_t9 -> object_match10 -> first_event11",
+  "packing": {
+    "m.diff_real_links": [
+      {
+        "phv_number": 130,
+        "container_width": 16,
+        "field_slice": {
+          "lsb": 16,
+          "msb": 31
+        },
+        "container_slice": {
+          "lsb": 0,
+          "msb": 15
+        }
+      },
+      {
+        "phv_number": 129,
+        "container_width": 16,
+        "field_slice": {
+          "lsb": 0,
+          "msb": 15
+        },
+        "container_slice": {
+          "lsb": 0,
+          "msb": 15
+        }
+      }
+    ],
+    "m.diff_real_tcp_dst": [
+      {
+        "phv_number": 70,
+        "container_width": 8,
+        "field_slice": {
+          "lsb": 24,
+          "msb": 31
+        },
+        "container_slice": {
+          "lsb": 0,
+          "msb": 7
+        }
+      },
+      {
+        "phv_number": 45,
+        "container_width": 32,
+        "field_slice": {
+          "lsb": 0,
+          "msb": 7
+        },
+        "container_slice": {
+          "lsb": 19,
+          "msb": 26
+        }
+      },
+      {
+        "phv_number": 51,
+        "container_width": 32,
+        "field_slice": {
+          "lsb": 8,
+          "msb": 23
+        },
+        "container_slice": {
+          "lsb": 16,
+          "msb": 31
+        }
+      }
+    ],
+    "m.diff_real_off": [
+      {
+        "phv_number": 200,
+        "container_width": 16,
+        "field_slice": {
+          "lsb": 16,
+          "msb": 31
+        },
+        "container_slice": {
+          "lsb": 0,
+          "msb": 15
+        }
+      },
+      {
+        "phv_number": 191,
+        "container_width": 16,
+        "field_slice": {
+          "lsb": 0,
+          "msb": 15
+        },
+        "container_slice": {
+          "lsb": 0,
+          "msb": 15
+        }
+      }
+    ],
+    "m.matched": [
+      {
+        "phv_number": 196,
+        "container_width": 16,
+        "field_slice": {
+          "lsb": 0,
+          "msb": 0
+        },
+        "container_slice": {
+          "lsb": 10,
+          "msb": 10
+        }
+      }
+    ],
+    "m.owner_op": [
+      {
+        "phv_number": 65,
+        "container_width": 8,
+        "field_slice": {
+          "lsb": 0,
+          "msb": 0
+        },
+        "container_slice": {
+          "lsb": 5,
+          "msb": 5
+        }
+      }
+    ],
+    "m.diff_native_end": [
+      {
+        "phv_number": 201,
+        "container_width": 16,
+        "field_slice": {
+          "lsb": 0,
+          "msb": 15
+        },
+        "container_slice": {
+          "lsb": 0,
+          "msb": 15
+        }
+      },
+      {
+        "phv_number": 202,
+        "container_width": 16,
+        "field_slice": {
+          "lsb": 16,
+          "msb": 31
+        },
+        "container_slice": {
+          "lsb": 0,
+          "msb": 15
+        }
+      }
+    ],
+    "m.sequence_valid": [
+      {
+        "phv_number": 65,
+        "container_width": 8,
+        "field_slice": {
+          "lsb": 0,
+          "msb": 2
+        },
+        "container_slice": {
+          "lsb": 2,
+          "msb": 4
+        }
+      }
+    ]
+  },
+  "root_owned_trial_support": {
+    "narrow_four_existing_boolean_results": "All four read_* SALUs already produce only0 or1; full32 metadata is unnecessary. object_match key161bits becomes37bits at1bit each,65bits at8bit each. Persistent state remains identical.",
+    "byte_fallback": "If narrow flags share containers and serialize SALU returns, allocate distinct8-bit outputs/metadata or solitary bytes;96-bit reduction remains."
+  },
+  "remaining_narrow_late_table_candidate": {
+    "source": "c72_n_layout_06 final dependency graph and stage_adv.log",
+    "fact": "read_terminal_t delayed stage9->10 by CONTROL_COND_TRUE tbl_deny_2 at9, reached via terminal_t CONTROL_COND_FALSE; its real data input owner_t is at8.",
+    "smallest_candidate": "Flatten the work_phase1/2,3,other choices into independent mutually exclusive conditions under the existing stage/kind guard. Actions do not change work_phase. This can remove the terminal_t/default-deny control serialization.",
+    "fallback": "One keyed terminal dispatch including phase3 actions and default deny removes that control chain but increases key width; only if simple flatten fails.",
+    "qualification": "Feasibility proposal; not compiled or claimed to meet N10."
+  },
+  "other_small_container_candidates": {
+    "matched": "Stored with header validity bits in H68bit10, including t0 validity. Solitary byte may remove physical read/write coupling.",
+    "sequence_valid": "B1bits2:4 with direction0:1 and owner_op5. Solitary byte can decouple writes from owner_op reads."
+  },
+  "not_repeated": [
+    "root prefix epoch/client sequencing investigation",
+    "close-phase fusion",
+    "abort/terminal fusion",
+    "root first_event row pruning",
+    "root four-boolean narrowing edit"
+  ],
+  "conclusion": "No honest complete N10/E10 result yet. Current E10 is proven; N improvements require actual final-context compile and subsequent model verification."
+}
