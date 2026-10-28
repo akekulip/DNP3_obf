@@ -1,0 +1,29 @@
+# GREEN run 2026-10-28T14:57:53-04:00: scripts/analysis/opendnp3_wrap_check.py implemented
+# Note: test_harness_detects_a_broken_transport_sequence (negative control) was added after the first GREEN; it tests
+# harness sensitivity, not new module behaviour, so it has no separate RED phase.
+$ python3 -m pytest tests/analysis/test_opendnp3_wrap_check.py -v
+============================= test session starts ==============================
+platform linux -- Python 3.8.10, pytest-8.3.5, pluggy-1.5.0 -- /usr/bin/python3
+rootdir: /home/philip/Projects/DNP3
+plugins: anyio-4.5.2
+collecting ... collected 9 items
+
+tests/analysis/test_opendnp3_wrap_check.py::test_app_seq_rewrite_changes_only_the_nibble_and_its_block_crc PASSED [ 11%]
+tests/analysis/test_opendnp3_wrap_check.py::test_app_seq_rewrite_is_empty_when_the_sequence_already_matches PASSED [ 22%]
+tests/analysis/test_opendnp3_wrap_check.py::test_transport_header_bytes_are_never_rewritten PASSED [ 33%]
+tests/analysis/test_opendnp3_wrap_check.py::test_wrap_detector_finds_the_three_known_wraps_in_e01 PASSED [ 44%]
+tests/analysis/test_opendnp3_wrap_check.py::test_control_changes_are_labelled_transport_and_keep_valid_crcs PASSED [ 55%]
+tests/analysis/test_opendnp3_wrap_check.py::test_recorded_read_requests_map_to_opendnp3_headers PASSED [ 66%]
+tests/analysis/test_opendnp3_wrap_check.py::test_codec_view_lists_every_object_header_and_point PASSED [ 77%]
+tests/analysis/test_opendnp3_wrap_check.py::test_harness_detects_a_broken_transport_sequence PASSED [ 88%]
+tests/analysis/test_opendnp3_wrap_check.py::test_end_to_end_opendnp3_replay_around_the_e01_wrap PASSED [100%]
+
+============================== 9 passed in 3.73s ===============================
+
+$ python3 -m pyflakes scripts/analysis/opendnp3_wrap_check.py tests/analysis/test_opendnp3_wrap_check.py
+pyflakes rc=0
+$ wc -l / max line length
+  412 scripts/analysis/opendnp3_wrap_check.py
+  145 tests/analysis/test_opendnp3_wrap_check.py
+  557 total
+max line length 120

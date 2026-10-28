@@ -1,0 +1,33 @@
+# E3 recovery matrix TDD log (tests/hardware/test_current_runtime.py)
+## RED 2026-10-28T18:44:46Z: 4 new recovery tests written; scripts/hardware/matrix.py and lab_recovery.json not yet changed
+$ python3 -m pytest tests/hardware/test_current_runtime.py -q -p no:cacheprovider
+E       KeyError: 'recovery'
+E       KeyError: 'recovery'
+E       KeyError: 'recovery'
+E       KeyError: 'recovery'
+ERROR tests/hardware/test_current_runtime.py::test_recovery_matrix_denominator_is_three_six_trial_select_response_loss_blocks
+ERROR tests/hardware/test_current_runtime.py::test_recovery_blocks_copy_qualification_block_10_except_d_arm_preset_and_ports
+ERROR tests/hardware/test_current_runtime.py::test_recovery_preset_repeats_plan_six_distinct_identity_trials_through_the_real_cli
+ERROR tests/hardware/test_current_runtime.py::test_recovery_master_ports_are_disjoint_from_each_other_and_earlier_matrices
+30 passed, 4 errors in 0.65s
+
+## GREEN 2026-10-28T18:45:24Z: matrix.py DEFINITIONS['recovery'] + expand_recovery; scripts/hardware/lab_recovery.json
+$ python3 -m pytest tests/hardware/test_current_runtime.py -q -p no:cacheprovider
+34 passed in 0.68s
+
+## Mutation checks (each mutation applied alone, then the original bytes restored and cmp-verified)
+$ python3 -m pytest tests/hardware/test_current_runtime.py -q -p no:cacheprovider -k recovery
+M1 preset has five entries:                 30 deselected, 4 errors (prepare refuses: fixed denominator changed)
+M2 r2 size_only arm with T=1:               2 failed, 2 passed
+M3 r3 ports 59970-59975 (block 10 range):   1 failed, 3 passed
+M4 r3 D=20 instead of 5:                    1 failed, 3 passed
+M5 expander keeps core_full beside preset:  1 failed, 3 passed
+M6 one entry without target identity:       2 failed, 2 passed
+after restore: 4 passed, 30 deselected in 0.11s
+
+## Final verification 2026-10-28T18:56:44Z (after the last code edit)
+$ python3 -m pytest tests -q -p no:cacheprovider --ignore=tests/analysis
+206 passed in 11.41s
+$ python3 -m pyflakes scripts/hardware/matrix.py tests/hardware/test_current_runtime.py  -> no output, rc 0
+3 failed, 34 deselected in 0.10s
+37 passed in 0.71s

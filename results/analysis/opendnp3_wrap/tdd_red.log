@@ -1,0 +1,251 @@
+# RED run 2026-10-28T14:42:48-04:00: tests written before scripts/analysis/opendnp3_wrap_check.py exists
+$ python3 -m pytest tests/analysis/test_opendnp3_wrap_check.py -v
+============================= test session starts ==============================
+platform linux -- Python 3.8.10, pytest-8.3.5, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/philip/Projects/DNP3
+plugins: anyio-4.5.2
+collecting ... collected 0 items / 1 error
+
+==================================== ERRORS ====================================
+_________ ERROR collecting tests/analysis/test_opendnp3_wrap_check.py __________
+ImportError while importing test module '/home/philip/Projects/DNP3/tests/analysis/test_opendnp3_wrap_check.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.8/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/analysis/test_opendnp3_wrap_check.py:12: in <module>
+    import opendnp3_wrap_check as owc  # noqa: E402
+E   ModuleNotFoundError: No module named 'opendnp3_wrap_check'
+=========================== short test summary info ============================
+ERROR tests/analysis/test_opendnp3_wrap_check.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+=============================== 1 error in 0.15s ===============================
+
+# RED run 2 2026-10-28T14:42:57-04:00: skeleton module whose functions raise NotImplementedError
+$ python3 -m pytest tests/analysis/test_opendnp3_wrap_check.py -v
+============================= test session starts ==============================
+platform linux -- Python 3.8.10, pytest-8.3.5, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/philip/Projects/DNP3
+plugins: anyio-4.5.2
+collecting ... collected 8 items
+
+tests/analysis/test_opendnp3_wrap_check.py::test_app_seq_rewrite_changes_only_the_nibble_and_its_block_crc FAILED [ 12%]
+tests/analysis/test_opendnp3_wrap_check.py::test_app_seq_rewrite_is_empty_when_the_sequence_already_matches FAILED [ 25%]
+tests/analysis/test_opendnp3_wrap_check.py::test_transport_header_bytes_are_never_rewritten FAILED [ 37%]
+tests/analysis/test_opendnp3_wrap_check.py::test_wrap_detector_finds_the_three_known_wraps_in_e01 FAILED [ 50%]
+tests/analysis/test_opendnp3_wrap_check.py::test_control_changes_are_labelled_transport_and_keep_valid_crcs FAILED [ 62%]
+tests/analysis/test_opendnp3_wrap_check.py::test_recorded_read_requests_map_to_opendnp3_headers FAILED [ 75%]
+tests/analysis/test_opendnp3_wrap_check.py::test_codec_view_lists_every_object_header_and_point FAILED [ 87%]
+tests/analysis/test_opendnp3_wrap_check.py::test_end_to_end_opendnp3_replay_around_the_e01_wrap FAILED [100%]
+
+=================================== FAILURES ===================================
+________ test_app_seq_rewrite_changes_only_the_nibble_and_its_block_crc ________
+
+    def test_app_seq_rewrite_changes_only_the_nibble_and_its_block_crc():
+        for wire in read_wires():
+            old = wire[owc.idec.link_frames(wire)[0][0] + 11]
+            new_seq = (old + 5) & 15
+>           out, changes = owc.set_app_seq(wire, new_seq)
+
+tests/analysis/test_opendnp3_wrap_check.py:37: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+wire = b"\x05d'D\x01\x00\x00\x00\xc8\xc2c\xc0\x81\x80\x00\x01\x02\x01\x00\x04\x19\x04\x00\x00\x00\x00\x15\xa0\x00\x00\x00\x00...x00\x00\x01\tp\x0f\x00\x00\x00\x01\t\x00\x00\x00\x01\x04\x00\x00\x00\x01\x04\x00\x9c\x8c\x00\x00\x01<\x00\x00\x00\xedQ"
+seq = 5
+
+    def set_app_seq(wire, seq):
+>       raise NotImplementedError
+E       NotImplementedError
+
+scripts/analysis/opendnp3_wrap_check.py:14: NotImplementedError
+_______ test_app_seq_rewrite_is_empty_when_the_sequence_already_matches ________
+
+    def test_app_seq_rewrite_is_empty_when_the_sequence_already_matches():
+        wire = read_wires()[0]
+>       out, changes = owc.set_app_seq(wire, wire[11] & 15)
+
+tests/analysis/test_opendnp3_wrap_check.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+wire = b"\x05d'D\x01\x00\x00\x00\xc8\xc2c\xc0\x81\x80\x00\x01\x02\x01\x00\x04\x19\x04\x00\x00\x00\x00\x15\xa0\x00\x00\x00\x00...x00\x00\x01\tp\x0f\x00\x00\x00\x01\t\x00\x00\x00\x01\x04\x00\x00\x00\x01\x04\x00\x9c\x8c\x00\x00\x01<\x00\x00\x00\xedQ"
+seq = 0
+
+    def set_app_seq(wire, seq):
+>       raise NotImplementedError
+E       NotImplementedError
+
+scripts/analysis/opendnp3_wrap_check.py:14: NotImplementedError
+_______________ test_transport_header_bytes_are_never_rewritten ________________
+
+    def test_transport_header_bytes_are_never_rewritten():
+        wraps = [w for w in read_wires() if owc.idec.wraps(w)]
+        assert wraps
+        for wire in read_wires():
+>           out, _ = owc.set_app_seq(wire, (wire[11] + 1) & 15)
+
+tests/analysis/test_opendnp3_wrap_check.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+wire = b"\x05d'D\x01\x00\x00\x00\xc8\xc2c\xc0\x81\x80\x00\x01\x02\x01\x00\x04\x19\x04\x00\x00\x00\x00\x15\xa0\x00\x00\x00\x00...x00\x00\x01\tp\x0f\x00\x00\x00\x01\t\x00\x00\x00\x01\x04\x00\x00\x00\x01\x04\x00\x9c\x8c\x00\x00\x01<\x00\x00\x00\xedQ"
+seq = 1
+
+    def set_app_seq(wire, seq):
+>       raise NotImplementedError
+E       NotImplementedError
+
+scripts/analysis/opendnp3_wrap_check.py:14: NotImplementedError
+____________ test_wrap_detector_finds_the_three_known_wraps_in_e01 _____________
+
+    def test_wrap_detector_finds_the_three_known_wraps_in_e01():
+        ex = exchanges()
+>       assert owc.wrap_indices(ex) == [28, 92, 156]
+
+tests/analysis/test_opendnp3_wrap_check.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+exchanges = [{'ack_timestamp_ns': 1793145648923869000, 'application': {'failures': [], 'ok': True, 'points': [], 'request_app_hex'...010101c80000000000000000030101c80000000000000000', ...}, 'complete_clrt_us': 5724.0, 'operation': 'OPERATE', ...}, ...]
+
+    def wrap_indices(exchanges):
+>       raise NotImplementedError
+E       NotImplementedError
+
+scripts/analysis/opendnp3_wrap_check.py:22: NotImplementedError
+_______ test_control_changes_are_labelled_transport_and_keep_valid_crcs ________
+
+    def test_control_changes_are_labelled_transport_and_keep_valid_crcs():
+        wire = next(w for w in read_wires() if owc.idec.wraps(w))
+>       sent, changes = owc.prepare(wire, (wire[11] + 3) & 15, control=True)
+
+tests/analysis/test_opendnp3_wrap_check.py:80: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+wire = b"\x05d'D\x01\x00\x00\x00\xc8\xc2\x7f\xcc\x81\x80\x00\x01\x02\x01\x00\x04\x19\x04\x00\x00\x00\x00\xc1\xdf\x00\x00\x00\...00\x00\x01\x0c\xe7+\x00\x00\x00\x01\x07\x00\x00\x00\x01\x06\x00\x00\x00\x01\x0e\x00\xa7~\x00\x00\x01<\x00\x00\x00\xedQ"
+seq = 15, control = True
+
+    def prepare(wire, seq, control=False):
+>       raise NotImplementedError
+E       NotImplementedError
+
+scripts/analysis/opendnp3_wrap_check.py:26: NotImplementedError
+_____________ test_recorded_read_requests_map_to_opendnp3_headers ______________
+
+    def test_recorded_read_requests_map_to_opendnp3_headers():
+>       assert owc.scan_headers('c001010200000f1e01000007') == [('range8', 1, 2, 0, 15), ('range8', 30, 1, 0, 7)]
+
+tests/analysis/test_opendnp3_wrap_check.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+request_app_hex = 'c001010200000f1e01000007'
+
+    def scan_headers(request_app_hex):
+>       raise NotImplementedError
+E       NotImplementedError
+
+scripts/analysis/opendnp3_wrap_check.py:30: NotImplementedError
+_____________ test_codec_view_lists_every_object_header_and_point ______________
+
+    def test_codec_view_lists_every_object_header_and_point():
+        e = next(e for e in exchanges() if e['operation'] == 'READ')
+>       problems, objects = owc.codec_view(e['application']['response_app_hex'])
+
+tests/analysis/test_opendnp3_wrap_check.py:97: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+app_hex = 'c0818000010201000419040000000000000000000000000000000000000000000000000000010200000f810101010101010101010101010101011e010000070105000000010400000001040000000109000000010900000001040000000104000000013c000000'
+
+    def codec_view(app_hex):
+>       raise NotImplementedError
+E       NotImplementedError
+
+scripts/analysis/opendnp3_wrap_check.py:34: NotImplementedError
+_____________ test_end_to_end_opendnp3_replay_around_the_e01_wrap ______________
+
+    def test_end_to_end_opendnp3_replay_around_the_e01_wrap():
+        error = pydnp3_import_error()
+        if error:
+            pytest.skip('BLOCKER: pydnp3 does not import: %s' % error)
+        code = ('import json, os, sys; sys.path.insert(0, %r); import opendnp3_wrap_check as m; '
+                'r = m.check_connection(%r, reads=range(50, 55)); print("RESULT" + json.dumps(r)); '
+                'sys.stdout.flush(); os._exit(0)' % (str(ROOT / 'scripts/analysis'), str(E01)))
+        run = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True, timeout=120,
+                             env=dict(os.environ, PYTHONUNBUFFERED='1'))
+>       line = next(x for x in run.stdout.splitlines() if x.startswith('RESULT'))
+E       StopIteration
+
+tests/analysis/test_opendnp3_wrap_check.py:118: StopIteration
+
+The above exception was the direct cause of the following exception:
+
+cls = <class '_pytest.runner.CallInfo'>
+func = <function call_and_report.<locals>.<lambda> at 0x7f786c7f3b80>
+when = 'call'
+reraise = (<class '_pytest.outcomes.Exit'>, <class 'KeyboardInterrupt'>)
+
+    @classmethod
+    def from_call(
+        cls,
+        func: Callable[[], TResult],
+        when: Literal["collect", "setup", "call", "teardown"],
+        reraise: type[BaseException] | tuple[type[BaseException], ...] | None = None,
+    ) -> CallInfo[TResult]:
+        """Call func, wrapping the result in a CallInfo.
+    
+        :param func:
+            The function to call. Called without arguments.
+        :type func: Callable[[], _pytest.runner.TResult]
+        :param when:
+            The phase in which the function is called.
+        :param reraise:
+            Exception or exceptions that shall propagate if raised by the
+            function, instead of being wrapped in the CallInfo.
+        """
+        excinfo = None
+        start = timing.time()
+        precise_start = timing.perf_counter()
+        try:
+>           result: TResult | None = func()
+
+../../.local/lib/python3.8/site-packages/_pytest/runner.py:341: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../.local/lib/python3.8/site-packages/_pytest/runner.py:242: in <lambda>
+    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise
+../../.local/lib/python3.8/site-packages/pluggy/_hooks.py:513: in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+../../.local/lib/python3.8/site-packages/pluggy/_manager.py:120: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+../../.local/lib/python3.8/site-packages/_pytest/threadexception.py:92: in pytest_runtest_call
+    yield from thread_exception_runtest_hook()
+../../.local/lib/python3.8/site-packages/_pytest/threadexception.py:68: in thread_exception_runtest_hook
+    yield
+../../.local/lib/python3.8/site-packages/_pytest/unraisableexception.py:95: in pytest_runtest_call
+    yield from unraisable_exception_runtest_hook()
+../../.local/lib/python3.8/site-packages/_pytest/unraisableexception.py:70: in unraisable_exception_runtest_hook
+    yield
+../../.local/lib/python3.8/site-packages/_pytest/logging.py:846: in pytest_runtest_call
+    yield from self._runtest_for(item, "call")
+../../.local/lib/python3.8/site-packages/_pytest/logging.py:829: in _runtest_for
+    yield
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <CaptureManager _method='fd' _global_capturing=<MultiCapture out=<FDCapture 1 oldfd=5 _state='suspended' tmpfile=<_io....xtIOWrapper name='/dev/null' mode='r' encoding='utf-8'>> _state='suspended' _in_suspended=False> _capture_fixture=None>
+item = <Function test_end_to_end_opendnp3_replay_around_the_e01_wrap>
+
+    @hookimpl(wrapper=True)
+    def pytest_runtest_call(self, item: Item) -> Generator[None]:
+        with self.item_capture("call", item):
+>           return (yield)
+E           RuntimeError: generator raised StopIteration
+
+../../.local/lib/python3.8/site-packages/_pytest/capture.py:898: RuntimeError
+=========================== short test summary info ============================
+FAILED tests/analysis/test_opendnp3_wrap_check.py::test_app_seq_rewrite_changes_only_the_nibble_and_its_block_crc
+FAILED tests/analysis/test_opendnp3_wrap_check.py::test_app_seq_rewrite_is_empty_when_the_sequence_already_matches
+FAILED tests/analysis/test_opendnp3_wrap_check.py::test_transport_header_bytes_are_never_rewritten
+FAILED tests/analysis/test_opendnp3_wrap_check.py::test_wrap_detector_finds_the_three_known_wraps_in_e01
+FAILED tests/analysis/test_opendnp3_wrap_check.py::test_control_changes_are_labelled_transport_and_keep_valid_crcs
+FAILED tests/analysis/test_opendnp3_wrap_check.py::test_recorded_read_requests_map_to_opendnp3_headers
+FAILED tests/analysis/test_opendnp3_wrap_check.py::test_codec_view_lists_every_object_header_and_point
+FAILED tests/analysis/test_opendnp3_wrap_check.py::test_end_to_end_opendnp3_replay_around_the_e01_wrap
+============================== 8 failed in 0.35s ===============================

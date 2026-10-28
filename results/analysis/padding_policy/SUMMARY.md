@@ -45,6 +45,15 @@ Ideal ceiling: if READ sizes remain separate from SBO and SELECT/OPERATE have id
 | full_merge | 162 (+71) | 162 (+28) | 162 (+113) | True | 0.3333 | 0.5000 | 91.7254 | 84.2519 | 130.5242 |
 | mixed_sbo_overlap | 123 (+32) | 158 (+24) | 123 (+74) | True | 0.6667 | 1.0000 | 58.5285 | 53.7598 | 83.2854 |
 
+Reading the costs:
+- merged_read adds 22.73 − 19.82 = +2.91 B per transaction, averaged over all 12,352 retained exchanges.
+- Each affected mixed READ response grows by 17 B (141 to 158; +67 B over native 91 instead of +50).
+- Integrity READ (158 B) and SELECT/OPERATE (60 B) stay unchanged.
+- full_merge sets every response to 162 B (+91.73 B per transaction, +84.25% payload). It is listed for comparison
+  and is not proposed.
+- Every classifier figure here is balanced accuracy (BA), not plain accuracy. These are offline estimates; no P4 or
+  profile change was made.
+
 ## Size-only NB on the off arm with mapped sizes (retrained, test reps 9-16)
 
 BA [block-bootstrap 95% interval over test blocks]; n/a = unavailable.

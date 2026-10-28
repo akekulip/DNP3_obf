@@ -20,7 +20,12 @@ import relay_check
 
 
 DEFINITIONS = {'qualification': dict(file='lab.json', blocks=10, exchanges=2440),
-               'evaluation': dict(file='lab_eval.json', blocks=64, exchanges=49408)}
+               'evaluation': dict(file='lab_eval.json', blocks=64, exchanges=49408),
+               'recovery': dict(file='lab_recovery.json', blocks=3, exchanges=396)}
+# One campaign per recovery condition: the controller stops a campaign at a failed block, and a reproduced CROB
+# TIMEOUT in one condition must not leave the other predetermined conditions unexecuted.
+RECOVERY_BLOCKS = {'recovery_r1': 'r1_d20_combined', 'recovery_r2': 'r2_d20_size_only', 'recovery_r3': 'r3_d5_combined'}
+DEFINITIONS.update({name: dict(file='lab_recovery.json', blocks=1, exchanges=132) for name in RECOVERY_BLOCKS})
 
 
 def sha(path):
@@ -43,11 +48,33 @@ def expand_evaluation(spec):
     return dict(common=base['common'], blocks=blocks)
 
 
+def expand_recovery(spec):
+    """Repeat the reference loss block per condition: only D, the arm, the loss preset and the master ports change."""
+    base = json.loads((HERE / spec['base']).read_text())
+    template = next(block for block in base['blocks'] if block['id'] == spec['template'])
+    blocks = []
+    for condition in spec['blocks']:
+        block = copy.deepcopy(template)
+        block['id'] = condition['id']
+        block['config']['timing_params_ns']['gap'] = condition['d_ms'] * 1000000
+        block['config']['loss']['presets'] = {spec['preset']: copy.deepcopy(spec['entries'])}
+        block['arms'] = [copy.deepcopy(condition['arm'])]
+        block['traffic']['master_port_range'] = copy.deepcopy(condition['master_port_range'])
+        block['arguments'] = ['--loss', spec['preset']]
+        blocks.append(block)
+    return dict(common=base['common'], blocks=blocks)
+
+
 def load_definition(name):
     spec = DEFINITIONS[name]
     definition = json.loads((HERE / spec['file']).read_text())
     if name == 'evaluation':
         definition = expand_evaluation(definition)
+    elif name == 'recovery':
+        definition = expand_recovery(definition)
+    elif name in RECOVERY_BLOCKS:
+        full = expand_recovery(definition)
+        definition = dict(common=full['common'], blocks=[b for b in full['blocks'] if b['id'] == RECOVERY_BLOCKS[name]])
     return definition, spec
 
 

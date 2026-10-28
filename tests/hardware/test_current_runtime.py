@@ -48,6 +48,16 @@ def prepared_evaluation(tmp_path, monkeypatch):
     return json.loads(manifest.read_text()), manifest
 
 
+@pytest.fixture
+def prepared_recovery(tmp_path, monkeypatch):
+    """The recovery matrix and, from the same fake build, the qualification matrix it copies."""
+    build, native = fake_build(tmp_path, monkeypatch)
+    recovery = matrix.prepare(build, native / 'relay_wire.json', tmp_path / 'recovery', 'offline_recovery',
+                              definition='recovery')
+    qualification = matrix.prepare(build, native / 'relay_wire.json', tmp_path / 'matrix', 'offline_fixture')
+    return json.loads(recovery.read_text()), recovery, json.loads(qualification.read_text())
+
+
 def fake_build(tmp_path, monkeypatch):
     build = tmp_path / 'build'
     profile.package(build)
@@ -134,6 +144,119 @@ def test_every_evaluation_block_plans_through_its_real_cli(prepared_evaluation):
 def test_qualification_matrix_denominator_is_unchanged_by_the_evaluation_definition(prepared):
     value, _ = prepared
     assert len(value['steps']) == 10 and value['expected_exchanges'] == 2440
+
+
+# E3 SELECT-loss recovery: qualification block 10 t3 (padded SELECT response dropped at the master host) per condition.
+RECOVERY_ENTRY = {'class': 'select_resp_padded', 'n': 1, 'target': 'identity'}
+RECOVERY_BLOCKS = {'r1_d20_combined': (20, 'combined', 1, 1),
+                   'r2_d20_size_only': (20, 'size_only', 0, 1),
+                   'r3_d5_combined': (5, 'combined', 1, 1)}
+RECOVERY_TRIALS = 6
+NATIVE_PROBE_PORTS = {59411, 59412}  # c72_native_20261027_01/_02 master ports (out.pcap)
+
+
+def definition_ports(name):
+    """{block id: master ports a matrix definition's block can open, including any reconnect port}."""
+    out = {}
+    for block in matrix.load_definition(name)[0]['blocks']:
+        span = block['traffic']['master_port_range']
+        ports = set(range(span['first'], span['last'] + 1))
+        for scenario in block['config'].get('scenarios', {}).values():
+            ports |= {port + scenario['reconnect_port_offset'] for port in ports}
+        out[block['id']] = ports
+    return out
+
+
+def test_recovery_matrix_denominator_is_three_six_trial_select_response_loss_blocks(prepared_recovery):
+    value, path, _ = prepared_recovery
+    assert matrix.DEFINITIONS['recovery'] == dict(file='lab_recovery.json', blocks=3, exchanges=396)
+    assert [step['id'] for step in value['steps']] == list(RECOVERY_BLOCKS)
+    # Each trial is one block-10 connection: 20 READs plus one SELECT and one OPERATE.
+    assert all(step['expected_exchanges'] == RECOVERY_TRIALS * (20 + 2) for step in value['steps'])
+    assert value['expected_exchanges'] == 3 * RECOVERY_TRIALS * 22 == 396
+    assert not (path.parent / 'freeze.json').exists()
+
+
+def test_recovery_blocks_copy_qualification_block_10_except_d_arm_preset_and_ports(prepared_recovery):
+    value, _, qualification = prepared_recovery
+    reference_step = next(step for step in qualification['steps'] if step['id'] == '10_d20_loss_full')
+    reference = json.loads(Path(reference_step['argv'][4]).read_text())
+    assert reference_step['argv'][6:] == ['--loss', 'core_full']
+
+    def masked(cfg):
+        cfg = copy.deepcopy(cfg)
+        for key in ('gap',):
+            cfg['timing_params_ns'].pop(key)
+        cfg['loss'].pop('presets')
+        cfg['traffic'].pop('master_port_range')
+        cfg.pop('arms')
+        return cfg
+
+    for step in value['steps']:
+        d_ms, arm, timing, padding = RECOVERY_BLOCKS[step['id']]
+        cfg = json.loads(Path(step['argv'][4]).read_text())
+        assert step['argv'][3] == 'campaign' and step['argv'][6:7] == ['--loss'] and len(step['argv']) == 8
+        preset = step['argv'][7]
+        assert cfg['loss']['presets'] == {preset: [RECOVERY_ENTRY] * RECOVERY_TRIALS}
+        assert cfg['timing_params_ns'] == dict(budget=240000, enabled=1, gap=d_ms * 1000000)
+        assert cfg['arms'] == [dict(name=arm, T=timing, padding=padding, build='current')]
+        assert masked(cfg) == masked(reference)
+        assert cfg['endpoint']['points'] == [1, 3] == reference['endpoint']['points']
+        assert cfg['trials']['reads_per_trial'] == 20 and cfg['traffic']['read_schedule'] == 'full'
+        assert cfg['traffic']['run_sbo'] is True and 'sbo_cycles' not in cfg['traffic']
+        assert cfg['loss']['inject'] is False and cfg['endpoint_profile'] == 'sel751'
+
+
+def test_recovery_preset_repeats_plan_six_distinct_identity_trials_through_the_real_cli(prepared_recovery,
+                                                                                      monkeypatch):
+    """Repeated identical preset entries are six separate cold trials, each with its own label, seed and port."""
+    value, _, _ = prepared_recovery
+    seen = {}
+
+    def recording(cls):
+        class Recording(cls):
+            def __init__(self, cfg, runner_, run_id, *args, **kwargs):
+                super().__init__(cfg, runner_, run_id, *args, **kwargs)
+                units = self.units()
+                seen[run_id] = dict(fixtures=list(self.fixtures), ports=self.ports(),
+                                    drops=[unit['drop'] for unit in units], trials=[unit['i'] for unit in units],
+                                    labels={self.label(unit) for unit in units},
+                                    seeds={unit['start_seed'] for unit in units},
+                                    arms=[(unit['arm']['name'], unit['arm']['T'], unit['arm']['padding'])
+                                          for unit in units])
+        return Recording
+
+    monkeypatch.setattr(campaign_base, 'Campaign', recording(campaign.CandidateCampaign))
+    for step in value['steps']:
+        config, run_id, options = step['argv'][4], step['argv'][5], step['argv'][6:]
+        with contextlib.redirect_stdout(io.StringIO()) as output:
+            assert campaign_base.main(['plan', '--config', config, '--run-id', run_id] + options) == 0, step['id']
+        text = output.getvalue()
+        assert 'BLOCKED/UNBOUND' not in text
+        _, arm, timing, padding = RECOVERY_BLOCKS[step['id']]
+        record = seen[run_id]
+        assert record['fixtures'] == ['physical_relay']
+        assert record['drops'] == ['select_resp_padded:1:identity'] * RECOVERY_TRIALS
+        assert record['trials'] == list(range(RECOVERY_TRIALS))
+        assert len(record['labels']) == len(record['seeds']) == len(record['ports']) == RECOVERY_TRIALS
+        assert record['arms'] == [(arm, timing, padding)] * RECOVERY_TRIALS
+        planned = re.findall(r'traffic \+ capture on master port (\d+)', text)
+        assert sorted(map(int, planned)) == record['ports']
+        assert text.count('--drop select_resp_padded:1:identity') == RECOVERY_TRIALS
+
+
+def test_recovery_master_ports_are_disjoint_from_each_other_and_earlier_matrices(prepared_recovery):
+    value, _, _ = prepared_recovery
+    recovery = definition_ports('recovery')
+    for step in value['steps']:
+        span = json.loads(Path(step['argv'][4]).read_text())['traffic']['master_port_range']
+        assert set(range(span['first'], span['last'] + 1)) == recovery[step['id']]
+    assert all(len(ports) == RECOVERY_TRIALS for ports in recovery.values())
+    blocks = list(recovery.values())
+    assert all(not (a & b) for index, a in enumerate(blocks) for b in blocks[index + 1:])
+    earlier = set().union(*definition_ports('qualification').values(), *definition_ports('evaluation').values(),
+                          NATIVE_PROBE_PORTS)
+    assert not set().union(*blocks) & earlier
 
 
 def test_each_block_argv_plans_through_its_real_cli_with_the_c69_command_parameters(prepared, monkeypatch):
@@ -324,3 +447,15 @@ def test_n_snapshot_reads_current_structured_application_and_pair_fields():
     assert observed['application_state']['n_Ingress.application_state.read_identity']==[0x1234]
     assert set(calls)==tables and len(calls)==len(tables)
     assert 'read_app' not in observed and 'count_first' not in observed
+
+
+@pytest.mark.parametrize('name,block_id', [('recovery_r1', 'r1_d20_combined'), ('recovery_r2', 'r2_d20_size_only'),
+                                           ('recovery_r3', 'r3_d5_combined')])
+def test_single_block_recovery_definitions_equal_their_block_of_the_full_matrix(name, block_id):
+    """One campaign per condition, so a recorded failure in one block cannot leave the others unexecuted."""
+    single, spec = matrix.load_definition(name)
+    full, _ = matrix.load_definition('recovery')
+    assert spec == dict(file='lab_recovery.json', blocks=1, exchanges=132)
+    assert [b['id'] for b in single['blocks']] == [block_id]
+    assert single['blocks'][0] == next(b for b in full['blocks'] if b['id'] == block_id)
+    assert single['common'] == full['common']

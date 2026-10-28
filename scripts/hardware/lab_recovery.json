@@ -1,0 +1,22 @@
+{
+  "_note": "c72 E3 SELECT-loss recovery diagnostic: qualification block 10 (10_d20_loss_full) once per condition, its loss preset replaced by six identical identity-targeted select_resp_padded drops (block 10 trial t3). Only D, the arm, the loss preset and the master ports change. Six trials per condition are a bounded diagnostic, not a rate estimate; design in results/analysis/recovery_e3/DESIGN.json.",
+  "base": "lab.json",
+  "template": "10_d20_loss_full",
+  "preset": "select_resp_padded_x6",
+  "entries": [
+    {"class": "select_resp_padded", "n": 1, "target": "identity"},
+    {"class": "select_resp_padded", "n": 1, "target": "identity"},
+    {"class": "select_resp_padded", "n": 1, "target": "identity"},
+    {"class": "select_resp_padded", "n": 1, "target": "identity"},
+    {"class": "select_resp_padded", "n": 1, "target": "identity"},
+    {"class": "select_resp_padded", "n": 1, "target": "identity"}
+  ],
+  "blocks": [
+    {"id": "r1_d20_combined", "d_ms": 20, "arm": {"name": "combined", "T": 1, "padding": 1},
+     "master_port_range": {"first": 59980, "last": 59985}},
+    {"id": "r2_d20_size_only", "d_ms": 20, "arm": {"name": "size_only", "T": 0, "padding": 1},
+     "master_port_range": {"first": 59986, "last": 59991}},
+    {"id": "r3_d5_combined", "d_ms": 5, "arm": {"name": "combined", "T": 1, "padding": 1},
+     "master_port_range": {"first": 59992, "last": 59997}}
+  ]
+}
