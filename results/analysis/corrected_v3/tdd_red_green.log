@@ -1,0 +1,52 @@
+=== RED run: new tests against unmodified scripts/checks/relay_check.py (sha256 11bc6df72a138abbeed671f5b10605a70aa93c688135a277953cd877ef8308fa) — 2026-10-28T12:17:08-04:00
+$ python3 -m pytest tests/checks/test_reassembly_v3.py -q -p no:cacheprovider -rA --tb=line
+FFFFFF.F.FF                                                              [100%]
+=================================== FAILURES ===================================
+/home/philip/Projects/DNP3/tests/checks/test_reassembly_v3.py:28: assert [6, 3] == [6]
+/home/philip/Projects/DNP3/tests/checks/test_reassembly_v3.py:38: assert [6] == [3]
+/home/philip/Projects/DNP3/tests/checks/test_reassembly_v3.py:52: assert [3, 5] == [3]
+/home/philip/Projects/DNP3/tests/checks/test_reassembly_v3.py:66: assert [6, 2, 4] == [6]
+/home/philip/Projects/DNP3/tests/checks/test_reassembly_v3.py:75: assert [4, 6] == [4, 2]
+/home/philip/Projects/DNP3/tests/checks/test_reassembly_v3.py:86: assert [4, 6, 6] == [4, 6]
+/home/philip/Projects/DNP3/tests/checks/test_reassembly_v3.py:116: AssertionError: assert 'sel751-wire-v2' == 'sel751-wire-v3'
+/home/philip/Projects/DNP3/tests/checks/test_reassembly_v3.py:144: KeyError: 'retransmitted_bytes'
+/home/philip/Projects/DNP3/tests/checks/test_reassembly_v3.py:144: KeyError: 'retransmitted_bytes'
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/checks/test_reassembly_v3.py::test_conflicting_bytes_on_overlap_are_refused
+PASSED tests/checks/test_reassembly_v3.py::test_analyze_fails_a_span_with_conflicting_retransmitted_bytes
+FAILED tests/checks/test_reassembly_v3.py::test_overlapping_shorter_retransmission_counts_unique_bytes_and_first_completion
+FAILED tests/checks/test_reassembly_v3.py::test_coalesced_fragments_are_found_in_order_inside_one_segment
+FAILED tests/checks/test_reassembly_v3.py::test_segment_starting_before_the_span_start_contributes_its_overlap
+FAILED tests/checks/test_reassembly_v3.py::test_resegmented_retransmission_is_counted_by_byte_overlap
+FAILED tests/checks/test_reassembly_v3.py::test_completion_is_when_the_last_missing_byte_first_arrives
+FAILED tests/checks/test_reassembly_v3.py::test_sequence_numbers_wrap_across_two_to_the_32
+FAILED tests/checks/test_reassembly_v3.py::test_analyze_counts_a_resegmented_response_retransmission
+FAILED tests/checks/test_reassembly_v3.py::test_clean_conversation_has_no_retransmitted_bytes[False]
+FAILED tests/checks/test_reassembly_v3.py::test_clean_conversation_has_no_retransmitted_bytes[True]
+9 failed, 2 passed in 0.04s
+exit=1
+
+=== GREEN run: same tests against v3 scripts/checks/relay_check.py (sha256 b8a25975a3754bb5974974c16792c74986a8b4d51f3e6ced87640d4ce58a1055) — 2026-10-28T12:19:57-04:00
+$ python3 -m pytest tests/checks/test_reassembly_v3.py -q -p no:cacheprovider -rA --tb=line
+...........                                                              [100%]
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/checks/test_reassembly_v3.py::test_overlapping_shorter_retransmission_counts_unique_bytes_and_first_completion
+PASSED tests/checks/test_reassembly_v3.py::test_coalesced_fragments_are_found_in_order_inside_one_segment
+PASSED tests/checks/test_reassembly_v3.py::test_segment_starting_before_the_span_start_contributes_its_overlap
+PASSED tests/checks/test_reassembly_v3.py::test_resegmented_retransmission_is_counted_by_byte_overlap
+PASSED tests/checks/test_reassembly_v3.py::test_completion_is_when_the_last_missing_byte_first_arrives
+PASSED tests/checks/test_reassembly_v3.py::test_sequence_numbers_wrap_across_two_to_the_32
+PASSED tests/checks/test_reassembly_v3.py::test_conflicting_bytes_on_overlap_are_refused
+PASSED tests/checks/test_reassembly_v3.py::test_analyze_counts_a_resegmented_response_retransmission
+PASSED tests/checks/test_reassembly_v3.py::test_analyze_fails_a_span_with_conflicting_retransmitted_bytes
+PASSED tests/checks/test_reassembly_v3.py::test_clean_conversation_has_no_retransmitted_bytes[False]
+PASSED tests/checks/test_reassembly_v3.py::test_clean_conversation_has_no_retransmitted_bytes[True]
+11 passed in 0.03s
+exit=0
+
+=== Full repository suite after the v3 change — 2026-10-28T12:34:33-04:00
+$ python3 -m pytest tests -q -p no:cacheprovider --ignore=tests/analysis/test_formby_eval.py --ignore=tests/analysis/test_eval_figures.py [plus --ignore of the parallel in-progress files test_formby_eval_v2.py, test_independent_decode.py, test_overhead_v2.py, test_padding_policy.py, test_replay_frozen.py, tests/model/test_model_summary_coverage.py] -rfE
+210 passed in 68.66s (0:01:08)
+(stated baseline 199 + 11 new tests in tests/checks/test_reassembly_v3.py)

@@ -112,11 +112,20 @@ def manifest_problems(run_root, inputs):
     return problems
 
 
+def mixed_schema_problems(schemas):
+    """relay_wire v2 and v3 define actual_payload_lengths differently (packet bytes against unique bytes)."""
+    if len(schemas) <= 1:
+        return []
+    return ['relay_wire.json schemas %s are mixed in one campaign; their payload-length fields differ in meaning'
+            % ', '.join(sorted(str(s) for s in schemas))]
+
+
 def campaign_rows(campaign):
     """Rows of every completed block, in manifest order, plus per-block status and problems."""
     campaign = Path(campaign).resolve()
     manifest = json.loads((campaign / 'manifest.json').read_text())
     rows, problems, inputs, blocks = [], [], {str(campaign / 'manifest.json'): sha(campaign / 'manifest.json')}, []
+    schemas = set()
     for index, step in enumerate(manifest['steps']):
         terminal_path = campaign / 'steps' / step['id'] / 'terminal.json'
         terminal = json.loads(terminal_path.read_text()) if terminal_path.is_file() else {}
@@ -136,6 +145,7 @@ def campaign_rows(campaign):
         if sorted(path.parent.name for path in trials) != sorted(order):
             problems.append('%s: trial arms %s, planned %s' % (step['id'], [p.parent.name for p in trials], order))
         for trial in trials:
+            schemas.add(json.loads((trial / 'relay_wire.json').read_text()).get('schema'))
             arm = trial.parent.name
             context = dict(campaign=manifest['campaign_id'], block_id=step['id'], block_index=index, d_ms=d_ms,
                            repetition=repetition, split=split, arm=arm,
@@ -145,6 +155,7 @@ def campaign_rows(campaign):
             problems.extend('%s: %s' % (step['id'], p) for p in trial_problems)
             problems.extend(manifest_problems(run_root, trial_inputs))
             inputs.update(trial_inputs)
+    problems.extend(mixed_schema_problems(schemas))
     return rows, problems, inputs, blocks
 
 

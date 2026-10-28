@@ -80,3 +80,21 @@ An independent review of the redesigned figures fixed the Fig. 7/REPORT pause wo
 0.8-1.0 ms after SELECT/OPERATE) and added the joint-feature residual to the Fig. 4 caption; committed 986320d0a.
 HANDOVER, PLAN, current.json and these notes updated; Philip asked for main to be pushed to origin.
 
+## 2026-10-28 — audit correction-and-validation pass (plan: ~/.claude/plans/we-were-on-tract-expressive-planet.md)
+
+Philip's order: A/B/C plus read-only D1 now; then the observation path (D2-D3), recovery (E), confirmation (F).
+Done so far:
+- A1/A1b frozen-tree replay: original stops at 1,934; the adapter accounts for 2,440 with block 10 still FAIL.
+- A4 figure-input binding refuses a mismatched classifier artifact.
+- A5 coverage report: abandon ran only with ABANDON_T=0.
+- A6 tshark decode: 49,408 and 2,440 responses identical in both parsers. tshark cannot reassemble the 63->0
+  transport wrap; 384 padded responses go through a control copy.
+- D1: no tap or SPAN; dev 10 is very likely Vision enp59s0f1np1 (LLDP cadence); to be confirmed in D3.
+Then:
+- A2/A3 reassembly v3: 0 differences over 290 connections, with a frozen-v2 control.
+- B classifier v2: CLRT unchanged; joint 0.667-0.875 under Timing+Size; ack/rt show no reduction.
+- C padding: size-only BA 0.667 under every attainable assignment except a full merge; frames +6.4%.
+- Independent code review: 0 critical/high. Its 5 medium findings are fixed (report statuses, summary wording,
+  reassembly guard tests, replay audit buckets, wrap-test bytes), plus the cheap low ones.
+Tests: repository 202, analysis 75, paper 16. Next: D2 diagnostic mirror build, after Philip confirms.
+

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Physical relay evidence from one master NIC; no reflected-copy or switch-residence claim."""
 import argparse
+import bisect
 import hashlib
 import json
 import statistics
@@ -22,7 +23,7 @@ if not _active.is_dir():
 sys.path.insert(0, str(_active))
 import dnp3_codec as codec
 
-SCHEMA_VERSION = 'sel751-wire-v2'
+SCHEMA_VERSION = 'sel751-wire-v3'
 
 
 def application_from_wire(raw):
@@ -139,51 +140,135 @@ def packet_record(seg):
                 ipv4_header_bytes=ihl, tcp_header_bytes=tcp_len, tcp_options_hex=frame[tcp + 20:tcp + tcp_len].hex())
 
 
-def stream_contains(segments, raw, minimum_offset=0):
-    """Find an exact contiguous TCP sequence span, tolerating identical retransmissions only."""
-    wanted = bytes.fromhex(raw)
-    if not wanted:
-        return None
+def stream_offset(seq, origin):
+    """Signed 32-bit distance of seq from origin, so one stream may wrap across 2**32."""
+    delta = (seq - origin) & 0xffffffff
+    return delta - 0x100000000 if delta & 0x80000000 else delta
+
+
+def reassemble(segments, origin):
+    """First-arrival reconstruction of one TCP direction, in stream offsets from origin.
+
+    Payload segments are taken in arrival order (timestamp, then capture index).  ``pieces`` are disjoint
+    (start, end, segment start, segment) ranges sorted by start: the bytes whose first captured copy is that
+    segment.  ``copies`` holds every payload segment as (start, end, segment), sorted by start.  ``conflicts``
+    holds the offsets where a later copy differs from the first-arriving byte."""
+    pieces, starts, copies, conflicts = [], [], [], set()
+    for seg in sorted((s for s in segments if s['len']), key=lambda s: (s['timestamp_ns'], s['index'])):
+        start = stream_offset(seg['seq'], origin)
+        end = start + seg['len']
+        copies.append((start, end, seg))
+        gaps, cursor = [], start
+        i = max(bisect.bisect_right(starts, start) - 1, 0)
+        while i < len(pieces) and pieces[i][0] < end:
+            a, b, first_start, first = pieces[i]
+            if b > cursor:
+                if a > cursor:
+                    gaps.append((cursor, a))
+                low, high = max(a, cursor), min(b, end)
+                mine = seg['payload'][low - start:high - start]
+                theirs = first['payload'][low - first_start:high - first_start]
+                conflicts.update(low + j for j, byte in enumerate(mine) if byte != theirs[j])
+                cursor = high
+            i += 1
+        if cursor < end:
+            gaps.append((cursor, end))
+        for a, b in gaps:
+            k = bisect.bisect_left(starts, a)
+            starts.insert(k, a)
+            pieces.insert(k, (a, b, start, seg))
+    runs = []  # contiguous first-arrival bytes as [start, bytearray]
+    for a, b, first_start, first in pieces:
+        chunk = first['payload'][a - first_start:b - first_start]
+        if runs and runs[-1][0] + len(runs[-1][1]) == a:
+            runs[-1][1] += chunk
+        else:
+            runs.append([a, bytearray(chunk)])
+    copies.sort(key=lambda c: c[0])
+    return dict(origin=origin, pieces=pieces, starts=starts, copies=copies, copy_starts=[c[0] for c in copies],
+                longest=max((c[1] - c[0] for c in copies), default=0), conflicts=conflicts, runs=runs)
+
+
+def tcp_stream(segments):
+    """First-arrival reassembly anchored at the single SYN; None for zero or several connection incarnations."""
     syns = {s['seq'] for s in segments if s['flags'] & wc.SYN}
     if len(syns) != 1:
         return None  # multiple connection incarnations cannot be silently combined
-    origin = next(iter(syns))
-    for first in sorted(segments, key=lambda s: (s['seq'] - origin) & 0xffffffff):
-        if not first['len']:
-            continue
-        start = first['seq']
-        start_offset = (start - origin) & 0xffffffff
-        if start_offset < minimum_offset:
-            continue
-        covered = {}
-        conflict = False
-        for seg in segments:
-            offset = (seg['seq'] - start) & 0xffffffff
-            if offset >= len(wanted):
-                continue
-            for j, byte in enumerate(seg['payload']):
-                if offset + j >= len(wanted):
-                    break
-                if offset + j in covered and covered[offset + j] != byte:
-                    conflict = True
-                covered[offset + j] = byte
-        if not conflict and len(covered) == len(wanted) and bytes(covered[i] for i in range(len(wanted))) == wanted:
-            earliest = {}
-            for seg in segments:
-                offset = (seg['seq'] - start) & 0xffffffff
-                if seg['len'] and offset < len(wanted):
-                    key = (seg['seq'], seg['payload'])
-                    if key not in earliest or seg['timestamp_ns'] < earliest[key]['timestamp_ns']:
-                        earliest[key] = seg
-            parts = [packet_record(s) for s in earliest.values()]
-            return dict(sequence_start=start, complete=True, packets=parts,
-                        sequence_end=(start + len(wanted)) & 0xffffffff,
-                        start_offset=start_offset, end_offset=start_offset + len(wanted),
-                        actual_payload_lengths=[p['payload_len'] for p in parts],
-                        wire_hex=bytes(covered[i] for i in range(len(wanted))).hex(),
-                        first_timestamp_ns=min(p['timestamp_ns'] for p in parts),
-                        complete_timestamp_ns=max(p['timestamp_ns'] for p in parts))
+    return reassemble(segments, next(iter(syns)))
+
+
+def span_record(stream, begin, wanted):
+    """Each unique byte credited to its first-arriving packet; every overlapping copy counted as packet bytes."""
+    finish = begin + len(wanted)
+    unique = {}
+    pieces = stream['pieces']
+    i = max(bisect.bisect_right(stream['starts'], begin) - 1, 0)
+    while i < len(pieces) and pieces[i][0] < finish:
+        a, b, _, seg = pieces[i]
+        if b > begin:
+            unique[seg['index']] = (seg, unique.get(seg['index'], (seg, 0))[1] + min(b, finish) - max(a, begin))
+        i += 1
+    packet_bytes = retransmitted_segments = 0
+    copies = stream['copies']
+    i = bisect.bisect_left(stream['copy_starts'], begin - stream['longest'])
+    while i < len(copies) and copies[i][0] < finish:
+        a, b, seg = copies[i]
+        carried = max(0, min(b, finish) - max(a, begin))
+        packet_bytes += carried
+        retransmitted_segments += carried > unique.get(seg['index'], (seg, 0))[1]
+        i += 1
+    parts = sorted(unique.values(), key=lambda part: (part[0]['timestamp_ns'], part[0]['index']))
+    origin = stream['origin']
+    return dict(sequence_start=(origin + begin) & 0xffffffff, complete=True,
+                packets=[packet_record(seg) for seg, _ in parts],
+                sequence_end=(origin + finish) & 0xffffffff, start_offset=begin, end_offset=finish,
+                actual_payload_lengths=[count for _, count in parts], wire_hex=wanted.hex(),
+                first_timestamp_ns=min(seg['timestamp_ns'] for seg, _ in parts),
+                complete_timestamp_ns=max(seg['timestamp_ns'] for seg, _ in parts),
+                unique_bytes=len(wanted), packet_bytes=packet_bytes, retransmitted_bytes=packet_bytes - len(wanted),
+                retransmitted_segments=retransmitted_segments)
+
+
+def locate(stream, raw, minimum_offset=0):
+    """First exact span of raw at a stream byte offset >= minimum_offset, refusing spans with conflicting bytes.
+
+    A span may start or end inside a segment.  complete_timestamp_ns is when its last missing byte first
+    arrived; actual_payload_lengths are the unique span bytes each first-arriving packet contributed."""
+    wanted = bytes.fromhex(raw)
+    if not wanted or stream is None:
+        return None
+    for run_start, data in stream['runs']:
+        position = data.find(wanted, max(minimum_offset - run_start, 0))
+        while position >= 0:
+            begin = run_start + position
+            if not any(begin <= offset < begin + len(wanted) for offset in stream['conflicts']):
+                return span_record(stream, begin, wanted)
+            position = data.find(wanted, position + 1)
     return None
+
+
+def stream_contains(segments, raw, minimum_offset=0):
+    """Find an exact contiguous TCP span by stream byte offset; retransmitted copies never add bytes or time."""
+    return locate(tcp_stream(segments), raw, minimum_offset)
+
+
+def byte_counts(segments):
+    """Payload accounting of one direction by byte overlap: unique stream bytes, packet bytes (every captured
+    copy), retransmitted bytes, and retransmitted segments (payload segments carrying an already-captured byte).
+    Anchored at the single SYN, else at the first-arriving payload segment."""
+    data = [s for s in segments if s['len']]
+    if not data:
+        return dict(unique_bytes=0, packet_bytes=0, retransmitted_bytes=0, retransmitted_segments=0)
+    syns = {s['seq'] for s in segments if s['flags'] & wc.SYN}
+    origin = next(iter(syns)) if len(syns) == 1 else min(data, key=lambda s: (s['timestamp_ns'], s['index']))['seq']
+    stream = reassemble(segments, origin)
+    contributed = {}
+    for a, b, _, seg in stream['pieces']:
+        contributed[seg['index']] = contributed.get(seg['index'], 0) + b - a
+    unique = sum(contributed.values())
+    packet = sum(b - a for a, b, _ in stream['copies'])
+    return dict(unique_bytes=unique, packet_bytes=packet, retransmitted_bytes=packet - unique,
+                retransmitted_segments=sum(contributed.get(seg['index'], 0) < b - a for a, b, seg in stream['copies']))
 
 
 def analyze(root, master_port, expected=None, schedule=None):
@@ -209,9 +294,11 @@ def analyze(root, master_port, expected=None, schedule=None):
             failures.append(direction + ' capture drop evidence missing or nonzero')
     exchanges = []
     cursors = dict(out=0, **{'in': 0})
+    reassembled = {direction: tcp_stream(stream) for direction, stream in streams.items()}
+    accounting = {direction: byte_counts(stream) for direction, stream in streams.items()}
     for record in master.get('records', []):
-        request = stream_contains(streams['out'], record.get('request_wire_hex', ''), cursors['out'])
-        response = stream_contains(streams['in'], record.get('response_wire_hex', ''), cursors['in'])
+        request = locate(reassembled['out'], record.get('request_wire_hex', ''), cursors['out'])
+        response = locate(reassembled['in'], record.get('response_wire_hex', ''), cursors['in'])
         if not request or not response:
             failures.append('complete request/response TCP span missing: ' + str(record.get('operation')))
         else:
@@ -240,10 +327,12 @@ def analyze(root, master_port, expected=None, schedule=None):
     offload = json.loads((root / 'capture_offloads.json').read_text()) if (root / 'capture_offloads.json').is_file() else {}
     if offload.get('restore_ok') is not True:
         failures.append('capture offload restoration missing or failed')
+    totals = {key: {direction: counts[key] for direction, counts in accounting.items()}
+              for key in ('retransmitted_segments', 'retransmitted_bytes', 'unique_bytes', 'packet_bytes')}
     report = dict(schema=SCHEMA_VERSION, ok=not failures, failures=failures, packets=packets, exchanges=exchanges,
                 capture_drops={direction: (result.get('tcpdump') or {}).get(direction) for direction in streams},
-                retransmissions={direction: len([p for p in stream if p['len']]) -
-                    len({(p['seq'], p['payload']) for p in stream if p['len']}) for direction, stream in streams.items()},
+                retransmissions=totals['retransmitted_segments'], retransmitted_bytes=totals['retransmitted_bytes'],
+                unique_bytes=totals['unique_bytes'], packet_bytes=totals['packet_bytes'],
                 observation_scope='single master NIC TX/RX; SYN/options and TCP sequence spans retained',
                 independent_packet_boundary_calibration=False, same_packet_preservation_proven=False,
                 artifacts={p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in

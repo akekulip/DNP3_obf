@@ -1,0 +1,92 @@
+Wed Oct 28 05:59:25 PM UTC 2026
+vision
+lo               UNKNOWN        00:00:00:00:00:00 <LOOPBACK,UP,LOWER_UP> 
+eno1             UP             2c:ea:7f:55:0c:46 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+eno2             UP             2c:ea:7f:55:0c:47 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+enp59s0f0np0     UP             3c:fd:fe:cc:5d:c0 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+enp59s0f1np1     UP             3c:fd:fe:cc:5d:c1 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+br-0678c82403f9  UP             d2:44:fb:c1:62:3c <BROADCAST,MULTICAST,UP,LOWER_UP> 
+docker0          DOWN           4a:c9:09:1a:cb:02 <NO-CARRIER,BROADCAST,MULTICAST,UP> 
+veth5301fce@if2  UP             e2:7e:7d:a9:18:47 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+vethfc9e52e@if2  UP             c2:a2:c6:50:67:c4 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+veth30a8082@if2  UP             9e:4b:37:66:a2:05 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eno1             UP             10.10.54.19/24 fe80::83d3:7440:4417:e04a/64 
+eno2             UP             10.10.54.166/24 fe80::ba85:a3a7:a4ee:b16c/64 
+enp59s0f0np0     UP             10.0.1.1/24 192.168.10.1/24 fe80::3efd:feff:fecc:5dc0/64 
+enp59s0f1np1     UP             
+br-0678c82403f9  UP             172.18.0.1/16 fe80::d044:fbff:fec1:623c/64 
+docker0          DOWN           172.17.0.1/16 
+veth5301fce@if2  UP             fe80::e07e:7dff:fea9:1847/64 
+vethfc9e52e@if2  UP             fe80::c0a2:c6ff:fe50:67c4/64 
+veth30a8082@if2  UP             fe80::9c4b:37ff:fe66:a205/64 
+== enp59s0f0np0
+Settings for enp59s0f0np0:
+	Supported ports: [ FIBRE ]
+	Supported link modes:   25000baseCR/Full
+	Supported pause frame use: Symmetric Receive-only
+	Supports auto-negotiation: Yes
+	Supported FEC modes: None	 RS	 BASER
+	Advertised link modes:  25000baseCR/Full
+	Advertised pause frame use: No
+	Advertised auto-negotiation: Yes
+	Advertised FEC modes: None	 RS	 BASER
+	Speed: 25000Mb/s
+	Duplex: Full
+	Auto-negotiation: off
+	Port: Direct Attach Copper
+	PHYAD: 0
+	Transceiver: internal
+        Current message level: 0x00000007 (7)
+                               drv probe link
+	Link detected: yes
+netlink error: Operation not permitted
+driver: i40e
+version: 6.8.0-147-generic
+firmware-version: 8.15 0x800096ca 20.0.17
+expansion-rom-version: 
+bus-info: 0000:3b:00.0
+supports-statistics: yes
+supports-test: yes
+supports-eeprom-access: yes
+supports-register-dump: yes
+supports-priv-flags: yes
+disable-fw-lldp        : off
+177394
+80596
+== enp59s0f1np1
+Settings for enp59s0f1np1:
+	Supported ports: [ FIBRE ]
+	Supported link modes:   25000baseCR/Full
+	Supported pause frame use: Symmetric Receive-only
+	Supports auto-negotiation: Yes
+	Supported FEC modes: None	 RS	 BASER
+	Advertised link modes:  25000baseCR/Full
+	Advertised pause frame use: No
+	Advertised auto-negotiation: Yes
+	Advertised FEC modes: None	 RS	 BASER
+	Speed: 25000Mb/s
+	Duplex: Full
+	Auto-negotiation: off
+	Port: Direct Attach Copper
+	PHYAD: 0
+	Transceiver: internal
+        Current message level: 0x00000007 (7)
+                               drv probe link
+	Link detected: yes
+netlink error: Operation not permitted
+driver: i40e
+version: 6.8.0-147-generic
+firmware-version: 8.15 0x800096ca 20.0.17
+expansion-rom-version: 
+bus-info: 0000:3b:00.1
+supports-statistics: yes
+supports-test: yes
+supports-eeprom-access: yes
+supports-register-dump: yes
+supports-priv-flags: yes
+disable-fw-lldp       : off
+0
+0
+2026-10-19 23:32:28
+[sudo -n -l output redacted before commit: it lists host privilege rules. The fact used by the analysis is that tcpdump may run under sudo without a password, as the existing capture harness already relies on.]

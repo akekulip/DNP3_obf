@@ -158,3 +158,49 @@ def test_saved_figures_are_byte_stable_and_carry_no_tool_metadata(tmp_path):
         assert marker not in pdf
     assert b'<dc:date>' not in svg and b'matplotlib.org' not in svg   # element ids may still say matplotlib
     assert b'Software' not in (tmp_path / 'a' / 'preview' / 'probe.png').read_bytes()
+
+
+def write_rows_csv(path, rows):
+    import csv
+    fields = sorted({k for r in rows for k in r})
+    with path.open('w', newline='') as stream:
+        writer = csv.DictWriter(stream, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def test_figures_refuse_a_classifier_artifact_bound_to_other_rows(tmp_path):
+    rows = rows_for_all_arms(blocks=16)
+    for row in rows:
+        row.setdefault('block_index', row['repetition'])
+    write_rows_csv(tmp_path / 'rows.csv', rows)
+    formby = tmp_path / 'formby.json'
+    formby.write_text(json.dumps(dict(schema='c72-formby-eval-v1', rows_sha256='0' * 64, results=[],
+                                      comparisons=[])))
+    out = tmp_path / 'figures'
+    assert eval_figures.main([str(tmp_path / 'rows.csv'), str(formby), '--output', str(out)]) == 4
+    assert not out.exists()
+
+
+def test_input_check_flags_schema_class_and_split_disagreements(tmp_path):
+    rows = rows_for_all_arms(blocks=16)
+    path = tmp_path / 'rows.csv'
+    write_rows_csv(path, rows)
+    import hashlib
+    good = dict(schema='c72-formby-eval-v1', rows_sha256=hashlib.sha256(path.read_bytes()).hexdigest(), results=[])
+    assert eval_figures.input_problems(path, rows, good) == []
+    assert any('schema' in p for p in eval_figures.input_problems(path, rows, dict(good, schema='other')))
+    bad_split = [dict(r) for r in rows]
+    bad_split[0]['split'] = 'test' if bad_split[0]['split'] == 'train' else 'train'
+    assert any('split' in p for p in eval_figures.input_problems(path, bad_split, good))
+    bad_class = [dict(r) for r in rows if r['operation'] != 'OPERATE']
+    assert any('class' in p for p in eval_figures.input_problems(path, bad_class, good))
+
+
+def test_statuses_keep_sufficiency_construction_and_hypothesis_apart():
+    status = eval_figures.statuses(dict(gate_passed=True), dict(falsified=False),
+                                   dict(cells={'D5/combined': dict(spread_falsified=False,
+                                                                   classifier_by_k={64: dict(falsified=True)})}))
+    assert set(status) == {'data_sufficient', 'transformation_correct', 'hypothesis_supported'}
+    assert status['data_sufficient'] is True and status['transformation_correct'] is True
+    assert status['hypothesis_supported']['classifier_cells_falsified'] == 1

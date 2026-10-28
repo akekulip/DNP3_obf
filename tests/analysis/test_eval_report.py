@@ -31,7 +31,39 @@ def test_report_numbers_are_read_from_pipeline_outputs(tmp_path):
     (tmp_path / 'figures/T2_classifier_metrics.csv').write_text(
         'd_ms,arm,feature,k,attacker,classifier,ba_pooled,ba_block_mean,ci_lower,ci_upper\n'
         '5,combined,clrt,64,retrained,nb,0.4,0.35,0.3,0.41\n')
+    (tmp_path / 'figures/status.json').write_text(json.dumps(dict(
+        data_sufficient=False, transformation_correct=True, inputs=dict(rows_sha256='ab', classifier_schema='v1'),
+        hypothesis_supported=dict(spread_cells=8, spread_cells_falsified=0, classifier_cells=24,
+                                  classifier_cells_falsified=3))))
     text = eval_report.build(tmp_path).read_text()
+    assert 'Data sufficient: **no**' in text and 'Transformation correct: **yes**' in text
+    assert 'spread criterion falsified in 0 of 8 cells' in text and 'classifier criterion falsified in 3 of 24' in text
     assert 'Blocks completed: 1 of 3; unexecuted: 1; failed or excluded: e02 (failed: block_failed)' in text
     assert '**FAIL**' in text and 'D5/off/READ' in text
     assert '0.350 [0.300, 0.410]' in text and '0.200 [0.100, 0.300] ok' in text and 'Timing falsifier: t x' in text
+
+
+def minimal_outputs(tmp_path, status=None):
+    test_report_numbers_are_read_from_pipeline_outputs(tmp_path)
+    path = tmp_path / 'figures/status.json'
+    if status is None:
+        path.unlink()
+    else:
+        path.write_text(json.dumps(status))
+
+
+def test_report_refuses_figures_without_a_status_record(tmp_path):
+    import pytest
+    minimal_outputs(tmp_path)
+    with pytest.raises(SystemExit, match='status.json'):
+        eval_report.build(tmp_path)
+
+
+def test_report_refuses_a_status_bound_to_other_rows(tmp_path):
+    import pytest
+    minimal_outputs(tmp_path, dict(data_sufficient=True, transformation_correct=True,
+                                   inputs=dict(rows_sha256='zz', classifier_schema='v1'),
+                                   hypothesis_supported=dict(spread_cells=0, spread_cells_falsified=0,
+                                                             classifier_cells=0, classifier_cells_falsified=0)))
+    with pytest.raises(SystemExit, match='rows'):
+        eval_report.build(tmp_path)

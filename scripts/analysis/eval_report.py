@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Numbers-only evaluation report generated from the pipeline outputs; every value is read, none is typed.
 
-Reads OUT/rows/rows_manifest.json, OUT/figures/{sufficiency,verdicts}.json and the T2-T4 CSV tables written by
+Reads OUT/rows/rows_manifest.json, OUT/figures/{sufficiency,verdicts,status}.json and the T2-T4 CSV tables written by
 run_evaluation.sh, and writes OUT/REPORT_NUMBERS.md: dataset completeness, the pre-registered verdicts, classifier
 headline cells, overhead and delivery. Interpretation is written separately by a person after reading the figures.
 
@@ -39,6 +39,11 @@ def build(out):
     manifest = json.loads((out / 'rows/rows_manifest.json').read_text())
     gate = json.loads((out / 'figures/sufficiency.json').read_text())
     verdicts = json.loads((out / 'figures/verdicts.json').read_text())
+    if not (out / 'figures/status.json').is_file():
+        raise SystemExit('refusing: figures/status.json is missing (figures predate the input-binding check)')
+    status = json.loads((out / 'figures/status.json').read_text())
+    if status['inputs']['rows_sha256'] != manifest['rows_sha256']:
+        raise SystemExit('refusing: figures/status.json is bound to other rows than rows_manifest.json')
     t2 = read_csv(out / 'figures/T2_classifier_metrics.csv')
     t3 = read_csv(out / 'figures/T3_delivery.csv')
     t4 = read_csv(out / 'figures/T4_overhead.csv')
@@ -56,7 +61,16 @@ def build(out):
                  'PASS' if gate['gate_passed'] else 'FAIL', gate['rule'], gate['capture_clean'])]
     short = [k for k, v in gate['cells'].items() if not (v['train_blocks'] >= 8 and v['test_blocks'] >= 8
                                                          and v['test_windows_K64'] >= 8 and v['test_windows_K8'] >= 64)]
+    hypothesis = status['hypothesis_supported']
     lines += ['Cells below the gate: %s.' % (', '.join(short) if short else 'none'), '',
+              '## Status (three separate questions)', '',
+              '- Data sufficient: **%s**.' % ('yes' if status['data_sufficient'] else 'no'),
+              '- Transformation correct: **%s** (every padded response is its class image).' % (
+                  'yes' if status['transformation_correct'] else 'no'),
+              '- Hypothesis supported: timing spread criterion falsified in %d of %d cells; timing classifier '
+              'criterion falsified in %d of %d cells.' % (
+                  hypothesis['spread_cells_falsified'], hypothesis['spread_cells'],
+                  hypothesis['classifier_cells_falsified'], hypothesis['classifier_cells']), '',
               '## Pre-registered verdicts', '',
               'Size falsifier (%s): **%s**, %d violating responses.' % (
                   verdicts['size']['rule'], 'FALSIFIED' if verdicts['size']['falsified'] else 'not falsified',

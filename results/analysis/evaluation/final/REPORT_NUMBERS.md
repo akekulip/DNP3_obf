@@ -8,6 +8,12 @@ Blocks completed: 64 of 64; unexecuted: 0; failed or excluded: none.
 Sufficiency gate: **PASS** (per D/arm/class: >=8 train and >=8 test blocks, >=8 test windows at K=64 and >=64 at K=8; every trial with zero kernel/interface capture drops). Captures clean: True.
 Cells below the gate: none.
 
+## Status (three separate questions)
+
+- Data sufficient: **yes**.
+- Transformation correct: **yes** (every padded response is its class image).
+- Hypothesis supported: timing spread criterion falsified in 0 of 8 cells; timing classifier criterion falsified in 3 of 24 cells.
+
 ## Pre-registered verdicts
 
 Size falsifier (padded arms: READ mixed 141, READ integrity 158, SELECT/OPERATE 60 octets): **not falsified**, 0 violating responses.

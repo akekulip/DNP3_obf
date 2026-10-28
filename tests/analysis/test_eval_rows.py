@@ -153,3 +153,9 @@ def test_retained_artifact_manifest_must_match_every_input(tmp_path):
     assert eval_rows.manifest_problems(run, {str(target): eval_rows.sha(target)})
     (run / 'artifact_manifest.json').unlink()
     assert 'artifact_manifest.json missing' in eval_rows.manifest_problems(run, {})[0]
+
+
+def test_mixed_relay_wire_schemas_are_reported():
+    assert eval_rows.mixed_schema_problems({'sel751-wire-v2'}) == []
+    problems = eval_rows.mixed_schema_problems({'sel751-wire-v2', 'sel751-wire-v3'})
+    assert len(problems) == 1 and 'sel751-wire-v2' in problems[0] and 'sel751-wire-v3' in problems[0]

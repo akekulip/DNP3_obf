@@ -559,6 +559,25 @@ def _contention_v2_clock_problems(results):
             problems.append(case['name']+': genuine ACK/whole response/full D causal proof failed')
     return problems
 
+# Coverage a driver's gate pass does not establish unless its stimulus says so (audit 2026-10-28, section 4.6).
+COVERAGE_REQUIREMENTS = (('abandon', 'ABANDON_T', '1', 'abandoned SELECT with timing enabled (ABANDON_T=1)'),)
+
+
+def stimulus_coverage(build, base):
+    """Each latest driver's recorded stimulus environment, and the scenarios its pass does not cover."""
+    stimulus = {}
+    for driver, run in sorted(base['latest_by_driver'].items()):
+        launch = model_root(build) / run / 'launch_command.json'
+        stimulus[driver] = (json.loads(launch.read_text()).get('stimulus_environment', {})
+                            if launch.is_file() else None)
+    missing = []
+    for driver, key, value, scenario in COVERAGE_REQUIREMENTS:
+        if driver in stimulus and (stimulus[driver] or {}).get(key) != value:
+            missing.append(dict(driver=driver, scenario=scenario,
+                                recorded=None if stimulus[driver] is None else stimulus[driver].get(key)))
+    return dict(stimulus_by_driver=stimulus, coverage_not_established=missing)
+
+
 def summarize_v3(build):
     """summarize_v2() plus mandatory dependency evidence: a driver's latest attempt must carry a verified
     dependency closure (_closure_problems). For a build whose runs predate the closure recorder this blocks, and
@@ -630,7 +649,7 @@ def summarize_v3(build):
                 limitations.append('%s: %s predates mandatory dependency evidence' % (driver, run))
     return dict(base, summary_version=SUMMARY_V3, generated_by='scripts/model/model_summary.py (v3)',
                 qualification='blocked' if reasons else 'model_gate_passed', blocked_reasons=reasons,
-                provenance_limitations=limitations)
+                provenance_limitations=limitations, **stimulus_coverage(build, base))
 
 
 def main(argv=None):

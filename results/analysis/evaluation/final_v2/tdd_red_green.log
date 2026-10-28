@@ -1,0 +1,25 @@
+### RED (2026-10-28T12:17:21-04:00): tests written, formby_eval_v2 / formby_v2_models not yet created
+tests/analysis/test_formby_eval_v2.py:13: in <module>
+    import formby_eval_v2 as v2  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ModuleNotFoundError: No module named 'formby_eval_v2'
+=========================== short test summary info ============================
+ERROR tests/analysis/test_formby_eval_v2.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.72s
+
+### GREEN attempt 1 (2026-10-28T12:20:27-04:00)
+..........                                                               [100%]
+10 passed in 139.71s (0:02:19)
+
+### Mutation check (2026-10-28T13:17:55-04:00): each mutant copy (scratchpad) run against the named test; every mutant FAILS
+M1 ANN H fitted on all training windows inside CV (not fold-local) -> test_h_is_fitted..._fold_local...: 1 failed
+M2 paired delta arm minus off -> test_paired_delta_is_off_minus_arm...: 1 failed
+M3 plain argmax, no tie tolerance -> test_ties_go_to_the_declared_class_order...: 1 failed
+M4 test windows included in training -> test_no_classifier_or_ann_fold_sees_a_test_block: F (failed)
+M5 ANN converged=True regardless of warnings -> test_every_fit_records_its_convergence_state: 1 failed
+M6 MLP random_state=None -> test_outputs_are_labelled_and_byte_identical_across_two_runs: 1 failed
+
+### GREEN, final (2026-10-28T13:38:45-04:00) after the real-data runs; no source edits since attempt 1
+tests/analysis/test_formby_eval_v2.py: 10 passed (attempt 1 above; rerun single-threaded: 10 passed in 73.28s)
+full analysis suite: $RESEARCH_PYTHON -m pytest tests/analysis -q -p no:cacheprovider -> 71 passed, 16 warnings in 214.63s (0:03:34)
