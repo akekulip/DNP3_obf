@@ -1,0 +1,225 @@
+{
+ "size": {
+  "falsified": false,
+  "violations": 0,
+  "arms": {
+   "combined": {
+    "responses": 12352,
+    "violations": 0,
+    "examples": []
+   },
+   "size_only": {
+    "responses": 12352,
+    "violations": 0,
+    "examples": []
+   }
+  },
+  "rule": "padded arms: READ mixed 141, READ integrity 158, SELECT/OPERATE 60 octets"
+ },
+ "timing": {
+  "cells": {
+   "D5/combined": {
+    "median_spread_ms": 0.007000000000000561,
+    "off_median_spread_ms": 0.4584999999999999,
+    "spread_falsified": false,
+    "classifier_by_k": {
+     "8": {
+      "off_minus_arm": 0.08854166666666669,
+      "lower": 0.015625000000000035,
+      "upper": 0.16145833333333337,
+      "falsified": false
+     },
+     "32": {
+      "off_minus_arm": 0.14583333333333334,
+      "lower": -0.04166666666666667,
+      "upper": 0.3125,
+      "falsified": true
+     },
+     "64": {
+      "off_minus_arm": 0.25,
+      "lower": -0.08333333333333337,
+      "upper": 0.5416666666666666,
+      "falsified": true
+     }
+    }
+   },
+   "D5/timing_only": {
+    "median_spread_ms": 0.0035000000000007248,
+    "off_median_spread_ms": 0.4584999999999999,
+    "spread_falsified": false,
+    "classifier_by_k": {
+     "8": {
+      "off_minus_arm": 0.15104166666666666,
+      "lower": 0.08854166666666666,
+      "upper": 0.22916666666666666,
+      "falsified": false
+     },
+     "32": {
+      "off_minus_arm": 0.08333333333333333,
+      "lower": -0.020833333333333336,
+      "upper": 0.1875,
+      "falsified": true
+     },
+     "64": {
+      "off_minus_arm": 0.25,
+      "lower": 0.125,
+      "upper": 0.41666666666666663,
+      "falsified": false
+     }
+    }
+   },
+   "D10/combined": {
+    "median_spread_ms": 0.02850000000000108,
+    "off_median_spread_ms": 0.5699999999999994,
+    "spread_falsified": false,
+    "classifier_by_k": {
+     "8": {
+      "off_minus_arm": 0.140625,
+      "lower": 0.05729166666666669,
+      "upper": 0.2135416666666667,
+      "falsified": false
+     },
+     "32": {
+      "off_minus_arm": 0.2708333333333333,
+      "lower": 0.06249999999999999,
+      "upper": 0.4791666666666667,
+      "falsified": false
+     },
+     "64": {
+      "off_minus_arm": 0.25,
+      "lower": 0.16666666666666666,
+      "upper": 0.33333333333333337,
+      "falsified": false
+     }
+    }
+   },
+   "D10/timing_only": {
+    "median_spread_ms": 0.022500000000000853,
+    "off_median_spread_ms": 0.5699999999999994,
+    "spread_falsified": false,
+    "classifier_by_k": {
+     "8": {
+      "off_minus_arm": 0.21354166666666666,
+      "lower": 0.140625,
+      "upper": 0.30208333333333326,
+      "falsified": false
+     },
+     "32": {
+      "off_minus_arm": 0.2708333333333333,
+      "lower": 0.04166666666666667,
+      "upper": 0.5,
+      "falsified": false
+     },
+     "64": {
+      "off_minus_arm": 0.33333333333333337,
+      "lower": 0.08333333333333334,
+      "upper": 0.5416666666666667,
+      "falsified": false
+     }
+    }
+   },
+   "D15/combined": {
+    "median_spread_ms": 0.0039999999999995595,
+    "off_median_spread_ms": 0.5754999999999999,
+    "spread_falsified": false,
+    "classifier_by_k": {
+     "8": {
+      "off_minus_arm": 0.14583333333333331,
+      "lower": 0.031250000000000014,
+      "upper": 0.24999999999999997,
+      "falsified": false
+     },
+     "32": {
+      "off_minus_arm": 0.2916666666666667,
+      "lower": 0.16666666666666669,
+      "upper": 0.4166666666666667,
+      "falsified": false
+     },
+     "64": {
+      "off_minus_arm": 0.2916666666666667,
+      "lower": 0.125,
+      "upper": 0.45833333333333337,
+      "falsified": false
+     }
+    }
+   },
+   "D15/timing_only": {
+    "median_spread_ms": 0.03550000000000075,
+    "off_median_spread_ms": 0.5754999999999999,
+    "spread_falsified": false,
+    "classifier_by_k": {
+     "8": {
+      "off_minus_arm": 0.16145833333333331,
+      "lower": 0.04687499999999996,
+      "upper": 0.28125,
+      "falsified": false
+     },
+     "32": {
+      "off_minus_arm": 0.375,
+      "lower": 0.27083333333333337,
+      "upper": 0.5,
+      "falsified": false
+     },
+     "64": {
+      "off_minus_arm": 0.375,
+      "lower": 0.16666666666666669,
+      "upper": 0.5843749999999849,
+      "falsified": false
+     }
+    }
+   },
+   "D20/combined": {
+    "median_spread_ms": 0.003999999999997783,
+    "off_median_spread_ms": 0.399,
+    "spread_falsified": false,
+    "classifier_by_k": {
+     "8": {
+      "off_minus_arm": 0.16145833333333334,
+      "lower": 0.07812500000000001,
+      "upper": 0.23958333333333334,
+      "falsified": false
+     },
+     "32": {
+      "off_minus_arm": 0.4583333333333333,
+      "lower": 0.35416666666666663,
+      "upper": 0.5625,
+      "falsified": false
+     },
+     "64": {
+      "off_minus_arm": 0.5,
+      "lower": 0.29166666666666663,
+      "upper": 0.75,
+      "falsified": false
+     }
+    }
+   },
+   "D20/timing_only": {
+    "median_spread_ms": 0.02400000000000091,
+    "off_median_spread_ms": 0.399,
+    "spread_falsified": false,
+    "classifier_by_k": {
+     "8": {
+      "off_minus_arm": 0.109375,
+      "lower": 0.05208333333333332,
+      "upper": 0.16145833333333334,
+      "falsified": false
+     },
+     "32": {
+      "off_minus_arm": 0.3125,
+      "lower": 0.22916666666666663,
+      "upper": 0.39583333333333337,
+      "falsified": false
+     },
+     "64": {
+      "off_minus_arm": 0.3333333333333333,
+      "lower": 0.04166666666666666,
+      "upper": 0.625,
+      "falsified": false
+     }
+    }
+   }
+  },
+  "rule": "(1) the spread of per-class CLRT medians exceeds the off arm's\n    spread of per-class medians at the same D; (2) the retrained NB on CLRT is not below off (paired block-bootstrap\n    95% interval of off - arm BA not entirely above 0), per window size K."
+ },
+ "sufficiency_gate_passed": true
+}

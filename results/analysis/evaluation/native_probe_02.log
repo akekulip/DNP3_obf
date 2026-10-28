@@ -1,0 +1,36 @@
+[switch] prepare read-only program observer -> rc 0
+[local] copy read-only program observer -> rc 0
+[switch] verify production program before native READs -> rc 0
+[vision] make relay helper directory -> rc 0
+[local] deploy relay helper vision_run.py -> rc 0
+[local] deploy relay helper relay_master.py -> rc 0
+[local] deploy relay helper loss.py -> rc 0
+[local] deploy relay helper capture_observation.py -> rc 0
+[local] deploy relay helper relay_loss.py -> rc 0
+[local] deploy relay helper standards.py -> rc 0
+[local] deploy relay helper relay_check.py -> rc 0
+[local] deploy relay helper replay.py -> rc 0
+[local] deploy relay helper endpoint_profiles.py -> rc 0
+[local] deploy relay helper pcaptk.py -> rc 0
+[local] deploy relay helper checks.py -> rc 0
+[local] deploy relay helper wire_check.py -> rc 0
+[local] deploy relay helper __init__.py -> rc 0
+[local] deploy relay helper active_harness/read_requests.py -> rc 0
+[local] deploy relay helper active_harness/event_clear.py -> rc 0
+[local] deploy relay helper active_harness/sbo_driver.py -> rc 0
+[local] deploy relay helper active_harness/wire_builders.py -> rc 0
+[local] deploy relay helper active_harness/__init__.py -> rc 0
+[local] deploy relay helper active_harness/dnp3_codec.py -> rc 0
+[local] deploy relay helper active_harness/guarded_builders.py -> rc 0
+[local] deploy relay helper active_harness/session.py -> rc 0
+[vision] verify every relay helper -> rc 0
+[vision] guarded builder preflight -> rc 0
+[vision] two native READs with capture; no SELECT/OPERATE -> rc 0
+[local] retain native probe evidence -> rc 0
+[switch] verify unchanged production after native READs -> rc 0
+{
+  "status": "native_profile_observed",
+  "observation": "/home/philip/Projects/DNP3/results/hardware/native/c72_native_20261027_02/relay_wire.json",
+  "hardware_contact": true,
+  "select_operate_issued": false
+}

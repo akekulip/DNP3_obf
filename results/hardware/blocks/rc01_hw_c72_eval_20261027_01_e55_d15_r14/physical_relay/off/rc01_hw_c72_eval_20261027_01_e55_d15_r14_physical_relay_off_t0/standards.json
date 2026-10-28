@@ -1,0 +1,125 @@
+{
+  "schema_version": "dnp3-standards-sel751-v1",
+  "scope": "sel751_receiver_visible",
+  "run": {
+    "run_id": "rc01_hw_c72_eval_20261027_01_e55_d15_r14",
+    "trial": "rc01_hw_c72_eval_20261027_01_e55_d15_r14_physical_relay_off_t0",
+    "connection": "primary",
+    "arm": "off"
+  },
+  "identity": {
+    "candidate_source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+    "build": "current",
+    "build_hashes": {
+      "bfrt.json": "cc8a72d2001a1c8d4240f8731f8afe37e25ddbea533bcd2f02c5dc7f85a2ca3c",
+      "p0/tofino.bin": "207603d71ea720ccfd2e54a612c22e830df63f25f1e28547645dbd3e3971170d",
+      "p1/tofino.bin": "f333a4307230d21d680ebd0bd8b40b137bf690b865f4fffb73675cebd844a154",
+      "p1/response_only.bfa": "e2f405166c8b27b3770861de9a0a7aded59c530329525c6013f7b45de68f81e8"
+    },
+    "profile": "sel751_current",
+    "profile_hash": "dfb5e0a6448f5cf4342b28e58ec356fa1050261d81e89f1c4cf926b93f728dc3",
+    "effective_config_sha256": "1d1d34345449f653db5c67f459a379e4ad7487f1f1dc458f70afd4748f98ca49"
+  },
+  "checker": {
+    "version": "51759c0e2336839ad828b13a1bf4287b832de422577424cf01b6ff5e6b1979ca",
+    "dependency_closure_sha256": "51759c0e2336839ad828b13a1bf4287b832de422577424cf01b6ff5e6b1979ca"
+  },
+  "expected": {
+    "counts": {
+      "READ": 65,
+      "SELECT": 64,
+      "OPERATE": 64
+    },
+    "lengths": {
+      "READ": [
+        91,
+        134
+      ],
+      "SELECT": [
+        49
+      ],
+      "OPERATE": [
+        49
+      ]
+    },
+    "read_classes": {
+      "mixed": {
+        "count": 33,
+        "image": 91
+      },
+      "integrity": {
+        "count": 32,
+        "image": 134
+      }
+    },
+    "read_schedule": "mixed_full",
+    "padded": false,
+    "planned_exchanges": 193
+  },
+  "captures": {
+    "capture_offloads": {
+      "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+    },
+    "in": {
+      "sha256": "88cf11ae37f1947def8abc1ea407dcda167d6713df101260ca7ab5a6a7f916ff"
+    },
+    "master": {
+      "sha256": "bcad0a233739b4848be1cae5dfca26cd245d4c6c2882774eff817db3e3639328"
+    },
+    "out": {
+      "sha256": "0e5c624764dd5a07ed447a1f8a8c2e63a8e77176543fc98704d2fa6e286a94b2"
+    },
+    "relay_wire": {
+      "sha256": "9aef6120cca24f862a59d17b190805d29e74f07a846c5922b052ef6d2fe1654e"
+    },
+    "run_result": {
+      "sha256": "8aa361886ae5182f40f23b1a9a5e289287c195575e5f2eded408b8aed27e8506"
+    }
+  },
+  "observed": {
+    "exchanges": {
+      "READ:mixed": {
+        "count": 33,
+        "ok": 33,
+        "resp_len": [
+          91
+        ]
+      },
+      "SELECT": {
+        "count": 64,
+        "ok": 64,
+        "resp_len": [
+          49
+        ]
+      },
+      "OPERATE": {
+        "count": 64,
+        "ok": 64,
+        "resp_len": [
+          49
+        ]
+      },
+      "READ:integrity": {
+        "count": 32,
+        "ok": 32,
+        "resp_len": [
+          134
+        ]
+      }
+    },
+    "transport_failures": [],
+    "application_failures": [],
+    "size_failures": [],
+    "transport_ok": true,
+    "select_authorizes_operate": true,
+    "operate_success": true,
+    "size_ok": true,
+    "aggregate_verdict": true,
+    "not_evaluated": {
+      "switch_emitted_boundaries": "NOT EVALUATED",
+      "departure_timing": "NOT EVALUATED",
+      "physical_event_protection": "NOT EVALUATED"
+    },
+    "trial_level_checks": "TCP header/options are recomputed from the captures; FIN/RST close proof is also required by the applicable trial gate (relay_wire.json is bound by hash)"
+  }
+}

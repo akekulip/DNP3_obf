@@ -1,0 +1,115 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_ test_replay_reproduces_retained_three_connection_trials_from_their_scenario_record[06_d20_persistence_graceful] _
+
+block = '06_d20_persistence_graceful'
+
+    @pytest.mark.skipif(not QUALIFICATION_MANIFEST.is_file(), reason='retained c72 qualification matrix not present')
+    @pytest.mark.parametrize('block', ['06_d20_persistence_graceful', '07_d20_persistence_rst', '08_d20_reconnect'])
+    def test_replay_reproduces_retained_three_connection_trials_from_their_scenario_record(block):
+        step = next(step for step in replay.matrix(QUALIFICATION_MANIFEST)['steps'] if step['id'] == block)
+        engine = replay.owner(step)
+        unit = next(iter(engine.units()))
+        source = Path(step['run_root']) / unit['fixture'] / unit['arm']['name'] / engine.label(unit)
+        assert not (source / 'result.json').exists() and (source / 'scenario.json').is_file()
+>       assert replay.replay_trial(engine, unit, source) == step['expected_exchanges']
+
+tests/hardware/test_current_runtime.py:281: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/checks/replay.py:122: in replay_trial
+    endpoint = read(dest / 'result.json')
+scripts/checks/replay.py:29: in read
+    return json.loads(Path(path).read_text())
+/usr/lib/python3.8/pathlib.py:1236: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+/usr/lib/python3.8/pathlib.py:1222: in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/dnp3_current_replay_onevnmd9/trial/result.json')
+name = '/tmp/dnp3_current_replay_onevnmd9/trial/result.json', flags = 524288
+mode = 438
+
+    def _opener(self, name, flags, mode=0o666):
+        # A stub for the opener argument to built-in open()
+>       return self._accessor.open(self, flags, mode)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/dnp3_current_replay_onevnmd9/trial/result.json'
+
+/usr/lib/python3.8/pathlib.py:1078: FileNotFoundError
+_ test_replay_reproduces_retained_three_connection_trials_from_their_scenario_record[07_d20_persistence_rst] _
+
+block = '07_d20_persistence_rst'
+
+    @pytest.mark.skipif(not QUALIFICATION_MANIFEST.is_file(), reason='retained c72 qualification matrix not present')
+    @pytest.mark.parametrize('block', ['06_d20_persistence_graceful', '07_d20_persistence_rst', '08_d20_reconnect'])
+    def test_replay_reproduces_retained_three_connection_trials_from_their_scenario_record(block):
+        step = next(step for step in replay.matrix(QUALIFICATION_MANIFEST)['steps'] if step['id'] == block)
+        engine = replay.owner(step)
+        unit = next(iter(engine.units()))
+        source = Path(step['run_root']) / unit['fixture'] / unit['arm']['name'] / engine.label(unit)
+        assert not (source / 'result.json').exists() and (source / 'scenario.json').is_file()
+>       assert replay.replay_trial(engine, unit, source) == step['expected_exchanges']
+
+tests/hardware/test_current_runtime.py:281: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/checks/replay.py:122: in replay_trial
+    endpoint = read(dest / 'result.json')
+scripts/checks/replay.py:29: in read
+    return json.loads(Path(path).read_text())
+/usr/lib/python3.8/pathlib.py:1236: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+/usr/lib/python3.8/pathlib.py:1222: in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/dnp3_current_replay_ullv4llj/trial/result.json')
+name = '/tmp/dnp3_current_replay_ullv4llj/trial/result.json', flags = 524288
+mode = 438
+
+    def _opener(self, name, flags, mode=0o666):
+        # A stub for the opener argument to built-in open()
+>       return self._accessor.open(self, flags, mode)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/dnp3_current_replay_ullv4llj/trial/result.json'
+
+/usr/lib/python3.8/pathlib.py:1078: FileNotFoundError
+_ test_replay_reproduces_retained_three_connection_trials_from_their_scenario_record[08_d20_reconnect] _
+
+block = '08_d20_reconnect'
+
+    @pytest.mark.skipif(not QUALIFICATION_MANIFEST.is_file(), reason='retained c72 qualification matrix not present')
+    @pytest.mark.parametrize('block', ['06_d20_persistence_graceful', '07_d20_persistence_rst', '08_d20_reconnect'])
+    def test_replay_reproduces_retained_three_connection_trials_from_their_scenario_record(block):
+        step = next(step for step in replay.matrix(QUALIFICATION_MANIFEST)['steps'] if step['id'] == block)
+        engine = replay.owner(step)
+        unit = next(iter(engine.units()))
+        source = Path(step['run_root']) / unit['fixture'] / unit['arm']['name'] / engine.label(unit)
+        assert not (source / 'result.json').exists() and (source / 'scenario.json').is_file()
+>       assert replay.replay_trial(engine, unit, source) == step['expected_exchanges']
+
+tests/hardware/test_current_runtime.py:281: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/checks/replay.py:122: in replay_trial
+    endpoint = read(dest / 'result.json')
+scripts/checks/replay.py:29: in read
+    return json.loads(Path(path).read_text())
+/usr/lib/python3.8/pathlib.py:1236: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+/usr/lib/python3.8/pathlib.py:1222: in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/dnp3_current_replay_wkhxkpjw/trial/result.json')
+name = '/tmp/dnp3_current_replay_wkhxkpjw/trial/result.json', flags = 524288
+mode = 438
+
+    def _opener(self, name, flags, mode=0o666):
+        # A stub for the opener argument to built-in open()
+>       return self._accessor.open(self, flags, mode)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/dnp3_current_replay_wkhxkpjw/trial/result.json'
+
+/usr/lib/python3.8/pathlib.py:1078: FileNotFoundError
+=========================== short test summary info ============================
+FAILED tests/hardware/test_current_runtime.py::test_replay_reproduces_retained_three_connection_trials_from_their_scenario_record[06_d20_persistence_graceful]
+FAILED tests/hardware/test_current_runtime.py::test_replay_reproduces_retained_three_connection_trials_from_their_scenario_record[07_d20_persistence_rst]
+FAILED tests/hardware/test_current_runtime.py::test_replay_reproduces_retained_three_connection_trials_from_their_scenario_record[08_d20_reconnect]
+3 failed, 30 deselected in 0.34s

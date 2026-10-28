@@ -1,0 +1,192 @@
+{
+  "endpoint_profile": "sel751",
+  "endpoint": {
+    "code": 1,
+    "count": 1,
+    "master": "active_harness",
+    "off_ms": 0,
+    "on_ms": 200,
+    "points": [
+      1,
+      3
+    ]
+  },
+  "endpoints": {
+    "master_ip": "192.168.10.1",
+    "outstation_ip": "192.168.10.7",
+    "outstation_port": 20000,
+    "read_dst": 0,
+    "read_src": 1
+  },
+  "hosts": {
+    "switch": "decps@10.10.54.81",
+    "switch_remote_dir": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite",
+    "vision": "decps@10.10.54.19",
+    "vision_run_dir": "/home/decps/sel751_guarded_20261024"
+  },
+  "ports_map": {
+    "held_return": 182,
+    "master_dev": 9,
+    "n_ack_return": 48,
+    "recirc": 68,
+    "relay_dev": 64,
+    "stat_ports": "9,64",
+    "t_in": 180
+  },
+  "production": {
+    "launch_script": "/home/decps/Philip_repo/logs/bringup_20261005/launch_case4_response_path.sh",
+    "ping": {
+      "count": 2,
+      "dst": "192.168.10.7",
+      "src": "192.168.10.1"
+    },
+    "program": "case4_response_path",
+    "relay_slot": true
+  },
+  "program": "response_only",
+  "service": {
+    "k": 2
+  },
+  "shaping": {
+    "preset": "shape_59570",
+    "presets": {
+      "shape_59570": {
+        "block_burst": 64,
+        "block_pps": {
+          "ack": 59570,
+          "resp": 59570
+        },
+        "hold_pps": {
+          "ack": 59570,
+          "resp": 59570
+        }
+      }
+    }
+  },
+  "fixture": {
+    "delay_ms": 0,
+    "jitter_ms": 0,
+    "modes": [
+      "physical_relay"
+    ]
+  },
+  "trial_mode": "per_trial_cold",
+  "padding_installer_flag": "--pad-enable",
+  "expectations": {
+    "mirror_fix": {
+      "T0": {
+        "zero_triggers": [
+          "READ",
+          "OPERATE"
+        ]
+      }
+    }
+  },
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "timing_params_ns": {
+    "budget": 240000,
+    "enabled": 1,
+    "gap": 5000000
+  },
+  "trials": {
+    "reads_per_trial": 65,
+    "trials_per_arm": 1
+  },
+  "seeds": {
+    "rng_seed": 57101
+  },
+  "loss": {
+    "inject": false,
+    "max_recovery_s": 5.0,
+    "netem_loss_pct": 0.0,
+    "presets": {}
+  },
+  "traffic": {
+    "close_grace_ms": 0,
+    "gap_ms": 0,
+    "master_port_range": {
+      "first": 60000,
+      "last": 60003
+    },
+    "range": 8,
+    "read_pause_ms": 25,
+    "read_schedule": "mixed_full",
+    "run_sbo": true,
+    "sbo_cycles": 64,
+    "start_delay_ms": 50
+  },
+  "evidence_dir": "results/hardware/blocks",
+  "arms": [
+    {
+      "name": "size_only",
+      "T": 0,
+      "padding": 1,
+      "build": "current"
+    },
+    {
+      "name": "combined",
+      "T": 1,
+      "padding": 1,
+      "build": "current"
+    },
+    {
+      "name": "off",
+      "T": 0,
+      "padding": 0,
+      "build": "current"
+    },
+    {
+      "name": "timing_only",
+      "T": 1,
+      "padding": 0,
+      "build": "current"
+    }
+  ],
+  "builds": {
+    "current": {
+      "profile": "sel751_current",
+      "endpoint_profile": "sel751",
+      "image_len": 60,
+      "control_padding": true,
+      "control_timed": true,
+      "lifecycle_rearm": true,
+      "mirror_fix": true,
+      "switch_telemetry": false,
+      "piggyback_bound": false,
+      "timing_contract": "response_ready_ack_d_no_j_v3",
+      "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+      "read_images": {
+        "mixed": 141,
+        "integrity": 158
+      },
+      "read_padding": {
+        "mixed": 26,
+        "integrity": 4
+      },
+      "allowed_loop_octet_gap": {},
+      "manifest": "results/builds/c72/compile_local/manifest.json",
+      "out_dir": "results/builds/c72/compile_local/out",
+      "hashes": {
+        "bfrt.json": "cc8a72d2001a1c8d4240f8731f8afe37e25ddbea533bcd2f02c5dc7f85a2ca3c",
+        "p0/tofino.bin": "207603d71ea720ccfd2e54a612c22e830df63f25f1e28547645dbd3e3971170d",
+        "p1/tofino.bin": "f333a4307230d21d680ebd0bd8b40b137bf690b865f4fffb73675cebd844a154",
+        "p1/response_only.bfa": "e2f405166c8b27b3770861de9a0a7aded59c530329525c6013f7b45de68f81e8"
+      },
+      "sde": "/home/decps/Downloads/bf-sde-9.13.2",
+      "pcie": "0000:04:00.0"
+    }
+  },
+  "wire_profile": {
+    "tcp_profile": "sel751_ts",
+    "ipv4_header_octets": 20,
+    "tcp_header_octets": 32,
+    "native_observation": "results/hardware/native/c72_native_20261027_02/relay_wire.json",
+    "native_observation_sha256": "c6e4dae57d253a114f3689a4d65fa43245ff9ad6a2d445a82727cc26431be15b"
+  },
+  "ctl_timing_identity": {
+    "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+    "switch_compile": {
+      "out_dir": "results/builds/c72/compile_local/out"
+    }
+  }
+}

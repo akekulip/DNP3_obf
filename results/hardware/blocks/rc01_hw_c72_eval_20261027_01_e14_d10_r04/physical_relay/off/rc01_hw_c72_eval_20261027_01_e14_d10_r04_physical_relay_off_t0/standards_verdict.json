@@ -1,0 +1,67 @@
+{
+  "ok": true,
+  "failures": [],
+  "expected": {
+    "counts": {
+      "READ": 65,
+      "SELECT": 64,
+      "OPERATE": 64
+    },
+    "lengths": {
+      "READ": [
+        91,
+        134
+      ],
+      "SELECT": [
+        49
+      ],
+      "OPERATE": [
+        49
+      ]
+    },
+    "read_classes": {
+      "mixed": {
+        "count": 33,
+        "image": 91
+      },
+      "integrity": {
+        "count": 32,
+        "image": 134
+      }
+    },
+    "read_schedule": "mixed_full",
+    "padded": false,
+    "planned_exchanges": 193
+  },
+  "capture_hashes": {
+    "capture_offloads": {
+      "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+    },
+    "in": {
+      "sha256": "9fe3d0427b3ac6889f83ffecacfb5804a69721bda154a737c6e92208f85fcc71"
+    },
+    "master": {
+      "sha256": "f4d1335b0b369ac9a7bd8d20c8354e2d35e4676e90f39919e2aea82022ac38e6"
+    },
+    "out": {
+      "sha256": "dc007252ffc574c9565d060957855bc3e61da1c805bb673a98fa8736db6e1f96"
+    },
+    "relay_wire": {
+      "sha256": "8f051533c00ef59c1765e8d2dbe513c3c16542e57050d241cfc8d23f3e2b044f"
+    },
+    "run_result": {
+      "sha256": "f0117f4856ed3c8aa25ed029f249d41b72aebf959236b8a9eaa14f5e3fffae49"
+    }
+  },
+  "scope": "sel751_receiver_visible",
+  "verdicts": {
+    "transport": true,
+    "application": true,
+    "size": true
+  },
+  "not_evaluated": {
+    "switch_emitted_boundaries": "NOT EVALUATED",
+    "departure_timing": "NOT EVALUATED",
+    "physical_event_protection": "NOT EVALUATED"
+  }
+}

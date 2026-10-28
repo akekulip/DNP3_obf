@@ -1,0 +1,1837 @@
+{
+ "run_id": "rc01_hw_c72_eval_20261027_01_e60_d20_r15",
+ "ok": true,
+ "failure": null,
+ "arms": [
+  {
+   "fixture": "physical_relay",
+   "arm": "size_only",
+   "T": 0,
+   "padding": 1,
+   "build": "current",
+   "trials": [
+    {
+     "fixture": "physical_relay",
+     "label": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_size_only_t0",
+     "master_port": 60000,
+     "reads": 65,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 0,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57101
+     },
+     "generation_headroom": {
+      "current": {
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "read": 65516
+      },
+      "remaining_before_reserve": {
+       "read": 65534
+      },
+      "reserve": {
+       "read": 18
+      },
+      "reserves": {
+       "read": 18
+      },
+      "snapshot": {
+       "bfrt_sha256": "cc8a72d2001a1c8d4240f8731f8afe37e25ddbea533bcd2f02c5dc7f85a2ca3c",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1793169255.0919409,
+       "timing_contract": "response_ready_ack_d_no_j_v3",
+       "valid": true
+      },
+      "time": 1793169255.0996413,
+      "budget": {
+       "reads": 65,
+       "sbo_cycles": 64,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": false,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 0,
+       "source": "T gen_access and N first_event: common READ/SELECT/OPERATE allocator"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_size_only_t0_before_generation_headroom.json"
+     },
+     "observed": {
+      "connections": {
+       "single": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+         "READ mixed": {
+          "n": 33,
+          "piggyback": 0,
+          "min_us": 33.0,
+          "median_us": 2491.0,
+          "max_us": 22996.0,
+          "values_us": [
+           33.0,
+           44.0,
+           44.0,
+           46.0,
+           46.0,
+           55.0,
+           58.0,
+           112.0,
+           262.0,
+           1281.0,
+           1368.0,
+           2004.0,
+           2017.0,
+           2057.0,
+           2151.0,
+           2237.0,
+           2491.0,
+           2502.0,
+           2502.0,
+           2746.0,
+           3160.0,
+           3441.0,
+           4256.0,
+           4256.0,
+           4340.0,
+           4413.0,
+           4997.0,
+           5178.0,
+           7101.0,
+           9102.0,
+           10275.0,
+           14290.0,
+           22996.0
+          ]
+         },
+         "READ integrity": {
+          "n": 32,
+          "piggyback": 0,
+          "min_us": 4.0,
+          "median_us": 3623.0,
+          "max_us": 8489.0,
+          "values_us": [
+           4.0,
+           44.0,
+           66.0,
+           73.0,
+           280.0,
+           2105.0,
+           2259.0,
+           2261.0,
+           2274.0,
+           2369.0,
+           2519.0,
+           2620.0,
+           2646.0,
+           3093.0,
+           3113.0,
+           3159.0,
+           4087.0,
+           4314.0,
+           4617.0,
+           4643.0,
+           4904.0,
+           4959.0,
+           4978.0,
+           5336.0,
+           5389.0,
+           6400.0,
+           6504.0,
+           7077.0,
+           7202.0,
+           7270.0,
+           7348.0,
+           8489.0
+          ]
+         },
+         "SELECT": {
+          "n": 64,
+          "piggyback": 0,
+          "min_us": 5.0,
+          "median_us": 2321.0,
+          "max_us": 15439.0,
+          "values_us": [
+           5.0,
+           5.0,
+           32.0,
+           35.0,
+           44.0,
+           44.0,
+           44.0,
+           44.0,
+           44.0,
+           47.0,
+           53.0,
+           54.0,
+           59.0,
+           232.0,
+           517.0,
+           702.0,
+           2019.0,
+           2050.0,
+           2098.0,
+           2117.0,
+           2120.0,
+           2127.0,
+           2152.0,
+           2162.0,
+           2164.0,
+           2185.0,
+           2192.0,
+           2223.0,
+           2242.0,
+           2269.0,
+           2288.0,
+           2289.0,
+           2353.0,
+           2360.0,
+           2399.0,
+           2419.0,
+           2571.0,
+           2586.0,
+           2598.0,
+           2760.0,
+           2791.0,
+           2977.0,
+           2987.0,
+           3049.0,
+           3368.0,
+           3927.0,
+           4114.0,
+           4131.0,
+           4264.0,
+           4381.0,
+           4438.0,
+           4516.0,
+           4604.0,
+           4627.0,
+           4778.0,
+           5307.0,
+           5344.0,
+           5440.0,
+           5495.0,
+           6223.0,
+           6257.0,
+           6690.0,
+           14561.0,
+           15439.0
+          ]
+         },
+         "OPERATE": {
+          "n": 64,
+          "piggyback": 0,
+          "min_us": 33.0,
+          "median_us": 2992.0,
+          "max_us": 17953.0,
+          "values_us": [
+           33.0,
+           427.0,
+           896.0,
+           933.0,
+           966.0,
+           1848.0,
+           2013.0,
+           2056.0,
+           2066.0,
+           2093.0,
+           2097.0,
+           2121.0,
+           2123.0,
+           2139.0,
+           2154.0,
+           2178.0,
+           2214.0,
+           2233.0,
+           2266.0,
+           2372.0,
+           2412.0,
+           2435.0,
+           2435.0,
+           2471.0,
+           2477.0,
+           2488.0,
+           2549.0,
+           2559.0,
+           2566.0,
+           2712.0,
+           2883.0,
+           2892.0,
+           3092.0,
+           3124.0,
+           3157.0,
+           3342.0,
+           3788.0,
+           3856.0,
+           3928.0,
+           4146.0,
+           4286.0,
+           4469.0,
+           4473.0,
+           4747.0,
+           4866.0,
+           4927.0,
+           5223.0,
+           5338.0,
+           5432.0,
+           5493.0,
+           5615.0,
+           6146.0,
+           6532.0,
+           6994.0,
+           7114.0,
+           7451.0,
+           9153.0,
+           10019.0,
+           13810.0,
+           13823.0,
+           15179.0,
+           15249.0,
+           15761.0,
+           17953.0
+          ]
+         }
+        }
+       }
+      },
+      "switch": {
+       "outcomes": "no switch telemetry in this build",
+       "pktgen": {
+        "READ": {
+         "triggers": 0,
+         "pkts": 0
+        }
+       },
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+       }
+      }
+     },
+     "endpoint_profile": "sel751",
+     "dimension_verdicts": {
+      "application": true,
+      "switch": true,
+      "standards": true
+     }
+    }
+   ],
+   "achieved_shaping": null
+  },
+  {
+   "fixture": "physical_relay",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "build": "current",
+   "trials": [
+    {
+     "fixture": "physical_relay",
+     "label": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_combined_t0",
+     "master_port": 60001,
+     "reads": 65,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 0,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57102
+     },
+     "generation_headroom": {
+      "current": {
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "read": 65323
+      },
+      "remaining_before_reserve": {
+       "read": 65534
+      },
+      "reserve": {
+       "read": 211
+      },
+      "reserves": {
+       "read": 211
+      },
+      "snapshot": {
+       "bfrt_sha256": "cc8a72d2001a1c8d4240f8731f8afe37e25ddbea533bcd2f02c5dc7f85a2ca3c",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1793169331.6568947,
+       "timing_contract": "response_ready_ack_d_no_j_v3",
+       "valid": true
+      },
+      "time": 1793169331.664334,
+      "budget": {
+       "reads": 65,
+       "sbo_cycles": 64,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 193,
+       "source": "T gen_access and N first_event: common READ/SELECT/OPERATE allocator"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_combined_t0_before_generation_headroom.json"
+     },
+     "observed": {
+      "connections": {
+       "single": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+         "READ mixed": {
+          "n": 33,
+          "piggyback": 0,
+          "min_us": 17963.0,
+          "median_us": 19992.0,
+          "max_us": 21630.0,
+          "values_us": [
+           17963.0,
+           18391.0,
+           18485.0,
+           19001.0,
+           19044.0,
+           19209.0,
+           19250.0,
+           19351.0,
+           19437.0,
+           19647.0,
+           19710.0,
+           19715.0,
+           19882.0,
+           19884.0,
+           19899.0,
+           19947.0,
+           19992.0,
+           20000.0,
+           20084.0,
+           20106.0,
+           20172.0,
+           20303.0,
+           20417.0,
+           20431.0,
+           20605.0,
+           20670.0,
+           20757.0,
+           20954.0,
+           21037.0,
+           21413.0,
+           21462.0,
+           21579.0,
+           21630.0
+          ]
+         },
+         "READ integrity": {
+          "n": 32,
+          "piggyback": 0,
+          "min_us": 17860.0,
+          "median_us": 20203.5,
+          "max_us": 21804.0,
+          "values_us": [
+           17860.0,
+           18342.0,
+           18552.0,
+           18666.0,
+           18830.0,
+           18956.0,
+           19253.0,
+           19334.0,
+           19821.0,
+           19874.0,
+           19973.0,
+           20009.0,
+           20026.0,
+           20029.0,
+           20163.0,
+           20163.0,
+           20244.0,
+           20262.0,
+           20323.0,
+           20402.0,
+           20456.0,
+           20471.0,
+           20735.0,
+           20915.0,
+           21023.0,
+           21047.0,
+           21085.0,
+           21384.0,
+           21693.0,
+           21738.0,
+           21756.0,
+           21804.0
+          ]
+         },
+         "SELECT": {
+          "n": 64,
+          "piggyback": 0,
+          "min_us": 17992.0,
+          "median_us": 20013.0,
+          "max_us": 21768.0,
+          "values_us": [
+           17992.0,
+           18010.0,
+           18078.0,
+           18152.0,
+           18247.0,
+           18475.0,
+           18602.0,
+           18655.0,
+           18941.0,
+           19000.0,
+           19030.0,
+           19146.0,
+           19242.0,
+           19243.0,
+           19251.0,
+           19288.0,
+           19345.0,
+           19446.0,
+           19454.0,
+           19687.0,
+           19721.0,
+           19730.0,
+           19758.0,
+           19762.0,
+           19774.0,
+           19852.0,
+           19900.0,
+           19915.0,
+           19926.0,
+           19936.0,
+           19971.0,
+           20009.0,
+           20017.0,
+           20018.0,
+           20130.0,
+           20151.0,
+           20257.0,
+           20332.0,
+           20372.0,
+           20390.0,
+           20391.0,
+           20469.0,
+           20539.0,
+           20821.0,
+           20824.0,
+           20853.0,
+           20873.0,
+           20905.0,
+           20955.0,
+           20962.0,
+           21015.0,
+           21016.0,
+           21027.0,
+           21071.0,
+           21301.0,
+           21316.0,
+           21551.0,
+           21586.0,
+           21601.0,
+           21658.0,
+           21667.0,
+           21692.0,
+           21743.0,
+           21768.0
+          ]
+         },
+         "OPERATE": {
+          "n": 64,
+          "piggyback": 0,
+          "min_us": 18211.0,
+          "median_us": 20018.0,
+          "max_us": 21942.0,
+          "values_us": [
+           18211.0,
+           18343.0,
+           18523.0,
+           18576.0,
+           18644.0,
+           18644.0,
+           18661.0,
+           18669.0,
+           18710.0,
+           18779.0,
+           18822.0,
+           18857.0,
+           18975.0,
+           19106.0,
+           19133.0,
+           19206.0,
+           19372.0,
+           19395.0,
+           19422.0,
+           19453.0,
+           19467.0,
+           19540.0,
+           19584.0,
+           19617.0,
+           19642.0,
+           19697.0,
+           19799.0,
+           19813.0,
+           19874.0,
+           19898.0,
+           20004.0,
+           20007.0,
+           20029.0,
+           20040.0,
+           20077.0,
+           20099.0,
+           20135.0,
+           20278.0,
+           20301.0,
+           20326.0,
+           20344.0,
+           20350.0,
+           20435.0,
+           20465.0,
+           20578.0,
+           20688.0,
+           20771.0,
+           20842.0,
+           20868.0,
+           20880.0,
+           20904.0,
+           20969.0,
+           21003.0,
+           21050.0,
+           21155.0,
+           21155.0,
+           21317.0,
+           21341.0,
+           21377.0,
+           21396.0,
+           21875.0,
+           21891.0,
+           21925.0,
+           21942.0
+          ]
+         }
+        }
+       }
+      },
+      "switch": {
+       "outcomes": "no switch telemetry in this build",
+       "pktgen": {
+        "READ": {
+         "triggers": 193,
+         "pkts": 772
+        }
+       },
+       "token_stale_bound": "unknown: no switch telemetry in this build",
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+       }
+      }
+     },
+     "endpoint_profile": "sel751",
+     "dimension_verdicts": {
+      "application": true,
+      "switch": true,
+      "standards": true
+     }
+    }
+   ],
+   "achieved_shaping": null
+  },
+  {
+   "fixture": "physical_relay",
+   "arm": "off",
+   "T": 0,
+   "padding": 0,
+   "build": "current",
+   "trials": [
+    {
+     "fixture": "physical_relay",
+     "label": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_off_t0",
+     "master_port": 60002,
+     "reads": 65,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 0,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57103
+     },
+     "generation_headroom": {
+      "current": {
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "read": 65516
+      },
+      "remaining_before_reserve": {
+       "read": 65534
+      },
+      "reserve": {
+       "read": 18
+      },
+      "reserves": {
+       "read": 18
+      },
+      "snapshot": {
+       "bfrt_sha256": "cc8a72d2001a1c8d4240f8731f8afe37e25ddbea533bcd2f02c5dc7f85a2ca3c",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1793169411.9532132,
+       "timing_contract": "response_ready_ack_d_no_j_v3",
+       "valid": true
+      },
+      "time": 1793169411.9602883,
+      "budget": {
+       "reads": 65,
+       "sbo_cycles": 64,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": false,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 0,
+       "source": "T gen_access and N first_event: common READ/SELECT/OPERATE allocator"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_off_t0_before_generation_headroom.json"
+     },
+     "observed": {
+      "connections": {
+       "single": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+         "READ mixed": {
+          "n": 33,
+          "piggyback": 0,
+          "min_us": 5.0,
+          "median_us": 2298.0,
+          "max_us": 18262.0,
+          "values_us": [
+           5.0,
+           45.0,
+           46.0,
+           46.0,
+           133.0,
+           276.0,
+           452.0,
+           490.0,
+           1251.0,
+           1479.0,
+           2140.0,
+           2205.0,
+           2219.0,
+           2260.0,
+           2275.0,
+           2294.0,
+           2298.0,
+           2320.0,
+           2331.0,
+           2380.0,
+           2454.0,
+           2541.0,
+           4364.0,
+           4541.0,
+           4692.0,
+           4936.0,
+           5126.0,
+           5245.0,
+           5549.0,
+           6271.0,
+           6561.0,
+           10689.0,
+           18262.0
+          ]
+         },
+         "READ integrity": {
+          "n": 32,
+          "piggyback": 0,
+          "min_us": 45.0,
+          "median_us": 2870.0,
+          "max_us": 14432.0,
+          "values_us": [
+           45.0,
+           46.0,
+           47.0,
+           119.0,
+           142.0,
+           215.0,
+           2010.0,
+           2064.0,
+           2082.0,
+           2085.0,
+           2179.0,
+           2249.0,
+           2573.0,
+           2726.0,
+           2732.0,
+           2800.0,
+           2940.0,
+           2992.0,
+           3449.0,
+           4075.0,
+           4505.0,
+           5367.0,
+           5597.0,
+           5603.0,
+           6605.0,
+           6882.0,
+           7179.0,
+           7336.0,
+           7478.0,
+           8683.0,
+           11667.0,
+           14432.0
+          ]
+         },
+         "SELECT": {
+          "n": 64,
+          "piggyback": 0,
+          "min_us": 34.0,
+          "median_us": 2333.0,
+          "max_us": 14509.0,
+          "values_us": [
+           34.0,
+           44.0,
+           45.0,
+           46.0,
+           46.0,
+           46.0,
+           47.0,
+           48.0,
+           48.0,
+           48.0,
+           51.0,
+           52.0,
+           54.0,
+           57.0,
+           61.0,
+           69.0,
+           126.0,
+           229.0,
+           464.0,
+           1037.0,
+           2001.0,
+           2095.0,
+           2114.0,
+           2116.0,
+           2127.0,
+           2183.0,
+           2218.0,
+           2236.0,
+           2271.0,
+           2290.0,
+           2292.0,
+           2324.0,
+           2342.0,
+           2393.0,
+           2394.0,
+           2441.0,
+           2547.0,
+           2580.0,
+           2862.0,
+           2937.0,
+           3051.0,
+           3071.0,
+           3228.0,
+           3378.0,
+           3427.0,
+           4249.0,
+           4254.0,
+           4306.0,
+           4378.0,
+           4491.0,
+           4670.0,
+           4695.0,
+           4728.0,
+           4794.0,
+           5209.0,
+           5269.0,
+           5989.0,
+           7057.0,
+           7384.0,
+           7788.0,
+           8780.0,
+           8994.0,
+           10949.0,
+           14509.0
+          ]
+         },
+         "OPERATE": {
+          "n": 64,
+          "piggyback": 0,
+          "min_us": 46.0,
+          "median_us": 2459.0,
+          "max_us": 13054.0,
+          "values_us": [
+           46.0,
+           46.0,
+           46.0,
+           49.0,
+           54.0,
+           63.0,
+           130.0,
+           851.0,
+           1971.0,
+           1984.0,
+           2025.0,
+           2025.0,
+           2046.0,
+           2051.0,
+           2084.0,
+           2088.0,
+           2115.0,
+           2134.0,
+           2141.0,
+           2142.0,
+           2147.0,
+           2160.0,
+           2170.0,
+           2268.0,
+           2314.0,
+           2353.0,
+           2362.0,
+           2368.0,
+           2369.0,
+           2418.0,
+           2420.0,
+           2422.0,
+           2496.0,
+           2623.0,
+           2720.0,
+           2856.0,
+           2876.0,
+           2936.0,
+           3038.0,
+           3147.0,
+           3511.0,
+           4017.0,
+           4122.0,
+           4186.0,
+           4191.0,
+           4340.0,
+           4402.0,
+           4670.0,
+           4723.0,
+           4862.0,
+           4893.0,
+           4926.0,
+           4974.0,
+           5109.0,
+           5122.0,
+           5299.0,
+           5408.0,
+           5584.0,
+           5603.0,
+           6056.0,
+           6509.0,
+           8267.0,
+           8508.0,
+           13054.0
+          ]
+         }
+        }
+       }
+      },
+      "switch": {
+       "outcomes": "no switch telemetry in this build",
+       "pktgen": {
+        "READ": {
+         "triggers": 0,
+         "pkts": 0
+        }
+       },
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+       }
+      }
+     },
+     "endpoint_profile": "sel751",
+     "dimension_verdicts": {
+      "application": true,
+      "switch": true,
+      "standards": true
+     }
+    }
+   ],
+   "achieved_shaping": null
+  },
+  {
+   "fixture": "physical_relay",
+   "arm": "timing_only",
+   "T": 1,
+   "padding": 0,
+   "build": "current",
+   "trials": [
+    {
+     "fixture": "physical_relay",
+     "label": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_timing_only_t0",
+     "master_port": 60003,
+     "reads": 65,
+     "ok": true,
+     "failures": [],
+     "max_token_stale": 0,
+     "reconnect_policy": "characterize",
+     "diagnostic": false,
+     "preset": "shape_59570",
+     "conditions": {
+      "delay_ms": 0,
+      "gap_ms": 0,
+      "start_delay_ms": 50,
+      "start_seed": 57104
+     },
+     "generation_headroom": {
+      "current": {
+       "read": 0
+      },
+      "max_generation": 65534,
+      "ok": true,
+      "registers": {
+       "read": "p1.t_Ingress.gen_alloc_reg"
+      },
+      "remaining_after_reserve": {
+       "read": 65323
+      },
+      "remaining_before_reserve": {
+       "read": 65534
+      },
+      "reserve": {
+       "read": 211
+      },
+      "reserves": {
+       "read": 211
+      },
+      "snapshot": {
+       "bfrt_sha256": "cc8a72d2001a1c8d4240f8731f8afe37e25ddbea533bcd2f02c5dc7f85a2ca3c",
+       "errors": {},
+       "program": "response_only",
+       "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+         "action_name": null,
+         "is_default_entry": false,
+         "t_Ingress.gen_alloc_reg.f1": [
+          0
+         ]
+        }
+       },
+       "software_read_fallbacks": [],
+       "time": 1793169488.396356,
+       "timing_contract": "response_ready_ack_d_no_j_v3",
+       "valid": true
+      },
+      "time": 1793169488.4054651,
+      "budget": {
+       "reads": 65,
+       "sbo_cycles": 64,
+       "cancelled_selects": 0,
+       "connections": 1,
+       "control_timed": true,
+       "timed": true,
+       "open_close_per_connection": 2,
+       "margin": 16,
+       "read_lane_per_connection": 193,
+       "source": "T gen_access and N first_event: common READ/SELECT/OPERATE allocator"
+      },
+      "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_timing_only_t0_before_generation_headroom.json"
+     },
+     "observed": {
+      "connections": {
+       "single": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+         "READ mixed": {
+          "n": 33,
+          "piggyback": 0,
+          "min_us": 18347.0,
+          "median_us": 20043.0,
+          "max_us": 23351.0,
+          "values_us": [
+           18347.0,
+           18809.0,
+           18973.0,
+           18990.0,
+           19153.0,
+           19357.0,
+           19438.0,
+           19514.0,
+           19777.0,
+           19889.0,
+           19902.0,
+           19916.0,
+           19947.0,
+           20007.0,
+           20009.0,
+           20038.0,
+           20043.0,
+           20050.0,
+           20100.0,
+           20166.0,
+           20348.0,
+           20586.0,
+           20813.0,
+           20930.0,
+           21102.0,
+           21160.0,
+           21169.0,
+           21170.0,
+           21293.0,
+           21441.0,
+           21605.0,
+           21617.0,
+           23351.0
+          ]
+         },
+         "READ integrity": {
+          "n": 32,
+          "piggyback": 0,
+          "min_us": 18124.0,
+          "median_us": 19645.0,
+          "max_us": 21788.0,
+          "values_us": [
+           18124.0,
+           18208.0,
+           18293.0,
+           18401.0,
+           18422.0,
+           18498.0,
+           18527.0,
+           18993.0,
+           19095.0,
+           19127.0,
+           19172.0,
+           19395.0,
+           19444.0,
+           19450.0,
+           19520.0,
+           19643.0,
+           19647.0,
+           19713.0,
+           19865.0,
+           20004.0,
+           20021.0,
+           20446.0,
+           20468.0,
+           20493.0,
+           20494.0,
+           20503.0,
+           21181.0,
+           21268.0,
+           21418.0,
+           21580.0,
+           21752.0,
+           21788.0
+          ]
+         },
+         "SELECT": {
+          "n": 64,
+          "piggyback": 0,
+          "min_us": 18022.0,
+          "median_us": 19891.5,
+          "max_us": 25393.0,
+          "values_us": [
+           18022.0,
+           18237.0,
+           18265.0,
+           18414.0,
+           18729.0,
+           18745.0,
+           18962.0,
+           19052.0,
+           19078.0,
+           19085.0,
+           19125.0,
+           19184.0,
+           19191.0,
+           19251.0,
+           19253.0,
+           19301.0,
+           19316.0,
+           19343.0,
+           19385.0,
+           19389.0,
+           19445.0,
+           19448.0,
+           19477.0,
+           19498.0,
+           19546.0,
+           19566.0,
+           19602.0,
+           19654.0,
+           19666.0,
+           19777.0,
+           19824.0,
+           19869.0,
+           19914.0,
+           19924.0,
+           19983.0,
+           19996.0,
+           20009.0,
+           20095.0,
+           20124.0,
+           20183.0,
+           20186.0,
+           20187.0,
+           20437.0,
+           20531.0,
+           20608.0,
+           20617.0,
+           20657.0,
+           20711.0,
+           20735.0,
+           20820.0,
+           20898.0,
+           20972.0,
+           21094.0,
+           21105.0,
+           21142.0,
+           21154.0,
+           21159.0,
+           21357.0,
+           21388.0,
+           21498.0,
+           21572.0,
+           21740.0,
+           23522.0,
+           25393.0
+          ]
+         },
+         "OPERATE": {
+          "n": 64,
+          "piggyback": 0,
+          "min_us": 18073.0,
+          "median_us": 20123.0,
+          "max_us": 21947.0,
+          "values_us": [
+           18073.0,
+           18151.0,
+           18229.0,
+           18384.0,
+           18474.0,
+           18502.0,
+           18993.0,
+           19057.0,
+           19154.0,
+           19169.0,
+           19420.0,
+           19572.0,
+           19639.0,
+           19645.0,
+           19700.0,
+           19728.0,
+           19737.0,
+           19757.0,
+           19775.0,
+           19895.0,
+           19916.0,
+           19946.0,
+           19958.0,
+           19967.0,
+           19973.0,
+           19997.0,
+           20005.0,
+           20008.0,
+           20010.0,
+           20015.0,
+           20053.0,
+           20118.0,
+           20128.0,
+           20151.0,
+           20227.0,
+           20337.0,
+           20341.0,
+           20499.0,
+           20554.0,
+           20598.0,
+           20598.0,
+           20622.0,
+           20627.0,
+           20660.0,
+           20679.0,
+           20883.0,
+           20922.0,
+           20950.0,
+           21004.0,
+           21086.0,
+           21235.0,
+           21296.0,
+           21445.0,
+           21473.0,
+           21479.0,
+           21571.0,
+           21615.0,
+           21654.0,
+           21737.0,
+           21763.0,
+           21786.0,
+           21853.0,
+           21878.0,
+           21947.0
+          ]
+         }
+        }
+       }
+      },
+      "switch": {
+       "outcomes": "no switch telemetry in this build",
+       "pktgen": {
+        "READ": {
+         "triggers": 193,
+         "pkts": 772
+        }
+       },
+       "token_stale_bound": "unknown: no switch telemetry in this build",
+       "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+       }
+      }
+     },
+     "endpoint_profile": "sel751",
+     "dimension_verdicts": {
+      "application": true,
+      "switch": true,
+      "standards": true
+     }
+    }
+   ],
+   "achieved_shaping": null
+  }
+ ],
+ "restore": [
+  {
+   "step": "cold-swap bf_switchd back to the observed production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "replay the pre-run $PORT snapshot on the production program",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "reinstall the relay slot",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "Vision: fixture off, namespace profile and NIC flag restored",
+   "rc": 0,
+   "ok": true
+  },
+  {
+   "step": "ping through the restored switch path",
+   "rc": 0,
+   "ok": true
+  }
+ ],
+ "bringups": [
+  {
+   "label": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_size_only_t0",
+   "fixture": "physical_relay",
+   "arm": "size_only",
+   "trial": 0,
+   "master_port": 60000,
+   "padding": 1,
+   "T": 0,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_size_only_t0.json"
+  },
+  {
+   "label": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_combined_t0",
+   "fixture": "physical_relay",
+   "arm": "combined",
+   "trial": 0,
+   "master_port": 60001,
+   "padding": 1,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_combined_t0.json"
+  },
+  {
+   "label": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_off_t0",
+   "fixture": "physical_relay",
+   "arm": "off",
+   "trial": 0,
+   "master_port": 60002,
+   "padding": 0,
+   "T": 0,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_off_t0.json"
+  },
+  {
+   "label": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_timing_only_t0",
+   "fixture": "physical_relay",
+   "arm": "timing_only",
+   "trial": 0,
+   "master_port": 60003,
+   "padding": 0,
+   "T": 1,
+   "manifest": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/bringup_manifest_rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_timing_only_t0.json"
+  }
+ ],
+ "collections": [
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_size_only_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_size_only_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_size_only_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_size_only_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_size_only_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_size_only_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_combined_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_combined_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_combined_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_combined_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_combined_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_combined_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_off_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_off_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_off_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_off_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_off_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_off_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_timing_only_t0",
+   "what": "teardown",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_timing_only_t0",
+   "what": "before snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_timing_only_t0",
+   "what": "after snapshot",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_timing_only_t0",
+   "what": "vision run directory",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_timing_only_t0",
+   "what": "switch log",
+   "ok": true,
+   "error": null
+  },
+  {
+   "unit": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_timing_only_t0",
+   "what": "bring-up manifest",
+   "ok": true,
+   "error": null
+  }
+ ],
+ "candidate_source_identity": {
+  "scripts/model/cp.py": "c7e15988783eb3b86b8c50e3a569e02de7431057ab952764d9bc1709c4f2c936",
+  "scripts/hardware/bringup_composite.py": "37ead3cad6577e43c2747daa90a27670f96cf03589123536961124f2f68e0ee7",
+  "scripts/hardware/snapshot_counters.py": "aa1df70e834e0dd8d8c59100156a4d68ff41a76a6586ac3d70adab398fc73dbe",
+  "scripts/hardware/sealed_profile.py": "b5967b5339220a5c8b0184bcaa3c1af8ffd6d59166c9f11c96728170b8c15d25",
+  "scripts/hardware/generation_headroom.py": "6ffabb6daf8be30aa81deab7349b451183315d0ef8b9a5c6c1a59dd32bfa58ed",
+  "scripts/hardware/mau_snapshot.py": "163778145a272a52d686d6e700068f5e4524c520e981f6312cf3aaa2567330f4"
+ },
+ "endpoint_observed": {
+  "endpoint_profile": "sel751",
+  "source_hashes": {
+   "vision_run.py": "7522d8531a842c8d40850d1203de2f88c596061f92c0f1020948e427cb0920cb",
+   "relay_master.py": "871d3040506fdaa91fb7f0990bb5dffe04e8405067076003f22d37ac90eafd1c",
+   "loss.py": "536dd9a6c52b82813e3b5f8cad2f1c41f81d8db0685e13425b5a38e29035b0d4",
+   "capture_observation.py": "83c5957a62e88880313dba2418885be0e354ae0635656ab1c673158e90523a11",
+   "relay_loss.py": "b1e2bc3f1ff8983d3501bb68897e34ebdaae9d1d89bf86401ab18bb76f1905ac",
+   "standards.py": "2ead272b5549adfa8c045aad07da313dfc46a459b7bda24d8eea06e72a95732f",
+   "relay_check.py": "11bc6df72a138abbeed671f5b10605a70aa93c688135a277953cd877ef8308fa",
+   "replay.py": "cde752df44b245f6e7fa1d19b34aada0cf6391c03817137698a9baf8e98f11c9",
+   "endpoint_profiles.py": "e270013d378dd45f428dc4fe926a5a669f3ea7dce412d4a52374b1cdfdd412af",
+   "pcaptk.py": "83bff77d927f6d4e4df2d8a1104747823579a63026be1aaaf3da4c34cd661123",
+   "checks.py": "96b7a399c82a61d9557637a16e4bd57b583d077d3b9c3bb54dbfcfbdbdd26831",
+   "wire_check.py": "1c479b2c0d8eb12ee6bb1c9bc51982f2f63f2e8bd0b12314d3d1d88ae2caec40",
+   "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "active_harness/read_requests.py": "b0bed2bad9b1e6be2a0b628e5c0d991d92096ad30dacbc9e18c3b819dd628a43",
+   "active_harness/event_clear.py": "9c60cc6d9738e8eaf9f1dbcb822fb6cdfc5550ef4427ad0f103443c53a5e4976",
+   "active_harness/sbo_driver.py": "f7b9297497cc11e441762aab5f46a73dab65e9c2ed481030c5958dc09c439e1b",
+   "active_harness/wire_builders.py": "92654dc553fc86fd2941c085684f820a27ef030dd6455796843c37933303f5a2",
+   "active_harness/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "active_harness/dnp3_codec.py": "a70da36cbdd7fe0865f51926fac46c51db3511d46ed3d3f35340fb57da44bce8",
+   "active_harness/guarded_builders.py": "378d4075c8a2dade54aa60f9348860340374c5283768bcdfc09d2c079a702485",
+   "active_harness/session.py": "652700dc50daf4cdd52ffa4ecf2d3ca8c70e8ee1a1288c11d19f0ac17a38fa48"
+  },
+  "master_ip": "192.168.10.1",
+  "relay_ip": "192.168.10.7"
+ },
+ "relay_helper_preflight": {
+  "rc": 0,
+  "stdout": "{\"ok\": true, \"endpoint_profile\": \"sel751\", \"control_request_lengths\": [45, 45], \"socket_opened\": false}\n",
+  "stderr": ""
+ },
+ "candidate_profile_identity": {
+  "current": {
+   "profile/response_only.p4": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+   "profile/response_only.inputs.json": "a4f653024e290d659f36ca4830fd91badaf849c584a6a11a70eec51cfc021f78",
+   "profile/supported_profile.json": "28d691b273bcc3447b3b118e82e54041d50f67433a73c75b471a270925af40e7",
+   "profile/compile_local/manifest.json": "210da0637250363903ae8a7ab7808281941738ebbb7ece4096b011ce8cf4b33b"
+  }
+ },
+ "pre_run_program": "case4_response_path",
+ "vision_offload_baseline_sha256": "9fd5c7a1f62b6a97e93bc3be1090e64b8e58d5e86770148d7f5cf632e984b9d4",
+ "fixture": {
+  "mode": "physical_relay",
+  "emulated": false
+ },
+ "generation_headroom": [
+  {
+   "label": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_size_only_t0",
+   "ok": true,
+   "reserve": {
+    "read": 18
+   },
+   "current": {
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "read": 65516
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_combined_t0",
+   "ok": true,
+   "reserve": {
+    "read": 211
+   },
+   "current": {
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "read": 65323
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_off_t0",
+   "ok": true,
+   "reserve": {
+    "read": 18
+   },
+   "current": {
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "read": 65516
+   },
+   "dry_run": false,
+   "error": null
+  },
+  {
+   "label": "rc01_hw_c72_eval_20261027_01_e60_d20_r15_physical_relay_timing_only_t0",
+   "ok": true,
+   "reserve": {
+    "read": 211
+   },
+   "current": {
+    "read": 0
+   },
+   "remaining_after_reserve": {
+    "read": 65323
+   },
+   "dry_run": false,
+   "error": null
+  }
+ ],
+ "state_touched": {
+  "switch": true,
+  "vision": true
+ },
+ "effective": {
+  "timing_params_ns": {
+   "budget": 240000,
+   "enabled": 1,
+   "gap": 20000000
+  },
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "qualification_dimensions": {},
+  "k": 2,
+  "shaping_requested": {
+   "preset": "shape_59570",
+   "hold_pps": {
+    "ack": 59570,
+    "resp": 59570
+   },
+   "block_pps": {
+    "ack": 59570,
+    "resp": 59570
+   },
+   "block_burst": 64
+  },
+  "fixture": {
+   "delay_ms": 0,
+   "jitter_ms": 0,
+   "modes": [
+    "physical_relay"
+   ]
+  },
+  "trials": {
+   "reads_per_trial": 65,
+   "trials_per_arm": 1
+  },
+  "traffic": {
+   "close_grace_ms": 0,
+   "gap_ms": 0,
+   "master_port_range": {
+    "first": 60000,
+    "last": 60003
+   },
+   "range": 8,
+   "read_pause_ms": 25,
+   "read_schedule": "mixed_full",
+   "run_sbo": true,
+   "sbo_cycles": 64,
+   "start_delay_ms": 50
+  },
+  "ports_map": {
+   "held_return": 182,
+   "master_dev": 9,
+   "n_ack_return": 48,
+   "recirc": 68,
+   "relay_dev": 64,
+   "stat_ports": "9,64",
+   "t_in": 180
+  },
+  "endpoints": {
+   "master_ip": "192.168.10.1",
+   "outstation_ip": "192.168.10.7",
+   "outstation_port": 20000,
+   "read_dst": 0,
+   "read_src": 1
+  },
+  "evaluation": {},
+  "reconnect_policy": "characterize",
+  "max_token_stale": {
+   "current": 0
+  },
+  "endpoint_identity": {
+   "code": 1,
+   "count": 1,
+   "master": "active_harness",
+   "off_ms": 0,
+   "on_ms": 200,
+   "points": [
+    1,
+    3
+   ]
+  },
+  "vision_run_dir": "/home/decps/sel751_guarded_20261024"
+ },
+ "config_sha256": "1f8d1f98db3fc0da53ed4b1e4bc6d704175164ef89f812e60be6bd8f3db0a0eb",
+ "config_file_sha256": "4e034956b645e4e7a0571648f776e3dd8b22181c0b06b846a502e80deb84588f",
+ "source_identity": {
+  "runner_files": {
+   "scripts/checks/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "scripts/checks/checks.py": "96b7a399c82a61d9557637a16e4bd57b583d077d3b9c3bb54dbfcfbdbdd26831",
+   "scripts/checks/endpoint_profiles.py": "e270013d378dd45f428dc4fe926a5a669f3ea7dce412d4a52374b1cdfdd412af",
+   "scripts/checks/pcaptk.py": "83bff77d927f6d4e4df2d8a1104747823579a63026be1aaaf3da4c34cd661123",
+   "scripts/checks/relay_check.py": "11bc6df72a138abbeed671f5b10605a70aa93c688135a277953cd877ef8308fa",
+   "scripts/checks/replay.py": "cde752df44b245f6e7fa1d19b34aada0cf6391c03817137698a9baf8e98f11c9",
+   "scripts/checks/standards.py": "2ead272b5549adfa8c045aad07da313dfc46a459b7bda24d8eea06e72a95732f",
+   "scripts/checks/wire_check.py": "1c479b2c0d8eb12ee6bb1c9bc51982f2f63f2e8bd0b12314d3d1d88ae2caec40",
+   "scripts/hardware/relay_master.py": "871d3040506fdaa91fb7f0990bb5dffe04e8405067076003f22d37ac90eafd1c",
+   "scripts/hardware/relay_loss.py": "b1e2bc3f1ff8983d3501bb68897e34ebdaae9d1d89bf86401ab18bb76f1905ac",
+   "scripts/hardware/loss.py": "536dd9a6c52b82813e3b5f8cad2f1c41f81d8db0685e13425b5a38e29035b0d4",
+   "scripts/hardware/active_harness/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "scripts/hardware/active_harness/dnp3_codec.py": "a70da36cbdd7fe0865f51926fac46c51db3511d46ed3d3f35340fb57da44bce8",
+   "scripts/hardware/active_harness/event_clear.py": "9c60cc6d9738e8eaf9f1dbcb822fb6cdfc5550ef4427ad0f103443c53a5e4976",
+   "scripts/hardware/active_harness/guarded_builders.py": "378d4075c8a2dade54aa60f9348860340374c5283768bcdfc09d2c079a702485",
+   "scripts/hardware/active_harness/read_requests.py": "b0bed2bad9b1e6be2a0b628e5c0d991d92096ad30dacbc9e18c3b819dd628a43",
+   "scripts/hardware/active_harness/sbo_driver.py": "f7b9297497cc11e441762aab5f46a73dab65e9c2ed481030c5958dc09c439e1b",
+   "scripts/hardware/active_harness/session.py": "652700dc50daf4cdd52ffa4ecf2d3ca8c70e8ee1a1288c11d19f0ac17a38fa48",
+   "scripts/hardware/active_harness/wire_builders.py": "92654dc553fc86fd2941c085684f820a27ef030dd6455796843c37933303f5a2",
+   "scripts/hardware/campaign.py": "2fd9d196d58ecf94fb6e969f279dc9d36205f8c3b9b38f9092731d1743ccff79",
+   "scripts/hardware/campaign_base.py": "94f0e5daf9feecb01533fe0642e87a0fc4e5b482eef058e7fb6e96d5850f0b7e",
+   "scripts/hardware/vision_run.py": "7522d8531a842c8d40850d1203de2f88c596061f92c0f1020948e427cb0920cb"
+  },
+  "build_sources": {
+   "current": {
+    "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+    "source_files": {
+     "response_only.p4": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e"
+    },
+    "compiler_sha256": "787631a6498d593be3d9dd4ca1c69f93e3e0ec5b11562859789275d550059c14"
+   }
+  }
+ },
+ "builds": {
+  "current": {
+   "bfrt.json": "cc8a72d2001a1c8d4240f8731f8afe37e25ddbea533bcd2f02c5dc7f85a2ca3c",
+   "p0/tofino.bin": "207603d71ea720ccfd2e54a612c22e830df63f25f1e28547645dbd3e3971170d",
+   "p1/tofino.bin": "f333a4307230d21d680ebd0bd8b40b137bf690b865f4fffb73675cebd844a154",
+   "p1/response_only.bfa": "e2f405166c8b27b3770861de9a0a7aded59c530329525c6013f7b45de68f81e8"
+  }
+ },
+ "paired_block": null,
+ "time": 1793169560.661546,
+ "gate_ok": true
+}

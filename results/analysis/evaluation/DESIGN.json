@@ -1,0 +1,60 @@
+{
+  "schema": "c72-formby-evaluation-design-v1",
+  "registered_before_traffic": "2026-10-27",
+  "approved_by": "Philip, 2026-10-27 (paper-equivalent design)",
+  "build": "results/builds/c72",
+  "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+  "definition": "scripts/hardware/lab_eval.json via scripts/hardware/matrix.py --definition evaluation",
+  "dataset": {
+    "d_ms": [5, 10, 15, 20],
+    "blocks_per_d": 16,
+    "blocks": 64,
+    "block_order": "D cycles 5,10,15,20 block by block",
+    "arms": {"off": "T0 P0", "timing_only": "T1 P0", "size_only": "T0 P1", "combined": "T1 P1"},
+    "arm_order": "cyclic Latin square: rotation = repetition mod 4; each arm in each position 4x per D",
+    "per_arm_connection": {"READ": 65, "READ_mixed": 33, "READ_integrity": 32, "SELECT": 64, "OPERATE": 64},
+    "exchanges": 49408,
+    "loss_injection": false,
+    "guarded_points": [1, 3],
+    "qualification_matrix_excluded": true
+  },
+  "split": "per D chronological: first 8 blocks train, last 8 test",
+  "classes": ["READ", "SELECT", "OPERATE"],
+  "piggyback": "excluded from classes, reported separately",
+  "features": {
+    "clrt": "ACK -> complete response (Formby CLRT; the D contract's observable)",
+    "size": "response TCP payload octets",
+    "joint": "clrt and size signatures concatenated"
+  },
+  "descriptive_only": ["request->ACK", "request->complete response"],
+  "signature": "Formby Eq.1: 199 equal bins on [0,H) + overflow bin (m >= H; Formby drops m == H, disclosed); H = 1.05 x max training value, training only",
+  "windows_K": [8, 32, 64],
+  "window_rule": "same-operation, never crossing block or arm",
+  "classifiers": {
+    "multinomial_nb": "alpha=1, chronological split",
+    "ff_ann": "MLPClassifier one hidden layer; Formby random 75/25 split; hidden size by GroupKFold on training only",
+    "gmm": "unsupervised, full covariance, 3 components, window [mean, variance], Hungarian label matching"
+  },
+  "attackers": ["pre_deployment: trained on off, tested on each arm", "retrained per arm"],
+  "metrics": ["Formby per-class accuracy/precision/recall: mean across classes and minimum class",
+              "balanced accuracy with 95% CI from 10,000 paired bootstrap resamples of test blocks",
+              "confusion matrices"],
+  "claims_under_test": {
+    "timing": "contract response_ready_ack_d_no_j_v3: CLRT ~= D for every class in timed arms",
+    "timing_falsifier": "timed-arm per-class CLRT medians differ by more than the off-arm spread, or retrained CLRT classifier is not below off at the same D (paired bootstrap 95% CI)",
+    "size": "padded arms: every response equals its class image (READ 91->141, 134->158; SBO 49->60)",
+    "size_falsifier": "any padded response not equal to its class image, or any native size in a padded arm",
+    "size_expected_limit": "READ remains separable from SBO by construction; reported as the current transform's limit",
+    "not_evaluated": "paper RO2 single 61-byte size (historical software-outstation testbed)"
+  },
+  "sufficiency_gate": {
+    "test_blocks_per_d_arm_class": 8,
+    "test_windows_K64_min": 8,
+    "test_windows_K8_min": 64,
+    "capture": "0 kernel drops; every planned exchange matched"
+  },
+  "overhead": ["request->response latency vs off (median, IQR, p95, max, mean+-std)", "padding octets per response and per transaction",
+               "transaction rate per connection", "retransmitted requests (RO3: 0)", "switch resources: results/analysis/stage_cut/final_resources.json"],
+  "excluded": ["J", "CLRT precision criterion", "device identification", "new classifiers on request->ACK or request->response",
+               "manuscript edits", "P4 changes", "reruns", "extra matrices"]
+}

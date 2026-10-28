@@ -1,0 +1,89 @@
+[vision] make relay helper directory -> rc 0
+[local] deploy relay helper vision_run.py -> rc 0
+[local] deploy relay helper relay_master.py -> rc 0
+[local] deploy relay helper loss.py -> rc 0
+[local] deploy relay helper capture_observation.py -> rc 0
+[local] deploy relay helper relay_loss.py -> rc 0
+[local] deploy relay helper standards.py -> rc 0
+[local] deploy relay helper relay_check.py -> rc 0
+[local] deploy relay helper replay.py -> rc 0
+[local] deploy relay helper endpoint_profiles.py -> rc 0
+[local] deploy relay helper pcaptk.py -> rc 0
+[local] deploy relay helper checks.py -> rc 0
+[local] deploy relay helper wire_check.py -> rc 0
+[local] deploy relay helper __init__.py -> rc 0
+[local] deploy relay helper active_harness/read_requests.py -> rc 0
+[local] deploy relay helper active_harness/event_clear.py -> rc 0
+[local] deploy relay helper active_harness/sbo_driver.py -> rc 0
+[local] deploy relay helper active_harness/wire_builders.py -> rc 0
+[local] deploy relay helper active_harness/__init__.py -> rc 0
+[local] deploy relay helper active_harness/dnp3_codec.py -> rc 0
+[local] deploy relay helper active_harness/guarded_builders.py -> rc 0
+[local] deploy relay helper active_harness/session.py -> rc 0
+[vision] verify every relay helper -> rc 0
+[vision] guarded builder preflight -> rc 0
+[switch] make remote directories -> rc 0
+[local] copy the switch tools (ports, snapshot, observe, relay slot, swap/launch) into aux -> rc 0
+[local] copy the installer source tree to the switch (repo-relative paths) -> rc 0
+[local] copy build current out/ to the switch -> rc 0
+[switch] verify every deployed tool and installer source file by sha256 -> rc 0
+[local] copy isolated candidate CP and installer -> rc 0
+[switch] make bound profile directories for current -> rc 0
+[local] copy bound profile current profile/response_only.p4 -> rc 0
+[local] copy bound profile current profile/response_only.inputs.json -> rc 0
+[local] copy bound profile current profile/supported_profile.json -> rc 0
+[local] copy bound profile current profile/compile_local/manifest.json -> rc 0
+[switch] verify isolated candidate CP and installer identity -> rc 0
+[switch] observe the running program (read-only, from ps) -> rc 0
+[switch] snapshot the running program's $PORT table (read-only) for every later replay -> rc 0
+[local] copy the pre-run snapshot back -> rc 0
+[vision] record physical master offload baseline before capture -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_size_only_t0: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_size_only_t0: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_size_only_t0: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_size_only_t0: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_size_only_t0: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_size_only_t0: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_size_only_t0: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_size_only_t0_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_size_only_t0_before -> rc 0
+[vision] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_size_only_t0: traffic + capture on master port 60000 -> rc 0
+[switch] counter snapshot rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_size_only_t0_after -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_combined_t0: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_combined_t0: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_combined_t0: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_combined_t0: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_combined_t0: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_combined_t0: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_combined_t0: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_combined_t0_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_combined_t0_before -> rc 0
+[vision] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_combined_t0: traffic + capture on master port 60001 -> rc 0
+[switch] counter snapshot rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_combined_t0_after -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_off_t0: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_off_t0: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_off_t0: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_off_t0: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_off_t0: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_off_t0: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_off_t0: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_off_t0_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_off_t0_before -> rc 0
+[vision] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_off_t0: traffic + capture on master port 60002 -> rc 0
+[switch] counter snapshot rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_off_t0_after -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_timing_only_t0: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_timing_only_t0: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_timing_only_t0: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_timing_only_t0: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_timing_only_t0: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_timing_only_t0: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_timing_only_t0: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_timing_only_t0_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_timing_only_t0_before -> rc 0
+[vision] rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_timing_only_t0: traffic + capture on master port 60003 -> rc 0
+[switch] counter snapshot rc01_hw_c72_eval_20261027_01_e59_d15_r15_physical_relay_timing_only_t0_after -> rc 0
+[restore:switch] cold-swap bf_switchd back to the observed production program -> rc 0
+[restore:switch] replay the pre-run $PORT snapshot on the production program -> rc 0
+[restore:switch] reinstall the relay slot -> rc 0
+[restore:vision] Vision: fixture off, namespace profile and NIC flag restored -> rc 0
+[restore:vision] ping through the restored switch path -> rc 0
