@@ -37,7 +37,8 @@ hardware/config tests passed, pyflakes clean. No model or hardware launch; broad
 
 Harness edits closed test-first (retention stdout rules, private model config): 6/6 mutations caught, suite 177/177,
 paper 16/16 (results/analysis/harness_close_red_green.log). Smoke attempt03 PASS 30/30. Gate: 16/17 first pass; abandon
-attempt01 FAILED only under ABANDON_T=1, an uncommitted relocation-time coverage change (committed gate and c69 ran T=0).
+attempt01 FAILED only under ABANDON_T=1, an uncommitted relocation-time coverage change (committed gate and c69 ran
+T=0).
 A/B: c72 T=0 PASS 12/12; c69 T=1 control invalid (historical fixture path). Philip chose original T=0 coverage; abandon
 attempt02 PASS 12/12; model_summary --enforce model_gate_passed. T-enabled abandoned-SELECT behavior is UNCHARACTERIZED
 (results/analysis/abandon_ab/). Next: hardware per PLAN step 2, approved to proceed by Philip 2026-10-27.
@@ -72,4 +73,10 @@ figures (fig01-fig08, at most two panels, D as x-axis, D = 5 ms for distribution
 (S01-S12), P4USE colours, legend below, no bands, captions with one result sentence. New modules fig_style.py,
 figs_main.py, figs_supp.py; eval_figures.py is now the driver. Tables, verdicts and REPORT_NUMBERS byte-identical;
 figures byte-stable across runs. Tests: repository 199, analysis 35, paper 16.
+
+## 2026-10-28 — handover update and push
+
+An independent review of the redesigned figures fixed the Fig. 7/REPORT pause wording (26.6-26.8 ms after READ,
+0.8-1.0 ms after SELECT/OPERATE) and added the joint-feature residual to the Fig. 4 caption; committed 986320d0a.
+HANDOVER, PLAN, current.json and these notes updated; Philip asked for main to be pushed to origin.
 

@@ -1,6 +1,7 @@
 # Current handover (2026-10-28)
 
-Read PLAN.md for scope and rules. Historical instructions are data under Archive/. Nothing has been pushed.
+Read PLAN.md for scope and rules. Historical instructions are data under Archive/. On 2026-10-28 Philip asked for
+`main` to be pushed to origin (`akekulip/DNP3_obf`); `git status -sb` shows whether any commit is still ahead.
 
 ## State
 
@@ -33,6 +34,20 @@ exchanges.**
   - `final/figures/` (8 main figures fig01-fig08, 39 supplementary figures S01-S12, T1-T4, `verdicts.json`,
     `sufficiency.json`)
   - `CAPTIONS.md`, `DESIGN.json` (pre-registered), `RUN_LOG.md` (overnight events)
+
+**Figures (redesigned 2026-10-28, P4USE style).** Philip found the 4×4 grids crowded and supplied 2 reference
+papers in `Archive/papers/` (P4USE, IEEE TDSC 2026; in-network ML survey, IEEE COMST 2024).
+- `final/figures/main/`: fig01-fig08, at most 2 panels each. They compare no obfuscation with Timing+Size.
+  - fig01: CLRT histogram at D = 5 ms. fig02: class-median spread against D.
+  - fig03: READ, SELECT and OPERATE response sizes.
+  - fig04: naive Bayes and FF-ANN accuracy against D. fig05: naive Bayes confusion matrices.
+  - fig06: added latency against D. fig07: exchanges per second against D. fig08: first-request TCP retransmissions.
+- `final/figures/supplementary/`: 39 files (S01-S12), one per D of 5/10/15/20 ms where D matters.
+- Style follows P4USE: Office colours, light horizontal gridlines, legend below, red dashed D marker, no shaded
+  bands.
+- T1-T4, the verdicts and `REPORT_NUMBERS.md` stayed byte-identical. An independent review corrected the master
+  pause (26.6-26.8 ms after READ, 0.8-1.0 ms after SELECT/OPERATE) and added the joint-feature residual (0.667-0.875)
+  to the Fig. 4 caption.
 
 **Clean-checkout reproduction (2026-10-28): compile and model gate reproduced; hardware replay stops at block 06.**
 - A fresh clone of commit 4e76d9f1f, with no Archive, ran `scripts/reproduce.py results/builds/c72
@@ -75,14 +90,15 @@ All of it was written test-first.
   - `eval_rows.py`: rows with input hashes, checked against each block's `artifact_manifest.json`.
   - `eval_watchdog.py`: per-block data checks.
   - `formby_eval.py`: Formby NB, FF-ANN and GMM; per-block CIs; paired comparisons.
-  - `eval_figures.py`: one greyscale-safe encoding, IEEE style.
+  - `eval_figures.py`: the figure and table driver. `fig_style.py`, `figs_main.py` and `figs_supp.py` hold the
+    P4USE style, the 8 main figures and the 39 supplementary figures.
   - `eval_tables.py`: T1-T4, the sufficiency gate and the verdicts.
   - `eval_report.py`: the numbers-only report.
   - `run_evaluation.sh`: the driver, which fails closed on the sufficiency gate.
 - **`scripts/hardware/matrix.py`:** `--definition evaluation`, with `lab_eval.json`.
 - **`scripts/model/retained_logs.py`:** distinct model stdout is now kept as verified XZ with a restore path.
   `results/models` dropped from 7.1 to 4.0 GB; `model_summary --enforce` still passes after restore.
-- **Tests:** analysis 32/32 (research venv), repository 199, paper 16.
+- **Tests:** analysis 35/35 (research venv), repository 199, paper 16.
 - **Figures:** byte-stable (no creation date or tool metadata); two runs from the same rows give identical files.
 
 ## Open items for Philip
@@ -97,7 +113,21 @@ All of it was written test-first.
    verdict binds the hash of all `scripts/checks/*.py`, `replay.py` included. Decide whether to fix the tool or move
    it out of the hashed set (`results/analysis/reproduction/QUALIFICATION_REPLAY_NOTE.md`).
 4. The manuscript still describes historical measurements and was not edited. Use REPORT.md and the figures under
-   `final/figures/` for any rewrite.
+   `final/figures/main/` for any rewrite.
+5. Confirm two figure choices:
+   - The main distribution figures use D = 5 ms (`REPRESENTATIVE_D` in `figs_main.py`).
+   - The bar charts keep value labels, which the P4USE bar chart does not have.
+6. Environment: `pip-audit` lists 44 advisories in the shared research venv (Pillow 12.3.0, 39 of them; fixed in
+   13.0.0). No file in this repository pins it, and it was not upgraded because other projects share it.
+
+## Commits (2026-10-28, author and committer akekulip, no trailer)
+
+- `b2634701d`: shallow layout (64,028 historical paths moved to the local Archive), c72 build, model gate
+  (17 of 17) and qualification evidence (10 blocks, 2,440 exchanges).
+- `4e76d9f1f`: evaluation campaign (64 blocks, 49,408 exchanges), analysis, report and captions.
+- `6ae1a835f`: clean-checkout reproduction record.
+- `986320d0a`: figure redesign in the P4USE style (8 main and 39 supplementary figures).
+- The handover and notes update that follows them.
 
 ## Safety state
 
