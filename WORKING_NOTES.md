@@ -62,3 +62,5 @@ fixing it breaks the bound checker hash, so it was reverted; decision in HANDOVE
 analysis 32, paper 16.
 Shaded std bands removed from the histogram, signature and CDF figures at Philip's request (lines only); spread
 stays in the box plots, F7, the bootstrap intervals and T1.
+Committed b2634701d (layout, tooling, qualification) and 4e76d9f1f (evaluation), local only. Clean-checkout
+reproduction of 4e76d9f1f: compile and model gate reproduced, frozen replay 2,242/2,440 (HANDOVER).

@@ -2,8 +2,9 @@
 
 Resumed 2026-10-27 at Philip's instruction. Done: model gate 17/17; qualification matrix 9/10 (block 10 loss_full
 FAIL, restoration verified); Formby-style evaluation campaign 64/64 (Philip-approved scope, results/analysis/
-evaluation/). Remaining: clean-checkout reproduction (step 3) and Philip's decisions in HANDOVER.md open items. The
-frozen replay tool replays 7 of the 10 qualification blocks; blocks 06-08 need a decision (HANDOVER item 3).
+evaluation/). Clean-checkout reproduction (step 3) ran 2026-10-28: compile and model gate reproduced; the frozen
+replay tool replays 7 of the 10 qualification blocks, and blocks 06-08 need a decision (HANDOVER item 3). Remaining:
+Philip's decisions in HANDOVER.md open items.
 
 Approved scope: current implementation and paper in the shallow layout; historical material in Archive/;
 current logs, PCAPs and JSON in results/. Work on main, local commits only, no push or history rewrite.

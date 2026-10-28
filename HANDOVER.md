@@ -33,6 +33,17 @@ exchanges.**
   - `final/figures/` (F1-F10 with zooms, T1-T4, `verdicts.json`, `sufficiency.json`)
   - `CAPTIONS.md`, `DESIGN.json` (pre-registered), `RUN_LOG.md` (overnight events)
 
+**Clean-checkout reproduction (2026-10-28): compile and model gate reproduced; hardware replay stops at block 06.**
+- A fresh clone of commit 4e76d9f1f, with no Archive, ran `scripts/reproduce.py results/builds/c72
+  --hardware-index results/hardware/rc01_hw_c72_20261027_02_index.json` (exit 1, 139 s).
+- The package and source SHA verify. A fresh bf-p4c compile exits 0 and matches c72 in stages (N10/E10/T8/4), MAU
+  totals, PHV usage and stateful tables on both pipes.
+- The Tofino model gate recomputes to `model_gate_passed`, 17 of 17 drivers, none blocked.
+- The frozen replay of the SEL-751 qualification matrix reproduces blocks 01-05, 09 and 10 exactly (2,242 of 2,440
+  exchanges; block 10 reproduces its FAIL). It cannot read the endpoint record of blocks 06-08 (open item 3); read
+  from `scenario.json`, they reproduce exactly as well.
+- Evidence: `results/analysis/reproduction/c72_20261028T140201054035Z.json` and the `clean_checkout_*` files.
+
 ## Headline findings (from REPORT.md)
 
 - **Delivery:** 49,408/49,408 exchanges OK. All 32,768 SELECT/OPERATE responses carry CROB SUCCESS on both points,

@@ -1,0 +1,74 @@
+{
+  "build": "results/builds/c72",
+  "hardware_contact": false,
+  "qualification": "failed",
+  "hardware": "not_requested",
+  "package": {
+    "source_matches": true,
+    "roles_match": true,
+    "profiles_match": true,
+    "package_closure_matches": true
+  },
+  "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+  "original_compile": {
+    "source_matches": true,
+    "snapshots_match": true,
+    "compiler_matches": true,
+    "compiled_artifacts_verified": true,
+    "full_target": false
+  },
+  "fresh_build": "results/builds/c72_reproduce_20261028T140201054035Z",
+  "compile_exit_code": 0,
+  "resource_comparison": {
+    "p0": {
+      "stages": true,
+      "allocated_mau_totals": true,
+      "phv_usage": true,
+      "stateful_tables": true
+    },
+    "p1": {
+      "stages": true,
+      "allocated_mau_totals": true,
+      "phv_usage": true,
+      "stateful_tables": true
+    }
+  },
+  "stages": {
+    "p0": {
+      "egress": 10,
+      "ingress": 10
+    },
+    "p1": {
+      "egress": 4,
+      "ingress": 8
+    }
+  },
+  "model": {
+    "qualification": "model_gate_passed",
+    "latest_by_driver": {
+      "abandon": "model_abandon_c72_02",
+      "abort": "model_abort_c72_01",
+      "contention": "model_contention_c72_01",
+      "control_timing": "model_control_timing_c72_01",
+      "dup": "model_dup_c72_01",
+      "fin_busy": "model_fin_busy_c72_01",
+      "packets": "model_packets_c72_01",
+      "policy": "model_policy_c72_01",
+      "policy_boundary": "model_policy_boundary_c72_01",
+      "rearm": "model_rearm_c72_01",
+      "relay_sbo": "model_relay_sbo_c72_01",
+      "repeat": "model_repeat_c72_01",
+      "response_ready": "model_response_ready_c72_01",
+      "select_lifecycle": "model_select_lifecycle_c72_01",
+      "smoke": "model_smoke_c72_03",
+      "smoke_sizeoff": "model_smoke_sizeoff_c72_01",
+      "two_read_robust": "model_two_read_robust_c72_01"
+    },
+    "blocked_reasons": []
+  },
+  "hardware_index": "results/hardware/rc01_hw_c72_20261027_02_index.json",
+  "hardware_replay_exit_code": 1,
+  "hardware_replay_output": "{\n  \"ok\": false,\n  \"hardware_contact\": false,\n  \"status\": \"not_reproduced\",\n  \"failures\": [\n    \"[Errno 2] No such file or directory: '/tmp/dnp3_current_replay_8kn9o3tb/trial/result.json'\"\n  ],\n  \"exchanges\": 1934\n}\n",
+  "hardware_replay_error": "",
+  "error": "selected current hardware evidence did not reproduce"
+}
