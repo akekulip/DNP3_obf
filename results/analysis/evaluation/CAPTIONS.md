@@ -1,128 +1,102 @@
-# Figure and table captions (descriptive only; findings are stated in REPORT.md)
+# Figure and table captions
 
 All data come from campaign `rc01_hw_c72_eval_20261027_01`: 64 blocks, 16 per D in {5, 10, 15, 20} ms. Each block
 ran the four arms on the SEL-751 relay through the c72 switch program. A block-arm is one cold connection with 65
 READ (33 mixed, 32 integrity), 64 SELECT and 64 OPERATE. Timestamps come from the master NIC (receiver captures).
 CLRT is the time from the relay's first ACK of a request to the complete response, as Formby et al. define it.
-Request sizes are native in every arm. B denotes bytes of TCP payload.
+B denotes bytes of TCP payload. Every number in a caption is recorded by the generator in
+`final/figures/figure_notes.json` or appears in tables T1-T4.
+
+The figures follow the P4USE (IEEE TDSC 2026) style: one message per figure and at most two panels. `main/` holds
+fig01-fig08. The distribution figures use D = 5 ms, the reference setting of the matrix and the D where the
+classifier criterion was falsified. `supplementary/` repeats them for every D and adds the remaining detail.
 
 Encoding in every figure:
-- **Classes:** READ / SELECT / OPERATE are near-black / red / amber, with solid / dashed / dotted lines, plain /
-  hatched / dotted fills and plus / X / hexagon markers.
-- **Arms:** no obfuscation / Timing+Size / Timing / Size are navy / purple / blue / light blue, with circle /
-  diamond / square / triangle markers and plain / cross-hatched / back-slash / horizontal-line fills.
-- **Markers:** hollow markers (white fill, arm-coloured edge) show a secondary statistic.
-- **Reference lines:** chance is the grey horizontal line; zero is the thin black horizontal line.
-- **Boxes:** the box spans the interquartile range, the line is the median, the cross is the mean, and the whiskers
-  run from the 5th to the 95th percentile. The median and mean are drawn white on dark boxes.
+- **Arms:** No obfuscation is blue with circles and solid lines; Timing+Size is orange with diamonds and dashed lines;
+  Timing is grey with squares and dotted lines; Size is gold with triangles and dash-dot lines.
+- **Classes:** READ is green and solid, SELECT purple and dashed, OPERATE crimson and dotted. Where markers appear,
+  READ is a plus, SELECT an X and OPERATE a hexagon.
+- **Reference lines:** the red dashed vertical line labelled D marks the hold D; the grey dashed horizontal line is
+  chance (1/3); the black horizontal line is zero.
+- **Spread:** error bars are 95% block-bootstrap intervals. Classifier intervals use the 8 test blocks and 10,000
+  resamples; latency, rate and request-to-ACK intervals use the 16 blocks and 2,000 resamples. FF-ANN uses Formby's
+  random 75/25 window split and has no block interval. Histograms and CDFs plot the mean per-block value over the
+  16 blocks, without bands; T1 gives each cell's standard deviation.
+- **Text in plots:** bars carry their value as a data label. Apart from these, legends and the D marker, no text
+  appears inside a plot area.
 
-## Figures
+## Main figures
 
-**F1 CLRT histograms.**
-- Layout: rows are D; columns are (a) no obfuscation, (b) Timing, (c) Size, (d) Timing+Size.
-- Bins: 0.25 ms from 0 to 30 ms. The separate bin at "≥30" collects every value of 30 ms or more.
-- Lines: the mean per-block fraction per class over the 16 blocks (1,040 READ, 1,024 SELECT and 1,024 OPERATE
-  exchanges per arm and D). T1 gives each cell's standard deviation of CLRT.
+**Fig. 1 (`fig01_clrt_histogram_D5`). CLRT histograms at D = 5 ms, (a) no obfuscation and (b) Timing+Size.** One
+line per class gives the mean per-block fraction of exchanges per bin. Both panels use 0.25 ms bins: (a) from 0 to 10 ms
+plus one bin for 10 ms or more, and (b) over D ± 3 ms, which leaves out 4 of 3,088 exchanges. With no
+obfuscation the class medians span 0.46 ms, with SELECT lowest; under Timing+Size they lie within 0.007 ms of each
+other.
 
-**F1b CLRT histograms, Timing and Timing+Size, zoom.** Shows D ± 3 ms with 0.2 ms bins. Lines are as in F1.
-Values of CLRT outside the window are not drawn: 0–7 per D, arm and class (`figure_notes.json`,
-`F3b_F1b_values_outside_D_plus_minus_3ms`).
+**Fig. 2 (`fig02_median_spread_vs_D`). Spread of the per-class median CLRT against D.** The line is the spread
+(largest minus smallest class median) over all 16 blocks, the value the timing verdict uses; the small points are
+the 16 per-block spreads. With no obfuscation the class medians lie 0.40-0.58 ms apart, and with Timing or
+Timing+Size they lie within 0.004-0.036 ms at every D. Single blocks scatter more: per block the timed arms reach
+0.56 ms (block medians 0.11-0.22 ms), against 0.13-2.02 ms with no obfuscation.
 
-**F1c CLRT histograms, no obfuscation and Size, zoom.** Shows 0–10 ms with 0.1 ms bins. Lines are as in F1.
-Values of CLRT above 10 ms are not drawn; F1 shows them.
+**Fig. 3 (`fig03_response_size`). Response payload per class, native and padded.** Native sizes appear in the no-
+obfuscation and Timing arms, padded sizes in the Size and Timing+Size arms; each class has exactly one size in every
+block. The padded arms map READ mixed from 91 to 141 B, READ integrity from 134 to 158 B, and SELECT and OPERATE
+from 49 to 60 B, so READ stays larger than SELECT/OPERATE in every arm.
 
-**F2 Response-size histograms.**
-- Layout: rows are D; columns are the four arms.
-- Bars: the mean per-block fraction of responses at each payload size per class, with classes side by side.
-- Labels: the number above a bar group is the exact payload size.
-- The fraction is identical in every block, with standard deviation 0 across blocks
-  (`figures/figure_notes.json`).
+**Fig. 4 (`fig04_classifier_vs_D`). Balanced accuracy on CLRT at K = 64 against D, (a) naive Bayes and (b) FF-ANN,
+both retrained per arm.** Whiskers in (a) are 95% block-bootstrap intervals of balanced accuracy over the 8 test
+blocks. FF-ANN in (b) follows Formby's random 75/25 split with 12 test windows, so it moves in steps of 1/12 and has
+no interval. At K = 64, naive Bayes scores 0.625-0.750 with no obfuscation and 0.250-0.458 under Timing+Size; the
+paired interval for the drop excludes zero at every D except D = 5 ms for Timing+Size. With CLRT and response size
+together (S08, joint feature), naive Bayes still scores 0.667-0.875 under Timing+Size, against 1.0 with no
+obfuscation; REPORT.md discusses this residual.
 
-**F2b Request sizes.** Request payload per request type (READ mixed, READ integrity, SELECT, OPERATE). It is
-identical in every arm and at every D.
+**Fig. 5 (`fig05_confusion_D5`). Naive Bayes confusion matrices on CLRT at D = 5 ms and K = 64.** Cells give window
+counts over the 8 test blocks; shading gives the row-normalized fraction. With no obfuscation the classifier labels
+15 of 24 test windows correctly, and under Timing+Size it labels 9 of 24, where chance is 8.
 
-**F3 CLRT spread.** One box plot per class and D for each arm, pooling all exchanges of the 16 blocks. Boxes are as
-in the encoding above.
+**Fig. 6 (`fig06_added_latency_vs_D`). Added request-to-response time against D, (a) median and (b) 95th
+percentile.** Each point is the mean over blocks of the arm's value minus the same block's no-obfuscation value,
+with a 95% block-bootstrap interval over the 16 blocks. The median rises by 4.74-4.92 ms at D = 5 ms and by
+19.64-19.78 ms at D = 20 ms in the two timed arms, while Size alone adds at most 0.11 ms.
 
-**F3b CLRT minus D, Timing and Timing+Size.**
-- Layout: rows are D.
-- Plots the distribution of CLRT − D per class, with 0.1 ms bins, from −3 to 3 ms. Values of CLRT − D outside that
-  range are not drawn and are counted in `figure_notes.json` (0–7 per D, arm and class).
-- Lines are as in F1.
+**Fig. 7 (`fig07_rate_vs_D`). Exchanges per second per connection against D (`txn_per_s` in T4).** An exchange is
+one request and its response, and each connection carries 193. The master pauses about 26.7 ms after each READ
+response and about 1 ms after each SELECT or OPERATE response. Whiskers are 95% block-bootstrap intervals over the
+16 blocks, and the axis starts at zero. With no obfuscation a connection completes about 62 exchanges per second;
+the timed arms complete 47-48 at D = 5 ms and 28 at D = 20 ms.
 
-**F4 Formby signatures.**
-- Plots the mean Formby Eq. 1 signature of K = 64 windows per class, for (a) no obfuscation and (b) Timing+Size.
-- Bins: 199 equal bins on [0, H), with H = 1.05 × the largest training CLRT (values in `figure_notes.json`).
-- Overflow: the overflow bin is drawn as one marker per class at "≥H", with the READ, SELECT and OPERATE markers
-  shown in the legend.
-- Error bars on the overflow markers: ±1 standard deviation across windows.
+**Fig. 8 (`fig08_first_request_retransmissions`). Connections whose first request the master's TCP stack
+retransmitted, per arm.** Each arm has 64 fresh connections over the four D values. The counts are 3 with no
+obfuscation, 6 with Timing, 3 with Size and 4 with Timing+Size; no other request was retransmitted. Timed against
+untimed is 10/128 against 6/128, Fisher two-sided p = 0.44.
 
-**F5 Formby classifiers (CLRT, size, joint).**
-- Layout: rows are the classifier and attacker; columns are D. The x-axis is the window size K.
-- Classifiers:
-  - multinomial naive Bayes, retrained per arm;
-  - multinomial naive Bayes trained before deployment on the no-obfuscation arm (training blocks 1–8, test blocks
-    9–16);
-  - FF-ANN (one hidden layer, Formby's random 75/25 split);
-  - GMM (full covariance, three components, window mean and variance of each feature).
-- Filled markers:
-  - For naive Bayes and GMM, the mean balanced accuracy over the 8 test blocks, with a 95% block-bootstrap interval
-    (10,000 resamples).
-  - For FF-ANN, the pooled value on its random test split, which has no block interval.
-- Hollow markers: the minimum per-class recall, drawn beneath the filled marker where the two coincide.
-- Grey line: chance balanced accuracy (1/3).
-- Some intervals are narrower than the markers.
+## Supplementary figures
 
-**F5d Confusion matrices.**
-- Plots naive Bayes on CLRT at K = 64, retrained, for no obfuscation and Timing+Size at each D.
-- Shading: the row-normalized fraction. Numbers: window counts.
-
-**F6 Latency.** Columns are classes; rows are:
-- Top: request-to-response time per arm and D, with boxes as in F3.
-- Middle: the added p50 (filled) and p95 (hollow, drawn just right of p50) request-to-response time relative to the
-  same block's no-obfuscation arm. Markers are the mean over blocks of the per-block difference, with 95%
-  block-bootstrap intervals (2,000 resamples). The black line marks zero.
-- Bottom: request-to-ACK time, with boxes as in F3.
-
-Outliers beyond the whiskers are not drawn. The largest request-to-response time, 236 ms, belongs to the first READ
-of a connection; T1 lists each cell's maximum.
-
-**F7 Block stability.**
-- Rows are D; the x-axis is the block repetition at that D.
-- Markers: the per-block median CLRT, with whiskers at the 25th–75th percentile, for (a) no obfuscation and Size.
-  Lines join consecutive blocks of one arm.
-- For (b) Timing and Timing+Size, the per-block median CLRT − D with the same whiskers.
-- Classes are pooled.
-
-**F8 CLRT CDFs.**
-- Layout: rows are D; columns are the four arms.
-- Lines: the mean per-block empirical CDF per class over the 16 blocks.
-- A curve that ends below 1 at 30 ms has mass beyond the axis.
-
-**F8b CLRT CDFs, Timing and Timing+Size, zoom.** Shows D ± 3 ms. Lines are as in F8.
-
-**F8c CLRT CDFs, no obfuscation and Size, zoom.** Shows 0–10 ms. Lines are as in F8. A curve that ends
-below 1 at 10 ms has CLRT mass beyond the axis.
-
-**F9 Window mean and variance.**
-- Plots K = 8 windows of CLRT per class, for no obfuscation and Timing+Size at each D.
-- Points: one window each. Ellipses: two standard deviations of each class, computed on the mean and the base-10
-  logarithm of the variance.
-- Axes: the window mean against the window variance, with variance on a logarithmic axis. Each row has its own
-  variance scale.
-- The mean axis covers the 1st to 99th percentile of window means and every ellipse, with a small margin. The few
-  windows outside it (at most 6 per panel) are counted in `figure_notes.json` (`F9_windows_outside_x_range`).
-
-**F10 Overhead per D and arm.**
-- (a) Padding per response.
-- (b) Change in request+response payload per transaction relative to no obfuscation.
-- (c) Added p50 (filled) and p95 (hollow, drawn just right of p50) request-to-response time relative to no
-  obfuscation.
-- (d) Transactions per second per connection.
-- (e) Total retransmitted TCP segments over the 16 blocks.
-- (a)–(c) are measured relative to no obfuscation, so that arm has no marker there. The black line marks zero.
-- In (a)–(d), markers are the mean over blocks with 95% block-bootstrap intervals (2,000 resamples). Some intervals
-  are narrower than the markers.
+- **S01 (`S01_clrt_histogram_D{5,10,15,20}`):** Fig. 1 at each D. **S02 (`..._timing_size`):** the same for Timing
+  and Size. Timed panels leave out 0-7 exchanges per class outside D ± 3 ms (`figure_notes.json`).
+- **S03 (`S03_clrt_cdf_D{d}`):** the mean per-block empirical CDF per class, no obfuscation (0-10 ms) and Timing+Size
+  (D ± 3 ms). A no-obfuscation curve that ends below 1 has CLRT mass above 10 ms.
+- **S04 (`S04_formby_signature_D{d}`):** the mean Formby Eq. 1 signature of K = 64 windows per class. Bins are 199
+  equal bins on [0, H) with H = 1.05 × the largest training CLRT; the marker at "≥H" is the overflow bin, with ±1
+  standard deviation across windows.
+- **S05 (`S05_mean_variance_D{d}`):** K = 8 window mean against window variance (logarithmic), one point per window,
+  with a two-standard-deviation ellipse per class (Formby Fig. 6a). The mean axis covers the 1st-99th percentile and
+  every ellipse; at most 6 windows per panel fall outside it.
+- **S06 (`S06_confusion_D{d}`):** Fig. 5 at each D.
+- **S07 (`S07_block_stability_D{d}`):** the per-block median CLRT (untimed arms) and median CLRT − D (timed arms),
+  classes pooled, against block repetition, with whiskers at the 25th and 75th percentiles.
+- **S08 (`S08_classifier_{clrt,size,joint}_nb`):** balanced accuracy at K = 64 against D for all four arms, naive
+  Bayes retrained per arm and trained before deployment on the no-obfuscation arm. **S09 (`..._ann_gmm`):** the same
+  for FF-ANN and GMM (full covariance, three components, window mean and variance).
+- **S10 (`S10_classifier_vs_K_{clrt,size,joint}`):** naive Bayes balanced accuracy against window size K at D = 5
+  and 20 ms.
+- **S11 (`S11_request_sizes`):** request payload per request type: READ mixed 25 B, READ integrity 27 B, SELECT and
+  OPERATE 45 B, the same in every arm and at every D.
+- **S12 (`S12_request_to_ack_vs_D`):** the mean over blocks of the per-block median request-to-ACK time. It is about
+  3.4 ms in the untimed arms and 5.8-6.1 ms in the timed arms, where the switch holds the ACK until the response is
+  ready.
 
 ## Tables
 

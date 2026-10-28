@@ -30,7 +30,8 @@ exchanges.**
 - Analysis is in `results/analysis/evaluation/`:
   - `REPORT.md` (findings)
   - `final/REPORT_NUMBERS.md` (generated numbers)
-  - `final/figures/` (F1-F10 with zooms, T1-T4, `verdicts.json`, `sufficiency.json`)
+  - `final/figures/` (8 main figures fig01-fig08, 39 supplementary figures S01-S12, T1-T4, `verdicts.json`,
+    `sufficiency.json`)
   - `CAPTIONS.md`, `DESIGN.json` (pre-registered), `RUN_LOG.md` (overnight events)
 
 **Clean-checkout reproduction (2026-10-28): compile and model gate reproduced; hardware replay stops at block 06.**
@@ -64,7 +65,7 @@ exchanges.**
   (ports 9 and 64) show the same one-frame deficit in 54 of 240 unaffected connections. This conflicts with the RO3
   wording "no request retransmitted".
 - **Overhead:** the median request-to-response time rises by about D. The per-connection poll rate falls from 62 to
-  47/38/32/28 transactions per second. Padding adds 18.2% payload per transaction.
+  47/38/32/28 exchanges per second. Padding adds 18.2% payload per transaction.
 
 ## Tooling added this session
 

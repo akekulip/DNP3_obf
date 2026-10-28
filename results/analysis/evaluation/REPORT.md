@@ -26,7 +26,7 @@ ACK was piggybacked. 16 TCP segments were retransmitted (T3), each one on the fi
 ## Pre-registered verdicts
 
 **Size: not falsified.** In the size and timing+size arms every response equals its class image: READ mixed
-141 octets, READ integrity 158, SELECT and OPERATE 60. No native size appears (F2). The transform does not make READ
+141 octets, READ integrity 158, SELECT and OPERATE 60. No native size appears (Fig. 3). The transform does not make READ
 and SBO responses equal, so a size-only classifier separates READ from SELECT/OPERATE in every arm, at balanced
 accuracy 0.667 for K = 64 (T2). That separation is the design limit of the current transform. Neither SELECT nor
 OPERATE is distinguishable by size, natively or padded.
@@ -43,12 +43,12 @@ timing at K = 32. Those three cells count as falsified, as registered.
 
 - **No obfuscation.** The SEL-751 CLRT is broad: the median is about 2.2-2.8 ms per class, the p95 about 7-9 ms, and
   the tail reaches 90 ms. The classes differ mainly in shape. SELECT has a lower median than OPERATE by 0.40-0.58 ms;
-  two-sample KS D = 0.17-0.23 (F1, F3, F8, T1).
+  two-sample KS D = 0.17-0.23 (Fig. 1, Fig. 2, S03, T1).
 - **Timing and timing+size.** Every class concentrates at D. Median CLRT is within 0.035 ms of D, with a standard
-  deviation of 0.86-1.70 ms. The per-class CDFs overlap at every D (F1b, F8b zooms; F3b residuals).
+  deviation of 0.86-1.70 ms. The per-class CDFs overlap at every D (S01, S03).
 - **Size only.** CLRT is indistinguishable from no obfuscation at the level of these summaries (T1).
 
-## Formby classifiers (T2, F5)
+## Formby classifiers (T2, Fig. 4, Fig. 5, S08-S10)
 
 At K = 64, naive Bayes on CLRT scores the following balanced accuracy, as a block mean with 95% interval:
 
@@ -79,18 +79,19 @@ The timing hold therefore removes most, but not all, of the SELECT/OPERATE CLRT 
 residual mostly in the upper tail stays detectable with 64-transaction windows. The mechanism has not been determined.
 This should be stated as a limitation and not explained away.
 
-## Overhead (T4, F6, F10)
+## Overhead (T4, Fig. 6-8)
 
 - **Latency.** Relative to the same block's no-obfuscation arm, the median request-to-response time rises by about
-  D: 4.7-4.9 ms at D = 5 up to 19.6-19.8 ms at D = 20. The p95 rises by a similar amount (F6). Size alone adds at
+  D: 4.7-4.9 ms at D = 5 up to 19.6-19.8 ms at D = 20. The p95 rises by a similar amount (Fig. 6). Size alone adds at
   most 0.11 ms to the median. Its interval excludes zero only at D = 5 ms (0.08 ms, [0.002, 0.170]), and its p95
   intervals include zero at every D. The largest request-to-response time stays far
   below the master's 3,000 ms budget.
 - **Bytes.** Padding adds 37.2 octets on average per READ response (50 for mixed, 24 for integrity) and 11 per
   SELECT/OPERATE response. Payload per transaction (request plus response) rises 18.2%.
-- **Polling rate.** The master is sequential (request, response, 25 ms pause), so the hold lowers transactions per
-  second per connection from about 62 to 47, 38, 32 and 28 at D = 5, 10, 15 and 20 ms. Size alone runs 0.3-1.0
-  transactions per second below no obfuscation.
+- **Polling rate.** The master is sequential: it waits for each response, then pauses 26.6-26.8 ms after a READ and
+  0.8-1.0 ms after a SELECT or OPERATE (per-arm medians). The hold therefore lowers the exchanges (request-response
+  pairs) per second per connection from about 62 to 47, 38, 32 and 28 at D = 5, 10, 15 and 20 ms. Size alone runs
+  0.3-1.0 exchanges per second below no obfuscation.
 - **Switch resources** of the c72 build are in `T4b_switch_resources.json`. The arms change only runtime flags.
 
 ## Data event: first-request retransmissions
@@ -114,7 +115,7 @@ taken.
 - Captures were taken at the master NIC. They do not show when the switch emitted a packet, its departure timing, or
   packet boundaries at the switch.
 - Requests keep their native size: 25 octets for READ mixed, 27 for READ integrity, 45 for SELECT/OPERATE. Request
-  size therefore identifies the operation class in every arm (F2b).
+  size therefore identifies the operation class in every arm (S11).
 - The claims cover transaction-class leakage on one SEL-751 with one master, not device identification.
 - The cyclic Latin square balances arm position but not carry-over from the previous arm.
 - The FF-ANN follows Formby's random 75/25 window split, which shares blocks between training and testing. No
@@ -126,7 +127,10 @@ taken.
 
 - `final/rows/rows.csv` (SHA-256 in `final/rows/rows_manifest.json`) with input hashes bound to each block's
   `artifact_manifest.json`.
-- `final/formby/formby_results.json`, `final/figures/` (F1-F10 PDF/SVG, T1-T4 CSV/MD, `verdicts.json`,
-  `sufficiency.json`) and `final/SHA256SUMS`.
-- Tooling: `scripts/analysis/{eval_rows,eval_watchdog,formby_eval,eval_figures,eval_report}.py` and
-  `run_evaluation.sh`, with tests in `tests/analysis/`.
+- `final/formby/formby_results.json` and `final/SHA256SUMS`.
+- `final/figures/`: 8 main figures (`main/`, fig01-fig08) and 39 supplementary figures (`supplementary/`, S01-S12),
+  each as PDF and SVG, in the P4USE (IEEE TDSC 2026) style; T1-T4 as CSV and Markdown; `verdicts.json`,
+  `sufficiency.json` and `figure_notes.json`.
+- Tooling: `scripts/analysis/{eval_rows,eval_watchdog,formby_eval,eval_tables,eval_figures,eval_report}.py`, the
+  figure modules `fig_style.py`, `figs_main.py` and `figs_supp.py`, and `run_evaluation.sh`, with tests in
+  `tests/analysis/`.

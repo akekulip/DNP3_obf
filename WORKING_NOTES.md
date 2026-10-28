@@ -64,3 +64,12 @@ Shaded std bands removed from the histogram, signature and CDF figures at Philip
 stays in the box plots, F7, the bootstrap intervals and T1.
 Committed b2634701d (layout, tooling, qualification) and 4e76d9f1f (evaluation), local only. Clean-checkout
 reproduction of 4e76d9f1f: compile and model gate reproduced, frozen replay 2,242/2,440 (HANDOVER).
+
+## 2026-10-28 — figure redesign (P4USE style)
+
+Philip found the grid figures crowded and supplied two reference papers (Archive/papers/). Approved plan: 8 main
+figures (fig01-fig08, at most two panels, D as x-axis, D = 5 ms for distributions) and 39 per-D supplementary figures
+(S01-S12), P4USE colours, legend below, no bands, captions with one result sentence. New modules fig_style.py,
+figs_main.py, figs_supp.py; eval_figures.py is now the driver. Tables, verdicts and REPORT_NUMBERS byte-identical;
+figures byte-stable across runs. Tests: repository 199, analysis 35, paper 16.
+

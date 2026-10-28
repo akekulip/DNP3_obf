@@ -16,7 +16,8 @@ set +e   # a failed sufficiency gate (exit 3) still writes every output; record 
 rc=${PIPESTATUS[0]}
 set -e
 python3 "$HERE/eval_report.py" "$OUT"
-sha256sum "$OUT"/rows/rows.csv "$OUT"/formby/formby_results.json "$OUT"/figures/*.pdf "$OUT"/figures/*.csv \
-  "$OUT"/figures/*.json "$OUT/REPORT_NUMBERS.md" > "$OUT/SHA256SUMS"
+sha256sum "$OUT"/rows/rows.csv "$OUT"/formby/formby_results.json "$OUT"/figures/main/*.pdf \
+  "$OUT"/figures/supplementary/*.pdf "$OUT"/figures/*.csv "$OUT"/figures/*.json "$OUT/REPORT_NUMBERS.md" \
+  > "$OUT/SHA256SUMS"
 [ "$rc" -eq 0 ] || echo "SUFFICIENCY GATE FAILED (figures rc $rc): see $OUT/figures/sufficiency.json"
 exit "$rc"

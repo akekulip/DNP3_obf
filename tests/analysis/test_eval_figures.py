@@ -34,16 +34,66 @@ def test_sufficiency_gate_counts_test_blocks_and_windows():
     assert report['cells']['D10/off/READ']['test_blocks'] == 0
 
 
-def test_tables_and_figures_render_from_rows_and_results(tmp_path):
+MAIN_FIGURES = ('fig01_clrt_histogram_D5', 'fig02_median_spread_vs_D', 'fig03_response_size',
+                'fig04_classifier_vs_D', 'fig05_confusion_D5', 'fig06_added_latency_vs_D', 'fig07_rate_vs_D',
+                'fig08_first_request_retransmissions')
+SUPPLEMENTARY_D5 = ('S01_clrt_histogram_D5', 'S02_clrt_histogram_D5_timing_size', 'S03_clrt_cdf_D5',
+                    'S04_formby_signature_D5', 'S05_mean_variance_D5', 'S06_confusion_D5', 'S07_block_stability_D5',
+                    'S08_classifier_clrt_nb', 'S09_classifier_joint_ann_gmm', 'S10_classifier_vs_K_size',
+                    'S11_request_sizes', 'S12_request_to_ack_vs_D')
+
+
+def fake_results():
+    """Classifier entries shaped like formby_results.json (FF-ANN has no block interval)."""
+    results = []
+    for d in eval_figures.DS:
+        for arm in eval_figures.ARMS:
+            for feature in ('clrt', 'size', 'joint'):
+                for k in (8, 32, 64):
+                    for attacker in ('retrained', 'pre_deployment'):
+                        model = dict(balanced_accuracy=0.5, ci=dict(estimate=0.5, lower=0.4, upper=0.6),
+                                     confusion=[[6, 1, 1], [1, 6, 1], [1, 1, 6]], min_recall=0.4)
+                        results.append(dict(d_ms=d, arm=arm, feature=feature, k=k, attacker=attacker, nb=model,
+                                            gmm=model, ff_ann=dict(model, ci=None)))
+    return results
+
+
+def rendered(tmp_path):
     rows = rows_for_all_arms(blocks=4)
     for row in rows:
         row['split'] = 'train' if row['repetition'] <= 2 else 'test'
     eval_figures.setup()
-    eval_figures.f2_size_hist(rows, tmp_path)
-    eval_figures.f10_overhead(rows, tmp_path)
+    return eval_figures.render_figures(rows, fake_results(), tmp_path)
+
+
+def test_main_and_supplementary_figures_render_with_at_most_two_panels(tmp_path):
+    notes = rendered(tmp_path)
+    for name in MAIN_FIGURES:
+        assert (tmp_path / 'main' / (name + '.pdf')).stat().st_size > 1000, name
+    for name in SUPPLEMENTARY_D5:
+        assert (tmp_path / 'supplementary' / (name + '.pdf')).stat().st_size > 1000, name
+    panels = notes['axes_per_figure']
+    assert set(MAIN_FIGURES) | set(SUPPLEMENTARY_D5) <= set(panels)
+    assert max(panels.values()) <= 2
+
+
+def test_trend_figures_use_the_p4use_arm_palette(tmp_path):
+    rendered(tmp_path)
+    svg = (tmp_path / 'main' / 'fig07_rate_vs_D.svg').read_text().lower()
+    for colour in ('#4472c4', '#ed7d31', '#a5a5a5', '#ffc000'):
+        assert colour in svg
+
+
+def test_figures_draw_no_shaded_bands():
+    for name in ('fig_style.py', 'figs_main.py', 'figs_supp.py', 'eval_figures.py'):
+        assert 'fill_between' not in (ROOT / 'scripts/analysis' / name).read_text(), name
+
+
+def test_tables_render_from_rows_and_results(tmp_path):
+    rows = rows_for_all_arms(blocks=4)
+    for row in rows:
+        row['split'] = 'train' if row['repetition'] <= 2 else 'test'
     eval_figures.tables(rows, [], tmp_path)
-    assert (tmp_path / 'F2_response_size_histograms.pdf').stat().st_size > 1000
-    assert (tmp_path / 'F10_overhead_small_multiples.pdf').stat().st_size > 1000
     delivery = (tmp_path / 'T3_delivery.csv').read_text().splitlines()
     assert delivery[0].startswith('d_ms,arm,blocks,exchanges')
     assert len(delivery) == 1 + 4
