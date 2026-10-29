@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared no-clobber entrypoint for the ordinary and frozen block wrappers."""
+"""No-clobber entrypoint for the frozen block wrapper (run_block_frozen.sh)."""
 import argparse
 from datetime import datetime
 import hashlib

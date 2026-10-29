@@ -18,8 +18,10 @@ diff is 68 lines added and 1,687 deleted across 21 paths.
 `relay_offload_lifecycle`, which also repairs the mirror interface, and then return. The removed later blocks were
 the old software-outstation lifecycle, unreachable before the purge.
 
-**Excluded on purpose.** The 58 files of the c72 model-gate closure, `p4/`, `results/`, Archive, and the files whose
-SHA-256 is recorded in the diagnostic and E4 evidence. The c72 live model gate stays `model_gate_passed`.
+**Excluded on purpose.** The 58 files of the c72 model-gate closure, `p4/`, `results/`, Archive, and the diagnostic
+and E4 driver files. One exception: `scripts/hardware/switch.py`, edited in comments only, is recorded in the
+dependency closures of the `c72_diag_mirror` companion runs. No current gate rechecks those closures; a future
+recheck would report it as changed. The c72 live model gate stays `model_gate_passed`.
 
 **Left in place.**
 - **`generation_headroom.assess_headroom`:** the E4b golden test pins this file's SHA-256 through the trial record.
@@ -27,8 +29,10 @@ SHA-256 is recorded in the diagnostic and E4 evidence. The c72 live model gate s
   still live.
 - **Unused `vision_run` options:** removing them would turn an accepted flag into an error, and a golden test pins
   the keyword set.
-- **`campaign_base.host_diagnostic_evidence`:** it still soft-fails a block whose config asks for the diagnostic,
-  which config validation refuses anyway.
+- **`campaign_base.host_diagnostic_evidence`:** it still soft-fails a block whose config asks for the diagnostic.
+  The review found that config validation refused only `host_diagnostics`, while this reader looks for
+  `host_diagnostic`, a mismatch that predates the purge. Validation now refuses both spellings
+  (`tests/hardware/test_config_diagnostics_refused.py`).
 
 **Checks.** Repository suite 471 passed (as before); analysis suite 138 passed, 2 skipped; pyflakes clean on every
 modified file.
@@ -36,3 +40,13 @@ modified file.
 **Identity.** `loss.py` and `dnp3_codec.py` are in the relay-checker closure, and `vision_run.py`, `campaign.py`,
 `campaign_base.py` and `capture_observation.py` are in the runner and Vision hashes. These edits change the identity
 recorded by future runs only. Retained verdicts replay through `scripts/analysis/replay_frozen.py`.
+
+**Review follow-up.** An independent review of commit `cafc0adcd` found no live path broken. Its findings led to these
+edits:
+- the retired `vision_run` host-diagnostic flags now say `retired: no effect`;
+- both spellings of the host-diagnostic key are refused (with a test);
+- the exclusion claim above is corrected;
+- four stale comments are fixed (`guarded_block.py` docstring, `evaluation_campaign.py` ARCH and runner names,
+  `vision_run` `--endpoint-binary` help).
+
+Analysis-suite counts are under the research Python (`$RESEARCH_PYTHON`).

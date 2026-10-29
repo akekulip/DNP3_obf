@@ -90,7 +90,7 @@ def load_config(path):
     validate_endpoint_profile(cfg)
     if cfg['traffic'].get('read_schedule') not in ('mixed_full','mixed','full'):
         raise ValueError('current campaign requires an explicit physical READ schedule')
-    if cfg.get('diagnostic_mau_snapshot') is not None or cfg.get('host_diagnostics'):
+    if cfg.get('diagnostic_mau_snapshot') is not None or cfg.get('host_diagnostics') or cfg.get('host_diagnostic'):
         raise ValueError('diagnostics are outside the current matrix')
     if cfg.get('timing_contract') != 'response_ready_ack_d_no_j_v3':
         raise ValueError('current campaign requires the D-only contract')

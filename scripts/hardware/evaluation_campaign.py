@@ -638,7 +638,7 @@ FREEZE_LISTING = re.compile(r'  (changed \S+|missing \S+( regenerate: .*| )?|not
                             r'DIAGNOSTIC EXCEPTION \(does not qualify\): .*)\Z')
 FREEZE_REFUSAL_RC = 3
 FREEZE_CHECKS = HERE.parents[1] / 'results/hardware/control/freeze_checks'      # guarded_block retains <run_id>.json here only after a passing check
-ARCH = HERE.parents[1]              # guarded_block.py: ARCH = HW.parents[3]
+ARCH = HERE.parents[1]              # the repository root, as in guarded_block.py
 REPO = ARCH              # guarded_block.py chdirs here; freeze records hold repo-relative paths
 RUN_BLOCK_LOG = HERE.parents[1] / 'results/hardware/control/run_block.log'  # guarded_block.log_event: START before entry, END/REFUSED after
 FRESH_CHECKS_NOTE = ('restore_verify check 1 (runner restore record) is satisfied by the BASELINE block\'s historical '
@@ -737,7 +737,7 @@ def classify_step_evidence(run_root, command_log, terminal, run_id, run_block_lo
     return summary
 
 
-# A runner (hw_vepa campaign.Campaign) that failed inside deploy() -- vision_identity + deploy_switch -- changed no switch
+# A runner (campaign.Campaign) that failed inside deploy() -- vision_identity + deploy_switch -- changed no switch
 # or Vision state: those steps copy helper files into the run directories and verify hashes (Campaign.deploy_only:
 # "changes no switch or Vision state"); switch_toolkit (read-only observation and $PORT snapshot) and vision_setup (the
 # first state change) never ran. These are the exact labels of those steps (they must equal the runners' step labels;
