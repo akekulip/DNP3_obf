@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """DNP3-over-TCP codec with validation: CRCs, reassembly, and response checking.
 
-What this adds over the frozen `implementation/harness/dnp3_wire.py`, which is kept
-byte-identical because it is part of the record of what ran:
+What this adds over the archived `implementation/harness/dnp3_wire.py` (under
+Archive/tracked/original/defense4/timing/), kept byte-identical as part of the record of what ran:
 
   * every per-block CRC is verified rather than skipped;
   * frames are reassembled across TCP reads, and bytes past the end of a frame are
@@ -12,7 +12,7 @@ byte-identical because it is part of the record of what ran:
   * a response is validated against the request it is supposed to answer, so a stale or
     unrelated response cannot be accepted as a completion.
 
-Frame layout, from the reference response embedded in the frozen `dnp3_wire.py`:
+Frame layout, from the reference response embedded in that `dnp3_wire.py`:
 
     05 64 LEN CTRL DST DST SRC SRC CRC CRC | [16 bytes user data + CRC CRC] ...
 

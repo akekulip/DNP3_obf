@@ -21,8 +21,8 @@ atomically per packet, so rule k consumes the k-th matching packet and the N-th 
 delete race, nothing to slip between a counter read and a rule deletion. Burst 1 on every rule (rather than one rule
 with burst N-1) also keeps the credit arithmetic of xt_limit far from its 32-bit overflow. Counters are then read
 back (`iptables -L -v -n -x`): the DROP rule must show exactly 1 packet of exactly the class's IP length and the
-ACCEPT rules N-1 packets in total. That proves the rules fired, not WHICH packet it was in the capture; see
-identify() for that. Rules are removed in a finally block and the chain is compared with its state before.
+ACCEPT rules N-1 packets in total. That proves the rules fired, not WHICH packet it was in the capture. Rules are
+removed in a finally block and the chain is compared with its state before.
 """
 import re
 
@@ -50,7 +50,7 @@ CLASSES = {
     # A per-class read_resp_class0 / read_resp_integrity drop would mis-stamp the class and is not offered. Class-
     # SPECIFIC recovery for a single-frame class needs a single-class workload (candidate_series series_read_class),
     # where that class is the only READ on the wire so its response length is unambiguous. The natively segmented
-    # large-DB class0/integrity (two frames) have no single-length selector at all (read_resp_class -> NOT_EXERCISED).
+    # large-DB class0/integrity (two frames) have no single-length selector at all.
     'read_resp_analog': {'dir': 'O>M', 'ip_len': 40 + 141, 'flags': 'ACK,PSH', 'what': 'a 141 B single-frame READ response (base analog or a range READ padded to 141; not distinguished)'},
     'read_resp_247': {'dir': 'O>M', 'ip_len': 40 + 247, 'flags': 'ACK,PSH', 'what': 'a 247 B single-frame READ response (base class0 or integrity; not distinguished)'},
     # Two-READ-target profile (m12p_c23+). Native arms: the mixed READ's 91 B single-frame response (the full READ's
@@ -90,9 +90,8 @@ ALIASES = {
     'master_ack_of_padded': ('master_ack', lambda reads: 1),
     'master_ack_of_padded_data': ('master_ack', lambda reads: 1),
 }
-# Classes whose dropped packet must be shown, from the capture, to be an in-session master pure ACK that newly
-# acknowledges a padded data frontier (not the handshake ACK, not the ACK of a FIN). `master_ack_of_padded` selects
-# by occurrence only; on candidate56r_single_loss_03 its n=2 hit the ACK of the outstation FIN.
+# Classes marked data_ack in the drop spec: the target is an in-session master pure ACK that newly acknowledges a
+# padded data frontier (not the handshake ACK, not the ACK of a FIN); `master_ack_of_padded` selects by occurrence only.
 DATA_ACK = {'master_ack_of_padded_data'}
 PADDED_LEN = 58
 # @LEN / @LEN/READLEN bound. LEN is the padded response's TCP PAYLOAD length -- the aggregate encoded DNP3 octets of
@@ -110,24 +109,6 @@ def names():
 
 def receiver_ns(direction):
     return NS_O if direction == 'M>O' else NS_M
-
-
-def read_resp_class(drop_class, single_frame_lengths):
-    """Validate a single-frame READ-response loss selector against a database's single-frame response lengths --
-    the set of sum(native_segments) over every READ class that is exactly one link frame on that database --
-    returning (selector, None) when a single-frame response of the selector's length exists, else
-    (None, NOT_EXERCISED reason). A length carried only by a natively segmented class (large-DB class0/integrity,
-    two frames) is NOT_EXERCISED; so is an unknown selector, including a per-class read_resp_class0 /
-    read_resp_integrity, which this selector cannot distinguish from each other at 247 B."""
-    length = READ_RESP_LEN.get(drop_class)
-    if length is None:
-        return None, ('NOT_EXERCISED: %r is not a single-frame READ-response loss selector; the selector cannot '
-                      'distinguish READ classes of the same length (use one of %s)'
-                      % (drop_class, sorted(READ_RESP_LEN)))
-    if length not in single_frame_lengths:
-        return None, ('NOT_EXERCISED: no single-frame %d-byte READ response on this database (segmented or absent); '
-                      'the single-length loss selector targets one link frame only' % length)
-    return drop_class, None
 
 
 def parse_drop(text, reads):
@@ -291,234 +272,3 @@ class LossRule:
                 'remove_errors': self.remove_errors, 'state_before': self.state_before,
                 'state_after': self.state_after,
                 'state_restored': self.state_before is not None and self.state_before == self.state_after}
-
-
-# ---------------------------------------------------------------------------------------------------------------
-# Capture-side identification and the loss-trial gate (workstation side; uses wire_check's pcap reader)
-
-FLAG_BITS = {'ACK': 0x10, 'PSH': 0x08}
-FLAG_MASK_BITS = 0x01 | 0x02 | 0x04 | 0x08 | 0x10          # FIN SYN RST PSH ACK, as in FLAGS_MASK
-MASTER_IP, OUTSTATION_IP = '192.168.10.61', '192.168.10.62'
-NATIVE = {'READ': 49, 'SELECT': 37, 'OPERATE': 37}
-
-
-def _flags_value(text):
-    v = 0
-    for f in text.split(','):
-        v |= FLAG_BITS[f]
-    return v
-
-
-def _matches(seg, spec, master_port, outstation_port):
-    src, sport, dport = ((MASTER_IP, master_port, outstation_port) if spec['dir'] == 'M>O'
-                         else (OUTSTATION_IP, outstation_port, master_port))
-    ip_len = int.from_bytes(seg['frame'][16:18], 'big')
-    return (seg['src'] == src and seg['sport'] == sport and seg['dport'] == dport and ip_len == spec['ip_len'] and
-            (seg['flags'] & FLAG_MASK_BITS) == _flags_value(spec['flags']))
-
-
-def _seg_view(s):
-    return {'index': s['index'], 'seq': s['seq'], 'ack': s['ack'], 'len': s['len'],
-            'ip_len': int.from_bytes(s['frame'][16:18], 'big'), 't_us': s['t_us']}
-
-
-def identify(out_pcap, in_pcap, spec, master_port, outstation_port):
-    """Which packet did the rule drop? The iptables counters prove a rule fired, not which packet it hit, and tcpdump
-    taps the NIC before netfilter, so the dropped frame is still in in.pcap. Candidates are the in.pcap frames of the
-    configured class (direction, ports, IP length, flags) in arrival order; the target is the spec's occurrence.
-    A dropped data frame is found again as a later copy with the same sequence number (the retransmission):
-    recovery is the arrival of that copy (response classes) or of the next outstation data frame (request classes).
-    A dropped pure ACK has no retransmission; progress is the delay to the next outstation data frame."""
-    import wire_check as wc
-    ins, _ = wc.parse(in_pcap)
-    outs, _ = wc.parse(out_pcap)
-    flow_ok = lambda s: {s['sport'], s['dport']} == {master_port, outstation_port}
-    ins = sorted((s for s in ins if flow_ok(s)), key=lambda s: (s['t_us'], s['index']))
-    cands = [s for s in ins if _matches(s, spec, master_port, outstation_port)]
-    res = {'identified': False, 'candidates': len(cands), 'packet': None, 'copies_returned': None,
-           'retransmitted': None, 'first_retx_delay_us': None, 'recovery_us': None, 'progress_us': None,
-           'retransmissions_sent': None}
-    seen = {}
-    for s in outs:
-        if flow_ok(s) and s['len'] > 0:
-            seen.setdefault((s['src'], s['seq']), []).append(s)
-    res['retransmissions_sent'] = sum(len(v) - 1 for v in seen.values())
-    if len(cands) < spec['occurrence']:
-        return res
-    t = cands[spec['occurrence'] - 1]
-    res['identified'], res['packet'] = True, _seg_view(t)
-    if t['len'] == 0:
-        nxt = next((s for s in ins if s['t_us'] > t['t_us'] and s['src'] == OUTSTATION_IP and s['len'] > 0), None)
-        res['progress_us'] = nxt['t_us'] - t['t_us'] if nxt else None
-        if t['src'] == MASTER_IP:
-            res.update(data_ack_facts(ins, [x for x in outs if flow_ok(x)], t, spec.get('padded_len', PADDED_LEN)))
-        return res
-    copies = [s for s in ins if s['src'] == t['src'] and s['seq'] == t['seq'] and s['len'] > 0]
-    res['copies_returned'] = len(copies)
-    res['retransmitted'] = len(copies) > 1
-    if res['retransmitted']:
-        res['first_retx_delay_us'] = copies[1]['t_us'] - copies[0]['t_us']
-        if spec['dir'] == 'O>M':
-            res['recovery_us'] = copies[1]['t_us'] - t['t_us']
-        else:
-            nxt = next((s for s in ins if s['t_us'] > copies[1]['t_us'] - 1 and s['src'] == OUTSTATION_IP and s['len'] > 0), None)
-            res['recovery_us'] = nxt['t_us'] - t['t_us'] if nxt else None
-    return res
-
-
-def _seq_ge(a, b):
-    return ((a - b) & 0xFFFFFFFF) < 0x80000000
-
-
-def data_ack_facts(ins, outs, t, padded_len=PADDED_LEN):
-    """What a dropped master pure ACK `t` acknowledged, and how the connection recovered from its loss.
-
-    in.pcap holds what the switch emitted toward each endpoint, so `t` (a master packet heading to the outstation)
-    carries the reverse-translated, NATIVE acknowledgment, while outstation data in in.pcap is in the padded
-    (wire) sequence space. The covered segment is therefore found in out.pcap (the outstation's native stream):
-    the data segment whose end equals t's ACK. It is a padded frontier when the switch delivered that same
-    segment (same position among the outstation's distinct data segments) to the master as PADDED_LEN octets.
-    before_fin: no FIN from either side up to and including `t`. Recovery is a later master segment whose
-    (native) ACK covers the same frontier (cumulative_ack; no retransmission needed) or a later outstation
-    retransmission of the covered native segment; the earlier of the two is recorded with its delay."""
-    def distinct_data(segs):
-        seen, out = set(), []
-        for s in segs:
-            if s['src'] == OUTSTATION_IP and s['len'] > 0 and s['seq'] not in seen:
-                seen.add(s['seq'])
-                out.append(s)
-        return out
-    native, wire = distinct_data(outs), distinct_data(ins)
-    k = next((i for i, s in enumerate(native) if (s['seq'] + s['len']) & 0xFFFFFFFF == t['ack']), None)
-    covered = native[k] if k is not None else None
-    delivered = wire[k] if k is not None and k < len(wire) else None
-    upto = [s for s in ins if (s['t_us'], s['index']) <= (t['t_us'], t['index'])]
-    fin_seen = any(s['flags'] & 0x01 for s in upto)
-    after = [s for s in ins if (s['t_us'], s['index']) > (t['t_us'], t['index'])]
-    cum = next((s for s in after if s['src'] == MASTER_IP and s['flags'] & 0x10 and _seq_ge(s['ack'], t['ack'])), None)
-    retx = next((s for s in outs if covered and s['src'] == OUTSTATION_IP and s['seq'] == covered['seq']
-                 and s['len'] > 0 and s['t_us'] > t['t_us']), None)
-    events = sorted([e for e in (('cumulative_ack', cum), ('retransmission', retx)) if e[1]],
-                    key=lambda e: e[1]['t_us'])
-    mech, by = events[0] if events else (None, None)
-    return {'covers_padded_frontier': bool(delivered and delivered['len'] == padded_len
-                                           and covered['len'] < padded_len),
-            'covered_segment': _seg_view(covered) if covered else None,
-            'delivered_segment': _seg_view(delivered) if delivered else None,
-            'before_fin': not fin_seen, 'recovery_mechanism': mech,
-            'cover_us': by['t_us'] - t['t_us'] if by else None, 'covered_retransmitted': retx is not None}
-
-
-def _growth(timing, padded, control_padding=True, image_len=58, read_image_len=None, read_native=None):
-    """(observed growth bytes over native, expected from the exchanges that actually completed). Under the
-    strict-response policy (control_padding False) SELECT/OPERATE responses stay native and add nothing.
-    read_native: the native length of the workload's one READ class (default the range READ's 49)."""
-    native = dict(NATIVE, READ=read_native or NATIVE['READ'])
-    ex = [e for e in (timing or {}).get('exchanges', []) if e.get('resp_len') and e.get('complete', True)]
-    obs = sum(e['resp_len'] - native.get(e['kind'], e['resp_len']) for e in ex)
-    exp = (((read_image_len or image_len) - native['READ']) * sum(1 for e in ex if e['kind'] == 'READ') +
-           ((image_len - NATIVE['SELECT']) if control_padding else 0) *
-           sum(1 for e in ex if e['kind'] in ('SELECT', 'OPERATE'))) if padded else 0
-    return obs, exp
-
-
-def evaluate_loss(arm, reads, max_recovery_s, spec, rule, ident, master, ost, wire, timing, exp,
-                  baseline_completion_s=None):
-    """The gate for a loss trial -> (failures, result). A failed recovery is a recorded result, never an exception.
-
-    Required: the rule counters exact and the rules removed; the dropped packet found in the capture; for a dropped
-    data frame a retransmission and recovery within `max_recovery_s`; the master completed every READ and matched
-    the seed; exactly one real SELECT and one real OPERATE callback and no decoy; no CRC/checksum error and no
-    spurious unmatched frame on the returned side; master-visible growth exactly 9 B per READ response and 21 B per
-    control response delivered (0 with padding off). Retransmissions are allowed and counted."""
-    fails = []
-    res = {'class': spec['class'], 'n': spec['n'], 'occurrence': spec['occurrence'], 'dir': spec['dir'],
-           'ip_len': spec['ip_len'], 'length_only': spec.get('length_only', False), 'max_recovery_s': max_recovery_s}
-    if rule is None:
-        fails.append('no loss record from Vision (the rule was not installed or the run died before recording it)')
-    else:
-        res['rule'] = {k: rule.get(k) for k in ('exact', 'dropped_packets', 'dropped_bytes', 'removed', 'state_restored',
-                                                'remove_errors')}
-        if not rule.get('exact'):
-            fails.append('loss rule counters not exact (dropped_packets=%s, dropped_bytes=%s, wanted 1 packet of %d B '
-                         'after %d earlier matches)' % (rule.get('dropped_packets'), rule.get('dropped_bytes'),
-                                                        spec['ip_len'], spec['occurrence'] - 1))
-        if not rule.get('removed') or rule.get('remove_errors') or not rule.get('state_restored'):
-            fails.append('loss rules not removed cleanly: %s' % (rule.get('remove_errors') or 'chain differs from before'))
-    res['packet'] = ident.get('packet') if ident else None
-    res['identified'] = bool(ident and ident.get('identified'))
-    if not res['identified']:
-        fails.append('dropped packet not found in the capture (%s candidates of the class, wanted occurrence %d)'
-                     % (ident.get('candidates') if ident else None, spec['occurrence']))
-    else:
-        for k in ('copies_returned', 'retransmitted', 'progress_us', 'candidates'):
-            res[k] = ident.get(k)
-        res['retransmissions'] = ident.get('retransmissions_sent')
-        res['first_retx_delay_ms'] = round(ident['first_retx_delay_us'] / 1000.0, 3) \
-            if ident.get('first_retx_delay_us') is not None else None
-        if spec.get('data_ack'):
-            for k in ('covers_padded_frontier', 'before_fin', 'recovery_mechanism', 'covered_retransmitted'):
-                res[k] = ident.get(k)
-            res['cover_ms'] = round(ident['cover_us'] / 1000.0, 3) if ident.get('cover_us') is not None else None
-            if not ident.get('covers_padded_frontier'):
-                fails.append('dropped ACK does not newly acknowledge a padded data frontier (ack %s)'
-                             % ident['packet'].get('ack'))
-            if not ident.get('before_fin'):
-                fails.append('dropped ACK is not in session: a FIN precedes it')
-            if ident.get('recovery_mechanism') is None:
-                fails.append('no later cumulative ACK or retransmission covers the dropped ACK')
-            elif ident['cover_us'] / 1e6 > max_recovery_s:
-                fails.append('cover %.3f s exceeds the %.3f s bound' % (ident['cover_us'] / 1e6, max_recovery_s))
-            if ident.get('progress_us') is None:
-                fails.append('no outstation data after the dropped ACK: no progress shown')
-        if ident['packet']['len'] > 0:
-            if not ident.get('retransmitted'):
-                fails.append('dropped data packet (seq %d) was never retransmitted' % ident['packet']['seq'])
-            elif ident.get('recovery_us') is None:
-                fails.append('no recovery observed after the retransmission')
-        if ident.get('recovery_us') is not None:
-            res['recovery_s'] = round(ident['recovery_us'] / 1e6, 6)
-            if res['recovery_s'] > max_recovery_s:
-                fails.append('recovery %.3f s exceeds the %.3f s bound' % (res['recovery_s'], max_recovery_s))
-    m = master or {}
-    res['completed'] = bool(m.get('success') and m.get('reads_completed') == reads and m.get('all_reads_match_seed'))
-    if not res['completed']:
-        fails.append('master did not complete: success=%r, %r of %d READs, seed match %r'
-                     % (m.get('success'), m.get('reads_completed'), reads, m.get('all_reads_match_seed')))
-    if m.get('issued_ns') and m.get('completed_ns'):
-        res['completion_s'] = round((m['completed_ns'] - m['issued_ns']) / 1e9, 3)
-        if baseline_completion_s is not None:
-            res['baseline_completion_s'] = baseline_completion_s
-            res['completion_delta_s'] = round(res['completion_s'] - baseline_completion_s, 3)
-    o = ost or {}
-    res['callbacks'] = {k: o.get(k) for k in ('select_real', 'select_decoy', 'operate_real', 'operate_decoy')}
-    once = True
-    for k in ('select_real', 'operate_real'):
-        if o.get(k) != 1:
-            once = False
-            fails.append('exactly-once violated: %s=%r, expected exactly 1' % (k, o.get(k)))
-    for k in ('select_decoy', 'operate_decoy'):
-        if o.get(k):
-            once = False
-            fails.append('decoy callback: %s=%r' % (k, o.get(k)))
-    res['exactly_once'] = once
-    w = wire or {}
-    ri = w.get('returned_integrity', {})
-    if ri.get('tcp_checksum_bad'):
-        fails.append('returned frames with a bad IP/TCP checksum: %s' % ri['tcp_checksum_bad'])
-    if ri.get('dnp3_crc_bad'):
-        fails.append('returned frames with a bad DNP3 CRC: %s' % ri['dnp3_crc_bad'])
-    if w.get('unmatched_returned'):
-        fails.append('%d unmatched returned segment(s): a frame the switch emitted that no sender frame explains'
-                     % len(w['unmatched_returned']))
-    res['duplicate_returned'] = len(w.get('duplicate_returned') or [])
-    ctl, image = bool(arm.get('control_padding', True)), int(arm.get('image_len', 58))
-    read_image = int(arm.get('read_image_len', image))
-    read_native = int(arm.get('read_native', NATIVE['READ']))
-    res['growth_bytes'], res['expected_growth_bytes'] = _growth(timing, bool(arm['padding']), ctl, image, read_image,
-                                                                read_native)
-    if res['growth_bytes'] != res['expected_growth_bytes']:
-        fails.append('growth %d B != %d B expected from the responses delivered (%d per READ, %d per control response)'
-                     % (res['growth_bytes'], res['expected_growth_bytes'], read_image - read_native,
-                        image - NATIVE['SELECT'] if ctl else 0))
-    return fails, res

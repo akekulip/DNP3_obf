@@ -71,11 +71,10 @@ def block(tool, config, run_id, arguments, freeze=None):
            for arg in arguments):
         raise ValueError('wrapper owns --config, --run-id and --apply')
     config = Path(config).resolve(strict=True)
-    if freeze is not None:
-        freeze = str(Path(freeze).resolve())
-        frozen = json.loads(Path(freeze).read_text())
-        if frozen.get('freeze_version') != 'freeze-v3-20261017':
-            raise ValueError('current hardware requires a qualifying candidate freeze')
+    freeze = str(Path(freeze).resolve())
+    frozen = json.loads(Path(freeze).read_text())
+    if frozen.get('freeze_version') != 'freeze-v3-20261017':
+        raise ValueError('current hardware requires a qualifying candidate freeze')
     cfg = json.loads(config.read_text())
     os.chdir(ARCH)
     supplied_root = ARCH / cfg['evidence_dir'] / run_id
@@ -98,11 +97,10 @@ def block(tool, config, run_id, arguments, freeze=None):
         with tempfile.TemporaryDirectory(prefix='run_block_%s_' % run_id) as temp:
             temp = Path(temp)
             freeze_record = temp / 'freeze_check.json'
-            if freeze is not None:
-                rc = subprocess.run([sys.executable, str(HW / 'freeze_gate.py'), 'check', freeze,
-                                     '--config', str(config), '--record', str(freeze_record)]).returncode
-                if rc:
-                    return 3
+            rc = subprocess.run([sys.executable, str(HW / 'freeze_gate.py'), 'check', freeze,
+                                 '--config', str(config), '--record', str(freeze_record)]).returncode
+            if rc:
+                return 3
             command = [sys.executable, str(HW / (tool + '.py'))]
             options = ['--config', str(config), '--run-id', run_id] + arguments
             plan = temp / 'plan.out'
@@ -116,9 +114,8 @@ def block(tool, config, run_id, arguments, freeze=None):
                 return 0
             # Recheck immediately before entry; preflight refusal never calls restore.
             refuse_retained(root, record, run_id)
-            if freeze is not None:
-                record.parent.mkdir(exist_ok=True)
-                copy_new(freeze_record, record)
+            record.parent.mkdir(exist_ok=True)
+            copy_new(freeze_record, record)
             log_event('START %s %s' % (tool, run_id))
             run = temp / 'run.out'
             env = dict(os.environ, DEFENSE4_HW_AUTHORIZED='1')
@@ -160,8 +157,7 @@ def block(tool, config, run_id, arguments, freeze=None):
                 copy_new(plan, root / 'run_block_plan.out')
                 copy_new(run, root / 'run_block_run.out')
                 copy_new(restore, root / 'restore_verify.out')
-                if freeze is not None:
-                    copy_new(freeze_record, root / 'freeze_check.json')
+                copy_new(freeze_record, root / 'freeze_check.json')
             except (OSError, KeyboardInterrupt) as error:
                 sys.stderr.write('could not retain wrapper evidence: %s\n' % error)
                 return 2

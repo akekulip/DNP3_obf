@@ -4,8 +4,9 @@
 - pipe_scope is forced to [0] for p0 and [1] for p1: the switch has two pipes and the SDE rejects any pipe
   >= num_pipes (dvm.c), so the compiler's [0, 2] / [1, 3] cannot load.
 - every path points at --remote-dir (the persistent copy on the switch), absolute.
-- PCIe prefix: the value in the conf that loaded on 2026-09-17 (audit_current/hardware_20260917/frozen_abs.conf),
-  0000:04:00.0. The compiler writes 0000:05:00.0, which failed that day. --pcie must agree or this exits 1.
+- PCIe prefix: the value in the conf that loaded on 2026-09-17
+  (Archive/tracked/original/defense4/timing/audit_current/hardware_20260917/frozen_abs.conf), 0000:04:00.0.
+  The compiler writes 0000:05:00.0, which failed that day. --pcie must agree or this exits 1.
 - agent0 (platform manager) is kept; model_json_path (a model-only file, absent from out/) is dropped.
 
   python3 make_conf.py <out/> --remote-dir /home/decps/Philip_repo/dnp3-defense4/<name>/out \

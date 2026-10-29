@@ -14,7 +14,8 @@ Order:
                       as NOT restored (exit 1)
 This leaves the composite loaded but unconfigured. Going back to the production program is a cold restart:
 stop bf_switchd, relaunch ~/Philip_repo/logs/bringup_20261005/launch.sh, replay $PORT with restore_ports.py
-(rehearsed 2026-10-06, audit_current/framework_20261005/RESTORATION_REHEARSAL_20261006.md).
+(rehearsed 2026-10-06, Archive/tracked/original/defense4/timing/audit_current/framework_20261005/
+RESTORATION_REHEARSAL_20261006.md).
 
   python3 bringup_teardown.py --manifest bringup_manifest.json [--apply]
 """

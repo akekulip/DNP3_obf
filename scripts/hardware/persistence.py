@@ -7,7 +7,6 @@ import re
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'checks'))
 HERE = Path(__file__).resolve().parent
-ARCH = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 sys.path[:0] = [str(HERE), str(HERE.parent / 'checks')]
 import campaign as candidate_campaign
@@ -120,16 +119,6 @@ def lifecycle_gate(snapshot, close_mode='graceful'):
         failures.append(str(error))
     return (failures, observed)
 
-def read_handshake_build(build):
-    """True when the build's recorded transforms include N's 'READ completes the handshake' row (m12p_c28+), whose
-    declared consequence is that a late final handshake ACK overtaken by the READ is dropped (vision_candidate
-    overtaken_handshake_acks). Read from the build's own response_only.inputs.json beside its compile directory."""
-    inputs = ARCH / Path(build['manifest']).parents[1] / 'response_only.inputs.json'
-    try:
-        return 'n_read_completes_handshake' in json.loads(inputs.read_text()).get('transforms_applied', [])
-    except (OSError, ValueError):
-        return False
-
 def _mapper_reg(snapshot, name, field=None):
     if snapshot.get('valid') is not True or snapshot.get('errors') or snapshot.get('software_read_fallbacks'):
         raise ValueError('mapper requires a complete hardware lifecycle read')
@@ -174,8 +163,6 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
         super().__init__(*args, scenario=None, **kwargs)
         self.close_mode = close_mode
         self.rst_grace_ms = rst_grace_ms
-        self._series_padding = None
-        self._series_arm = None
         self._validate_series_shape()
         self.record['candidate_series'] = {'close_mode': close_mode, 'rst_grace_ms': rst_grace_ms, 'connections': 3, 'effective_endpoint_controls': {'read_pause_ms': 25, 'run_sbo': True, 'close_grace_ms': rst_grace_ms if close_mode == 'rst' else 0}, 'limitations': list(LIMITATIONS)}
 
@@ -236,17 +223,11 @@ class CandidateSeriesCampaign(candidate_campaign.CandidateCampaign):
 
     def run_unit(self, unit, port):
         old = base.runner.vision_cmd
-        self._series_padding = unit['arm']['padding']
-        self._series_control_padding = int(self.cfg['builds'][unit['arm']['build']].get('control_padding', True))
-        self._series_build = unit['arm']['build']
-        self._series_arm = unit['arm']
         base.runner.vision_cmd = self.series_vision_cmd
         try:
             return super().run_unit(unit, port)
         finally:
             base.runner.vision_cmd = old
-            self._series_padding = None
-            self._series_arm = None
 
     def snapshot(self, out_remote, name, check=True, preset=None):
         result = super().snapshot(out_remote, name, check=check, preset=preset)

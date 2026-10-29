@@ -31,7 +31,6 @@ ROLES = ('ack', 'resp')
 FIXTURES = ('physical_relay',)
 LADDER = (0, 58, 232, 930, 3723, 14892, 59570, 238281)
 HEX64 = re.compile('[0-9a-f]{64}')
-HEX40 = re.compile('[0-9a-f]{40}')
 DIAG_MIRROR_KEYS = ('state', 'copy_port', 'capture_interface', 'build_label', 'source_sha256')
 
 def validate_diag_mirror(cfg, arms):
@@ -110,8 +109,6 @@ def load_config(path):
         raise ValueError('planned READ/trial counts must be positive')
     validate_profile(cfg)
     return cfg
-TWO_READ_LOSS_SELECTORS = {'mixed': frozenset({'request_mixed', 'read_resp_91', 'read_resp_padded_141'}), 'integrity': frozenset({'request_full', 'read_resp_247', 'read_resp_padded_271'})}
-SINGLE_CLASS_LOSS_SELECTORS = frozenset({'ack_sep', 'read_resp_padded', 'select_resp_padded', 'operate_resp_padded', 'select_resp_native', 'operate_resp_native', 'control_resp_native', 'select_req', 'operate_req', 'control_req', 'master_ack', 'master_ack_of_padded', 'master_ack_of_padded_data'})
 RETIRED_EVALUATION_KEYS = ('purpose', 'read_precision', 'host_precision_gated', 'precision_reference')
 
 def reported_evaluation(evaluation):
@@ -636,17 +633,8 @@ class Campaign:
         any added point."""
         return ' --relay-padding %d' % arm['padding']
 
-    def endpoint_binary_name(self):
-        """The endpoint file on Vision: endpoint.binary when configured, else the pad58b endpoint."""
-        return self.cfg['endpoint'].get('binary', os.path.basename(vr.BIN))
-
     def endpoint_binary_arg(self):
         return ' --endpoint-binary %s' % q(self.cfg['endpoint']['binary']) if 'binary' in self.cfg['endpoint'] else ''
-
-    def read_policy_arg(self, trial, arm, unbound_native=False):
-        """clrt_check --read-policy for a build with a per-class READ declaration, else ''. unbound_native: a
-        connection the switch has no rows for (reconnect c2), whose READs are expected native."""
-        return ''
 
     def execute(self):
         dry = self.rn.dry
@@ -817,13 +805,6 @@ class Campaign:
         """separate_ack: the emulated relay (separate ACK, delayed response); piggyback: fixture off."""
         self.record['fixture'] = dict(mode='physical_relay', emulated=False)
         return
-
-    def check_hash(self, result, want, what):
-        if self.rn.dry:
-            return
-        got = (result.out.split() or ['<none>'])[0]
-        if got != want:
-            raise StepFailed('%s: sha256 %s does not match the pinned %s' % (what, got, want))
 
     def arm_record(self, fixture, arm):
         for rec in self.record['arms']:
@@ -1042,12 +1023,6 @@ class Campaign:
 
     def verdict(self, trial, rec, label, dest, v, arm, fixture):
         return self.relay_verdict(trial, rec, label, dest, v, arm, fixture)
-
-    def _vision_json(self, v):
-        try:
-            return json.loads([l for l in v.out.splitlines() if l.startswith('{')][-1])
-        except (IndexError, ValueError, AttributeError):
-            return {'error': ((v.out if v else '') + (v.err if v else ''))[-500:]}
 
     def verdict_loss(self, trial, rec, label, dest, v, arm, fixture, unit, port):
         self.relay_verdict(trial, rec, label, dest, v, arm, fixture, raise_on_failure=False)

@@ -6,7 +6,7 @@
 #
 #   bash run_block_frozen.sh FREEZE.json TOOL CONFIG RUN_ID [TOOL ARGS...]   (stdin from /dev/null)
 #
-# Exit 3: the freeze check failed (nothing on the switch touched). Otherwise run_block.sh's own exit status:
+# Exit 3: the freeze check failed (nothing on the switch touched). Otherwise guarded_block.py's exit status:
 # 0 block and restore passed; 1 block failed, restore verified; 2 restore NOT verified (stop all hardware).
 set -u
 HW="$(cd "$(dirname "$0")" && pwd)"

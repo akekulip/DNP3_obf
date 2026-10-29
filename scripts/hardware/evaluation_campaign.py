@@ -182,7 +182,7 @@ def read_state(directory):
 def unit_name(directory, identity, suffix):
     # Path salt avoids collisions with another persistent storage location.
     salt = digest(str(directory).encode())[:12]
-    unit = 'dnp3-eval-%s-%s-%s.service' % (identity, salt, suffix)   # dnp3-eval-* for monitoring (review R1)
+    unit = 'dnp3-eval-%s-%s-%s.service' % (identity, salt, suffix)   # dnp3-eval-* for monitoring
     if len(unit) > 240 or not re.fullmatch(r'[A-Za-z0-9_-]+\.service', unit):
         raise Refused('unsafe generated service unit')
     return unit
@@ -195,7 +195,7 @@ class Systemd:
             raise Refused('unsafe unit name')
         return ['systemd-run', '--user', '--no-block', '--unit=' + unit,
                 '--property=Restart=no', '--property=RemainAfterExit=yes',
-                # nothing of the launching session: no stdin, no forwarded agent (review R1)
+                # nothing of the launching session: no stdin, no forwarded agent
                 '--property=StandardInput=null', '--property=UnsetEnvironment=SSH_AUTH_SOCK SSH_AGENT_PID',
                 '--property=WorkingDirectory=' + str(cwd), '--'] + list(argv)
 
@@ -212,8 +212,8 @@ class Systemd:
         values = dict(line.split('=', 1) for line in result.stdout.splitlines() if '=' in line)
         if values.get('Job') and values.get('ActiveState') in ('inactive', 'failed'):
             # a queued start job (only an inactive unit with a pending job; a stopping or reloading unit keeps its
-            # own state, review W2b): launched but not yet running, not ambiguous (review W1: --no-block start on a
-            # loaded host could otherwise read as inactive and stop the campaign); bounded in advance()
+            # own state): launched but not yet running, not ambiguous (a --no-block start on a loaded host would
+            # otherwise read as inactive and stop the campaign); bounded in advance()
             return 'queued'
         if values.get('LoadState') == 'not-found':
             return 'absent'
@@ -320,7 +320,7 @@ def advance(directory, manager=None, now=None):
                 service = manager.state(state['active_unit'])
                 launched = (state['steps'].get(step['id']) or {}).get('launched')
                 if service == 'queued' and launched is not None and now - launched > QUEUED_LIMIT_S:
-                    # cancel the queued job so it cannot start hardware later with no controller (review W2a)
+                    # cancel the queued job so it cannot start hardware later with no controller
                     manager.cancel(state['active_unit'])
                     after = manager.state(state['active_unit'])
                     raise Refused('start job still queued %d s after launch; cancelled (state now %s); not run, not '
@@ -596,7 +596,7 @@ def running_eval_units():
         fields = line.split()
         if len(fields) >= 4 and fields[2] in ACTIVE and fields[3] != 'exited':
             busy.append(fields[0])
-    # a queued start job shows as 'inactive dead' in list-units (review): list jobs as well
+    # a queued start job shows as 'inactive dead' in list-units: list jobs as well
     jobs = subprocess.run(['systemctl', '--user', 'list-jobs', 'dnp3-eval-*', '--plain', '--no-legend', '--no-pager'],
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if jobs.returncode:
@@ -740,8 +740,9 @@ def classify_step_evidence(run_root, command_log, terminal, run_id, run_block_lo
 # A runner (hw_vepa campaign.Campaign) that failed inside deploy() -- vision_identity + deploy_switch -- changed no switch
 # or Vision state: those steps copy helper files into the run directories and verify hashes (Campaign.deploy_only:
 # "changes no switch or Vision state"); switch_toolkit (read-only observation and $PORT snapshot) and vision_setup (the
-# first state change) never ran. These are the exact labels of those steps (tests/test_reconcile.py keeps them equal
-# to campaign.py's). A block whose run root proves it stopped there is a PREFLIGHT failure, not an unverified restore.
+# first state change) never ran. These are the exact labels of those steps (they must equal the runners' step labels;
+# no current test checks that). A block whose run root proves it stopped there is a PREFLIGHT failure, not an
+# unverified restore.
 # Scope of "no state": the testbed state restore_verify.py checks (running program, $PORT tables, Vision namespaces,
 # qdisc and NIC flags, relay slot, ping path). The first step DOES overwrite helper files in the Vision run directory
 # (vision_run.py, loss.py, capture_observation.py, wire_check.py, hash-verified next) and the switch run directory's
@@ -852,7 +853,7 @@ def frozen_argv(step):
     if len(argv) < 6 or Path(argv[1]).name != 'run_block_frozen.sh':
         raise ValueError('step %s argv is not a run_block_frozen.sh invocation' % step['id'])
     # guarded_block writes run_block.log beside its own copy; the no-contact proof reads this checkout's log, so the
-    # step must have run this checkout's wrapper (review W1).
+    # step must have run this checkout's wrapper.
     if Path(argv[1]).resolve() != (HERE / 'run_block_frozen.sh').resolve():
         raise ValueError('step %s ran a wrapper outside this checkout: %s' % (step['id'], argv[1]))
     return argv[4], argv[5]
@@ -999,7 +1000,7 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
             config, run_id = frozen_argv(step)
             step_bytes = Path(config).read_bytes()
             step_cfg = json.loads(step_bytes)
-            bound['step_config'] = digest(step_bytes)        # the version compared below (review W2)
+            bound['step_config'] = digest(step_bytes)        # the version compared below
             if (ARCH / step_cfg['evidence_dir'] / run_id).resolve() != Path(step['run_root']).resolve():
                 problems.append('step run root is not the one guarded_block derives from its config and run ID')
         except (KeyError, TypeError, ValueError, OSError) as error:
@@ -1153,17 +1154,10 @@ def reconcile_no_contact(directory, step, root, units, verifier, stamp, baseline
 
 VISION_RESTORE_STEP = 'Vision: fixture off, namespace profile and NIC flag restored'
 REPAIRED_ONLY_FAILURE = "runner restore step(s) failed: ['%s']" % VISION_RESTORE_STEP
-# sha256 of capture_observation.restore_rx_coalesce's source as reviewed (the two-step restore, commit 774300eed);
-# a repair is accepted only when it ran exactly this function (nic_repair.py deploys the committed blobs)
+# A nic_repair record (written by the archived nic_repair.py) is accepted only when it ran the reviewed
+# restore_rx_coalesce source and deployed exactly the reviewed capture_observation.py and wire_check.py blobs; the
+# pins are the historical reviewed values, not the current files.
 REVIEWED_RESTORE_RX_COALESCE_SHA256 = 'afe92338adf3139ea7e3ed5a2e4bba297cbae066a4185bb6b73733b561551fe7'
-# whole-file sha256 of the deployed blobs. Re-pinned 2026-10-24 after source review: since 774300eed the only
-# changes to the two deployed files are reviewed and leave restore_rx_coalesce itself unchanged (its source still
-# hashes to REVIEWED_RESTORE_RX_COALESCE_SHA256 above) -- capture_observation.py gained the CPU-latency diagnostic
-# functions after restore_rx_coalesce (3585631d7, two independent reviews), and wire_check.py got the same-sequence
-# pairing fix (fd95e0dc8) and the review-6.3 reorder fix (bd9a31fb8). The repair tool still deploys exactly these
-# reviewed blobs.
-# COUPLING: capture_observation.py imports wire_check, so the repair tool deploys BOTH; any reviewed edit to either
-# file changes a value here, and REVIEWED_DEPLOYED_SHA256 must be re-pinned (test_nic_repair enforces it).
 REVIEWED_DEPLOYED_SHA256 = {'capture_observation.py': '339e07eba34ef257f8e803fade535f54583b5e3ce0b083057cee2dc2194dd4de',
                             'wire_check.py': '742eded14f7dca1cb30c6d7ff41006e685cd93197ef6e5ead1d60a3a9335c953'}
 
@@ -1462,7 +1456,7 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
         if vision_host is not None and not sorted(records.glob('vision_unreachable_repair_*/repair.json')):
             problems.append('--vision-host needs a vision_unreachable_repair record for this step')
         if vision_host is not None:
-            # re-prove, under the lock, that the remapped address still leads to Vision (review W2)
+            # re-prove, under the lock, that the remapped address still leads to Vision
             try:
                 seen = identity(vision_host)
             except Exception as error:      # noqa: BLE001 - an unreachable host is a refusal, never a pass

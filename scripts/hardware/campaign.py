@@ -131,7 +131,6 @@ class CandidateCampaign(base.Campaign):
             if build.get('timing_contract') == 'response_ready_ack_d_no_j_v3':
                 raise HEADROOM.HeadroomError('no-J candidate requires its source-bound supported profile')
             raise HEADROOM.HeadroomError('physical SEL-751 candidate requires its source-bound supported profile')
-            return None
         if not isinstance(profile, dict):
             raise HEADROOM.HeadroomError('supported profile must be an object')
         if any((not isinstance(profile.get(key), dict) for key in ('candidate', 'encoding', 'timing_ns'))):

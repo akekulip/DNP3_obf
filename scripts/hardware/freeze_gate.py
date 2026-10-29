@@ -54,7 +54,7 @@ def closure_files(build):
 
 
 def manifest_artifacts(build, compile_dir):
-    """Every artifact a compile's manifest lists (review finding 2: context.json, .conf and .bfa are loaded too)."""
+    """Every artifact a compile's manifest lists (context.json, .conf and .bfa are loaded too)."""
     path = build / compile_dir / 'manifest.json'
     if not path.is_file():
         return []
@@ -191,13 +191,13 @@ def candidate_binding(frozen, config):
         problems += diagnostic_binding_problems(cand, cfg, build)
     elif cand['model']['qualification'] != 'model_gate_passed':
         problems.append('model gate %s and no diagnostic exception' % cand['model']['qualification'])
-    # review finding 4: an exception admits only a config that declares itself diagnostic (fail closed)
+    # an exception admits only a config that declares itself diagnostic (fail closed)
     if cand.get('diagnostic_exception') and cfg.get('purpose') != 'diagnostic':
         problems.append('diagnostic exception recorded, but config purpose is %r, not "diagnostic"' % cfg.get('purpose'))
     problems += ['compile: ' + p for p in compile_problems(build, cand['source_sha256'])]
     if diagnostic:
         return problems
-    # review finding 3: the model verdict is recomputed before every block; a later attempt or failure note blocks
+    # the model verdict is recomputed before every block; a later attempt or failure note blocks
     live = model_summary_module().summarize_v3(build)
     if (live['qualification'] != cand['model']['qualification']
             or live.get('latest_by_driver') != cand['model'].get('latest_by_driver')):

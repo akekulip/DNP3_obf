@@ -1,7 +1,5 @@
 """The only module that talks BF Runtime gRPC. Imported by bringup_composite.py, bringup_teardown.py, readback.py
-and snapshot_counters.py on the switch host; nothing here runs in dry-run. Patterns follow
-protocol/evidence/hw_first_traffic_01/scripts/install_connection.py (real add/delete on this switch) and
-case_a_defense3_fixed_ack_delay_setup.py (get_entry, set_app_enable).
+and snapshot_counters.py on the switch host; nothing here runs in dry-run.
 """
 import os
 import sys

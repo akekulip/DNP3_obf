@@ -2,8 +2,9 @@
 # Stop the running bf_switchd and cold-launch another program. Runs on the switch host.
 #   switch_swap.sh LOG LAUNCH_SCRIPT [LAUNCH_ARGS...]
 # The stop/launch/wait pattern of vepa_reflect_01/hw_ab_20261011/swap.sh and the rehearsed restoration
-# (audit_current/framework_20261005/RESTORATION_REHEARSAL_20261006.md), with two additions: LAUNCH_ARGS are
-# forwarded, and the exit status is nonzero unless the daemon is serving :50052 with no device_add error.
+# (Archive/tracked/original/defense4/timing/audit_current/framework_20261005/RESTORATION_REHEARSAL_20261006.md),
+# with two additions: LAUNCH_ARGS are forwarded, and the exit status is nonzero unless the daemon is serving
+# :50052 with no device_add error.
 LOG=$1; LAUNCH=$2
 [ -n "$LOG" ] && [ -f "$LAUNCH" ] || { echo "usage: switch_swap.sh LOG LAUNCH_SCRIPT [ARGS...]"; exit 2; }
 shift 2

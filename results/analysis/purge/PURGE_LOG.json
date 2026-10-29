@@ -1,0 +1,454 @@
+{
+ "session": "2026-10-29 dead-code/duplicate/narrative purge (working tree, uncommitted)",
+ "base_commit": "aad99935b",
+ "inventory_commit": "f2c32cf2a",
+ "note": "HEAD moved during the session from 7d6153822 to aad99935b (adds scripts/analysis/fig_validation.py, 105 lines, and tests/analysis/test_fig_validation.py, 22 lines); counts below compare aad99935b with the working tree. Method: git ls-files \"<dir>/*.py\" | xargs cat | wc -l.",
+ "line_counts": {
+  "scripts": {
+   "before": 32692,
+   "after": 31087
+  },
+  "tests": {
+   "before": 8956,
+   "after": 8956
+  },
+  "at_7d6153822": {
+   "scripts": 32587,
+   "tests": 8934
+  }
+ },
+ "entries": [
+  {
+   "path": "scripts/analysis/paper_palettes.py",
+   "symbol": "whole file",
+   "lines_removed": 211,
+   "evidence": "git grep 'paper_palettes' outside results/ and Archive/ finds only the file's own usage docstring; no import, no test; results/ mentions are whole-tree freeze manifests and paused_git_status.txt only",
+   "last_commit": "4e76d9f1f Record the c72 Formby-style evaluation campaign and its analysis",
+   "group": "dead file"
+  },
+  {
+   "path": "scripts/hardware/run_block.sh",
+   "symbol": "whole file",
+   "lines_removed": 11,
+   "evidence": "no script, test or document invokes it (git grep 'run_block.sh'); run_block_frozen.sh execs guarded_block.py directly; the only code-tree mention was a comment in run_block_frozen.sh (reworded)",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "dead file"
+  },
+  {
+   "path": "scripts/reproduce.sh",
+   "symbol": "whole file",
+   "lines_removed": 4,
+   "evidence": "nothing invokes it (git grep 'reproduce.sh' outside results/Archive: none); the clean-checkout reproduction record results/analysis/reproduction/clean_checkout_run_20261028.json ran 'python3 scripts/reproduce.py' directly",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "dead file"
+  },
+  {
+   "path": "scripts/analysis/utils_mpl.py",
+   "symbol": "set_grid, get_bnd, set_cbar, set_x_axis, set_y_axis, set_format, get_fig, get_fig_clone, set_fig_clone, save_svg, save_png; imports matplotlib.ticker, numpy; module docstring trimmed to what remains",
+   "lines_removed": 295,
+   "evidence": "only importer is scripts/analysis/fig_style.py, which calls utils_mpl.set_global() only (git grep utils_mpl: fig_style.py:25 import, :47 set_global); new commit aad99935b (fig_validation.py) reaches it only via fig_style.setup(); MPL-2.0 header (__author__/__copyright__/__license__) kept",
+   "last_commit": "4e76d9f1f Record the c72 Formby-style evaluation campaign and its analysis",
+   "group": "dead code",
+   "lines_added": 1
+  },
+  {
+   "path": "scripts/hardware/vision_run.py",
+   "symbol": "_run_connection_created, _run_master_evidence, tcp_rto_readback, wait_port_free, run_checked, endpoint_env, endpoint_binary, _text_output",
+   "lines_removed": 191,
+   "evidence": "run_connection either raises or returns run_relay_connection(...); AST scan: _run_connection_created has zero references in scripts/ and tests/; the other seven are referenced only from it (run_checked: no reference at all)",
+   "last_commit": "563b9efee Add the E4b SELECT-without-OPERATE scenario to the guarded campaign path",
+   "group": "dead code"
+  },
+  {
+   "path": "scripts/hardware/vision_run.py",
+   "symbol": "main(): setup/casea/restore blocks after the early return",
+   "lines_removed": 61,
+   "evidence": "every non-'run' mode exits or returns in the preceding 'if a.mode != \"run\":' block (sys.exit for casea and unknown modes; return after relay_offload_lifecycle for setup/restore/state), and in 'run' mode none of the removed conditions holds: control-flow unreachable",
+   "last_commit": "563b9efee Add the E4b SELECT-without-OPERATE scenario to the guarded campaign path",
+   "group": "dead code"
+  },
+  {
+   "path": "scripts/hardware/vision_run.py",
+   "symbol": "casea, profile, set_sysctl_checked, pruning, CASEA_DELAYED_IP_LEN, DEFAULT_RANGE, CPU_LATENCY_STATE, RX_COALESCE_BASELINE, IP_M/IP_O/PORT_O, BIN/LIB (RUNS kept), import threading",
+   "lines_removed": 47,
+   "evidence": "referenced only by the two removed groups above (AST in-file reference scan; git grep for vision_run./vr. attribute access and monkeypatch strings in tests: none). vr.BIN was read only by campaign_base.Campaign.endpoint_binary_name, itself dead (removed below)",
+   "last_commit": "563b9efee Add the E4b SELECT-without-OPERATE scenario to the guarded campaign path",
+   "group": "dead code"
+  },
+  {
+   "path": "scripts/hardware/capture_observation.py",
+   "symbol": "calibration subsystem: run_calibration, run_with_qualified_capture, validate_calibration_files, calibration_expected, send_calibration_frames, send-calibration CLI main() and __main__ guard, tcp_frame, _sum16, _json_command, namespace_mac, _start_tcpdump, _pcap_header_written, _payloads, CAL_* and NS_/DEV_/IP_ constants, imports argparse, socket, wire_check (+ its sys.path insert and a duplicate pathlib import)",
+   "lines_removed": 210,
+   "evidence": "no caller of run_with_qualified_capture, run_calibration or validate_calibration_files in scripts/ or tests/; 'send-calibration' occurs only in calibration_expected's own send_command; vision_run --qualify-capture reaches only run_relay_connection, whose qualify_capture parameter is unused; campaign command lines never call capture_observation.py; no calibration_* evidence exists under results/",
+   "last_commit": "ca0db02d1 Admit the diagnostic mirror build to guarded runs and add the D3/E2 analysis",
+   "group": "dead code"
+  },
+  {
+   "path": "scripts/hardware/capture_observation.py",
+   "symbol": "CPU-latency and RX-coalescing host diagnostics: cpu_latency_hold, cpu_latency_release, read_cpu_latency, cpuidle_usage, device_held, process_identity, _is_helper, _stop, CPU_DMA_LATENCY, CPU_LATENCY_UNCONSTRAINED, CPU_LATENCY_HOLD (+3-line comment), rx_coalesce_diagnostic, snapshot_rx_coalesce, restore_rx_coalesce; imports os, re, signal, struct, time",
+   "lines_removed": 266,
+   "evidence": "their only callers were the unreachable vision_run main() blocks removed above; git grep in scripts/ and tests/ finds no other caller and no test; restore_verify.py keeps its own independent rx-coalescing and cpu-latency probes; evaluation_campaign.py pins only a historical source hash of restore_rx_coalesce (compared with a repair record, never with the current file)",
+   "last_commit": "ca0db02d1 Admit the diagnostic mirror build to guarded runs and add the D3/E2 analysis",
+   "group": "dead code"
+  },
+  {
+   "path": "scripts/hardware/campaign_base.py",
+   "symbol": "Campaign.read_policy_arg, Campaign.check_hash, Campaign._vision_json, Campaign.endpoint_binary_name; constants HEX40, TWO_READ_LOSS_SELECTORS, SINGLE_CLASS_LOSS_SELECTORS",
+   "lines_removed": 25,
+   "evidence": "method-reference scan over scripts/, tests/, paper/ (attribute or quoted name): none for the first three; endpoint_binary_name has no call anywhere (the identifier only appears as a vision_run keyword argument and in the E4b kwarg golden); git grep for the three constants: definition only",
+   "last_commit": "563b9efee Add the E4b SELECT-without-OPERATE scenario to the guarded campaign path",
+   "group": "dead code"
+  },
+  {
+   "path": "scripts/hardware/persistence.py",
+   "symbol": "read_handshake_build, ARCH, write-only attributes _series_padding/_series_arm/_series_control_padding/_series_build",
+   "lines_removed": 19,
+   "evidence": "git grep: read_handshake_build only its definition; ARCH only used inside it; the _series_* attributes are assigned and never read anywhere. Base run_unit reads the same cfg['builds'][build] and arm keys, so the only dropped side effect is int() on a non-numeric control_padding, which no config produces (matrix.py sets True)",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "dead code"
+  },
+  {
+   "path": "scripts/hardware/guarded_block.py",
+   "symbol": "four 'if freeze is not None:' guards in block() (bodies dedented)",
+   "lines_removed": 4,
+   "evidence": "block() raises ValueError when freeze is None on entry and only reassigns freeze to a str afterwards, so every guard was always true",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "dead code",
+   "lines_changed_by_dedent": 11
+  },
+  {
+   "path": "scripts/hardware/campaign.py",
+   "symbol": "'return None' after raise (candidate profile check)",
+   "lines_removed": 1,
+   "evidence": "vulture 100%: unreachable code after 'raise'",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "dead code"
+  },
+  {
+   "path": "scripts/hardware/check_names.py",
+   "symbol": "check_reads(): unused parameter extra_fixed",
+   "lines_removed": 0,
+   "evidence": "never read in the body; callers: installer_base.py:225 check_reads(tables); tests/hardware/test_diag_runtime.py monkeypatches it with lambda *_args",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "dead code"
+  },
+  {
+   "path": "scripts/hardware/loss.py",
+   "symbol": "capture-side section: identify, data_ack_facts, evaluate_loss, _growth, _flags_value, _matches, _seg_view, _seq_ge, FLAG_BITS, FLAG_MASK_BITS, MASTER_IP/OUTSTATION_IP, NATIVE (HEAD lines 294-525); read_resp_class",
+   "lines_removed": 250,
+   "evidence": "git grep: no caller outside loss.py; loss.py consumers use only LossRule (relay_loss.py), parse_drop (campaign_base.py) and names() (vision_run.py). loss.py is in the relay-checker hash closure and the Vision deployed-hash set: future-run identity changes, no retained verdict depends on the current bytes",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "dead code"
+  },
+  {
+   "path": "scripts/hardware/capture_observation.py",
+   "symbol": "parse_tcpdump_stats",
+   "lines_removed": 10,
+   "evidence": "duplicate of vision_run.parse_tcpdump_stats (same labels, keys and regex); the capture_observation copy's only caller was run_calibration (removed). Kept vision_run's: used by run_relay_connection and MirrorCapture.stop and named in scripts/analysis/diag_mirror_d3.py",
+   "last_commit": "ca0db02d1 Admit the diagnostic mirror build to guarded runs and add the D3/E2 analysis",
+   "group": "duplicate"
+  },
+  {
+   "path": "scripts/hardware/vision_run.py",
+   "symbol": "module docstring (software-endpoint run, casea fixture)",
+   "lines_removed": 10,
+   "evidence": "described the removed OpenDNP3-outstation path; rewritten to the current physical setup/restore/state/run modes (22 lines -> 12)",
+   "last_commit": "563b9efee Add the E4b SELECT-without-OPERATE scenario to the guarded campaign path",
+   "group": "narrative",
+   "lines_added": 12
+  },
+  {
+   "path": "scripts/hardware/capture_observation.py",
+   "symbol": "module docstring (calibration flow)",
+   "lines_removed": 1,
+   "evidence": "described the removed calibration flow; rewritten to the receive-offload helpers that remain (8 -> 7 lines)",
+   "last_commit": "ca0db02d1 Admit the diagnostic mirror build to guarded runs and add the D3/E2 analysis",
+   "group": "narrative"
+  },
+  {
+   "path": "scripts/hardware/evaluation_campaign.py",
+   "symbol": "review tags '(review R1/W1/W2/W2a/W2b)', '(review)' at HEAD lines 185, 198, 214-216, 323, 599, 855, 1002, 1465",
+   "lines_removed": 0,
+   "evidence": "tags name past review rounds, not behaviour; the descriptions they annotated are kept",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "narrative"
+  },
+  {
+   "path": "scripts/hardware/evaluation_campaign.py",
+   "symbol": "HEAD lines 1156-1166 (REVIEWED_* pin history)",
+   "lines_removed": 8,
+   "evidence": "commit-by-commit re-pin history and 'test_nic_repair enforces it' (that test no longer exists); replaced by a 3-line statement of what nic_repair_acceptance checks; pin values unchanged",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "narrative",
+   "lines_added": 3
+  },
+  {
+   "path": "scripts/hardware/freeze_gate.py",
+   "symbol": "'review finding 2/3/4' tags (HEAD lines 57, 194, 200)",
+   "lines_removed": 0,
+   "evidence": "review-round tags; descriptions kept",
+   "last_commit": "ca0db02d1 Admit the diagnostic mirror build to guarded runs and add the D3/E2 analysis",
+   "group": "narrative"
+  },
+  {
+   "path": "scripts/hardware/loss.py",
+   "symbol": "DATA_ACK comment (candidate56r_single_loss_03 history)",
+   "lines_removed": 1,
+   "evidence": "described a capture-side proof done by the removed data_ack_facts; now states what the data_ack spec flag marks",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "narrative"
+  },
+  {
+   "path": "scripts/hardware/run_block_frozen.sh",
+   "symbol": "line 9 comment",
+   "lines_removed": 0,
+   "evidence": "named the deleted run_block.sh; now names guarded_block.py, whose exit codes 0/1/2 match the comment",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "stale reference"
+  },
+  {
+   "path": "scripts/hardware/evaluation_campaign.py",
+   "symbol": "HEAD line 743 (tests/test_reconcile.py)",
+   "lines_removed": 0,
+   "evidence": "tests/test_reconcile.py exists only in Archive and no current test compares PRE_CONTACT_LABELS with the runners' labels; the comment now says so",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "stale reference",
+   "lines_added": 1
+  },
+  {
+   "path": "scripts/hardware/loss.py",
+   "symbol": "docstring 'see identify() for that'; comment '(read_resp_class -> NOT_EXERCISED)'",
+   "lines_removed": 0,
+   "evidence": "both named functions removed above",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "stale reference"
+  },
+  {
+   "path": "scripts/hardware/switch.py",
+   "symbol": "module docstring pattern-provenance sentence",
+   "lines_removed": 2,
+   "evidence": "named protocol/evidence/hw_first_traffic_01/scripts/install_connection.py and case_a_defense3_fixed_ack_delay_setup.py, which exist only in Archive",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "stale reference"
+  },
+  {
+   "path": "scripts/hardware/snapshot_base.py",
+   "symbol": "line 27 (read/make_diag_t.py)",
+   "lines_removed": 0,
+   "evidence": "make_diag_t.py exists only in Archive; comment now says 'the T diag build'",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "stale reference"
+  },
+  {
+   "path": "scripts/hardware/active_harness/dnp3_codec.py",
+   "symbol": "docstring: frozen implementation/harness/dnp3_wire.py",
+   "lines_removed": 0,
+   "evidence": "file now lives under Archive/tracked/original/defense4/timing/implementation/harness/; reference updated. dnp3_codec.py is in the relay-checker closure: future-run identity only",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "stale reference"
+  },
+  {
+   "path": "scripts/hardware/bringup_teardown.py",
+   "symbol": "docstring audit_current/framework_20261005/...",
+   "lines_removed": 0,
+   "evidence": "repointed to Archive/tracked/original/defense4/timing/audit_current/... (file exists there)",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "stale reference",
+   "lines_added": 1
+  },
+  {
+   "path": "scripts/hardware/make_conf.py",
+   "symbol": "docstring audit_current/hardware_20260917/frozen_abs.conf",
+   "lines_removed": 0,
+   "evidence": "repointed to Archive/tracked/original/defense4/timing/audit_current/... (file exists there)",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "stale reference",
+   "lines_added": 1
+  },
+  {
+   "path": "scripts/hardware/switch_swap.sh",
+   "symbol": "comment audit_current/framework_20261005/...",
+   "lines_removed": 0,
+   "evidence": "repointed to Archive/tracked/original/defense4/timing/audit_current/... (file exists there)",
+   "last_commit": "b2634701d Adopt the shallow current layout and record the c72 qualification evidence",
+   "group": "stale reference",
+   "lines_added": 1
+  }
+ ],
+ "left_in_place": [
+  {
+   "path": "scripts/hardware/generation_headroom.py",
+   "symbol": "assess_headroom",
+   "reason": "dead (no caller), but campaign.CandidateCampaign embeds this file's sha256 in candidate_source_identity and tests/hardware/test_e4b_select_only_runtime.py pins the whole trial record (GOLDEN_TRIAL_RECORD); removing 7 lines flipped that test, so the edit was reverted rather than re-pinning a golden. Same constraint applies to bringup_composite.py, snapshot_counters.py, mau_snapshot.py, scripts/model/cp.py and sealed_profile.py (campaign.EXTRA_FILES)."
+  },
+  {
+   "path": "scripts/hardware/evaluation_campaign.py",
+   "symbol": "nic_repair_acceptance, vision_unreachable_acceptance, vision_identity, vision_never_reached, remap_vision_host and their reconcile branches",
+   "reason": "retained repair records exist (Archive/.../rc01_hw_c25_20261022_04/.../nic_repair_20261022T214951Z/repair.json, Archive/.../rc01_hw_c51_20261024_05/.../vision_unreachable_repair_20261025T005657Z/repair.json) and 'reconcile --vision-host' is a live CLI path; not provably unneeded"
+  },
+  {
+   "path": "scripts/hardware/vision_run.py",
+   "symbol": "CLI options --delay-ms, --jitter-ms, --distribution, --cpu-latency-diag, --rx-coalesce-diag and the 'casea' mode choice; unused parameters of run_connection/run_relay_connection (rng, capture_immediate, db, endpoint_profile, qualify_capture)",
+   "reason": "already without effect at HEAD; removing the options would turn acceptance into an argparse error (behaviour change), and the run_connection keyword set is pinned by GOLDEN_RUN_CONNECTION_KWARGS in tests/hardware/test_e4b_select_only_runtime.py"
+  },
+  {
+   "path": "scripts/hardware/campaign_base.py",
+   "symbol": "Campaign.host_diagnostic_evidence",
+   "reason": "its 'cpu latency release evidence' branch can no longer match (already true at HEAD, since vision_run restore never reached that code), but it also soft-fails a block whose config requests host_diagnostic.cpu_latency: live behaviour"
+  },
+  {
+   "path": "scripts/hardware/restore_verify.py",
+   "symbol": "sys.path insert of scripts/checks before importing capture_observation",
+   "reason": "now unnecessary (capture_observation no longer imports wire_check) but harmless; restoration-safety tool left untouched"
+  },
+  {
+   "path": "scripts/model/model_summary.py",
+   "symbol": "review/audit narrative comments (lines 40, 95, 127, 146, 154, 228, 346, 562)",
+   "reason": "summarize_v3 recomputes the live c72 model gate; not touched"
+  },
+  {
+   "path": "scripts/checks/checks.py; scripts/hardware/relay_loss.py; scripts/hardware/relay_master.py",
+   "symbol": "unused parameters of _mirror_checks/evaluate_switch (vulture 100%); argparse --snapshot and --preflight never read",
+   "reason": "not in the requested scope; changes checker signatures or CLI interfaces"
+  },
+  {
+   "path": "scripts/model/run_diag_mirror.py",
+   "symbol": "pyflakes: unused import os, unused local profile",
+   "reason": "hard exclusion (sha256 recorded in retained diagnostic evidence)"
+  },
+  {
+   "path": "tests/analysis/test_diag_mirror_d3.py, tests/analysis/test_overhead_v2.py, tests/analysis/test_preservation_check.py, tests/checks/fixtures.py",
+   "symbol": "pcap writers",
+   "reason": "not clearly simpler to share: nanosecond scapy PcapWriter, hand-built header with linktype/snaplen/truncation, Ether-wrapped scapy wrpcap, and the existing tests/checks/fixtures.pcap; tests/analysis runs under a different interpreter"
+  },
+  {
+   "path": "tests/p4/*, scripts/model/* near-duplicates; repo-wide sha256 helpers",
+   "symbol": "helper duplicates",
+   "reason": "model drivers are in the c72 closure; tests/p4 helpers not requested; sha256 sweep explicitly out of scope"
+  },
+  {
+   "path": "various",
+   "symbol": "dated measurement and approval comments (switch.py:66, readback.py:31, installer_base.py:150/270, restore_verify.py:12/38, bringup_teardown.py:76/146, evaluation_campaign 'Philip, 2026-10-2x' reconcile approvals, '(audit 2026-10-28, section x)' citations in scripts/analysis)",
+   "reason": "they state why the current code behaves as it does (measured facts, approval provenance, the audit document in the repository root); not history-of-bugs narrative"
+  },
+  {
+   "path": "scripts/analysis/formby_eval.py; scripts/hardware/switch_swap.sh",
+   "symbol": "references Archive/.../formby_evaluation.py and vepa_reflect_01/hw_ab_20261011/swap.sh",
+   "reason": "the first already points into Archive; the second is a relative provenance name of a file that exists under Archive/.../case4_architecture/integration/evidence/; left as is"
+  },
+  {
+   "path": "tests/",
+   "symbol": "no test edited or deleted",
+   "reason": "no removed code had an exclusive test"
+  }
+ ],
+ "verification": {
+  "repository_tests": {
+   "command": "python3 -m pytest tests --ignore=tests/analysis -q",
+   "baseline_at_7d6153822": "471 passed",
+   "after": "471 passed"
+  },
+  "analysis_tests": {
+   "command": "$RESEARCH_PYTHON -m pytest tests/analysis -q",
+   "baseline_at_7d6153822": "136 passed, 2 skipped",
+   "after": "138 passed, 2 skipped (aad99935b added tests/analysis/test_fig_validation.py)"
+  },
+  "pyflakes": "clean on every modified .py file",
+  "line_length": "no added line over 120 characters",
+  "imports": "every edited non-switch module imports under python3 3.8; switch.py, snapshot_base.py, bringup_teardown.py byte-compile (switch.py needs the SDE's bfrt_grpc at import time, as before)",
+  "c72_model_gate": "model_gate_passed",
+  "c72_gate_command": "python3 -c \"import sys; sys.path[:0]=['scripts/model','scripts/hardware']; import freeze_gate; from pathlib import Path; print(freeze_gate.model_summary_module().summarize_v3(Path('results/builds/c72').resolve())['qualification'])\"",
+  "excluded_files_touched": "none (checked against c72_model_closure_union.txt, p4/, results/ except this log, Archive/, the diag/E4 sha-bound files, scripts/model/*.json, tests/fixtures/vectors/)",
+  "reverted": "scripts/hardware/generation_headroom.py (assess_headroom removal broke the E4b CandidateCampaign golden; reverted, see left_in_place)"
+ },
+ "diff_numstat_vs_head": {
+  "scripts/analysis/paper_palettes.py": {
+   "added": 0,
+   "deleted": 211
+  },
+  "scripts/analysis/utils_mpl.py": {
+   "added": 1,
+   "deleted": 295
+  },
+  "scripts/hardware/active_harness/dnp3_codec.py": {
+   "added": 3,
+   "deleted": 3
+  },
+  "scripts/hardware/bringup_teardown.py": {
+   "added": 2,
+   "deleted": 1
+  },
+  "scripts/hardware/campaign.py": {
+   "added": 0,
+   "deleted": 1
+  },
+  "scripts/hardware/campaign_base.py": {
+   "added": 0,
+   "deleted": 25
+  },
+  "scripts/hardware/capture_observation.py": {
+   "added": 4,
+   "deleted": 490
+  },
+  "scripts/hardware/check_names.py": {
+   "added": 1,
+   "deleted": 1
+  },
+  "scripts/hardware/evaluation_campaign.py": {
+   "added": 15,
+   "deleted": 21
+  },
+  "scripts/hardware/freeze_gate.py": {
+   "added": 3,
+   "deleted": 3
+  },
+  "scripts/hardware/guarded_block.py": {
+   "added": 11,
+   "deleted": 15
+  },
+  "scripts/hardware/loss.py": {
+   "added": 5,
+   "deleted": 255
+  },
+  "scripts/hardware/make_conf.py": {
+   "added": 3,
+   "deleted": 2
+  },
+  "scripts/hardware/persistence.py": {
+   "added": 0,
+   "deleted": 19
+  },
+  "scripts/hardware/run_block.sh": {
+   "added": 0,
+   "deleted": 11
+  },
+  "scripts/hardware/run_block_frozen.sh": {
+   "added": 1,
+   "deleted": 1
+  },
+  "scripts/hardware/snapshot_base.py": {
+   "added": 1,
+   "deleted": 1
+  },
+  "scripts/hardware/switch.py": {
+   "added": 1,
+   "deleted": 3
+  },
+  "scripts/hardware/switch_swap.sh": {
+   "added": 3,
+   "deleted": 2
+  },
+  "scripts/hardware/vision_run.py": {
+   "added": 14,
+   "deleted": 323
+  },
+  "scripts/reproduce.sh": {
+   "added": 0,
+   "deleted": 4
+  }
+ },
+ "diff_totals_vs_head": {
+  "added": 68,
+  "deleted": 1687
+ }
+}

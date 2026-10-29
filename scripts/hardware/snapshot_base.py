@@ -24,7 +24,7 @@ T_OUTCOMES = ('OUT_UNMATCHED', 'OUT_HELD_REWAIT', 'OUT_ACK_COMMIT', 'OUT_RESP_RE
               'OUT_OP_RELEASE', 'OUT_TOKEN_STALE', 'OUT_HELD_STALE_FLUSH', 'OUT_ACK_FALLBACK', 'OUT_RESP_FALLBACK',
               'OUT_TOKEN_TMO', 'OUT_HELD_OFF_FLUSH', 'OUT_TOKEN_OFF', 'OUT_REQ_BYPASS')   # t_OUT_* constants 0..13
 
-# Residency diagnostic indices (read/make_diag_t.py). On the production build the outcomes register is 16
+# Residency diagnostic indices of the T diag build. On the production build the outcomes register is 16
 # wide, so these indices do not exist and read back absent -> reported as None. On the diag build they
 # localize the held-original recirculation by role. Index 1 (OUT_HELD_REWAIT) is kept for OPERATE re-wait
 # (so the composite OPERATE assertion stays green); ACK and RESP re-wait are at 14/15.

@@ -107,7 +107,7 @@ READ_ONLY = {'tf1.tm.port.cfg': (['dev_port'], ['pg_id', 'port_queues_count', 'i
              '$PORT': (['$DEV_PORT'], ['$PORT_ENABLE', '$PORT_UP', '$MEDIA_TYPE', '$LOOPBACK_MODE'])}
 
 
-def check_reads(tables, extra_fixed=()):
+def check_reads(tables):
     errs = []
     for name, (keys, fields) in READ_ONLY.items():
         t = tables.get(name)

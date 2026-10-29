@@ -1,26 +1,16 @@
-"""Vision side of a software-endpoint run through the switch. Run with sudo python3 on Vision.
+"""Vision side of a physical SEL-751 run through the switch. Run with sudo python3 on Vision.
 
-  vision_run.py setup            clean TCP profile in ns_vepa_a / ns_vepa_b, disable-source-pruning on
-                                 and record the parent NIC's receive-offload baseline (once; see restore)
-  vision_run.py restore          sysctls back to 1/1/1 and 32768 60999, disable-source-pruning off, receive
-                                 offloads re-applied from the setup baseline and verified (nonzero exit if not)
-  vision_run.py state            print the NIC flag and the namespace sysctls
-  vision_run.py casea on --delay-ms D | casea off
-                                 make the outstation side present a separate ACK followed by a late response,
-                                 as the SEL-751 does: a quickack route in ns_vepa_b (immediate ACKs) and a netem
-                                 delay of D ms on mvB applied only to the outstation's DNP3 response segments
-                                 (IP total lengths CASEA_DELAYED_IP_LEN: every declared single-frame native READ
-                                 response and the 37-byte SELECT/OPERATE response). This emulates relay processing time; say so in
-                                 any result that uses it. Without it the OpenDNP3 outstation answers in about
-                                 0.3 ms with the ACK on the response, so there is no separate ACK to time.
-  vision_run.py run LABEL --master-port P --reads N [--range 8|16] [--gap-ms G] [--connect-must-fail]
+  vision_run.py setup     record the parent NIC's receive-offload baseline (refused while one is pending) and,
+                          with --loss-baseline, the host firewall; print the namespace state
+  vision_run.py restore   remove owned loss rules, re-apply the receive offloads (and any pending --mirror-iface
+                          offloads) from their baselines and verify them (nonzero exit if not)
+  vision_run.py state     print the NIC flag, the namespace sysctls and the ns_vepa_b route and qdisc
+  vision_run.py run LABEL --master-port P --reads N [...]
 
-`run` starts the OpenDNP3 outstation in ns_vepa_b (192.168.10.62:20000) and the master in ns_vepa_a
-(192.168.10.61, source port pinned to P through that namespace's ip_local_port_range), does N READs
-(Group 10 Var 2, points 0..22) and one SELECT/OPERATE, and writes everything into a NEW directory
-RUNS/LABEL: out.pcap (tcpdump -Q out on the parent NIC: frames as the endpoints sent them), in.pcap
-(-Q in: frames as the switch returned them), master.json, outstation.json, state.txt, result.json.
-Nothing here touches the parent NIC's addresses or routes, or any global sysctl."""
+`run` never starts an outstation: the relay_master workload drives the SEL-751 from one real master socket
+(source port P), and the NEW directory RUNS/LABEL receives out.pcap (tcpdump -Q out on the parent NIC: frames as
+the master sent them), in.pcap (-Q in: frames as the switch returned them), master.json, state.txt and
+result.json. `casea` is refused: the physical relay uses no emulated fixture."""
 import argparse
 import contextlib
 import json
@@ -32,7 +22,6 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'checks'))
 import time
-import threading
 import capture_observation
 import loss
 
@@ -249,15 +238,11 @@ def relay_restore_uncertain(record, run_dir=None, qualified=False):
     return uncertain
 PARENT = 'enp59s0f0np0'
 NS_M, NS_O = ('ns_vepa_a', 'ns_vepa_b')
-IP_M, IP_O, PORT_O = ('192.168.10.61', '192.168.10.62', 20000)
 HOME = os.path.dirname(os.path.abspath(__file__))
-BIN, LIB, RUNS = (HOME + '/case4_socket_gate_pad58b', HOME + '/lib', HOME + '/runs')
+RUNS = HOME + '/runs'
 PROFILE = ('net.ipv4.tcp_timestamps', 'net.ipv4.tcp_sack', 'net.ipv4.tcp_window_scaling')
-DEFAULT_RANGE = '32768 60999'
 OFFLOAD_BASELINE = HOME + '/offload_baseline.json'
 MIRROR_OFFLOAD_BASELINE = HOME + '/mirror_offload_baseline.json'
-RX_COALESCE_BASELINE = HOME + '/rx_coalesce_baseline.json'
-CPU_LATENCY_STATE = HOME + '/cpu_latency_state.json'
 READ_SCHEDULES = ('rotate4', 'mixed_full', 'mixed', 'full')
 PAD_EXPECT_RE = re.compile('(range|analog|class0|integrity|mixed)=[1-9][0-9]{0,3}(,(range|analog|class0|integrity|mixed)=[1-9][0-9]{0,3})*')
 DBS = ('base', 'large')
@@ -386,15 +371,6 @@ class MirrorCapture:
             self.record['ok'] = False
         return self.record
 
-def endpoint_env(read_pause_ms, run_sbo, close_grace_ms, sbo_cycles, read_schedule=None, db=None):
-    """The env prefix both endpoints run under. CASE4_SBO_CYCLES, CASE4_READ_SCHEDULE and CASE4_DB appear only when
-    set, so an unset control leaves the command of every older endpoint unchanged."""
-    return ['env', 'CASE4_PAD58B_SOCKET_GATE=1', 'LD_LIBRARY_PATH=' + LIB, 'CASE4_READ_PAUSE_MS=%d' % read_pause_ms, 'CASE4_RUN_SBO=%d' % int(run_sbo), 'CASE4_CLOSE_GRACE_MS=%d' % close_grace_ms] + (['CASE4_SBO_CYCLES=%d' % sbo_cycles] if sbo_cycles else []) + (['CASE4_READ_SCHEDULE=%s' % read_schedule] if read_schedule else []) + (['CASE4_DB=%s' % db] if db else [])
-
-def endpoint_binary(name):
-    """The endpoint binary beside this file: the configured file name, else the default pad58b endpoint."""
-    return BIN if name is None else HOME + '/' + name
-
 def sh(*cmd, **kw):
     return subprocess.run(list(cmd), capture_output=True, text=True, **kw)
 
@@ -405,21 +381,6 @@ def start_delay_ms(max_ms, seed):
 
 def nsx(ns, *cmd, **kw):
     return sh('ip', 'netns', 'exec', ns, *cmd, **kw)
-
-def run_checked(*cmd, **kw):
-    r = sh(*cmd, **kw)
-    if r.returncode:
-        raise RuntimeError('command failed (rc %d): %s\n%s' % (r.returncode, ' '.join(cmd), r.stderr.strip()))
-    return r
-
-def set_sysctl_checked(ns, key, value):
-    """Write a namespace sysctl and read it back; raise if the kernel did not take the value. The kernel
-    renders a port range tab-separated, so compare on whitespace-split tokens."""
-    nsx(ns, 'sysctl', '-w', '%s=%s' % (key, value))
-    rb = nsx(ns, 'sysctl', '-n', key).stdout.strip()
-    if rb.split() != str(value).split():
-        raise RuntimeError('sysctl readback mismatch in %s: %s is %r, wanted %r' % (ns, key, rb, str(value)))
-    return rb
 
 def parse_tcpdump_stats(stderr):
     """tcpdump prints a termination summary on stderr: 'N packets captured', 'N received by filter',
@@ -438,121 +399,9 @@ def state():
         lines.append(ns + ' ' + ' | '.join(nsx(ns, 'sysctl', *PROFILE, 'net.ipv4.ip_local_port_range').stdout.split('\n')).strip(' |'))
     return '\n'.join(lines) + '\n' + casea_state()
 
-def pruning(value):
-    r = sh('ethtool', '--set-priv-flags', PARENT, 'disable-source-pruning', value)
-    if r.returncode:
-        sys.exit('ethtool failed: ' + r.stderr)
-    time.sleep(8)
 DISTRIBUTIONS = ('normal', 'paretonormal')
-CASEA_DELAYED_IP_LEN = (40 + 49, 40 + 91, 40 + 141, 40 + 247, 40 + 37)
-
-def casea(on, delay_ms, jitter_ms=0, distribution=None):
-    nsx(NS_O, 'tc', 'qdisc', 'del', 'dev', 'mvB', 'root')
-    route = ['ip', 'route', 'replace', '192.168.10.0/24', 'dev', 'mvB', 'src', IP_O]
-    if not on:
-        r = nsx(NS_O, *route)
-    else:
-        if jitter_ms and distribution not in DISTRIBUTIONS:
-            sys.exit('casea: jitter needs --distribution %s' % '|'.join(DISTRIBUTIONS))
-        spread = ['%dms' % jitter_ms, 'distribution', distribution] if jitter_ms else []
-        r = nsx(NS_O, *route, 'quickack', '1')
-        cmds = [['tc', 'qdisc', 'add', 'dev', 'mvB', 'root', 'handle', '1:', 'prio', 'bands', '3', 'priomap'] + ['0'] * 16, ['tc', 'qdisc', 'add', 'dev', 'mvB', 'parent', '1:2', 'handle', '20:', 'netem', 'delay', '%dms' % delay_ms] + spread + ['limit', '1000']]
-        for total_len in CASEA_DELAYED_IP_LEN:
-            cmds.append(['tc', 'filter', 'add', 'dev', 'mvB', 'parent', '1:', 'protocol', 'ip', 'u32', 'match', 'ip', 'protocol', '6', '0xff', 'match', 'u16', '0x%04x' % total_len, '0xffff', 'at', '2', 'flowid', '1:2'])
-        for c in cmds:
-            r = nsx(NS_O, *c)
-            if r.returncode:
-                break
-    if r.returncode:
-        sys.exit('casea failed: ' + r.stderr)
-
 def casea_state():
     return 'route: ' + nsx(NS_O, 'ip', 'route', 'show', '192.168.10.0/24').stdout.strip() + '\n' + 'qdisc: ' + ' | '.join(nsx(NS_O, 'tc', 'qdisc', 'show', 'dev', 'mvB').stdout.strip().splitlines())
-
-def profile(value, port_range):
-    for ns in (NS_M, NS_O):
-        for k in PROFILE:
-            set_sysctl_checked(ns, k, value)
-    set_sysctl_checked(NS_M, 'net.ipv4.ip_local_port_range', port_range)
-
-def wait_port_free(port, tries=80):
-    start = time.monotonic()
-    for poll in range(1, tries + 1):
-        probe = nsx(NS_M, 'ss', '-tan')
-        if probe.returncode:
-            return dict(port=port, polls=poll, elapsed_s=round(time.monotonic() - start, 3), result='probe_error', error=probe.stderr.strip(), probe_rc=probe.returncode)
-        if ':%d ' % port not in probe.stdout:
-            return dict(port=port, polls=poll, elapsed_s=round(time.monotonic() - start, 3), result='free')
-        time.sleep(1)
-    return dict(port=port, polls=tries, elapsed_s=round(time.monotonic() - start, 3), result='busy')
-
-def tcp_rto_readback(master_port, endpoint='master'):
-    """Passive Linux TCP_INFO rendering from ss; no socket or kernel tuning."""
-    if endpoint not in ('master', 'outstation'):
-        raise ValueError('endpoint must be master or outstation')
-    namespace = NS_M if endpoint == 'master' else NS_O
-    local_port, peer_port = (master_port, PORT_O) if endpoint == 'master' else (PORT_O, master_port)
-    command = ['ss', '-tin', 'state', 'established', '( sport = :%d and dport = :%d )' % (local_port, peer_port)]
-    record = dict(observed_at_epoch_ns=time.time_ns(), observed_at_monotonic_ns=time.monotonic_ns(), endpoint=endpoint, namespace=namespace, local_port=local_port, peer_port=peer_port, source='ip netns exec %s ss -tin (Linux TCP_INFO)' % namespace, command=command, units='ms', status='unavailable', rto_ms=[])
-    try:
-        result = nsx(namespace, *command, timeout=2)
-        record.update(returncode=result.returncode, stdout=result.stdout, stderr=result.stderr)
-        if result.returncode:
-            record.update(status='error', reason='ss_nonzero_exit')
-        else:
-            record['rto_ms'] = [float(v) for v in re.findall('\\brto:([0-9]+(?:\\.[0-9]+)?)', result.stdout)]
-            record['status'] = 'ok' if record['rto_ms'] else 'unavailable'
-            if not record['rto_ms']:
-                record['reason'] = 'no_established_socket_rto_observed'
-    except (OSError, subprocess.SubprocessError) as error:
-        record.update(status='error', reason=type(error).__name__, error=str(error))
-    return record
-
-def _text_output(value):
-    return value.decode('utf-8', errors='replace') if isinstance(value, bytes) else value or ''
-
-def _run_master_evidence(run_dir, master_port, command, timeout):
-    """Retain partial output on timeout and sample RTO while the blocking master runs.
-
-    The sampler is bounded to 120 read-only probes per endpoint, each with a two-second timeout.
-    Monotonic timestamps describe collection only and are never subtracted from pcap epoch.
-    """
-    done, samples = (threading.Event(), [])
-
-    def sample():
-        for _ in range(120):
-            if done.wait(0.05 if not samples else 0.25):
-                return
-            for endpoint in ('master', 'outstation'):
-                if done.is_set():
-                    return
-                samples.append(tcp_rto_readback(master_port, endpoint=endpoint))
-    sampler = threading.Thread(target=sample, name='passive-tcp-rto', daemon=True)
-    sampler.start()
-    timed_out = False
-    try:
-        result = nsx(NS_M, *command, timeout=timeout)
-        stdout, stderr, rc = (result.stdout, result.stderr, result.returncode)
-    except subprocess.TimeoutExpired as error:
-        timed_out = True
-        stdout, stderr, rc = (error.stdout, error.stderr, None)
-    finally:
-        done.set()
-        sampler.join(timeout=3)
-    for name, value in (('master.json', stdout), ('master.stdout', stdout), ('master.stderr', stderr)):
-        with open(os.path.join(run_dir, name), 'w') as stream:
-            stream.write(_text_output(value))
-    endpoint_status = {}
-    for endpoint in ('master', 'outstation'):
-        endpoint_samples = [s for s in samples if s['endpoint'] == endpoint]
-        usable = any((s['status'] == 'ok' and any((v > 0 for v in s['rto_ms'])) for s in endpoint_samples))
-        status = 'ok' if usable else 'error' if endpoint_samples and all((s['status'] == 'error' for s in endpoint_samples)) else 'unavailable'
-        endpoint_status[endpoint] = dict(status=status, sample_count=len(endpoint_samples), reason=None if usable else 'no_positive_rto_observed' if endpoint_samples else 'master_finished_before_endpoint_probe')
-    both_observed = all((value['status'] == 'ok' for value in endpoint_status.values()))
-    readback = dict(schema_version='vision-tcp-rto-v2', samples=list(samples), endpoints=endpoint_status, status='ok' if both_observed else 'unavailable', maximum_samples=240, maximum_samples_per_endpoint=120, command_timeout_s=2, sample_interval_s=0.25, reason=None if both_observed else 'both_endpoint_positive_rtos_not_observed')
-    with open(os.path.join(run_dir, 'tcp_rto.json'), 'w') as stream:
-        json.dump(readback, stream, indent=1, allow_nan=False)
-    return dict(master_rc=rc, master_timeout=timed_out, endpoint_collection=dict(schema_version='vision-endpoint-collection-v1', status='timeout' if timed_out else 'completed', partial=timed_out, stdout='master.stdout', stderr='master.stderr'), tcp_rto=readback)
 
 def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
                    connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False,
@@ -569,103 +418,6 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
                                 start_delay_max=start_delay_max, start_seed=start_seed, close_mode=relay_close_mode,
                                 drop=drop, mirror_iface=mirror_iface,
                                 **({'select_only': True} if sbo_select_only else {}))
-
-def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None, connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False, qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None, endpoint_binary_name=None, pad_expect=None):
-    open(os.path.join(run_dir, 'state.txt'), 'w').write(state() + '\n')
-    set_sysctl_checked(NS_M, 'net.ipv4.ip_local_port_range', '%d %d' % (master_port, master_port))
-    port_wait = wait_port_free(master_port)
-    flt = 'tcp and host %s and host %s' % (IP_M, IP_O)
-    env = endpoint_env(read_pause_ms, run_sbo, close_grace_ms, sbo_cycles, read_schedule, db)
-    binary = endpoint_binary(endpoint_binary_name)
-    extra_seconds = (reads * (gap_ms + read_pause_ms) + close_grace_ms + 999) // 1000
-    stop = os.path.join(run_dir, 'stop')
-    result = {'label': label, 'master_port': master_port, 'reads': reads, 'range': rng, 'gap_ms': gap_ms, 'start_delay_ms_max': start_delay_max, 'start_seed': start_seed, 'start_delay_ms_applied': start_delay_ms(start_delay_max, start_seed)}
-    result['endpoint_controls'] = dict(read_pause_ms=read_pause_ms, run_sbo=bool(run_sbo), close_grace_ms=close_grace_ms)
-    if sbo_cycles:
-        result['endpoint_controls']['sbo_cycles'] = sbo_cycles
-    if read_schedule:
-        result['endpoint_controls']['read_schedule'] = read_schedule
-    if db:
-        result['endpoint_controls']['db'] = db
-    if pad_expect:
-        result['endpoint_controls']['pad_expect'] = pad_expect
-    if endpoint_binary_name is not None:
-        result['endpoint_binary'] = binary
-    result['capture_immediate'] = capture_immediate
-    result['qualify_capture'] = qualify_capture
-    result['capture_commands'] = {}
-    result['source_port_wait'] = port_wait
-    if port_wait['result'] != 'free':
-        result.update(ok=False, error='master port %d still busy' % master_port if port_wait['result'] == 'busy' else 'master port probe failed: ' + port_wait['error'])
-        json.dump(result, open(os.path.join(run_dir, 'result.json'), 'w'), indent=1)
-        return result
-    caps = {}
-    ost = None
-    rule = None
-    try:
-        for d in ('out', 'in'):
-            command = ['tcpdump', '-i', PARENT, '-Q', d, '-s0', '-U', '-n', '-w', os.path.join(run_dir, d + '.pcap'), flt]
-            if capture_immediate:
-                command.insert(1, '--immediate-mode')
-            result['capture_commands'][d] = command
-            caps[d] = subprocess.Popen(command, stderr=subprocess.PIPE, text=True)
-        time.sleep(2.0)
-        for d, c in caps.items():
-            if c.poll() is not None:
-                raise RuntimeError('tcpdump -Q %s exited early (rc %s): %s' % (d, c.returncode, (c.stderr.read() or '').strip()))
-            if not os.path.exists(os.path.join(run_dir, d + '.pcap')):
-                raise RuntimeError('tcpdump -Q %s wrote no capture file' % d)
-        ost = subprocess.Popen(['ip', 'netns', 'exec', NS_O] + env + [binary, 'outstation', IP_O, str(PORT_O), stop, str(60 + reads * 4 + extra_seconds)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        ready = ost.stdout.readline().strip()
-        result['outstation_ready'] = ready == 'READY'
-        if ready == 'READY':
-            if drop:
-                rule = loss.LossRule(nsx, drop, IP_M, IP_O, master_port, PORT_O).install()
-            time.sleep(result['start_delay_ms_applied'] / 1000.0)
-            t0 = time.time()
-            command = env + (['CASE4_PAD_EXPECT=%s' % pad_expect] if pad_expect else []) + [binary, 'master', IP_O, str(PORT_O), stop + '.master', str(reads - sbo_cycles), IP_M, str(rng), str(gap_ms)]
-            result.update(_run_master_evidence(run_dir, master_port, command, reads * 4 + sbo_cycles * 4 + 30 + extra_seconds))
-            result['master_wall_s'] = round(time.time() - t0, 3)
-            time.sleep(1.0)
-    finally:
-        if rule is not None:
-            rule.finish()
-            rule.remove()
-            result['loss'] = rule.record()
-        open(stop, 'w').close()
-        if ost is not None:
-            ost_timeout = False
-            try:
-                ost_stdout, ost_stderr = ost.communicate(timeout=30)
-            except subprocess.TimeoutExpired as error:
-                ost_timeout = True
-                ost.kill()
-                ost_stdout, ost_stderr = ost.communicate()
-                ost_stdout = ost_stdout or error.stdout
-                ost_stderr = ost_stderr or error.stderr
-            for name, value in (('outstation.json', ost_stdout), ('outstation.stdout', ost_stdout), ('outstation.stderr', ost_stderr)):
-                with open(os.path.join(run_dir, name), 'w') as stream:
-                    stream.write(_text_output(value))
-            result['outstation_collection'] = dict(schema_version='vision-endpoint-collection-v1', status='timeout' if ost_timeout else 'completed', partial=ost_timeout, ready_line=ready)
-        time.sleep(1.0)
-        tcpdump_stats = {}
-        for d, c in caps.items():
-            c.terminate()
-            try:
-                _, err = c.communicate(timeout=10)
-            except subprocess.TimeoutExpired:
-                c.kill()
-                _, err = c.communicate()
-            tcpdump_stats[d] = parse_tcpdump_stats(err or '')
-        result['tcpdump'] = tcpdump_stats
-    for d in ('out', 'in'):
-        path = os.path.join(run_dir, d + '.pcap')
-        result['frames_' + d] = len(sh('tcpdump', '-r', path, '-n').stdout.splitlines()) if os.path.exists(path) and os.path.getsize(path) > 24 else 0
-    result['ok'] = result.get('master_rc') == 2 if connect_must_fail else result.get('master_rc') == 0
-    if drop:
-        result['loss_exact'] = bool(result.get('loss', {}).get('exact'))
-    json.dump(result, open(os.path.join(run_dir, 'result.json'), 'w'), indent=1)
-    return result
 
 def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_delay_max, start_seed, read_pause_ms=25, run_sbo=True, close_grace_ms=0, qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None, endpoint_binary_name=None, pad_expect=None, endpoint_profile='sel751'):
     """Reconnect scenario: RUNS/label/{c1,c2,c3}, each a complete connection with its own pcaps and endpoint JSON.
@@ -774,67 +526,6 @@ def main():
         if a.mode == 'restore' and lifecycle['errors']:
             sys.exit('physical receive offload restore failed: ' + '; '.join(lifecycle['errors']))
         return
-    if a.mode == 'setup':
-        if os.path.exists(CPU_LATENCY_STATE):
-            sys.exit('setup refused: a CPU-latency diagnostic state exists (%s); restore first' % CPU_LATENCY_STATE)
-        effective_now = capture_observation.read_cpu_latency()
-        if effective_now != capture_observation.CPU_LATENCY_UNCONSTRAINED or capture_observation.device_held():
-            sys.exit('setup refused: CPU latency constraint %r or the device is held before setup' % effective_now)
-        capture_observation.record_offload_baseline(OFFLOAD_BASELINE, PARENT)
-        if a.rx_coalesce_diag:
-            baseline, effective = capture_observation.rx_coalesce_diagnostic(RX_COALESCE_BASELINE, PARENT)
-            print('rx coalescing diagnostic: baseline adaptive-rx %s rx-usecs %d; effective adaptive-rx %s rx-usecs %d' % (baseline['adaptive_rx'], baseline['rx_usecs'], effective['adaptive_rx'], effective['rx_usecs']))
-        if a.cpu_latency_diag:
-            held = capture_observation.cpu_latency_hold(CPU_LATENCY_STATE)
-            print('cpu latency diagnostic: baseline %d us; effective %d us; helper pid %d' % (held['baseline'], held['effective'], held['pid']))
-        profile('0', DEFAULT_RANGE)
-        if 'source-pruning : on' not in state():
-            pruning('on')
-    if a.mode == 'casea':
-        if a.label not in ('on', 'off'):
-            sys.exit('casea on|off')
-        casea(a.label == 'on', a.delay_ms, a.jitter_ms, a.distribution)
-    if a.mode == 'restore':
-        messages = []
-
-        def attempt(label, step):
-            try:
-                result = step()
-            except BaseException as error:
-                messages.append('%s raised: %r' % (label, error))
-                return None
-            return result
-        released = attempt('cpu latency restore', lambda: capture_observation.cpu_latency_release(CPU_LATENCY_STATE))
-        if released is not None:
-            cpu_errors, evidence = released
-            print('cpu latency release evidence: %s' % json.dumps(evidence, sort_keys=True))
-            if evidence.get('applied') and (not evidence.get('diagnostic_valid')):
-                print('CPU LATENCY DIAGNOSTIC INVALID: the zero request was not verified in force at release')
-            if cpu_errors:
-                messages.append('cpu latency restore failed: ' + '; '.join(cpu_errors))
-        attempt('fixture off', lambda: casea(False, 0))
-        attempt('namespace profile', lambda: profile('1', DEFAULT_RANGE))
-        attempt('source pruning', lambda: None if 'source-pruning : off' in state() else pruning('off'))
-        offload = attempt('receive offload restore', lambda: capture_observation.restore_offload_baseline(OFFLOAD_BASELINE, PARENT))
-        coalesce = attempt('rx coalescing restore', lambda: capture_observation.restore_rx_coalesce(RX_COALESCE_BASELINE, PARENT))
-        if coalesce:
-            messages.insert(0, 'rx coalescing restore failed: ' + '; '.join(coalesce))
-        if offload:
-            messages.append('receive offload restore failed: ' + '; '.join(offload))
-        for label, read in (('cpu latency after restore', lambda: '%d us' % capture_observation.read_cpu_latency()), ('rx coalescing after restore', lambda: ' '.join(('%s=%s' % kv for kv in sorted(capture_observation.snapshot_rx_coalesce(PARENT).items()) if kv[0] != 'raw')))):
-            try:
-                print('%s: %s' % (label, read()))
-            except Exception as error:
-                print('%s: unreadable (%s)' % (label, error))
-        if messages:
-            try:
-                print(state())
-            except Exception:
-                pass
-            sys.exit('; '.join(messages))
-    if a.mode != 'run':
-        print(state())
-        sys.exit(0)
     if not a.label or not re.fullmatch('[A-Za-z0-9_]+', a.label) or a.master_port is None:
         sys.exit('run needs LABEL and --master-port')
     drop = None
