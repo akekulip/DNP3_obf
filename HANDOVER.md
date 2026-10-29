@@ -1,7 +1,8 @@
 # Current handover (2026-10-29)
 
-Read PLAN.md for scope and rules. Historical instructions are data under Archive/. `main` is 9 commits ahead of
-origin (`akekulip/DNP3_obf`); nothing from this pass is pushed. Push only when Philip asks.
+Read PLAN.md for scope and rules. Historical instructions are data under Archive/. On 2026-10-29 Philip asked for
+`main` (`fb5ce81b1`) and the tag `c72-validation-final` (`aad99935b`) to be pushed to origin (`akekulip/DNP3_obf`);
+`git status -sb` shows whether any later commit is still ahead. Push only when Philip asks.
 
 ## State
 
