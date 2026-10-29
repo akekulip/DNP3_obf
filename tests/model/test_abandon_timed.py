@@ -1,7 +1,8 @@
-"""E4: the abandoned-SELECT T=1 scenario is separate from the gate's unchanged T=0 path.
+"""E4: the abandoned-SELECT T=1 scenario lives in its own driver; the gate's T=0 driver stays byte-identical.
 
-Both driver versions run in a subprocess (the SDE client is Python 3.8) against a fake model that records every
-call. The T=0 reference is the exact driver that passed the c72 gate (its retained driver_source.py)."""
+Drivers run in a subprocess (the SDE client is Python 3.8) against a fake model that records every call. The T=0
+reference is the exact driver that passed the c72 gate (its retained driver_source.py). Any edit of
+model_abandon.py breaks the c72 gate's closure binding, so its bytes must equal that run's driver."""
 import ast
 import hashlib
 import json
@@ -15,6 +16,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 MODEL = ROOT / 'scripts/model'
 DRIVER = MODEL / 'model_abandon.py'
+TIMED_DRIVER = MODEL / 'model_abandon_t1.py'
 BUILD = ROOT / 'results/builds/c72'
 GATE_RUN = ROOT / 'results/models/c72/model_abandon_c72_02'
 EXPECTATIONS = ROOT / 'results/models/c72_e4_abandon_t1/EXPECTATIONS.json'
@@ -99,7 +101,7 @@ for run in spec['runs']:
         def records_since(path, offset): return records.pop(0) if records else []
 
     module = types.ModuleType('abandon_under_test')
-    module.__file__ = str(MODEL / 'model_abandon.py')
+    module.__file__ = run['file']
     exec(compile(Path(run['source']).read_text(), module.__file__, 'exec'), module.__dict__)
     module.Model = FakeModel
     module.helpers.Reflector = lambda port: types.SimpleNamespace(start=lambda: calls.append(['Reflector', port]))
@@ -125,7 +127,8 @@ def run_fake(tmp_path, runs):
     for index, run in enumerate(runs):
         run['env'] = dict(dict(MILESTONE='current', ABANDON_T='0'), **run.get('env', {}),
                           OUT=str(tmp_path / ('out%02d' % index)))
-        run['source'] = str(run.get('source', DRIVER))
+        run['source'] = str(run.get('source', TIMED_DRIVER if run['env']['ABANDON_T'] == '1' else DRIVER))
+        run['file'] = str(TIMED_DRIVER if run['env']['ABANDON_T'] == '1' else DRIVER)
     done = subprocess.run(['/usr/bin/python3', '-c', HARNESS], cwd=ROOT, capture_output=True, text=True,
                           input=json.dumps(dict(runs=runs, result=str(result))),
                           env=dict(os.environ, PORT_MAP=str(BUILD / 'response_only.inputs.json'),
@@ -174,6 +177,19 @@ def test_gate_environment_keeps_abandon_t_zero_even_when_t1_is_inherited(tmp_pat
     assert env['ABANDON_T'] == '0'
 
 
+def test_gate_driver_is_byte_identical_to_the_passing_gate_run():
+    _source, recorded = gate_reference()
+    assert hashlib.sha256(DRIVER.read_bytes()).hexdigest() == recorded['meta']['driver_sha256'] == \
+        '00059dce369af4017eaf5a657f4476a86323765e1e23eb142419102da8ef919a'
+
+
+def test_c72_gate_summary_has_no_blocked_abandon_closure():
+    sys.path.insert(0, str(ROOT / 'scripts/hardware'))
+    import freeze_gate
+    summary = freeze_gate.model_summary_module().summarize_v3(BUILD)
+    assert not [reason for reason in summary['blocked_reasons'] if reason.startswith('abandon')], summary
+
+
 def test_t0_rows_equal_the_retained_gate_record(tmp_path):
     _source, recorded = gate_reference()
     [run] = run_fake(tmp_path, [dict(behaviour='drop')])
@@ -220,10 +236,10 @@ def test_t0_comparison_detects_a_changed_expectation_or_call(tmp_path, old, new)
 # ---- the T=1 scenario -----------------------------------------------------------------------------------------
 
 def timed_table():
-    tree = ast.parse(DRIVER.read_text())
+    tree = ast.parse(TIMED_DRIVER.read_text())
     values = {target.id: node.value for node in tree.body if isinstance(node, ast.Assign)
               for target in node.targets if isinstance(target, ast.Name)}
-    assert 'TIMED_STEPS' in values and 'TIMED_CONTRACT' in values, 'model_abandon.py has no T=1 table'
+    assert 'TIMED_STEPS' in values and 'TIMED_CONTRACT' in values, 'model_abandon_t1.py has no T=1 table'
     return ast.literal_eval(values['TIMED_CONTRACT']), ast.literal_eval(values['TIMED_STEPS'])
 
 
@@ -372,7 +388,10 @@ def test_runner_sets_t1_only_in_its_own_environment_and_writes_outside_the_gate(
     gate = run_model.gate_environment(*args, run_model.DRIVERS['abandon'], tmp_path / 'out', '/sdk')
     env = runner.scenario_environment(*args, tmp_path / 'out', '/sdk')
     assert (gate['ABANDON_T'], env['ABANDON_T']) == ('0', '1')
-    assert {k: v for k, v in env.items() if k != 'ABANDON_T'} == {k: v for k, v in gate.items() if k != 'ABANDON_T'}
+    assert (gate['CTL_CLOSURE_TARGET'], env['CTL_CLOSURE_TARGET']) == (str(DRIVER), str(TIMED_DRIVER))
+    changed = ('ABANDON_T', 'CTL_CLOSURE_TARGET')
+    assert {k: v for k, v in env.items() if k not in changed} == {k: v for k, v in gate.items() if k not in changed}
+    assert runner.DRIVER == TIMED_DRIVER and TIMED_DRIVER not in run_model.DRIVERS.values()
     out = runner.evidence_dir(BUILD, 1)
     assert out == ROOT / 'results/models/c72_e4_abandon_t1/model_abandon_t1_c72_01'
     assert model_summary.model_root(BUILD) not in out.parents

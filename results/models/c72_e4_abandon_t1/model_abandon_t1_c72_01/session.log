@@ -1,0 +1,22 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS timed_scenario_preconditions       expected={'timing_contract': 'response_ready_ack_d_no_j_v3', 'read_cancels_selection': True} observed={'timing_contract': 'response_ready_ack_d_no_j_v3', 'read_cancels_selection': True}
+PASS SYN                                expected=one exact frame observed=1 frames
+PASS SYNACK                             expected=one exact frame observed=1 frames
+PASS final_ACK                          expected=one exact frame observed=1 frames
+PASS READ_request                       expected=one exact frame observed=1 frames
+PASS READ_ACK_and_response_61           expected=one exact ACK then whole response observed=2
+PASS READ_T_clock_response_ready_ACK_then_D expected={'passed': True, 'forbidden': []} observed={'passed': True, 'forbidden': []}
+PASS SELECT_request                     expected=one exact frame observed=1 frames
+PASS SELECT_ACK_and_response_61         expected=one exact ACK then whole response observed=2
+PASS SELECT_T_clock_response_ready_ACK_then_D expected={'passed': True, 'forbidden': []} observed={'passed': True, 'forbidden': []}
+PASS READ_after_SELECT_cancels_selection_forwarded expected=one exact frame observed=1 frames
+PASS RST_after_abandoned_SELECT_forwarded expected=one exact frame observed=1 frames
+PASS new_SYN_after_abandoned_SELECT_admitted expected=one exact frame observed=1 frames
+PASS N_work_free_after_every_step       expected=[[4], [4], [4], [4], [4], [4], [4], [4], [4], [4]] observed=[[4], [4], [4], [4], [4], [4], [4], [4], [4], [4]]
+SUMMARY {'total': 14, 'passed': 14, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

@@ -66,142 +66,6 @@ def timing_params_for_profile(profile, enabled):
                 gap=50000000, op_j=200000000, budget=240000, enabled=enabled)
 
 
-# ---- E4: the abandoned SELECT with T enabled (ABANDON_T=1) -----------------------------------------------------
-# A separate labelled scenario, never the gate: run_model.gate_environment keeps ABANDON_T='0', whose steps and
-# expectations in main() are unchanged. Row: (report row, stimulus frames in order, frames expected at the master,
-# frames expected at the relay, release). Derived from the current contract, with file:line citations, in
-# results/models/c72_e4_abandon_t1/EXPECTATIONS.json; tests/model/test_abandon_timed.py keeps the two equal.
-# 'response_ready_D': the relay's genuine ACK is held until the whole response reaches T and leaves at ACK commit;
-# the response leaves no earlier than ACK commit + D. Unlike T=0, the relay ACKs the SELECT before answering it:
-# under this contract a response with no genuine ACK commit in its generation is never released.
-TIMED_CONTRACT = 'response_ready_ack_d_no_j_v3'
-TIMED_RESULTS = 'abandon_t1_results.json'
-TIMED_STEPS = (
-    ('SYN', ('SYN',), (), ('SYN',), 'immediate'),
-    ('SYNACK', ('SYNACK',), ('SYNACK',), (), 'immediate'),
-    ('final_ACK', ('final_ACK',), (), ('final_ACK',), 'immediate'),
-    ('READ_request', ('READ_request',), (), ('READ_request',), 'immediate'),
-    ('READ_ACK_and_response_61', ('READ_server_ACK', 'READ_response_61'),
-     ('READ_server_ACK', 'READ_response_61'), (), 'response_ready_D'),
-    ('SELECT_request', ('SELECT_request',), (), ('SELECT_request',), 'immediate'),
-    ('SELECT_ACK_and_response_61', ('SELECT_server_ACK', 'SELECT_response_61'),
-     ('SELECT_server_ACK', 'SELECT_response_61'), (), 'response_ready_D'),
-    ('READ_after_SELECT_cancels_selection_forwarded', ('READ_after_SELECT',), (), ('READ_after_SELECT',),
-     'immediate'),
-    ('RST_after_abandoned_SELECT_forwarded', ('RST',), (), ('RST',), 'immediate'),
-    ('new_SYN_after_abandoned_SELECT_admitted', ('new_SYN',), (), ('new_SYN',), 'immediate'),
-)
-# T actions that an ordinary response-ready exchange never takes: stale flushes, duplicate and old-epoch drops.
-TIMED_FORBIDDEN = ('flush_ack_stale', 'flush_response_stale', 'drop_duplicate_response', 'drop_old_epoch',
-                   'drop_tin')
-TIMED_EVIDENCE = TIMED_FORBIDDEN + ('admit_request', 'hold_ack', 'admit_response', 'release_ack_commit',
-                                    'release_response_counted')
-
-
-def clock_view():
-    """The running model's own log, the T-clock source of the response-ready proof (as model_repeat's timed phase)."""
-    return load('_abandon_clock_view', HERE / 'model_log_view.py')
-
-
-def timed_scenario(m, ports, report, work):
-    """E4 rows judged by TIMED_STEPS. Every row is asserted: a drop, extra or reordered frame, a missing T-clock
-    proof or stale N work state is a failure, never a characterization."""
-    meta = report.record['meta']
-    build = Path(os.environ.get('PORT_MAP', 'unbound/inputs.json')).parent.name
-    meta.update(scenario='E4_abandoned_SELECT_timing_enabled', model_gate=False,
-                expectations='results/models/%s_e4_abandon_t1/EXPECTATIONS.json' % build,
-                timed_steps=[list(step) for step in TIMED_STEPS],
-                scope='E4 abandoned SELECT with timing enabled (ABANDON_T=1), contract %s; a separate labelled '
-                      'scenario, not part of the model gate' % TIMED_CONTRACT)
-    if not report.add('timed_scenario_preconditions', dict(timing_contract=TIMED_CONTRACT, read_cancels_selection=True),
-                      dict(timing_contract=meta.get('timing_contract'), read_cancels_selection=CANCELS),
-                      characterization=False):
-        return
-    view = clock_view()
-    log = view.log_path()
-    if log is None:
-        raise ValueError('the T=1 scenario needs the model T-clock log')
-    gap = json.loads((Path(os.environ['OUT']) / 't_params_written.json').read_text())[-1]['written']['gap']
-    rows, cells, seqs = {step[0]: step for step in TIMED_STEPS}, [], Sequences()
-
-    def immediate(name, sent, expected, master=True):
-        """One exact frame at the far endpoint, nothing elsewhere (model_repeat's step); stimulus as at T=0."""
-        step = rows[name]
-        if step[4] != 'immediate' or bool(step[3]) != master or bool(step[2]) == master:
-            raise ValueError('TIMED_STEPS disagrees with the %s stimulus' % name)
-        expected = rp.preserve_options(sent, expected)
-        rp.advance_timestamp()
-        got = m.exchange(MASTER.dev_port if master else RELAY.dev_port, sent, ports, timeout=3, quiet=.15)
-        flat = [frame for frames in got.values() for frame in frames]
-        delivered = got.get(RELAY.dev_port if master else MASTER.dev_port, [])
-        good = len(flat) == 1 and len(delivered) == 1 and same_frame(delivered[0], expected, sent)
-        cells.append(work())
-        report.add(name, 'one exact frame', 'drop' if not flat else '%d frames' % len(flat), ok=good,
-                   characterization=False, received=got, want=expected.hex(), work=cells[-1])
-        return good
-
-    def answered(kind, app, body, c, s, growth):
-        """The relay's genuine ACK and whole response as one pair (model_repeat.response_ready_pair), then the
-        T-clock proof (model_repeat.repeat_clock_proof). Frames are built in T=0's order and timestamp ticks."""
-        name = '%s_ACK_and_response_61' % kind
-        if rows[name][4] != 'response_ready_D' or len(rows[name][2]) != 2 or rows[name][3]:
-            raise ValueError('TIMED_STEPS disagrees with the %s stimulus' % name)
-        ack = vectors.packet(16, s, c, reverse=True)
-        want_ack = rp.preserve_options(ack, vectors.packet(16, s + growth, c, reverse=True))
-        rp.advance_timestamp()
-        native = seqs.response(app, body, kind)
-        image = encode61.read61(native) if kind == 'READ' else encode61.ctl61(native)
-        response = vectors.packet(24, s, c, reverse=True, payload=native)
-        want_response = rp.preserve_options(response, vectors.packet(24, s + growth, c, reverse=True, payload=image))
-        rp.advance_timestamp()
-        offset = view.size(log)
-        got, exact = repeat_builders.response_ready_pair(m, ports, RELAY.dev_port, ack, response, want_ack,
-                                                         want_response, same_frame, master_port=MASTER.dev_port)
-        cells.append(work())
-        report.add(name, 'one exact ACK then whole response', sum(map(len, got.values())), ok=exact,
-                   characterization=False, received=got, want=[want_ack.hex(), want_response.hex()], work=cells[-1])
-        records = [record for record in view.records_since(log, offset) if record.get('pipe') == 1]
-        proof = repeat_builders.repeat_clock_proof(records, gap)
-        actions = [action.rsplit('.', 1)[-1] for record in records for action in record.get('actions', [])]
-        report.add('%s_T_clock_response_ready_ACK_then_D' % kind, dict(passed=True, forbidden=[]),
-                   dict(passed=proof['passed'], forbidden=sorted(set(actions) & set(TIMED_FORBIDDEN))),
-                   characterization=False, response_ready_clock_proof=proof, t_record_count=len(records),
-                   t_records=[dict(port=record.get('port'), t_units=record.get('t_units'), actions=record['actions'])
-                              for record in records if set(TIMED_EVIDENCE) & {a.rsplit('.', 1)[-1]
-                                                                              for a in record.get('actions', [])}])
-        return native
-
-    c, s, growth = 100, 900, 0
-    immediate('SYN', vectors.packet(2, c, mss=1460), vectors.packet(2, c, mss=1460))
-    immediate('SYNACK', vectors.packet(18, s, c + 1, reverse=True, mss=1460),
-              vectors.packet(18, s, c + 1, reverse=True, mss=1460), master=False)
-    c, s = c + 1, s + 1
-    immediate('final_ACK', vectors.packet(16, c, s), vectors.packet(16, c, s))
-    for kind, fc, objects, body in (('READ', 1, READ_OBJECTS, READ_BODY),
-                                    ('SELECT', 3, crob(100), bytes(2) + crob(100))):
-        request, app = seqs.request(fc, objects)
-        seqs.next_app()
-        immediate('%s_request' % kind, vectors.packet(24, c, s + growth, payload=request),
-                  vectors.packet(24, c, s, payload=request))
-        c += len(request)
-        native = answered(kind, app, body, c, s, growth)
-        s += len(native)
-        growth += rp.growth(native, IMAGE_LEN)
-    meta['work_after_select'] = cells[-1]
-    request, app = seqs.request(1, READ_OBJECTS)
-    seqs.next_app()
-    forwarded = immediate('READ_after_SELECT_cancels_selection_forwarded', vectors.packet(24, c, s + growth,
-                          payload=request), vectors.packet(24, c, s, payload=request))
-    meta['read_after_select'] = [{'attempt': 0, 'waited_s': 0, 'forwarded_exact': forwarded, 'work': cells[-1]}]
-    c += len(request)
-    rst = immediate('RST_after_abandoned_SELECT_forwarded', vectors.packet(20, c, s + growth), vectors.packet(20, c, s))
-    syn = immediate('new_SYN_after_abandoned_SELECT_admitted', vectors.packet(2, 5000, mss=1460),
-                    vectors.packet(2, 5000, mss=1460))
-    meta['recovery'] = {'rst_forwarded_exact': rst, 'new_syn_forwarded_exact': syn, 'work': cells[-1]}
-    report.add('N_work_free_after_every_step', [[4]] * len(cells), [cell.get('phase') for cell in cells],
-               characterization=False)
-
-
 def main():
     timed = int(os.environ.get('ABANDON_T', '0'))
     report = Report(os.environ['PROG'], physical=False,
@@ -254,10 +118,6 @@ def main():
         def work():
             cell = m.register_read('p0.n_Ingress.work.work', 0, pipe=0)
             return {k.rsplit('.', 1)[-1]: v for k, v in cell.items()}
-
-        if timed:   # E4, the separate labelled T=1 scenario (TIMED_STEPS); the gate's T=0 steps below are unchanged
-            timed_scenario(m, ports, report, work)
-            return finish(report, timed)
 
         def send(name, sent, expected, master=True, record=True):
             expected = rp.preserve_options(sent, expected)
@@ -322,12 +182,7 @@ def main():
         report.add('characterized', True, True)
     except Exception:
         report.add('exception', 'none', traceback.format_exc(), ok=False)
-    return finish(report, timed)
-
-
-def finish(report, timed):
-    """T=0 keeps the gate's abandon_results.json; the T=1 scenario has its own results file."""
-    ok = report.finish(Path(os.environ['OUT']) / (TIMED_RESULTS if timed else 'abandon_results.json'))
+    ok = report.finish(Path(os.environ['OUT']) / 'abandon_results.json')
     return 0 if ok else 1
 
 

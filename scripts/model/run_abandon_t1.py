@@ -3,9 +3,11 @@
 Usage: python3 scripts/model/run_abandon_t1.py BUILD ATTEMPT
 Evidence: results/models/BUILD_NAME_e4_abandon_t1/model_abandon_t1_BUILD_NAME_NN/
 
-The launch path, preconditions and environment are run_model's. run_model.gate_environment is reused unchanged
-(it keeps ABANDON_T='0' for the gate); only this runner's copy sets ABANDON_T='1'. The evidence sits outside
-results/models/BUILD_NAME/, so model_summary never counts it as a gate run."""
+The driver is scripts/model/model_abandon_t1.py; the gate's model_abandon.py stays byte-identical (the c72 gate's
+closure binds it). The launch path, preconditions and environment are run_model's. run_model.gate_environment is
+reused unchanged (it keeps ABANDON_T='0' for the gate); only this runner's copy sets ABANDON_T='1' and names the E4
+driver as the closure target. The evidence sits outside results/models/BUILD_NAME/, so model_summary never counts
+it as a gate run."""
 import argparse
 import hashlib
 import json
@@ -19,13 +21,15 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import run_model  # noqa: E402
 
+DRIVER = HERE / 'model_abandon_t1.py'
+
 SCENARIO = ('E4 abandoned SELECT with timing enabled (ABANDON_T=1); a separate labelled scenario, '
             'not part of the 17-driver model gate')
 
 
 def scenario_environment(inputs_path, inputs, out, model_sde):
-    """The gate's environment for the abandon driver, with only ABANDON_T changed."""
-    env = run_model.gate_environment(inputs_path, inputs, run_model.DRIVERS['abandon'], out, model_sde)
+    """The gate's environment with the E4 driver as closure target and ABANDON_T='1'; nothing else changes."""
+    env = run_model.gate_environment(inputs_path, inputs, DRIVER, out, model_sde)
     env['ABANDON_T'] = '1'
     return env
 
@@ -64,7 +68,7 @@ def main():
     out.parent.mkdir(parents=True, exist_ok=True)
     if out.exists():
         raise SystemExit('model evidence must not be overwritten: ' + str(out))
-    driver = run_model.DRIVERS['abandon']
+    driver = DRIVER
     command = ['bash', str(HERE / 'launch_model.sh'), '-p', str(build / 'compile_local/out'), '-o', str(out),
                '-P', run_model.model_ports(inputs, driver='abandon'), '-d', str(HERE / 'record_closure.py')]
     env = scenario_environment(inputs_path, inputs, out, compiler_evidence.DEFAULT_COMPILER.parents[2])
@@ -84,6 +88,7 @@ def main():
         (out / 'launch_command.json').write_text(json.dumps({
             'scenario': SCENARIO, 'model_gate': False, 'command': command, 'PORT_MAP': str(inputs_path),
             'source_sha256': sha(build / 'response_only.p4'), 'driver_sha256': sha(driver),
+            'gate_driver_sha256': sha(run_model.DRIVERS['abandon']), 'closure_target': str(driver),
             'compile_manifest_sha256': sha(build / 'compile_local/manifest.json'),
             'expectations_sha256': sha(out.parent / 'EXPECTATIONS.json'),
             'dependency_closure_sha256': sha(out / 'dependency_closure.json'),

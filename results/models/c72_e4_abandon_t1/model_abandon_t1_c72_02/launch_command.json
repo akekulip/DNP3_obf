@@ -1,0 +1,36 @@
+{
+  "scenario": "E4 abandoned SELECT with timing enabled (ABANDON_T=1); a separate labelled scenario, not part of the 17-driver model gate",
+  "model_gate": false,
+  "command": [
+    "bash",
+    "/home/philip/Projects/DNP3/scripts/model/launch_model.sh",
+    "-p",
+    "/home/philip/Projects/DNP3/results/builds/c72/compile_local/out",
+    "-o",
+    "/home/philip/Projects/DNP3/results/models/c72_e4_abandon_t1/model_abandon_t1_c72_02",
+    "-P",
+    "9 48 64 68 180 182 196",
+    "-d",
+    "/home/philip/Projects/DNP3/scripts/model/record_closure.py"
+  ],
+  "PORT_MAP": "/home/philip/Projects/DNP3/results/builds/c72/response_only.inputs.json",
+  "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+  "driver_sha256": "bc2ee0d238f3645204c60488e94dc4e8af800a23ee6701dc5672f1c7a06d5980",
+  "gate_driver_sha256": "00059dce369af4017eaf5a657f4476a86323765e1e23eb142419102da8ef919a",
+  "closure_target": "/home/philip/Projects/DNP3/scripts/model/model_abandon_t1.py",
+  "compile_manifest_sha256": "210da0637250363903ae8a7ab7808281941738ebbb7ece4096b011ce8cf4b33b",
+  "expectations_sha256": "11bfa17eb3900adc736a36d87a59405cd5e5b06299311d4ae783a98d204db68b",
+  "dependency_closure_sha256": "19e8a9af9385e880b45d36c569418fc49bd17984bf6622069c3645d7603cad03",
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "supported_profile_sha256": "a4f653024e290d659f36ca4830fd91badaf849c584a6a11a70eec51cfc021f78",
+  "observation_source": "SDK model action log; not physical switch counters",
+  "stimulus_environment": {
+    "REPEAT_CYCLES": "64",
+    "REPEAT_TIMED_CYCLES": "3",
+    "ABANDON_T": "1",
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "model_log_retention_sha256": "ee36677a6fdb68232340fc69044fc88cf83bf4b1dfb8424838285aafe0c54ea4",
+  "retention_error": null,
+  "exit_code": 0
+}
