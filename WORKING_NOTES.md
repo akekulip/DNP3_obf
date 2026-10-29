@@ -120,7 +120,8 @@ Next: freeze-gate admission + diag definitions, runtime hooks (installer --diag-
 D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (diag build).
 - 2026-10-29 E3 done (c72): r1 D20 combined 5/6 SUCCESS (t3 TIMEOUT: OPERATE request itself retransmitted +214 ms),
   r2 D20 size_only 6/6, r3 D5 combined 5/6 (t2 TIMEOUT, single OPERATE copy at 1004.7 ms). Relay retransmits the
-  dropped SELECT response at 998-1023 ms in every trial, so OPERATE always lands at the select-window edge.
+  dropped SELECT response at 998-1023 ms in every trial, so OPERATE leaves ~1.0 s after the
+  SELECT request (relay timeout not read).
   results/analysis/recovery_e3/SUMMARY.md. TODO after hardware: move scratch e3_extract.py to
   scripts/analysis/recovery_e3.py and regenerate e3_trials.json (must be identical).
 - D3 first trial: dev10 -> Vision enp59s0f1np1 (i40e 0000:3b:00.1) CONFIRMED; off-arm copies byte-identical

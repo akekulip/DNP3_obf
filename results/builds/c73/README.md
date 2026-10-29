@@ -1,16 +1,18 @@
 # c73: c72 with proven dead and no-op P4 removed
 
-**c73 is MODEL-QUALIFIED ONLY.** It has not run on the switch, Vision or the SEL-751. A hardware matrix for a new
-candidate needs Philip's go-ahead (CLAUDE.md). Every hardware result in this repository was taken with c72
-(`results/builds/c72`, source SHA-256 `97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e`). None
-of it transfers to c73.
+**Parked (Philip, 2026-10-29).** c73 frees no stage and its integration is unfinished; the current priority is a
+c72-derived packet-loss fix. **c73 is MODEL-QUALIFIED ONLY.** It has not run on the switch, Vision or the SEL-751. A
+hardware matrix for a new candidate needs Philip's go-ahead (CLAUDE.md). Every hardware result in this repository was
+taken with c72 (`results/builds/c72`, source SHA-256
+`97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e`). None of it transfers to c73.
 
 - c73 source SHA-256: `3e7dbb38c0bbd03f7cb0946c4621b043172a6eab3b839be0c1ed6389b4e77b2c`
 - **Not canonical yet.** In the repository, `p4/response_only.p4` is still c72, so c72 remains runnable and every
   c72 test stays green. `canonical_switch.patch` holds the tracked-file changes that make c73 canonical:
   `p4/response_only.p4`, `scripts/model/action_observations.json`, `scripts/model/cp_base.py`,
   `results/analysis/stage_cut/current_build.json` and `tests/p4/test_e_wend_equivalence.py`. Apply it with
-  `git apply results/builds/c73/canonical_switch.patch` once Philip approves a hardware qualification of c73. Until
+  `git apply results/builds/c73/canonical_switch.patch` only after the integration below is finished and Philip
+  approves. Until
   then `summarize_v3(results/builds/c73)` reports blocked, because the model evidence binds the c73 versions of
   those files. After the patch it recomputes `model_gate_passed`, and the c72-premise tests listed under "Tests"
   below must be retired at tag `c72-validation-final` or re-targeted.

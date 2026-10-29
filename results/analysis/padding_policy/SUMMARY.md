@@ -49,9 +49,14 @@ Reading the costs:
 - merged_read adds 22.73 − 19.82 = +2.91 B per transaction, averaged over all 12,352 retained exchanges.
 - Each affected mixed READ response grows by 17 B (141 to 158; +67 B over native 91 instead of +50).
 - Integrity READ (158 B) and SELECT/OPERATE (60 B) stay unchanged.
-- full_merge sets every response to 162 B (+91.73 B per transaction, +84.25% payload). It is listed for comparison
-  and is not proposed.
-- Every classifier figure here is balanced accuracy (BA), not plain accuracy. These are offline estimates; no P4 or
+- full_merge sets every response to 162 B (+91.73 B per transaction: +84.25% request-plus-response payload, +130.5%
+  response payload). It is listed for comparison and is not proposed.
+- Scope of these costs: they belong to the five named plans (native, current, merged_read, full_merge,
+  mixed_sbo_overlap; `scripts/analysis/padding_policy.py`) of one restricted construction, a READ prefix frame plus
+  SBO reframing. They are not a minimum cost over all padding designs.
+- Every classifier figure here is balanced accuracy (BA), not plain accuracy. The "operation classifier" and
+  "workload classifier" tables measure operation classification on one SEL-751 with one master; hidden device
+  identity is not addressed. These are offline estimates; no P4 or
   profile change was made.
 
 ## Size-only NB on the off arm with mapped sizes (retrained, test reps 9-16)

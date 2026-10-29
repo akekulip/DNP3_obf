@@ -31,15 +31,16 @@ Yes for the scoped workload. The recovery edge cases are below, with their denom
 | Abandoned SELECT on the relay (E4b) | c72 | 6/6 trials pass: 24/24 SELECTs CROB SUCCESS, 0 OPERATE sent, 24/24 READs right after an abandoned SELECT answered and padded to their class image |
 | First request on fresh connections (E2) | diagnostic | 3/48 retransmitted at 206–218 ms; all 3 lost inside the switch |
 
-**E3, SELECT-response loss.** The relay retransmits a dropped SELECT response after 998–1023 ms in every trial, so
-the recovered OPERATE always leaves the master at about 1.0 s (999.1–1024.0 ms). That is the edge of the SEL-751
-selection window, whose manual default is 1.0 s (the setting was not read from the relay).
+**E3, SELECT-response loss.** In every trial the relay retransmitted the dropped SELECT response 998–1023 ms after
+the SELECT request (974.5–1018.5 ms after the dropped first copy), so the recovered OPERATE left the master about
+1.0 s after the SELECT request (999.1–1024.0 ms). The relay's select-timeout setting was not read; 1.0 s is only the
+manual default, so these trials do not establish where the relay's selection window ends.
 - r1 t3 (D = 20 ms, timing+size): the OPERATE request was itself retransmitted after 214 ms. It reached the relay
   at about 1.22 s and was answered TIMEOUT.
 - r3 t2 (D = 5 ms, timing+size): TIMEOUT with a single OPERATE copy at 1004.7 ms, while later OPERATEs (up to
   1024.0 ms) succeeded.
-- The outcomes are not ordered by OPERATE departure time, so the window boundary cannot be bracketed from master
-  captures. The padding does not break the recovery path: the dropped padded response is retransmitted and
+- The outcomes are not ordered by OPERATE departure time, so no selection-window boundary can be bracketed from
+  master captures. The padding does not break the recovery path: the dropped padded response is retransmitted and
   delivered (`results/analysis/recovery_e3/SUMMARY.md`).
 
 **E2, first-request loss.** The diagnostic mirror resolves the open data event of the evaluation (16/256 first
@@ -60,12 +61,13 @@ SYN-ACK. The loss is inside the switch at connection start; its mechanism in the
 - completeness holds in 40/40 trials.
 
 The registered mirror on/off timing test (D3d) failed its 50 µs bound: four timed cells shift by −231 to +142.5 µs.
-That is inside c72's own repetition-to-repetition spread of 266–1,085 µs. Delivery and sizes were identical. No
-claim relies on mirror timing.
+These shifts lie inside c72's own repetition-to-repetition spread of 266–1,085 µs, but that does not establish
+equivalence; no equivalence is claimed. Delivery and sizes were identical. No claim relies on mirror timing.
 
 ## 3. Is the fingerprinting feature less useful?
 
-For CLRT, yes at D ≥ 10 ms; at D = 5 ms only partly. Size separates READ from SELECT/OPERATE by design. All figures
+The evidence shows reduced CLRT-based operation classification on one SEL-751 with one master; it does not address
+hidden device identity. For CLRT, yes at D ≥ 10 ms; at D = 5 ms only partly. Size separates READ from SELECT/OPERATE by design. All figures
 are balanced accuracy over 3 classes (chance 0.333), K = 64, retrained naive Bayes, with paired block-bootstrap
 intervals for Δ = off − arm (`results/analysis/evaluation/final_v2/SUMMARY.md`).
 
@@ -81,12 +83,14 @@ intervals for Δ = off − arm (`results/analysis/evaluation/final_v2/SUMMARY.md
   timing+size; its mechanism is not determined.
 - **Request size:** requests keep their native size (25, 27 and 45 octets), so request size still identifies the
   operation class in every arm.
-- **Padding policy:** under every attainable target assignment except merging all classes into one size (162
-  octets, +84% bytes, not proposed), the size-only balanced accuracy stays at 0.667. The cheaper READ merge adds
+- **Padding policy:** the study evaluates five named target plans of one restricted construction (READ prefix and
+  SBO reframing; `scripts/analysis/padding_policy.py`). Under four of them the size-only balanced accuracy stays at
+  0.667. Only `full_merge`, which pads every response to 162 octets (+84.25% request-plus-response payload, +130.5%
+  response payload; not proposed), reaches 0.333. This is not a minimum cost over all padding designs. The cheaper READ merge adds
   2.91 octets per transaction on average over the workload, and each affected mixed READ grows by 17 octets
   (`results/analysis/padding_policy/SUMMARY.md`).
-- **Scope of the claim:** this is operation classification on one SEL-751 with one master, not device
-  identification.
+- **Scope of the claim:** operation classification on one SEL-751 with one master; hidden device identity is not
+  established.
 
 ## 4. What does it cost?
 
@@ -106,10 +110,9 @@ intervals for Δ = off − arm (`results/analysis/evaluation/final_v2/SUMMARY.md
 
 ## What remains open
 
-- The mechanism of the connection-start drop inside the switch (E2). Next check: a model reproduction with the final
-  handshake ACK and the first request sent right after the SYN-ACK.
-- The SEL-751 select-timeout setting and relay-side timing for E3; it needs relay settings access, which was not
-  used.
-- opendnp3 replay of the 256 SELECT/OPERATE wrap responses (a safety check stopped the replay; it needs Philip's
-  decision), and a live-master check against the physical SEL-751.
+- The connection-start drop inside the switch (E2): to be reproduced on the model, corrected in a c72-derived
+  candidate and confirmed on the SEL-751 with timing and padding enabled (work in progress).
+- The SEL-751 select-timeout setting stays unverified (no relay settings access).
+- Offline opendnp3 replay of the 256 SELECT/OPERATE wrap responses, with transport reassembly reported apart from
+  command-echo acceptance (work in progress).
 - The residual SELECT/OPERATE CLRT difference under timing+size, and the native request sizes.

@@ -22,11 +22,11 @@ Six trials per condition are a bounded diagnostic. No rate is estimated and no c
 
 All times are measured at the master NIC, in ms from the SELECT request (`e3_trials.json`).
 - **Drop and recovery:** in all 18 trials the first SELECT response copy was captured and dropped, and the relay
-  retransmitted it after 998.0–1022.9 ms. The master sent OPERATE 1.04–1.10 ms after receiving the retransmission.
-- **Where OPERATE lands:** the recovered OPERATE therefore always leaves the master at about 1.0 s (999.1–1024.0 ms).
-  The relay's TCP retransmission timeout is about the same length as the SEL-751 select timeout (manual default
-  1.0 s, not read from the relay). Recovery from a lost SELECT response always arrives at the edge of the
-  selection window, whatever the arm.
+  retransmitted it 998.0–1022.9 ms after the SELECT request (974.5–1018.5 ms after the dropped first copy). The
+  master sent OPERATE 1.04–1.10 ms after receiving the retransmission.
+- **Where OPERATE lands:** the recovered OPERATE therefore always leaves the master about 1.0 s after the SELECT
+  request (999.1–1024.0 ms). The relay's select-timeout setting was not read; 1.0 s is only the manual default, so
+  these trials do not establish where the relay's selection window ends.
 - **r1 t3, a second loss:** the master sent OPERATE at 1009.0 ms, then retransmitted it at 1222.9 ms. The relay
   acknowledged only the retransmission (1228.8 ms), so OPERATE reached the relay about 1.22 s after the SELECT and
   was answered TIMEOUT. The roughly 214 ms retransmission matches the first-request retransmissions seen on fresh
@@ -41,10 +41,10 @@ All times are measured at the master NIC, in ms from the SELECT request (`e3_tri
 - The size padding does not break the recovery path. The dropped padded SELECT response is retransmitted by the
   relay and delivered, and OPERATE follows. With timing on, the retransmitted copy is not held: OPERATE leaves about
   1 ms after it in every arm.
-- TIMEOUT outcomes are not ordered by OPERATE departure time at the master. The selection-window boundary cannot be
-  bracketed from master-side times alone. It would need relay-side timestamps for the SELECT response and the
-  OPERATE arrival (the diagnostic mirror's ingress copies, or the relay's own SOE), and the relay's select-timeout
-  setting, which was not read: no relay settings access was used.
+- TIMEOUT outcomes are not ordered by OPERATE departure time at the master, so no selection-window boundary can be
+  bracketed from master-side times. The relay's select-timeout setting was not read (no relay settings access).
+  The diagnostic mirror cannot supply relay-side timing: its timing equivalence was not established (D3d), so it is
+  used for packet presence and content only.
 - Two TIMEOUTs in 12 timing-on trials and none in 6 timing-off trials support no conclusion about timing. The
   timing-off first copy arrives about 20 ms earlier at D = 20 ms (4.4–8.7 ms against 23.6–28.7 ms), but OPERATE
   departure is set by the relay's retransmission, not by the first copy.

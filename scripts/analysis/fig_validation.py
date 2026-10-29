@@ -86,7 +86,7 @@ def figure(out):
                           label='OPERATE SUCCESS'),
                plt.Line2D([], [], marker='o', ls='none', color='white', markeredgecolor=fs.EDGE,
                           label='OPERATE TIMEOUT'),
-               plt.Line2D([], [], label='1.0 s (manual default select timeout)',
+               plt.Line2D([], [], label='1.0 s (manual default select timeout, not verified)',
                           **{k: v for k, v in fs.CHANCE.items() if k != 'zorder'})]
     fs.legend_below(fig, handles)
     fs.save(fig, out, 'fig_validation_recovery')
