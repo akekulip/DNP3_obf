@@ -210,7 +210,10 @@ def request_segments(relay_segs, master_segs, rq0, mq0, translate):
         found = copies.get((offset, s['payload']), [])
         expected = [translate(c['ack']) for c in found]
         if found:
-            twin = found[expected.index(s['ack'])] if s['ack'] in expected else found[0]
+            # the master transmission this copy is: same translated ACK, then the same IPv4 ID (the switch does not
+            # rewrite it), so a first transmission the switch dropped is not compared with the retransmission
+            same_ack = [c for c, e in zip(found, expected) if e == s['ack']] or found
+            twin = next((c for c in same_ack if c['frame'][18:20] == s['frame'][18:20]), same_ack[0])
             headers += [dict(d, pcap_index=s['index'], offset=offset) for d in header_changes(s, twin, 'to_relay')]
         if s['ack'] in expected:
             consistent += 1

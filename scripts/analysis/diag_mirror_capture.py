@@ -81,11 +81,13 @@ def load(path):
     return trial
 
 
-def record_direction(frame, relay_macs):
-    """A copy is an ingress copy when its Ethernet source is the relay (MAC learned from the relay's TCP copies)."""
-    if not relay_macs:
+def record_direction(frame, master_macs):
+    """A copy is an egress copy when its Ethernet source is the master (MAC learned from the master's TCP copies):
+    dev64 egress carries only what the switch forwards from the master leg, with no MAC rewrite, while dev64
+    ingress carries everything on the relay segment, including other devices' broadcasts (DHCP seen 2026-10-29)."""
+    if not master_macs:
         return 'unattributed'
-    return 'from_relay' if frame[6:12] in relay_macs else 'to_relay'
+    return 'to_relay' if frame[6:12] in master_macs else 'from_relay'
 
 
 def field_at(frame, offset):

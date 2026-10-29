@@ -210,7 +210,8 @@ def test_a_missing_copy_is_detected(tmp_path, switch_sent):
     assert fidelity['ok'] is switch_sent       # a copy the switch sent but the capture lost is a D3c failure
     assert not complete['ok']
     failed = {c['check'] for c in complete['checks'] if not c['equal']}
-    common = {'egress copies / switch dev64 TX', 'connection to_relay copies / frames at the master NIC (out.pcap)'}
+    common = {'egress copies / switch dev64 TX', 'connection to_relay copies / frames at the master NIC (out.pcap)',
+              'connection to_relay copies + master frames the switch did not emit / frames at the master NIC'}
     assert failed == common | ({'copies captured / switch dev10 TX'} if switch_sent else
                                {'switch dev10 TX / switch dev64 RX + TX'})
 
@@ -228,6 +229,18 @@ def test_a_counter_mismatch_or_capture_drop_is_detected(tmp_path, counters, stat
     assert {c['check'] for c in complete['checks'] if not c['equal']} == failed
     if stats and 'dropped_kernel' in stats:
         assert any('dropped_kernel' in f for f in complete['failures'])
+
+
+@pytest.mark.parametrize('switch_forwarded', [False, True])
+def test_a_master_frame_the_switch_never_emitted_is_an_explained_missing_copy(tmp_path, switch_forwarded):
+    # hardware 2026-10-29: the switch did not forward the master's final handshake ACK (dev9 RX - dev64 TX = 1);
+    # no egress copy can exist, so the capture is complete. If dev64 TX shows it was emitted, the capture lost it.
+    events = connection()
+    events[2]['copy'] = False                    # the handshake's final ACK: no egress copy
+    counters = dict(tx64=N_TO, tx10=N_TO + N_FROM) if switch_forwarded else dict(tx64=N_TO - 1, tx10=N_TO + N_FROM - 1)
+    complete = d3.completeness(trial(tmp_path, events, counters=counters))
+    assert complete['ok'] is (not switch_forwarded), complete['failures']
+    assert complete['missing_master_copies_explained'] == dict(n=0 if switch_forwarded else 1, of=1)
 
 
 def test_counter_window_wider_than_the_capture_is_a_bound_not_a_failure(tmp_path):
@@ -331,6 +344,20 @@ def test_e2_classifies_each_registered_class_and_no_retransmission(tmp_path):
     assert result['retransmitted_mirror_on'] == {'n': 3, 'of': 4}
 
 
+@pytest.mark.parametrize('received', [True, False])
+def test_e2_switch_counters_narrow_a_missing_egress_copy_to_inside_the_switch(tmp_path, received):
+    t = write_trial(tmp_path, 'off', 'e2_class1', first_request_case('class1'), port=61000)
+    if not received:                           # dev9 counted one frame fewer than the master sent
+        snap = t / 'snapshots' / 'e2_class1_after.json'
+        after = json.loads(snap.read_text())
+        after['ports']['9']['$FramesReceivedOK'] -= 1
+        snap.write_text(json.dumps(after))
+    [row] = d3.first_requests([cap.load(t)], [])['connections']
+    assert row['class'] == 'lost_before_or_inside_switch'
+    assert row['switch_counter_evidence']['all_master_frames_received'] is received
+    assert row['narrowest_location'].startswith('inside the switch' if received else 'before or inside')
+
+
 def test_e2_mirror_off_connections_count_retransmissions_without_a_location(tmp_path):
     t = cap.load(write_trial(tmp_path, 'off', 'off_t0', first_request_case('class2')))
     result = d3.first_requests([], [t])
@@ -364,6 +391,25 @@ def test_e2_is_not_usable_when_an_e2_block_capture_is_incomplete(tmp_path):
     result = d3.analyze(on, off, e2, LABEL, SHA, tmp_path / 'out' / 'd3.json')
     assert result['verdicts']['D3c_e2_block'] is False
     assert result['E2']['usable'] is False and result['E2']['precondition']['D3c_e2_block'] is False
+
+
+def test_a_third_party_broadcast_from_the_relay_segment_counts_as_an_ingress_copy(tmp_path):
+    # hardware 2026-10-29: a device with another MAC broadcasts DHCP on the relay segment; the switch counts it in
+    # dev64 RX and mirrors it, so it is an ingress copy even though its source is not the relay
+    t = write_trial(tmp_path, 'off', 'd3_on_off_t0', connection(),
+                    counters=dict(rx64=N_FROM + 1, tx10=N_TO + N_FROM + 1),
+                    stats=dict(captured=N_TO + N_FROM + 1, received=N_TO + N_FROM + 1))
+    frames = [(r['t_us'] * 1000, r['frame'], len(r['frame'])) for r in wc.read_pcap_records(t / 'mirror.pcap')[0]]
+    dhcp = bytes(Ether(src='70:49:a2:6b:6c:89', dst='ff:ff:ff:ff:ff:ff') / IP(src='0.0.0.0', dst='255.255.255.255') /
+                 Raw(b'\x00' * 300))
+    write_pcap(t / 'mirror.pcap', frames + [(frames[-1][0] + 1000, dhcp, len(dhcp))])
+    after = json.loads((t / 'mirror_iface_after.json').read_text())
+    after['link'][0]['stats64']['rx']['packets'] += 1
+    (t / 'mirror_iface_after.json').write_text(json.dumps(after))
+    complete = d3.completeness(cap.load(t))
+    assert complete['ok'], complete['failures']
+    assert complete['directions']['from_relay']['copies_attributed'] == N_FROM + 1
+    assert complete['directions']['to_relay']['copies_attributed'] == N_TO
 
 
 def test_d3a_requires_the_registered_bus_address(tmp_path):

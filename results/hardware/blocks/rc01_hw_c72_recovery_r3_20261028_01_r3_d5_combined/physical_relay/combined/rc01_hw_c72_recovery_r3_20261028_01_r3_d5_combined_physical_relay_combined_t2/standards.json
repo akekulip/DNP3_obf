@@ -1,0 +1,120 @@
+{
+  "schema_version": "dnp3-standards-sel751-v1",
+  "scope": "sel751_receiver_visible",
+  "run": {
+    "run_id": "rc01_hw_c72_recovery_r3_20261028_01_r3_d5_combined",
+    "trial": "rc01_hw_c72_recovery_r3_20261028_01_r3_d5_combined_physical_relay_combined_t2",
+    "connection": "primary",
+    "arm": "combined"
+  },
+  "identity": {
+    "candidate_source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+    "build": "current",
+    "build_hashes": {
+      "bfrt.json": "cc8a72d2001a1c8d4240f8731f8afe37e25ddbea533bcd2f02c5dc7f85a2ca3c",
+      "p0/tofino.bin": "207603d71ea720ccfd2e54a612c22e830df63f25f1e28547645dbd3e3971170d",
+      "p1/tofino.bin": "f333a4307230d21d680ebd0bd8b40b137bf690b865f4fffb73675cebd844a154",
+      "p1/response_only.bfa": "e2f405166c8b27b3770861de9a0a7aded59c530329525c6013f7b45de68f81e8"
+    },
+    "profile": "sel751_current",
+    "profile_hash": "dfb5e0a6448f5cf4342b28e58ec356fa1050261d81e89f1c4cf926b93f728dc3",
+    "effective_config_sha256": "35187173c20d68ec34f36ab55a4fb3ebcf5ebc49f814b7423e3f6b1124fbcd11"
+  },
+  "checker": {
+    "version": "87461fa6bc6dfd62a10e767bc1abd9abed46d963945848267e59c3de33f21ffa",
+    "dependency_closure_sha256": "87461fa6bc6dfd62a10e767bc1abd9abed46d963945848267e59c3de33f21ffa"
+  },
+  "expected": {
+    "counts": {
+      "READ": 20,
+      "SELECT": 1,
+      "OPERATE": 1
+    },
+    "lengths": {
+      "READ": [
+        158
+      ],
+      "SELECT": [
+        60
+      ],
+      "OPERATE": [
+        60
+      ]
+    },
+    "read_classes": {
+      "integrity": {
+        "count": 20,
+        "image": 158
+      }
+    },
+    "read_schedule": "full",
+    "padded": true,
+    "planned_exchanges": 22
+  },
+  "captures": {
+    "capture_offloads": {
+      "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+    },
+    "in": {
+      "sha256": "649f6c1642dbc03dafae426b430da8f05f81a431f6993d9699b18a9b2d3b7242"
+    },
+    "master": {
+      "sha256": "bcaa3b7cc01df1ddfe8e4a9b75fc67392c5c073d1092c9c87d434e283fe6b05d"
+    },
+    "out": {
+      "sha256": "4f2d3b0bd9a168e25596b314da8b8f3a68003c0fb1e91a599b758db8ac23fac0"
+    },
+    "relay_wire": {
+      "sha256": "640e94f615540177f52e1f8d6d3e066487c3cc066fabf1e86fb413cd545c7d8d"
+    },
+    "run_result": {
+      "sha256": "155cb4ffe746f967cc02d2b0c813e32fb6b5ae9be9f96e259dd2f4ab865dd156"
+    }
+  },
+  "observed": {
+    "exchanges": {
+      "READ:integrity": {
+        "count": 20,
+        "ok": 20,
+        "resp_len": [
+          158
+        ]
+      },
+      "SELECT": {
+        "count": 1,
+        "ok": 1,
+        "resp_len": [
+          60
+        ]
+      },
+      "OPERATE": {
+        "count": 1,
+        "ok": 0,
+        "resp_len": [
+          60
+        ]
+      }
+    },
+    "transport_failures": [],
+    "application_failures": [
+      "master records/counts/plan differ from frozen expected denominators",
+      "complete planned master denominators missing or failed",
+      "master transaction failed: OPERATE",
+      "OPERATE application: point 1 status TIMEOUT",
+      "OPERATE application: point 3 status TIMEOUT",
+      "OPERATE captured CROB not successful: [[1, 'TIMEOUT'], [3, 'TIMEOUT']]; point 1 status TIMEOUT; point 3 status TIMEOUT"
+    ],
+    "size_failures": [],
+    "transport_ok": true,
+    "select_authorizes_operate": true,
+    "operate_success": false,
+    "size_ok": true,
+    "aggregate_verdict": false,
+    "not_evaluated": {
+      "switch_emitted_boundaries": "NOT EVALUATED",
+      "departure_timing": "NOT EVALUATED",
+      "physical_event_protection": "NOT EVALUATED"
+    },
+    "trial_level_checks": "TCP header/options are recomputed from the captures; FIN/RST close proof is also required by the applicable trial gate (relay_wire.json is bound by hash)"
+  }
+}

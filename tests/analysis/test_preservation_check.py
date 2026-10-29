@@ -80,16 +80,32 @@ def build(tmp, txns, client=1000, server=0xffffff00):
     """relay.pcap (mirror, both directions) and trial/{out,in}.pcap for one connection; server ISN wraps 2**32."""
     relay, out, inn, clock = [], [], [], [0]
 
-    def emit(where, flags, seq, ack, reverse=False, payload=b''):
+    def emit(where, flags, seq, ack, reverse=False, payload=b'', ident=None):
         clock[0] += 1
+        raw = vectors.packet(flags, seq, ack, reverse=reverse, payload=payload, tuple4=TUPLE)
+        if ident is not None:                   # a distinct transmission: its own IPv4 ID, checksum recomputed
+            from scapy.all import Ether, IP
+            pkt = Ether(raw)
+            pkt[IP].id = ident
+            del pkt[IP].chksum
+            raw = bytes(pkt)
         for packets in where:
-            packets.append((clock[0], vectors.packet(flags, seq, ack, reverse=reverse, payload=payload, tuple4=TUPLE)))
+            packets.append((clock[0], raw))
 
     emit([relay, out], SYN, client, 0)
     emit([relay, inn], SYN | ACK, server, client + 1, True)
     emit([relay, out], ACK, client + 1, server + 1)
     q = r = m = err = 0
     for x in txns:
+        if x.get('lost_in_switch'):             # the master's first transmission never leaves toward the relay
+            emit([out], PSHACK, client + 1 + q, server + 1 + m + err, payload=x['request'], ident=0x0101)
+            emit([out, relay], PSHACK, client + 1 + q, server + 1 + m + err, payload=x['request'], ident=0x0102)
+            q += len(x['request'])
+            emit([relay], PSHACK, server + 1 + r, client + 1 + q, True, x['native'])
+            r += len(x['native'])
+            emit([inn], PSHACK, server + 1 + m + err, client + 1 + q, True, x['image'])
+            m += len(x['image'])
+            continue
         emit([out], PSHACK, client + 1 + q, server + 1 + m + err, payload=x['request'])
         if x.get('master_only'):
             q += len(x['request'])
@@ -256,6 +272,19 @@ def test_g_a_retransmitted_segment_is_reported_not_a_difference(tmp_path, side):
     other = connection['tcp'][('master' if side == 'relay' else 'relay') + '_side']['from_relay']
     assert other['retransmitted_segments'] == 0
     assert result['totals']['retransmitted_segments_' + side + '_side']['n'] == 1
+
+
+def test_a_request_the_switch_dropped_is_paired_with_the_retransmission_that_left(tmp_path):
+    # hardware 2026-10-29 (c72_diag_mirror d3on combined t0): the master's first transmission of a request never left
+    # toward the relay; only its retransmission did. The relay-side copy must be compared with the master copy it is
+    # (same IPv4 ID), not with the first transmission, or IP ID / checksum differences are reported falsely.
+    txns = cycle(4)
+    txns[0]['lost_in_switch'] = True
+    code, result = run(tmp_path, txns)
+    connection = result['connections'][0]
+    assert connection['request_segments']['header_differences'] == []
+    assert code == 0 and connection['ok'], connection['failures']
+    assert connection['tcp']['master_side']['to_relay']['retransmitted_segments'] == 1
 
 
 def test_h_an_unmatched_transaction_on_either_side_is_reported(tmp_path):

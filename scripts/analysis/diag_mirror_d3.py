@@ -57,8 +57,8 @@ ASSUMPTIONS = [
     'snapshots/<label>_before.json and _after.json: snapshot_counters.py run with --ports 9,64,10; ports keyed by the '
     'port number as a string; $FramesReceivedOK / $FramesTransmittedOK are the counted frames',
     'relay_wire.json: relay_check v3 output (sel751-wire-v3) of the same trial',
-    'an ingress copy is a mirror frame whose Ethernet source is the relay MAC seen in the relay TCP copies; every '
-    'other copy is an egress copy',
+    'an egress copy is a mirror frame whose Ethernet source is the master MAC seen in the master TCP copies (the '
+    'switch rewrites no MAC); every other copy, including third-party broadcasts on the relay segment, is ingress',
     'E1: mirror.pcap is preservation_check --relay-pcap (both mirror directions in one file)',
 ]
 
@@ -130,7 +130,7 @@ def completeness(trial):
     iface, _ = interface(trial)
     stats = (cap.read_json(trial['dir'] / 'mirror_capture.json') or {}).get('tcpdump')
     records = trial['records']
-    macs = {s['frame'][6:12] for s in trial['mirror']['from_relay']}
+    macs = {s['frame'][6:12] for s in trial['mirror']['to_relay']}
     attributed = Counter(cap.record_direction(r['frame'], macs) for r in records)
     failures = [cnt_error] if cnt_error else []
     failures += ['inputs missing: ' + ', '.join(trial['missing'])] if trial['missing'] else []
@@ -154,9 +154,16 @@ def completeness(trial):
         failures += ['tcpdump %s %r' % (key, stats.get(key)) for key in ('dropped_kernel', 'dropped_interface')
                      if stats.get(key, 0 if key == 'dropped_interface' else None) != 0]
     off = trial['arm'] == 'off'      # other arms may hold or drop frames by design: descriptive there
-    for d, where in (('from_relay', 'in.pcap'), ('to_relay', 'out.pcap')):
-        check('connection %s copies / frames at the master NIC (%s)' % (d, where), len(trial['mirror'][d]),
-              len(trial['master'][d]), gate=off)
+    check('connection from_relay copies / frames at the master NIC (in.pcap)', len(trial['mirror']['from_relay']),
+          len(trial['master']['from_relay']), gate=off)
+    # a master frame the switch received but never emitted on dev64 (dev9 RX - dev64 TX) has no copy to capture:
+    # that missing copy is explained; any other missing copy is capture loss
+    sent, copied = len(trial['master']['to_relay']), len(trial['mirror']['to_relay'])
+    missing = max(0, sent - copied)
+    explained = min(missing, max(0, cnt['dev9']['rx'] - cnt['dev64']['tx'])) if cnt else 0
+    check('connection to_relay copies / frames at the master NIC (out.pcap)', copied, sent, gate=False)
+    check('connection to_relay copies + master frames the switch did not emit / frames at the master NIC',
+          copied + explained, sent, gate=off)
     truncated = [r for r in records if r['captured_len'] < r['original_len']]
     short = [r for r in records if r['frame'][12:14] == b'\x08\x00' and len(r['frame']) >= 18 and
              len(r['frame']) < 14 + int.from_bytes(r['frame'][16:18], 'big')]
@@ -172,7 +179,8 @@ def completeness(trial):
                 interface_rx_packets_delta=iface['rx_packets_delta'] if iface else None,
                 nic_loss_counter_deltas=iface['nic_loss_counter_deltas'] if iface else None, checks=checks,
                 truncated=frac(len(truncated), len(records)), ip_length_short=frac(len(short), len(records)),
-                uncaptured=cnt['dev10']['tx'] - len(records) if cnt else None, ok=not failures, failures=failures)
+                uncaptured=cnt['dev10']['tx'] - len(records) if cnt else None,
+                missing_master_copies_explained=frac(explained, missing), ok=not failures, failures=failures)
 
 
 def class_summary(reports, cls):
@@ -266,9 +274,33 @@ def preservation(trials, label, sha, out_dir):
                 ok=bool(rows) and all(r['ok'] for r in rows))
 
 
+def switch_received(trial):
+    """Counter evidence that narrows 'before or inside the switch': every frame the master sent in the window
+    (its connection frames at the master NIC plus its other frames, e.g. ARP, seen as egress copies) against the
+    switch dev9 RX count, and the master-leg frames the switch did not forward (dev9 RX - dev64 TX)."""
+    cnt, error = counters(trial)
+    if error:
+        return dict(evaluable=False, reason=error)
+    macs = {s['frame'][6:12] for s in trial['mirror']['to_relay']}
+    in_connection = {s['frame'] for s in trial['mirror']['to_relay']}
+    other = sum(1 for r in trial['records'] if r['frame'][6:12] in macs and r['frame'] not in in_connection)
+    sent = len(trial['master']['to_relay']) + other
+    return dict(evaluable=True, master_frames_sent=sent, switch_dev9_rx=cnt['dev9']['rx'],
+                switch_dev64_tx=cnt['dev64']['tx'], not_forwarded=cnt['dev9']['rx'] - cnt['dev64']['tx'],
+                all_master_frames_received=cnt['dev9']['rx'] == sent)
+
+
 def first_requests(mirror_on, mirror_off):
-    """E2 over every fresh connection: classified where the mirror was on; retransmission only where it was off."""
+    """E2 over every fresh connection: classified where the mirror was on; retransmission only where it was off.
+    A 'lost before or inside the switch' row is narrowed to 'inside the switch' only when dev9 RX shows that the
+    switch received every frame the master sent in the window."""
     rows = [cap.first_request(t) for t in mirror_on] + [cap.first_request(t, mirror=False) for t in mirror_off]
+    for row, trial in zip(rows, mirror_on):
+        if row.get('class') == 'lost_before_or_inside_switch':
+            evidence = switch_received(trial)
+            row.update(switch_counter_evidence=evidence,
+                       narrowest_location='inside the switch (received on dev9, never emitted on dev64)'
+                       if evidence.get('all_master_frames_received') else 'before or inside the switch')
     on = [r for r in rows if r['mirror'] and r['evaluable']]
     every = [r for r in rows if r['evaluable']]
     texts = dict(cap.E2_CLASSES, **cap.OTHER_CLASSES)

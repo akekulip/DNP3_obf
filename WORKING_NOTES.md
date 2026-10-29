@@ -118,3 +118,24 @@ Committed 115592bd7. Tests: repository 209, analysis 75 (research Python; overhe
 - D3/E1/E2 registered before traffic: results/analysis/diag_mirror_d3/DESIGN.json (8+8 mirror on/off, 32 E2).
 Next: freeze-gate admission + diag definitions, runtime hooks (installer --diag-mirror, Vision mirror capture),
 D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (diag build).
+- 2026-10-29 E3 done (c72): r1 D20 combined 5/6 SUCCESS (t3 TIMEOUT: OPERATE request itself retransmitted +214 ms),
+  r2 D20 size_only 6/6, r3 D5 combined 5/6 (t2 TIMEOUT, single OPERATE copy at 1004.7 ms). Relay retransmits the
+  dropped SELECT response at 998-1023 ms in every trial, so OPERATE always lands at the select-window edge.
+  results/analysis/recovery_e3/SUMMARY.md. TODO after hardware: move scratch e3_extract.py to
+  scripts/analysis/recovery_e3.py and regenerate e3_trials.json (must be identical).
+- D3 first trial: dev10 -> Vision enp59s0f1np1 (i40e 0000:3b:00.1) CONFIRMED; off-arm copies byte-identical
+  (198/198 requests, 389/389 responses). TODO after the diag campaigns: fix copy-direction attribution in
+  diag_mirror_capture.py (src == master MAC -> egress, else ingress): a third device (70:49:a2:6b:6c:89) broadcasts
+  DHCP Discover on the relay segment and was counted as egress (D3c 200 vs 199). Do not edit scripts/ before then.
+- 2026-10-29 d3on done (diag build, 8/8 trials ok, restore ok). Preliminary (pre-fix analysis): D3a 8/8; D3b off arm
+  1,173/1,173 copies byte-identical; E1 772/772 responses and 772/772 requests content-identical after removing the
+  declared padding, translation 776/776. combined t0: original FIRST REQUEST reached the switch (dev9 RX) but left
+  no egress copy (dev64 TX one lower); master retransmitted at 217.7 ms -> loss INSIDE the switch. off t1: handshake
+  final ACK also dropped inside the switch. E1's 3 "header differences" in combined t0 pair the original request
+  with the relay-side copy of the retransmission (ip.id/TSval) -> fix E1 pairing after the campaigns.
+- d3off done (8/8 ok; sessions off -> 0 copies in every trial). D3d (pre-fix tool): delivery and response sizes
+  identical on vs off in every arm/class; timed-arm median CLRT (relay ACK -> complete response) differs by -231..+142.5
+  us, 4 of 8 timed cells over the REGISTERED 50 us bound -> D3d FAILS as registered. Context: c72 eval D=20 timed arms
+  have repetition-median spans of 266-1,085 us over 16 reps (IQR 1.3-1.6 ms), so the bound was tighter than the
+  system's own block-to-block variation; no mirror effect detectable, no equivalence claimed. D3d gates mirror TIMING
+  use only; E1 (content) and E2 (copy presence/order) stay usable.

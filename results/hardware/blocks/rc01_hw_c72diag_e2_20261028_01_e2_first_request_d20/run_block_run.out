@@ -1,0 +1,397 @@
+[vision] make relay helper directory -> rc 0
+[local] deploy relay helper vision_run.py -> rc 0
+[local] deploy relay helper relay_master.py -> rc 0
+[local] deploy relay helper loss.py -> rc 0
+[local] deploy relay helper capture_observation.py -> rc 0
+[local] deploy relay helper relay_loss.py -> rc 0
+[local] deploy relay helper standards.py -> rc 0
+[local] deploy relay helper relay_check.py -> rc 0
+[local] deploy relay helper replay.py -> rc 0
+[local] deploy relay helper endpoint_profiles.py -> rc 0
+[local] deploy relay helper pcaptk.py -> rc 0
+[local] deploy relay helper checks.py -> rc 0
+[local] deploy relay helper wire_check.py -> rc 0
+[local] deploy relay helper __init__.py -> rc 0
+[local] deploy relay helper active_harness/read_requests.py -> rc 0
+[local] deploy relay helper active_harness/event_clear.py -> rc 0
+[local] deploy relay helper active_harness/sbo_driver.py -> rc 0
+[local] deploy relay helper active_harness/wire_builders.py -> rc 0
+[local] deploy relay helper active_harness/__init__.py -> rc 0
+[local] deploy relay helper active_harness/dnp3_codec.py -> rc 0
+[local] deploy relay helper active_harness/guarded_builders.py -> rc 0
+[local] deploy relay helper active_harness/session.py -> rc 0
+[vision] verify every relay helper -> rc 0
+[vision] guarded builder preflight -> rc 0
+[switch] make remote directories -> rc 0
+[local] copy the switch tools (ports, snapshot, observe, relay slot, swap/launch) into aux -> rc 0
+[local] copy the installer source tree to the switch (repo-relative paths) -> rc 0
+[local] copy build current out/ to the switch -> rc 0
+[switch] verify every deployed tool and installer source file by sha256 -> rc 0
+[local] copy isolated candidate CP and installer -> rc 0
+[switch] make bound profile directories for current -> rc 0
+[local] copy bound profile current profile/response_only.p4 -> rc 0
+[local] copy bound profile current profile/response_only.inputs.json -> rc 0
+[local] copy bound profile current profile/supported_profile.json -> rc 0
+[local] copy bound profile current profile/compile_local/manifest.json -> rc 0
+[switch] verify isolated candidate CP and installer identity -> rc 0
+[switch] observe the running program (read-only, from ps) -> rc 0
+[switch] snapshot the running program's $PORT table (read-only) for every later replay -> rc 0
+[local] copy the pre-run snapshot back -> rc 0
+[vision] record physical master offload baseline before capture -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t0: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t0: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t0: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t0: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t0: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t0: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t0: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t0_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t0_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t0: traffic + capture on master port 60120 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t0_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t1: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t1: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t1: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t1: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t1: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t1: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t1: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t1_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t1_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t1: traffic + capture on master port 60121 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t1_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t2: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t2: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t2: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t2: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t2: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t2: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t2: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t2_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t2_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t2: traffic + capture on master port 60122 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t2_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t3: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t3: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t3: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t3: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t3: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t3: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t3: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t3_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t3_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t3: traffic + capture on master port 60123 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t3_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t4: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t4: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t4: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t4: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t4: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t4: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t4: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t4_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t4_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t4: traffic + capture on master port 60124 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t4_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t5: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t5: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t5: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t5: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t5: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t5: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t5: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t5_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t5_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t5: traffic + capture on master port 60125 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t5_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t6: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t6: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t6: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t6: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t6: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t6: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t6: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t6_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t6_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t6: traffic + capture on master port 60126 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t6_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t7: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t7: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t7: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t7: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t7: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t7: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t7: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t7_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t7_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t7: traffic + capture on master port 60127 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t7_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t8: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t8: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t8: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t8: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t8: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t8: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t8: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t8_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t8_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t8: traffic + capture on master port 60128 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t8_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t9: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t9: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t9: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t9: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t9: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t9: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t9: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t9_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t9_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t9: traffic + capture on master port 60129 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t9_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t10: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t10: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t10: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t10: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t10: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t10: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t10: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t10_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t10_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t10: traffic + capture on master port 60130 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t10_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t11: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t11: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t11: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t11: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t11: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t11: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t11: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t11_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t11_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t11: traffic + capture on master port 60131 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t11_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t12: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t12: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t12: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t12: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t12: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t12: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t12: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t12_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t12_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t12: traffic + capture on master port 60132 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t12_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t13: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t13: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t13: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t13: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t13: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t13: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t13: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t13_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t13_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t13: traffic + capture on master port 60133 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t13_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t14: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t14: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t14: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t14: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t14: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t14: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t14: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t14_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t14_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t14: traffic + capture on master port 60134 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t14_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t15: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t15: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t15: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t15: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t15: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t15: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t15: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t15_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t15_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t15: traffic + capture on master port 60135 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t15_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t16: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t16: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t16: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t16: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t16: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t16: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t16: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t16_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t16_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t16: traffic + capture on master port 60136 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t16_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t17: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t17: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t17: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t17: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t17: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t17: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t17: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t17_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t17_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t17: traffic + capture on master port 60137 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t17_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t18: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t18: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t18: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t18: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t18: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t18: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t18: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t18_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t18_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t18: traffic + capture on master port 60138 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t18_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t19: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t19: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t19: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t19: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t19: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t19: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t19: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t19_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t19_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t19: traffic + capture on master port 60139 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t19_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t20: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t20: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t20: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t20: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t20: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t20: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t20: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t20_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t20_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t20: traffic + capture on master port 60140 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t20_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t21: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t21: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t21: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t21: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t21: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t21: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t21: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t21_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t21_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t21: traffic + capture on master port 60141 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t21_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t22: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t22: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t22: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t22: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t22: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t22: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t22: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t22_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t22_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t22: traffic + capture on master port 60142 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t22_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t23: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t23: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t23: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t23: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t23: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t23: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t23: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t23_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t23_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t23: traffic + capture on master port 60143 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t23_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t24: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t24: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t24: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t24: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t24: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t24: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t24: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t24_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t24_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t24: traffic + capture on master port 60144 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t24_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t25: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t25: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t25: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t25: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t25: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t25: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t25: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t25_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t25_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t25: traffic + capture on master port 60145 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t25_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t26: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t26: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t26: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t26: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t26: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t26: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t26: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t26_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t26_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t26: traffic + capture on master port 60146 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t26_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t27: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t27: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t27: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t27: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t27: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t27: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t27: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t27_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t27_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t27: traffic + capture on master port 60147 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t27_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t28: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t28: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t28: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t28: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t28: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t28: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t28: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t28_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t28_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t28: traffic + capture on master port 60148 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t28_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t29: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t29: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t29: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t29: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t29: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t29: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t29: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t29_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t29_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t29: traffic + capture on master port 60149 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t29_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t30: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t30: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t30: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t30: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t30: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t30: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t30: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t30_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t30_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t30: traffic + capture on master port 60150 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t30_after -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t31: PCI vendor must be Barefoot/Intel (0x1d1c) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t31: make the bf_switchd conf for this build -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t31: cold-swap bf_switchd to the composite (stop, launch, wait for :50052) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t31: replay the pre-run $PORT snapshot -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t31: composite install dry-run (hash check, name check, ports it will loop) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t31: composite install apply (loopback first, apps enabled last) -> rc 0
+[switch] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t31: select T (0=Timing OFF, 1=Obfuscated) -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t31_before -> rc 0
+[switch] generation headroom precheck rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t31_before -> rc 0
+[vision] rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t31: traffic + capture on master port 60151 -> rc 0
+[switch] counter snapshot rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20_physical_relay_off_t31_after -> rc 0
+[restore:switch] cold-swap bf_switchd back to the observed production program -> rc 0
+[restore:switch] replay the pre-run $PORT snapshot on the production program -> rc 0
+[restore:switch] reinstall the relay slot -> rc 0
+[restore:vision] Vision: fixture off, namespace profile and NIC flag restored -> rc 0
+[restore:vision] ping through the restored switch path -> rc 0

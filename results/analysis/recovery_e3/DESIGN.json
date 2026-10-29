@@ -1,0 +1,202 @@
+{
+ "schema": "c72-recovery-e3-design-v1",
+ "registered_before_traffic": "2026-10-28",
+ "status": "prepared offline; no hardware contact; controller not initialised or started",
+ "run_authorization": "not granted by this record; initialising or starting the controller needs a separate explicit go-ahead from Philip",
+ "plan": "~/.claude/plans/we-were-on-tract-expressive-planet.md Phase E3 (SELECT-loss recovery)",
+ "campaign_id": "rc01_hw_c72_recovery_20261028_01",
+ "campaign_dir": "results/hardware/campaigns/rc01_hw_c72_recovery_20261028_01",
+ "definition": "scripts/hardware/lab_recovery.json via scripts/hardware/matrix.py prepare --definition recovery",
+ "build": "results/builds/c72",
+ "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+ "native_observation": "results/hardware/native/c72_native_20261027_01/relay_wire.json (the observation qualification block 10 was prepared with; no fresh native probe was taken because this preparation makes no hardware contact)",
+ "evidence_label": "c72 build evidence (not the c72_diag_mirror diagnostic build)",
+ "reproduces": {
+  "campaign": "rc01_hw_c72_20261027_02",
+  "block": "10_d20_loss_full",
+  "trial": "t3",
+  "evidence": "results/hardware/blocks/rc01_hw_c72_20261027_02_10_d20_loss_full/physical_relay/combined/rc01_hw_c72_20261027_02_10_d20_loss_full_physical_relay_combined_t3",
+  "condition": "D = 20 ms, arm combined (T=1, padding=1), drop select_resp_padded:1:identity at the master-host iptables INPUT chain",
+  "observed_ms_from_select_request": {
+   "select_request_sent": 0.0,
+   "relay_ack_of_select": 4.497,
+   "first_select_response_copy_captured": 23.914,
+   "retransmitted_select_response_copy": 1016.368,
+   "master_ack_of_retransmission": 1016.41,
+   "operate_request_sent": 1017.437,
+   "relay_ack_of_operate": 1024.263,
+   "operate_response": 1045.203
+  },
+  "derived_ms": {
+   "first_copy_to_retransmission": 992.454,
+   "retransmission_to_operate": 1.069,
+   "select_to_operate_elapsed": 1017.437
+  },
+  "crob_status_decoded_from_bytes": {
+   "SELECT": {
+    "1": "SUCCESS",
+    "3": "SUCCESS"
+   },
+   "OPERATE": {
+    "1": "TIMEOUT",
+    "3": "TIMEOUT"
+   }
+  },
+  "sources": {
+   "request_times": "results/hardware/blocks/rc01_hw_c72_20261027_02_10_d20_loss_full/physical_relay/combined/rc01_hw_c72_20261027_02_10_d20_loss_full_physical_relay_combined_t3/relay_wire.json (exchanges SELECT/OPERATE request first_timestamp_ns) and out.pcap",
+   "response_times": "results/hardware/blocks/rc01_hw_c72_20261027_02_10_d20_loss_full/physical_relay/combined/rc01_hw_c72_20261027_02_10_d20_loss_full_physical_relay_combined_t3/in.pcap frames 42-46 (tshark)",
+   "crob": "results/hardware/blocks/rc01_hw_c72_20261027_02_10_d20_loss_full/physical_relay/combined/rc01_hw_c72_20261027_02_10_d20_loss_full_physical_relay_combined_t3/relay_wire.json exchanges[].application.points",
+   "sha256": {
+    "in.pcap": "6bbaa10a5304df6ef81cf9d81afa01f67d455748850bcca67057a19acec6d50c",
+    "out.pcap": "2bac83347fab5fdab469eefbde4c4b97d7d2fb5caf17f2e7843dead07c6afdaa",
+    "relay_wire.json": "f7412b760d2a46a3713eddab5b472bc9c3373e289742c145171a1112ac816d63"
+   }
+  },
+  "same_trial_elsewhere": {
+   "current": "c69 passed the same trial at 1,011 ms (HANDOVER.md, Qualification matrix section)",
+   "historical_data_not_authority": [
+    "c67 loss_full t3: SELECT OK after 1015.238 ms, OPERATE TIMEOUT on points 1 and 3; c67 loss_mixed t3 passed after 1021.670 ms (Archive/tracked/root/CLAUDE_HANDOVER_20261026.md:108)",
+    "c52 rc01_hw_c52_20261024_25 t3: SELECT 1001.7 ms, OPERATE OK (Archive/tracked/root/WORKING_NOTES.md:3256)"
+   ],
+   "note": "master-side durations only; the archived records state that they neither measure the relay select window nor show that D caused the expiry. A pass at 1,021.670 ms beside a failure at 1,015.238 ms means the outcome is not a fixed threshold on the master-side elapsed time."
+  }
+ },
+ "blocks": [
+  {
+   "id": "r1_d20_combined",
+   "d_ms": 20,
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "master_port_range": [
+    59980,
+    59985
+   ],
+   "question": "reproduction of block 10 t3 under its own condition"
+  },
+  {
+   "id": "r2_d20_size_only",
+   "d_ms": 20,
+   "arm": "size_only",
+   "T": 0,
+   "padding": 1,
+   "master_port_range": [
+    59986,
+    59991
+   ],
+   "question": "timing off with padding on, so the dropped packet is the same 60-octet padded SELECT response"
+  },
+  {
+   "id": "r3_d5_combined",
+   "d_ms": 5,
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "master_port_range": [
+    59992,
+    59997
+   ],
+   "question": "timing on with a shorter hold"
+  }
+ ],
+ "loss_preset": {
+  "name": "select_resp_padded_x6",
+  "entries": [
+   {
+    "class": "select_resp_padded",
+    "n": 1,
+    "target": "identity"
+   },
+   {
+    "class": "select_resp_padded",
+    "n": 1,
+    "target": "identity"
+   },
+   {
+    "class": "select_resp_padded",
+    "n": 1,
+    "target": "identity"
+   },
+   {
+    "class": "select_resp_padded",
+    "n": 1,
+    "target": "identity"
+   },
+   {
+    "class": "select_resp_padded",
+    "n": 1,
+    "target": "identity"
+   },
+   {
+    "class": "select_resp_padded",
+    "n": 1,
+    "target": "identity"
+   }
+  ],
+  "representation": "six identical entries; campaign_base.validate_loss_and_scenarios accepts repeats and Campaign.units() makes one cold bring-up and one connection per entry (labels t0-t5, seeds rng_seed+0..5, one master port each). No verdict logic changed."
+ },
+ "fixed_denominators": {
+  "blocks": 3,
+  "trials_per_block": 6,
+  "trials": 18,
+  "exchanges_per_trial": "20 READ (full schedule) + 1 SELECT + 1 OPERATE = 22",
+  "exchanges_per_block": 132,
+  "exchanges": 396,
+  "computed_as": "matrix.prepare: arms x preset entries x (reads_per_trial + 2 x sbo_cycles), the qualification loss-block rule (block 10: 1 x 7 x 22 = 154)"
+ },
+ "copied_from_block_10": "every config field except timing_params_ns.gap, arms, loss.presets and traffic.master_port_range: reads_per_trial 20, read_schedule full, run_sbo true (one SELECT/OPERATE per trial, no sbo_cycles), range 8, read_pause_ms 25, gap_ms 0, start_delay_ms 0, close_grace_ms 0, budget 240000 ns, enabled 1, rng_seed 12345, loss.inject false, max_recovery_s 5.0, fixture physical_relay, guarded points [1, 3], endpoint and ports_map, and the --loss <preset> argument pattern",
+ "observation_point": {
+  "measured": "master host (Vision) captures: out.pcap master to relay, in.pcap relay to master. The dropped copy is captured before the iptables INPUT drop (block 10 t3 in.pcap frame 43).",
+  "not_measured": "the relay-facing link: relay SELECT receipt, relay retransmission departure and OPERATE arrival at the relay. D1 found no tap or SPAN; the D2/D3 diagnostic mirror is not built or validated. Master-side times plus an unmeasured switch transit only bound the relay-side times."
+ },
+ "observable_per_trial": {
+  "t_sel_req": "SELECT request send time (out.pcap; relay_wire.json request first_timestamp_ns)",
+  "t_first_copy": "first captured copy of the dropped SELECT response (in.pcap, sequence = the loss record kernel_packet SEQ)",
+  "t_retx": "relay retransmission of that response: the next in.pcap copy with the same sequence",
+  "t_op_req": "OPERATE request send time",
+  "crob": "SELECT and OPERATE CROB status on points 1 and 3, decoded from the captured response bytes (relay_check), never from metadata",
+  "derived": {
+   "elapsed_select_to_operate": "t_op_req - t_sel_req",
+   "retransmission_delay": "t_retx - t_first_copy",
+   "retx_from_request": "t_retx - t_sel_req",
+   "master_turnaround": "t_op_req - t_retx"
+  },
+  "also_recorded": "loss record (exact, identity armed, restoration), trial.json verdict and failures, restoration per block"
+ },
+ "mechanism_under_investigation": "Whether the OPERATE reaches the relay inside its select window (STIMEO1; configured value unverified) when the only delivered SELECT response is the relay's own TCP retransmission, sent about 1 s after the original, and whether the switch timing hold D lengthens that path. Holding the original response does not move the relay's retransmission timer, which starts at the relay's own send; a hold applied again to the retransmitted copy would add about D.",
+ "checks": [
+  "C1 loss validity: per trial, relay_loss.target_checks passes (the logged dropped packet is the identity-targeted padded SELECT response at its TCP frontier; rule armed; counters exact; firewall restored). A trial failing C1 is reported and not used for the mechanism.",
+  "C2 re-hold of the retransmitted copy: compare retx_from_request across conditions. Expected difference of about +20 ms (r1 - r2) and +15 ms (r1 - r3) if the hold applies to the retransmitted copy, about 0 if it does not. Called separated only if the per-condition ranges of the six values do not overlap; otherwise not resolved at n = 6. All values are reported.",
+  "C3 OPERATE driven by the retransmission: master_turnaround is small (block 10 t3: 1.069 ms) in every trial that recovered.",
+  "C4 outcome: per-condition counts of OPERATE CROB SUCCESS and TIMEOUT on points 1 and 3, with every trial listed.",
+  "C5 safety: restoration verified for every block; guarded points stay {1,3}."
+ ],
+ "interpretation_limits": [
+  "Six trials per condition are a bounded diagnostic, not a rate estimate. No equal-rate or different-rate conclusion is drawn.",
+  "Equal outcomes with timing on and timing off would NOT rule out a timing contribution: both conditions may exceed the select window.",
+  "Different outcomes would not by themselves establish the select-window cause: the relay retransmission spread (about 1,001.7-1,021.7 ms across earlier campaigns, historical) is comparable to D.",
+  "Master-side times do not measure the relay select window or the relay retransmission timer.",
+  "A delivered CROB TIMEOUT is transport evidence and an application failure. Expected TIMEOUT trials stay FAIL and are not reclassified."
+ ],
+ "relay_select_timeout": {
+  "verified": false,
+  "searched": "current tree scripts/, results/analysis/, results/hardware/native/, paper/, PLAN.md, HANDOVER.md, README.md, the 2026-10-28 audit, and Archive/tracked + Archive/manual_inputs text files, for SELTIME, STIMEO, select timeout/window/expiry, SBO timeout, SEL-751 settings exports",
+  "current_tree": "no recorded SEL-751 DNP3 settings and no recorded select timeout value",
+  "archive_historical": "Archive/tracked/original/defense4/timing/audit_current/RESPONSE_LATENCY_BUDGET.md:70,119,160 and HOW_MUCH_DELAY_IS_SAFE.md:402: STIMEO1 documented default 1.0 s (range 0.0-30.0 s) from the SEL-751A manual; the configured value was never read back and is UNKNOWN",
+  "read_back": "requires contact with the relay (settings read over its engineering interface); not performed because this preparation makes no hardware contact; needs Philip's go-ahead"
+ },
+ "controller_behaviour": "scripts/hardware/evaluation_campaign.py advance(): a block whose terminal status is failed (reason block_failed, wrapper exit 1) stops the campaign. Within a block all six trials run (verdict_loss records soft failures and continues). Because block 10 t3 ended in CROB TIMEOUT, r1 may stop the campaign and leave r2 and r3 unexecuted (reported as unexecuted with that reason, never rerun).",
+ "stop_rules": [
+  "unsafe ownership or unverified restoration stops all writes",
+  "no rerun-until-pass, no extra trials or blocks",
+  "a failed block stays FAIL; only remaining planned safe trials run"
+ ],
+ "excluded": [
+  "relay settings changes",
+  "timeout, threshold or default changes",
+  "P4 or harness changes",
+  "new instrumentation",
+  "rate estimates",
+  "manuscript edits"
+ ]
+}

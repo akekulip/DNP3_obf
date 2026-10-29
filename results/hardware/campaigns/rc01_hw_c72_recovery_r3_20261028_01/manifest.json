@@ -1,0 +1,23 @@
+{
+  "campaign_id": "rc01_hw_c72_recovery_r3_20261028_01",
+  "evidence_kind": "hardware",
+  "expected_exchanges": 132,
+  "steps": [
+    {
+      "id": "r3_d5_combined",
+      "kind": "block",
+      "argv": [
+        "bash",
+        "/home/philip/Projects/DNP3/scripts/hardware/run_block_frozen.sh",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_recovery_r3_20261028_01/freeze.json",
+        "campaign",
+        "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c72_recovery_r3_20261028_01/configs/r3_d5_combined.json",
+        "rc01_hw_c72_recovery_r3_20261028_01_r3_d5_combined",
+        "--loss",
+        "select_resp_padded_x6"
+      ],
+      "expected_exchanges": 132,
+      "run_root": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c72_recovery_r3_20261028_01_r3_d5_combined"
+    }
+  ]
+}
