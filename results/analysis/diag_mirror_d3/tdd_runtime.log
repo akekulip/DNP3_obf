@@ -1,0 +1,200 @@
+=== RED 2026-10-29T00:50:29Z — tests/hardware/test_diag_runtime.py against unchanged source (HEAD a7de5b039 for scripts/hardware)
+                     [--event-clear] [--qualify-capture]
+                     [--read-schedule {rotate4,mixed_full,mixed,full}]
+                     [--db {base,large}] [--endpoint-binary ENDPOINT_BINARY]
+                     [--pad-expect PAD_EXPECT]
+                     {setup,restore,state,casea,run} [label]
+vision_run.py: error: unrecognized arguments: --mirror-iface enp59s0f1np1
+=========================== short test summary info ============================
+FAILED tests/hardware/test_diag_runtime.py::test_absent_plan_is_byte_identical_to_the_plan_before_the_diagnostic_path
+FAILED tests/hardware/test_diag_runtime.py::test_absent_dry_run_output_is_byte_identical_to_the_output_before_the_diagnostic_path
+FAILED tests/hardware/test_diag_runtime.py::test_diag_sessions_are_appended_right_after_the_clone_session[on]
+FAILED tests/hardware/test_diag_runtime.py::test_diag_sessions_are_appended_right_after_the_clone_session[off]
+FAILED tests/hardware/test_diag_runtime.py::test_offline_name_check_covers_the_diag_sessions
+FAILED tests/hardware/test_diag_runtime.py::test_diag_dry_run_passes_the_real_name_check[on]
+FAILED tests/hardware/test_diag_runtime.py::test_diag_dry_run_passes_the_real_name_check[off]
+FAILED tests/hardware/test_diag_runtime.py::test_diag_mirror_on_a_build_without_the_diag_constants_is_refused
+FAILED tests/hardware/test_diag_runtime.py::test_invalid_diag_constants_are_refused_before_any_plan[copy_port-64-relay port]
+FAILED tests/hardware/test_diag_runtime.py::test_invalid_diag_constants_are_refused_before_any_plan[session_rx-7-T's clone session]
+FAILED tests/hardware/test_diag_runtime.py::test_invalid_diag_constants_are_refused_before_any_plan[session_tx-101-must differ]
+FAILED tests/hardware/test_diag_runtime.py::test_invalid_diag_constants_are_refused_before_any_plan[egress_parsed_ports-value3-parsed by r_EgParser]
+FAILED tests/hardware/test_diag_runtime.py::test_absent_install_never_asks_for_the_diag_sessions
+FAILED tests/hardware/test_diag_runtime.py::test_manifest_undo_records_make_teardown_delete_both_diag_sessions
+FAILED tests/hardware/test_diag_runtime.py::test_teardown_dry_run_lists_both_diag_session_deletes
+FAILED tests/hardware/test_diag_runtime.py::test_installer_cmd_is_unchanged_without_diag_mirror_and_flagged_with_it[Campaign]
+FAILED tests/hardware/test_diag_runtime.py::test_installer_cmd_is_unchanged_without_diag_mirror_and_flagged_with_it[CandidateCampaign]
+FAILED tests/hardware/test_diag_runtime.py::test_diag_unit_adds_only_the_installer_flag_and_the_capture_interface[Campaign]
+FAILED tests/hardware/test_diag_runtime.py::test_diag_unit_adds_only_the_installer_flag_and_the_capture_interface[CandidateCampaign]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_without_diagnostic_purpose_is_refused[None]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_without_diagnostic_purpose_is_refused[relay-native-baseline]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_without_diagnostic_purpose_is_refused[evaluation]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-state]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-build_label]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-capture_interface0]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-capture_interface1]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-source_sha256]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-copy port]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-stat_ports]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_runs_plain_trials_only[kwargs0]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_runs_plain_trials_only[kwargs1]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_runs_plain_trials_only[kwargs2]
+FAILED tests/hardware/test_diag_runtime.py::test_collected_mirror_evidence_is_hashed_into_the_trial_record
+FAILED tests/hardware/test_diag_runtime.py::test_missing_mirror_evidence_fails_the_trial_loudly[mirror.pcap]
+FAILED tests/hardware/test_diag_runtime.py::test_missing_mirror_evidence_fails_the_trial_loudly[mirror_iface_before.json]
+FAILED tests/hardware/test_diag_runtime.py::test_missing_mirror_evidence_fails_the_trial_loudly[mirror_iface_after.json]
+FAILED tests/hardware/test_diag_runtime.py::test_missing_mirror_evidence_fails_the_trial_loudly[mirror_offloads.json]
+FAILED tests/hardware/test_diag_runtime.py::test_missing_mirror_evidence_fails_the_trial_loudly[mirror_capture.json]
+FAILED tests/hardware/test_diag_runtime.py::test_a_failed_mirror_capture_fails_the_trial
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_capture_is_started_verified_stopped_and_restored
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_start_failure_fails_the_trial_before_traffic_and_restores[exit_at_start-before traffic]
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_start_failure_fails_the_trial_before_traffic_and_restores[no_header-before traffic]
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_tcpdump_exit_during_traffic_fails_the_trial
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_offload_restore_failure_fails_the_trial
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_is_stopped_and_restored_when_the_workload_raises
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_refuses_mirror_iface_outside_one_plain_run[argv0]
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_refuses_mirror_iface_outside_one_plain_run[argv1]
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_refuses_mirror_iface_outside_one_plain_run[argv2]
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_refuses_mirror_iface_outside_one_plain_run[argv3]
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_refuses_mirror_iface_outside_one_plain_run[argv4]
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_refuses_mirror_iface_outside_one_plain_run[argv5]
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_passes_the_mirror_interface_only_when_given[extra1-enp59s0f1np1]
+52 failed, 9 passed in 1.86s
+
+=== RED rerun 2026-10-29T00:50:46Z — after fixing a test defect (install() now hashes the plan before apply() resolves queue keys in place); source still unchanged
+_________________ test_a_failed_mirror_capture_fails_the_trial _________________
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-3396/test_a_failed_mirror_capture_f0')
+    def test_a_failed_mirror_capture_fails_the_trial(monkeypatch, tmp_path):
+FAILED tests/hardware/test_diag_runtime.py::test_absent_plan_is_byte_identical_to_the_plan_before_the_diagnostic_path
+FAILED tests/hardware/test_diag_runtime.py::test_absent_dry_run_output_is_byte_identical_to_the_output_before_the_diagnostic_path
+FAILED tests/hardware/test_diag_runtime.py::test_diag_sessions_are_appended_right_after_the_clone_session[on]
+FAILED tests/hardware/test_diag_runtime.py::test_diag_sessions_are_appended_right_after_the_clone_session[off]
+FAILED tests/hardware/test_diag_runtime.py::test_offline_name_check_covers_the_diag_sessions
+FAILED tests/hardware/test_diag_runtime.py::test_diag_dry_run_passes_the_real_name_check[on]
+FAILED tests/hardware/test_diag_runtime.py::test_diag_dry_run_passes_the_real_name_check[off]
+FAILED tests/hardware/test_diag_runtime.py::test_diag_mirror_on_a_build_without_the_diag_constants_is_refused
+FAILED tests/hardware/test_diag_runtime.py::test_invalid_diag_constants_are_refused_before_any_plan[copy_port-64-relay port]
+FAILED tests/hardware/test_diag_runtime.py::test_invalid_diag_constants_are_refused_before_any_plan[session_rx-7-T's clone session]
+FAILED tests/hardware/test_diag_runtime.py::test_invalid_diag_constants_are_refused_before_any_plan[session_tx-101-must differ]
+FAILED tests/hardware/test_diag_runtime.py::test_invalid_diag_constants_are_refused_before_any_plan[egress_parsed_ports-value3-parsed by r_EgParser]
+FAILED tests/hardware/test_diag_runtime.py::test_manifest_undo_records_make_teardown_delete_both_diag_sessions
+FAILED tests/hardware/test_diag_runtime.py::test_teardown_dry_run_lists_both_diag_session_deletes
+FAILED tests/hardware/test_diag_runtime.py::test_installer_cmd_is_unchanged_without_diag_mirror_and_flagged_with_it[Campaign]
+FAILED tests/hardware/test_diag_runtime.py::test_installer_cmd_is_unchanged_without_diag_mirror_and_flagged_with_it[CandidateCampaign]
+FAILED tests/hardware/test_diag_runtime.py::test_diag_unit_adds_only_the_installer_flag_and_the_capture_interface[Campaign]
+FAILED tests/hardware/test_diag_runtime.py::test_diag_unit_adds_only_the_installer_flag_and_the_capture_interface[CandidateCampaign]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_without_diagnostic_purpose_is_refused[None]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_without_diagnostic_purpose_is_refused[relay-native-baseline]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_without_diagnostic_purpose_is_refused[evaluation]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-state]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-build_label]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-capture_interface0]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-capture_interface1]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-source_sha256]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-copy port]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_with_an_inconsistent_label_is_refused[<lambda>-stat_ports]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_runs_plain_trials_only[kwargs0]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_runs_plain_trials_only[kwargs1]
+FAILED tests/hardware/test_diag_runtime.py::test_diagnostic_block_runs_plain_trials_only[kwargs2]
+FAILED tests/hardware/test_diag_runtime.py::test_collected_mirror_evidence_is_hashed_into_the_trial_record
+FAILED tests/hardware/test_diag_runtime.py::test_missing_mirror_evidence_fails_the_trial_loudly[mirror.pcap]
+FAILED tests/hardware/test_diag_runtime.py::test_missing_mirror_evidence_fails_the_trial_loudly[mirror_iface_before.json]
+FAILED tests/hardware/test_diag_runtime.py::test_missing_mirror_evidence_fails_the_trial_loudly[mirror_iface_after.json]
+FAILED tests/hardware/test_diag_runtime.py::test_missing_mirror_evidence_fails_the_trial_loudly[mirror_offloads.json]
+FAILED tests/hardware/test_diag_runtime.py::test_missing_mirror_evidence_fails_the_trial_loudly[mirror_capture.json]
+FAILED tests/hardware/test_diag_runtime.py::test_a_failed_mirror_capture_fails_the_trial
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_capture_is_started_verified_stopped_and_restored
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_start_failure_fails_the_trial_before_traffic_and_restores[exit_at_start-before traffic]
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_start_failure_fails_the_trial_before_traffic_and_restores[no_header-before traffic]
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_tcpdump_exit_during_traffic_fails_the_trial
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_offload_restore_failure_fails_the_trial
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_is_stopped_and_restored_when_the_workload_raises
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_refuses_mirror_iface_outside_one_plain_run[argv0]
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_refuses_mirror_iface_outside_one_plain_run[argv1]
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_refuses_mirror_iface_outside_one_plain_run[argv2]
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_refuses_mirror_iface_outside_one_plain_run[argv3]
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_refuses_mirror_iface_outside_one_plain_run[argv4]
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_refuses_mirror_iface_outside_one_plain_run[argv5]
+FAILED tests/hardware/test_diag_runtime.py::test_vision_main_passes_the_mirror_interface_only_when_given[extra1-enp59s0f1np1]
+51 failed, 10 passed in 1.88s
+
+=== RED rerun 2026-10-29T00:51:04Z — pre-check test now asserts the refusal message (it had passed only because argparse also exits 2 on the unknown flag); source still unchanged
+ scripts/hardware/freeze_gate.py | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+_________________ test_a_failed_mirror_capture_fails_the_trial _________________
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-3399/test_a_failed_mirror_capture_f0')
+    def test_a_failed_mirror_capture_fails_the_trial(monkeypatch, tmp_path):
+PASSED tests/hardware/test_diag_runtime.py::test_absent_plan_imports_and_reads_no_diagnostic_constants
+PASSED tests/hardware/test_diag_runtime.py::test_absent_install_never_asks_for_the_diag_sessions
+PASSED tests/hardware/test_diag_runtime.py::test_diag_mirror_sessions_is_in_the_installer_source_set_copied_and_verified_on_the_switch
+PASSED tests/hardware/test_diag_runtime.py::test_unit_commands_are_unchanged_without_diag_mirror[Campaign]
+PASSED tests/hardware/test_diag_runtime.py::test_unit_commands_are_unchanged_without_diag_mirror[CandidateCampaign]
+PASSED tests/hardware/test_diag_runtime.py::test_plain_verdict_does_not_look_for_mirror_evidence
+PASSED tests/hardware/test_diag_runtime.py::test_vision_commands_are_unchanged_without_mirror_iface
+PASSED tests/hardware/test_diag_runtime.py::test_vision_main_passes_the_mirror_interface_only_when_given[extra0-None]
+FAILED tests/hardware/test_diag_runtime.py::test_a_failed_mirror_capture_fails_the_trial
+53 failed, 8 passed in 1.83s
+
+=== GREEN 2026-10-29T00:58:43Z — installer, vision_run, capture_observation and campaign_base implemented
+Test defects fixed in test_diag_unit_adds_only_the_installer_flag_and_the_capture_interface (the code was not changed for them): the first unit is the 'off' arm (--pad-enable 0, not 1), and the diagnostic config's stat_ports 9,64,10 legitimately change the snapshot_counters --ports argument.
+ scripts/hardware/campaign_base.py       | 106 ++++++++++++++++++++++-
+ scripts/hardware/capture_observation.py |   4 +-
+ scripts/hardware/installer_base.py      |  41 ++++++++-
+ scripts/hardware/vision_run.py          | 147 +++++++++++++++++++++++++++++++-
+ 4 files changed, 287 insertions(+), 11 deletions(-)
+61 passed in 1.09s
+
+=== RED 2026-10-29T00:59:34Z — interaction (4): vision_run.py restore must repair receive aggregation on the mirror interface; 6 new tests (5 designed + the kept-baseline-after-failed-in-run-restore case), vision_run.py not yet changed for it
+___ test_a_failed_in_run_restore_keeps_the_baseline_for_the_campaign_restore ___
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-3420/test_a_failed_in_run_restore_k0')
+    def test_a_failed_in_run_restore_keeps_the_baseline_for_the_campaign_restore(monkeypatch, tmp_path):
+E        +    where is_file = PosixPath('/tmp/pytest-of-philip/pytest-3420/test_a_failed_in_run_restore_k0/mirror_offload_baseline.json').is_file
+E        +      where PosixPath('/tmp/pytest-of-philip/pytest-3420/test_a_failed_in_run_restore_k0/mirror_offload_baseline.json') = <test_diag_runtime.VisionFakes object at 0x7f5925221070>.baseline
+FAILED tests/hardware/test_diag_runtime.py::test_restore_repairs_the_mirror_interface_after_a_killed_run
+FAILED tests/hardware/test_diag_runtime.py::test_restore_reports_a_mirror_restore_failure_and_keeps_the_baseline
+FAILED tests/hardware/test_diag_runtime.py::test_restore_without_a_mirror_baseline_returns_exactly_todays_record
+FAILED tests/hardware/test_diag_runtime.py::test_a_completed_mirror_run_leaves_no_pending_baseline
+FAILED tests/hardware/test_diag_runtime.py::test_a_failed_in_run_restore_keeps_the_baseline_for_the_campaign_restore
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_start_refuses_while_a_mirror_baseline_is_pending
+6 failed, 61 passed in 1.26s
+    raise RuntimeError('receive offload restore failed: ' + '; '.join(restore_errors))
+RuntimeError: receive offload restore failed: command failed: ethtool -K enp59s0f1np1 gro on
+
+=== RED rerun 2026-10-29T00:59:48Z — fixed test (iii)'s expectation of today's restore (it reads features twice: current and verified-after); vision_run.py still unchanged for interaction (4)
+___ test_a_failed_in_run_restore_keeps_the_baseline_for_the_campaign_restore ___
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-3422/test_a_failed_in_run_restore_k0')
+    def test_a_failed_in_run_restore_keeps_the_baseline_for_the_campaign_restore(monkeypatch, tmp_path):
+E        +    where is_file = PosixPath('/tmp/pytest-of-philip/pytest-3422/test_a_failed_in_run_restore_k0/mirror_offload_baseline.json').is_file
+E        +      where PosixPath('/tmp/pytest-of-philip/pytest-3422/test_a_failed_in_run_restore_k0/mirror_offload_baseline.json') = <test_diag_runtime.VisionFakes object at 0x7ffb222a7d30>.baseline
+FAILED tests/hardware/test_diag_runtime.py::test_restore_repairs_the_mirror_interface_after_a_killed_run
+FAILED tests/hardware/test_diag_runtime.py::test_restore_reports_a_mirror_restore_failure_and_keeps_the_baseline
+FAILED tests/hardware/test_diag_runtime.py::test_a_completed_mirror_run_leaves_no_pending_baseline
+FAILED tests/hardware/test_diag_runtime.py::test_a_failed_in_run_restore_keeps_the_baseline_for_the_campaign_restore
+FAILED tests/hardware/test_diag_runtime.py::test_mirror_start_refuses_while_a_mirror_baseline_is_pending
+5 failed, 62 passed in 1.17s
+    raise RuntimeError('receive offload restore failed: ' + '; '.join(restore_errors))
+RuntimeError: receive offload restore failed: command failed: ethtool -K enp59s0f1np1 gro on
+
+=== GREEN 2026-10-29T01:00:20Z — interaction (4) fixed: MirrorCapture records HOME/mirror_offload_baseline.json before disabling GRO, clears it only after a verified restore; vision_run.py restore repairs the mirror interface when that file exists; start refuses while one is pending
+ scripts/hardware/vision_run.py | 180 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 176 insertions(+), 4 deletions(-)
+67 passed in 1.13s
+
+=== FINAL GREEN 2026-10-29T01:01:10Z — after the last edit
+$ python3 -m pytest tests --ignore=tests/analysis -q -p no:cacheprovider
+10 failed, 364 passed, 4 errors in 28.31s
+$ python3 -m pytest tests/hardware/test_diag_runtime.py -q -p no:cacheprovider
+67 passed in 1.08s
+$ python3 -m pyflakes scripts/hardware/installer_base.py scripts/hardware/campaign_base.py scripts/hardware/vision_run.py scripts/hardware/capture_observation.py tests/hardware/test_diag_runtime.py
+(no output: clean)
+added lines >120 in touched sources: none
+ scripts/hardware/campaign_base.py       | 106 ++++++++++++++++++-
+ scripts/hardware/capture_observation.py |   4 +-
+ scripts/hardware/installer_base.py      |  41 +++++++-
+ scripts/hardware/vision_run.py          | 180 +++++++++++++++++++++++++++++++-
+ 4 files changed, 319 insertions(+), 12 deletions(-)
+
+=== FINAL GREEN (rerun) 2026-10-29T01:02:31Z — the 01:01 full run had 10 failed + 4 errors, all in tests/hardware/test_diag_definitions.py (the concurrent freeze-gate builder's new file, run while their matrix.py change was not yet on disk); no failure outside that file
+$ python3 -m pytest tests --ignore=tests/analysis -q -p no:cacheprovider
+378 passed in 29.39s
+$ python3 -m pytest tests/hardware/test_diag_runtime.py -q -p no:cacheprovider
+67 passed in 1.11s

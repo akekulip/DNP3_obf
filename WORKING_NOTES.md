@@ -98,3 +98,23 @@ Then:
   reassembly guard tests, replay audit buckets, wrap-test bytes), plus the cheap low ones.
 Tests: repository 202, analysis 75, paper 16. Next: D2 diagnostic mirror build, after Philip confirms.
 
+Philip (2026-10-28, later): proceed with D2, then the gated capture and preservation experiments. 7cec084b4 is not yet
+independently inspected by him, so its results are reported, not reviewed.
+- Independent-decode wording separates TShark reassembly, failures at 63->0 and content agreement.
+- opendnp3 (pydnp3) replay of the exact retained READ wrap responses: 128/128 reassembled, 8,320/8,320 READ delivered,
+  renumbered control equal, a bad second segment rejected. SELECT/OPERATE wraps (256) not replayed: the subagent
+  stopped on a safety check; reported to Philip, not attempted another way.
+- Padding summary: +2.91 B/txn is a workload average; each affected mixed READ +17 B; full merge not proposed.
+- E3 recovery as three single-block definitions (recovery_r1/r2/r3) so a failed block cannot leave the others unrun.
+  The three-block campaign dir rc01_hw_c72_recovery_20261028_01 is superseded and was never initialised.
+Committed 115592bd7. Tests: repository 209, analysis 75 (research Python; overhead_v2 needs scapy 2.7), opendnp3 9.
+- D2 c72_diag_mirror committed c78363905: 13 insertions, pipe 0 only, stages as c72; model fidelity on/off/absent
+  passes; all 17 c72 drivers identical with sessions absent. Freeze gate refuses it (non-canonical source, no
+  model_gate_passed by construction); a narrow diagnostic admission is being built.
+- E1 preservation checker committed a7de5b039 (synthetic tests only so far).
+- E4: editing model_abandon.py blocked the c72 gate closure; restored byte-for-byte and the T=1 scenario moved to
+  model_abandon_t1.py (f2c32cf2a). c72 model T=1 abandoned SELECT 14/14 (attempts 01, 02). The gate's earlier T=1
+  attempt model_abandon_c72_01 (no relay SELECT ACK in the stimulus) failed 6/12 and stays recorded.
+- D3/E1/E2 registered before traffic: results/analysis/diag_mirror_d3/DESIGN.json (8+8 mirror on/off, 32 E2).
+Next: freeze-gate admission + diag definitions, runtime hooks (installer --diag-mirror, Vision mirror capture),
+D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (diag build).

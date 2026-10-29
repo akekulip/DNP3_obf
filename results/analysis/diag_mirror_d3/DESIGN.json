@@ -1,0 +1,99 @@
+{
+ "schema": "c72-diag-mirror-d3-e1-e2-design-v1",
+ "registered_before_traffic": "2026-10-28",
+ "status": "registered offline; no hardware contact; nothing initialised or started",
+ "plan": "~/.claude/plans/we-were-on-tract-expressive-planet.md Phases D3, E1, E2",
+ "build": {
+  "label": "c72_diag_mirror",
+  "dir": "results/builds/c72_diag_mirror",
+  "source_sha256": "a46cc55a73a77dfa5691e292451d18d4ec663a04fb5f07b39c6e91915010d437",
+  "canonical_source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+  "evidence_label": "diagnostic-build evidence; establishes nothing about the exact c72 binary"
+ },
+ "capture": {
+  "copy_port": 10,
+  "intended_interface": "Vision enp59s0f1np1 (i40e 0000:3b:00.1)",
+  "mapping_status": "hypothesis from D1 (LLDP cadence); confirmed only by D3a below",
+  "receive_aggregation": "GRO/LRO disabled on the capture interface for the run and restored after, as for the master NIC"
+ },
+ "common_workload": {
+  "template": "scripts/hardware/lab.json 02_d5_reference (65 READs on the mixed_full schedule plus 64 SELECT/OPERATE cycles per trial)",
+  "d_ms": 20,
+  "trial_mode": "per_trial_cold (each trial is a fresh connection after a cold program load), as in every c72 campaign",
+  "guarded_points": [1, 3]
+ },
+ "blocks": [
+  {
+   "id": "d3_mirror_on_d20",
+   "diag_mirror": "on",
+   "arms": ["off", "timing_only", "size_only", "combined"],
+   "trials_per_arm": 2,
+   "fresh_connections": 8
+  },
+  {
+   "id": "d3_mirror_off_d20",
+   "diag_mirror": "off (both sessions present, $session_enable false)",
+   "arms": ["off", "timing_only", "size_only", "combined"],
+   "trials_per_arm": 2,
+   "fresh_connections": 8
+  },
+  {
+   "id": "e2_first_request_d20",
+   "diag_mirror": "on",
+   "arms": ["off"],
+   "trials_per_arm": 32,
+   "reads_per_trial": 8,
+   "run_sbo": false,
+   "fresh_connections": 32
+  }
+ ],
+ "experiments": {
+  "D3a_port_mapping": {
+   "observable": "frames received on Vision enp59s0f1np1 during d3_mirror_on_d20, against the switch dev10 TX frame counter and the relay-leg frames seen at the master NIC",
+   "mechanism": "sessions 101/102 send every relay-leg frame to dev10; if dev10 is cabled to enp59s0f1np1 the copies arrive there",
+   "falsifier": "no relay-leg copies on enp59s0f1np1 while the dev10 TX counter advances; copies are then going elsewhere and D3/E1/E2 stop until the mapping is found",
+   "record": "ethtool -i, ip link, interface RX counters before/after on Vision; switch port counters for dev10 before/after"
+  },
+  "D3b_copy_fidelity": {
+   "observable": "off arm of d3_mirror_on_d20: each request frame sent at the master NIC against its egress copy (leaving toward dev64), and each relay response frame at its ingress copy (arriving from dev64) against the frame delivered at the master NIC",
+   "mechanism": "with T and padding off the switch forwards relay-leg frames unchanged, so an exact copy equals the external reference at the master NIC",
+   "falsifier": "any byte difference outside the declared fields (none are declared for the off arm), any copy shorter than its reference, or a missing copy that the switch counters do not account for; the mirror is then not validated and no E1/E2 result is used",
+   "external_reference": "master NIC captures in.pcap/out.pcap (vision_run.py)"
+  },
+  "D3c_completeness": {
+   "observable": "copies per trial against relay-leg frames at the master NIC, the switch dev64 RX/TX and dev10 TX counters, and tcpdump capture/kernel-drop statistics on the capture interface",
+   "falsifier": "unexplained missing copies, kernel drops, or caplen below frame length",
+   "reported": "counts with denominators per trial and per direction"
+  },
+  "D3d_mirror_on_vs_off": {
+   "observable": "per arm and transaction class: delivery (exchange counts and verdicts), response sizes, and CLRT, d3_mirror_on_d20 against d3_mirror_off_d20",
+   "mechanism": "the copy is made in the deparser and queued to dev10; it should not change forwarding or the T release",
+   "falsifier": "any difference in delivery or response size; for the timed arms, a median CLRT difference above 50 us in any class",
+   "untimed_arms": "CLRT follows the relay and is reported descriptively, with the across-block spread from the c72 evaluation as context; no pass/fail",
+   "order": "run before any mirror timing is used"
+  },
+  "E1_preservation": {
+   "observable": "size_only and combined arms of d3_mirror_on_d20 (4 connections): every relay response at the ingress copy against the padded response at the master NIC; every master request against its egress copy",
+   "tool": "scripts/analysis/preservation_check.py (TCP translation, CRC-checked link frames, 63->0 wrap, declared padding only)",
+   "falsifier": "any content difference after removing only the declared padding and declared header changes; any unmatched transaction",
+   "precondition": "D3b and D3c pass",
+   "label": "diagnostic-build evidence (c72_diag_mirror)"
+  },
+  "E2_first_request": {
+   "observable": "on every fresh connection (48: 16 from the d3 blocks, 32 from e2_first_request_d20), the first master request at the master NIC, its egress copy toward dev64, the relay ACK/response at the ingress copy, and any master retransmission",
+   "mechanism": "c72 evidence shows 16/256 fresh connections retransmitting the first request at 206-216 ms; the egress copy shows whether the first copy left the switch toward the relay",
+   "classification": [
+    "no egress copy of the first request: lost before or inside the switch",
+    "egress copy present, no relay ACK or response in the ingress copies before the retransmission: lost after switch egress (cable, relay NIC or relay), the narrowest supported location; an egress copy does not prove the relay received it",
+    "relay response in the ingress copies, not at the master NIC: lost between switch ingress and the master"
+   ],
+   "falsifier": "none for the location itself; if 0 of 48 connections retransmit, report 0/48 with no location",
+   "note": "48 connections at the c72 rate (16/256) give about 3 expected events; this is a bounded diagnostic, not a rate estimate"
+  }
+ },
+ "stop_rules": [
+  "unsafe restoration or ownership: stop writes",
+  "D3a or D3b fails: stop; no E1/E2 result is used",
+  "no rerun-until-pass; a failed block is reported as found"
+ ]
+}

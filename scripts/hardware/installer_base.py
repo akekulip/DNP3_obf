@@ -36,6 +36,7 @@ def oneline(e):
 TIMING_CONTRACT = None  # candidate entrypoint sets this only after source/artifact profile validation
 
 REQUIRED_EXPECT = ('bfrt.json', 'p0/tofino.bin', 'p1/tofino.bin', 'p1/response_only.bfa')
+DIAG_MIRROR_STATES = ('absent', 'off', 'on')
 
 
 def parse(argv):
@@ -59,6 +60,9 @@ def parse(argv):
     ap.add_argument('--pad-enable', type=int, choices=(0, 1), default=1,
                     help='E padding policy on the fwd_conn row: 1 pads (default), 0 = policy-off control '
                          '(mapper armed and translating, no growth)')
+    ap.add_argument('--diag-mirror', choices=DIAG_MIRROR_STATES, default='absent',
+                    help='c72_diag_mirror build only: absent (default) plans no diagnostic session; off/on also write '
+                         'its two relay-leg copy sessions (diag_mirror_sessions.py) right after the clone session')
     ap.add_argument('--k', type=int, default=2, help='2*k generator tokens per trigger (queue_sim default k=2)')
     for role in ('ack', 'resp'):
         ap.add_argument('--shape-%s-pps' % role, type=int, default=0, dest='shape_%s' % role,
@@ -157,6 +161,31 @@ def dataplane_params_op(a):
     return op
 
 
+def diag_mirror_plan(a, ports):
+    """(ops, errors) for --diag-mirror. absent: no ops, nothing read. off/on: the c72_diag_mirror build's two
+    $mirror.cfg sessions from its compiled constants (diag_mirror_sessions.load/validate/ops); a build without those
+    constants, or any validation error, is an error and plans nothing."""
+    state = getattr(a, 'diag_mirror', 'absent')
+    if state == 'absent':
+        return [], []
+    import diag_mirror_sessions
+    try:
+        constants = diag_mirror_sessions.load(a.build_out)
+    except (OSError, ValueError) as e:
+        return [], ['--diag-mirror %s: %s' % (state, oneline(e))]
+    errs = diag_mirror_sessions.validate(constants)
+    if ports.get('clone_session') in (constants['session_rx'], constants['session_tx']):
+        errs.append('a diagnostic session is the clone session %d' % ports['clone_session'])
+    if errs:
+        return [], ['--diag-mirror %s: %s' % (state, e) for e in errs]
+    return diag_mirror_sessions.ops(constants, state), []
+
+
+def diag_sessions(ops, ports):
+    """Session ids of the planned diagnostic mirror writes: every mirror write except the clone session."""
+    return [op['key'][0][1] for op in ops if op['kind'] == 'mirror' and op['key'][0][1] != ports['clone_session']]
+
+
 def plan(a, ports):
     """Write order: loopback of the build's front-panel looping ports, then T-side state, E, and N last with
     its connection rows at the very end, so no master packet is bound by N before everything it hands to T
@@ -170,10 +199,13 @@ def plan(a, ports):
     n_rest = [r for r in ne if r['table'].startswith('p0.n_') and r not in n_conn]
     shape = {r: getattr(a, 'shape_' + r) for r in ('ack', 'resp')}
     block = {r: getattr(a, 'block_' + r) for r in ('ack', 'resp')}
+    diag, errs = diag_mirror_plan(a, ports)
+    if errs:
+        raise ValueError('; '.join(errs))
     return (tc.loopback_ops(ports, timing_contract=a.timing_contract)
             + tc.queue_ops(ports, shape, block, a.block_burst, timing_contract=a.timing_contract)
             + tc.pktgen_ops(a.k, ports, timing_contract=a.timing_contract)
-            + [tc.mirror_op(ports), dataplane_params_op(a)] + e_rows + n_rest + n_conn)
+            + [tc.mirror_op(ports)] + diag + [dataplane_params_op(a)] + e_rows + n_rest + n_conn)
 
 
 def show(op):
@@ -327,6 +359,9 @@ def apply(ops, a, ports):
                     stop('%s is not empty before bring-up' % table)
             if sw.get('$mirror.cfg', 0xffff, [('$sid', ports['clone_session'], None)]) is not None:
                 stop('mirror session %d already exists' % ports['clone_session'])
+            for sid in diag_sessions(ops, ports):
+                if sw.get('$mirror.cfg', 0xffff, [('$sid', sid, None)]) is not None:
+                    stop('mirror session %d already exists' % sid)
             bad = readback.register_errors(readback.registers(sw))
         except Exception as e:
             stop('pre-check failed: %s' % e)
@@ -366,7 +401,9 @@ def main(argv=None):
         return 1
     ports, port_errs = build_ports_for(a)
     errs += port_errs + tc.check_params(params(a), timing_contract=a.timing_contract)
-    if port_errs:                # without the build's ports there is no plan to print or check
+    diag_errs = [] if port_errs else diag_mirror_plan(a, ports)[1]
+    errs += diag_errs
+    if port_errs or diag_errs:   # without the build's ports (or valid diagnostic sessions) there is no plan to print
         print('REFUSED: %d error(s):\n    %s' % (len(errs), '\n    '.join(errs)))
         return 1
     ops = plan(a, ports)

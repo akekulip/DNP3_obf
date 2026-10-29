@@ -12,6 +12,14 @@ FREEZE_V3='freeze-v3-20261017'
 COMPILE_FILES=('manifest.json','compile.log','compiler_evidence.json','compiler_evidence.tar.xz',
                'out/bfrt.json','out/response_only.p4pp','out/p0/tofino.bin','out/p1/tofino.bin')
 BUILD_FILES=('response_only.p4','response_only.inputs.json','supported_profile.json','resource_review.json')
+CANONICAL_P4='p4/response_only.p4'
+# A declared diagnostic build (scripts/build_diag_mirror.py) carries DIAG_IDENTITY; its model evidence lives in
+# DIAG_MODELS/<build name>/ and replaces the model gate for its own, never-qualifying, diagnostic blocks.
+DIAG_IDENTITY='diag_mirror.json'
+DIAG_GENERATOR='scripts/build_diag_mirror.py'
+DIAG_MODELS='results/models'
+DIAG_EVIDENCE=('diag_mirror_fidelity_01.json','gate_vs_c72_01.json')
+DIAG_QUALIFICATION='diagnostic_model_evidence'
 
 def sha(path):
     return hashlib.sha256((REPO / path).read_bytes()).hexdigest()
@@ -56,6 +64,8 @@ def manifest_artifacts(build, compile_dir):
 def write(a):
     build = Path(a.build).resolve()
     files = collect(build, a.configs)
+    if declared_diagnostic(build):
+        files = sorted(set(files + [str(Path(rel(build)) / DIAG_IDENTITY)] + diagnostic_evidence_paths(build)))
     missing = [f for f in files if not (REPO / f).is_file()]
     if missing:
         raise SystemExit('cannot freeze, missing: ' + ' '.join(missing))
@@ -65,7 +75,11 @@ def write(a):
     if bad:
         raise SystemExit('cannot freeze, compiles not bound to the source: ' + '; '.join(bad))
     candidate = candidate_record(build, source, a.configs, a.diagnostic_exception)
-    if candidate['model']['qualification'] != 'model_gate_passed':
+    if candidate.get('diagnostic'):
+        bad = diagnostic_evidence_problems(build)
+        if bad:
+            raise SystemExit('cannot freeze a diagnostic candidate: ' + '; '.join(bad))
+    elif candidate['model']['qualification'] != 'model_gate_passed':
         raise SystemExit('cannot freeze a qualifying candidate: model gate %s (%s); a diagnostic block needs '
                          '--diagnostic-exception REASON' % (candidate['model']['qualification'],
                                                              '; '.join(candidate['model']['blocked_reasons'][:3])))
@@ -81,7 +95,29 @@ def write(a):
 
 
 def candidate_record(build, source, configs, exception):
-    """The one identity a block's config must match (version 3)."""
+    """The one identity a block's config must match (version 3). A declared diagnostic build records its two model
+    evidence hashes instead of the model gate (summarize_v3 is not consulted), diagnostic=True and qualifies=False."""
+    diagnostic = declared_diagnostic(build)
+    if diagnostic:
+        model = dict(qualification=DIAG_QUALIFICATION, evidence=diagnostic_evidence(build))
+    else:
+        model = canonical_model_record(build, source)
+    artifacts = {c: dict({f: sha(rel(build / c / f)) for f in COMPILE_FILES},
+                         **{'out/' + f: sha(rel(build / c / 'out' / f)) for f in manifest_artifacts(build, c)})
+                 for c in build_compiles(build)}
+    record = dict(source_sha256=source, build=rel(build),
+                  loaded_compile=dict(out_dir=rel(build / loaded_compile(build) / 'out'),
+                                      manifest=rel(build / loaded_compile(build) / 'manifest.json')),
+                  artifacts=artifacts, model=model,
+                  configs={rel(c): sha(rel(c)) for c in configs},
+                  diagnostic_exception=(dict(reason=exception, qualifies=False) if exception else None))
+    if diagnostic:
+        record.update(diagnostic=True, qualifies=False)
+    return record
+
+
+def canonical_model_record(build, source):
+    """The model-gate verdict of a canonical build, from the stored and the live model_summary_v3."""
     ms = model_summary_module()
     summary = build / 'model_summary_v3.json'
     live = ms.summarize_v3(build)
@@ -95,19 +131,10 @@ def candidate_record(build, source, configs, exception):
                                              'model_summary.py --write']
     else:
         qualification, reasons = live['qualification'], live['blocked_reasons']
-    artifacts = {c: dict({f: sha(rel(build / c / f)) for f in COMPILE_FILES},
-                         **{'out/' + f: sha(rel(build / c / 'out' / f)) for f in manifest_artifacts(build, c)})
-                 for c in build_compiles(build)}
-    return dict(source_sha256=source, build=rel(build),
-                loaded_compile=dict(out_dir=rel(build / loaded_compile(build) / 'out'),
-                                    manifest=rel(build / loaded_compile(build) / 'manifest.json')),
-                artifacts=artifacts,
-                model=dict(summary=rel(summary) if stored is not None else None,
-                           summary_sha256=sha(rel(summary)) if stored is not None else None,
-                           summary_version=ms.SUMMARY_V3, qualification=qualification, blocked_reasons=reasons,
-                           latest_by_driver=live['latest_by_driver']),
-                configs={rel(c): sha(rel(c)) for c in configs},
-                diagnostic_exception=(dict(reason=exception, qualifies=False) if exception else None))
+    return dict(summary=rel(summary) if stored is not None else None,
+                summary_sha256=sha(rel(summary)) if stored is not None else None,
+                summary_version=ms.SUMMARY_V3, qualification=qualification, blocked_reasons=reasons,
+                latest_by_driver=live['latest_by_driver'])
 
 
 def candidate_binding(frozen, config):
@@ -117,7 +144,10 @@ def candidate_binding(frozen, config):
     - every build the config can load (cfg['builds']) names the candidate's source sha256, its loaded compile's
       out_dir and manifest, and any pinned artifact hash equals the candidate's;
     - ctl_timing_identity names the same source and the same loaded compile;
-    - the model verdict is model_gate_passed, or a diagnostic exception is recorded (its blocks do not qualify)."""
+    - canonical candidate: the model verdict is model_gate_passed and the live summarize_v3 still agrees;
+    - diagnostic candidate (diagnostic=True, and the build still declares diag_mirror.json): the config purpose is
+      'diagnostic', cfg['diag_mirror']['source_sha256'] is the candidate source, compile_problems re-admits the
+      build (diagnostic_problems) and both model evidence files still have their frozen sha256."""
     cand = frozen.get('candidate')
     if frozen.get('freeze_version') != FREEZE_V3 or not cand:
         return ['freeze %s has no candidate record (version 3 required)' % frozen.get('freeze_version')]
@@ -151,19 +181,46 @@ def candidate_binding(frozen, config):
         problems.append('ctl_timing_identity.source_sha256 %s is not the candidate' % ident.get('source_sha256'))
     if _case4((ident.get('switch_compile') or {}).get('out_dir')) != loaded['out_dir']:
         problems.append('ctl_timing_identity.switch_compile.out_dir is not the candidate\'s loaded compile')
-    if cand['model']['qualification'] != 'model_gate_passed':
+    build = REPO / cand['build']
+    declared = declared_diagnostic(build)
+    diagnostic = cand.get('diagnostic') is True or declared
+    if (cand.get('diagnostic') is True) != declared:
+        problems.append('candidate diagnostic flag %r disagrees with the build (%s %s)'
+                        % (cand.get('diagnostic'), DIAG_IDENTITY, 'present' if declared else 'absent'))
+    if diagnostic:
+        problems += diagnostic_binding_problems(cand, cfg, build)
+    elif cand['model']['qualification'] != 'model_gate_passed':
         problems.append('model gate %s and no diagnostic exception' % cand['model']['qualification'])
     # review finding 4: an exception admits only a config that declares itself diagnostic (fail closed)
     if cand.get('diagnostic_exception') and cfg.get('purpose') != 'diagnostic':
         problems.append('diagnostic exception recorded, but config purpose is %r, not "diagnostic"' % cfg.get('purpose'))
-    build = REPO / cand['build']
     problems += ['compile: ' + p for p in compile_problems(build, cand['source_sha256'])]
+    if diagnostic:
+        return problems
     # review finding 3: the model verdict is recomputed before every block; a later attempt or failure note blocks
     live = model_summary_module().summarize_v3(build)
     if (live['qualification'] != cand['model']['qualification']
             or live.get('latest_by_driver') != cand['model'].get('latest_by_driver')):
         problems.append('model evidence changed since the freeze: now %s, latest %s'
                         % (live['qualification'], live.get('latest_by_driver')))
+    return problems
+
+
+def diagnostic_binding_problems(cand, cfg, build):
+    """The diagnostic part of candidate_binding (the build's admission is rechecked by compile_problems)."""
+    problems = []
+    if cfg.get('purpose') != 'diagnostic':
+        problems.append('diagnostic candidate, but config purpose is %r, not "diagnostic"' % cfg.get('purpose'))
+    mirror = cfg.get('diag_mirror') if isinstance(cfg.get('diag_mirror'), dict) else {}
+    if mirror.get('source_sha256') != cand['source_sha256']:
+        problems.append('diag_mirror.source_sha256 %s is not the candidate build source %s'
+                        % (mirror.get('source_sha256'), cand['source_sha256']))
+    if cand['model'].get('qualification') != DIAG_QUALIFICATION:
+        problems.append('diagnostic candidate model qualification %r is not %s'
+                        % (cand['model'].get('qualification'), DIAG_QUALIFICATION))
+    now = diagnostic_evidence(build)
+    if not cand['model'].get('evidence') or now != cand['model'].get('evidence'):
+        problems.append('diagnostic model evidence changed since the freeze: now %s' % now)
     return problems
 
 
@@ -195,7 +252,9 @@ def check(a):
                       model_qualification=(cand.get('model') or {}).get('qualification'),
                       diagnostic_exception=cand.get('diagnostic_exception'),
                       qualifies=not binding and (cand.get('model') or {}).get('qualification') == 'model_gate_passed'
-                      and not cand.get('diagnostic_exception'))
+                      and not cand.get('diagnostic_exception') and not cand.get('diagnostic'))
+        if cand.get('diagnostic'):
+            result['diagnostic'] = True
         result['ok'] = result['ok'] and not binding
     if a.record:
         Path(a.record).parent.mkdir(parents=True, exist_ok=True)
@@ -209,6 +268,8 @@ def check(a):
         print('  not bound:', b)
     if result.get('diagnostic_exception'):
         print('  DIAGNOSTIC EXCEPTION (does not qualify):', result['diagnostic_exception']['reason'])
+    if result.get('diagnostic'):
+        print('  DIAGNOSTIC BUILD (blocks do not qualify):', frozen['build'])
     return 0 if result['ok'] else 1
 
 
@@ -261,10 +322,122 @@ def collect(build,configs):
     return sorted(set(files))
 
 
+def declared_diagnostic(build):
+    """A build declares itself diagnostic by carrying diag_mirror.json (anything at that path, even a dangling link)."""
+    path = Path(build) / DIAG_IDENTITY
+    return path.exists() or path.is_symlink()
+
+
+def diagnostic_problems(build, source):
+    """Problems admitting BUILD as a declared diagnostic build ([] = admitted). All must hold:
+    - build/diag_mirror.json is a readable JSON object;
+    - its canonical_sha256 is the sha256 of p4/response_only.p4 now;
+    - its generator_sha256 is the sha256 of scripts/build_diag_mirror.py now;
+    - the generator's own derive(), run in-process on the canonical file, reproduces build/response_only.p4 byte for
+      byte (a generator that is not the hashed one is refused and never executed);
+    - its source_sha256 is the sha256 of build/response_only.p4, and so is the candidate SOURCE."""
+    build = Path(build)
+    try:
+        meta = json.loads((build / DIAG_IDENTITY).read_text())
+    except (OSError, ValueError) as error:
+        return ['%s unreadable: %s' % (DIAG_IDENTITY, error)]
+    if not isinstance(meta, dict):
+        return ['%s is not a JSON object' % DIAG_IDENTITY]
+    try:
+        canonical, generator = sha(CANONICAL_P4), sha(DIAG_GENERATOR)
+        derived = (build / 'response_only.p4').read_bytes()
+    except OSError as error:
+        return ['diagnostic admission inputs unreadable: ' + str(error)]
+    problems = []
+    if meta.get('canonical_sha256') != canonical:
+        problems.append('%s canonical_sha256 %s is not the current %s %s'
+                        % (DIAG_IDENTITY, meta.get('canonical_sha256'), CANONICAL_P4, canonical))
+    if meta.get('generator_sha256') != generator:
+        problems.append('%s generator_sha256 %s is not the current %s %s'
+                        % (DIAG_IDENTITY, meta.get('generator_sha256'), DIAG_GENERATOR, generator))
+        problems.append('derived source not regenerated: the generator is not the one %s names' % DIAG_IDENTITY)
+    else:
+        try:
+            regenerated = diag_generator().derive((REPO / CANONICAL_P4).read_text())[0].encode()
+            if regenerated != derived:
+                problems.append("regenerating %s with the generator's derive() does not reproduce %s"
+                                % (CANONICAL_P4, build / 'response_only.p4'))
+        except (OSError, ValueError, TypeError, AttributeError, ImportError, SyntaxError) as error:
+            problems.append('derived source cannot be regenerated: %s' % error)
+    digest = hashlib.sha256(derived).hexdigest()
+    if meta.get('source_sha256') != digest:
+        problems.append('%s source_sha256 %s is not the build source %s' % (DIAG_IDENTITY, meta.get('source_sha256'),
+                                                                             digest))
+    if source != digest:
+        problems.append("candidate source %s is not the build's derived source %s" % (source, digest))
+    return problems
+
+
+def diag_generator():
+    import importlib.util
+    spec=importlib.util.spec_from_file_location('current_diag_generator',REPO/DIAG_GENERATOR)
+    generator=importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(generator)
+    return generator
+
+
+def diagnostic_evidence_paths(build):
+    return [str(Path(DIAG_MODELS) / Path(build).name / name) for name in DIAG_EVIDENCE]
+
+
+def diagnostic_evidence(build):
+    """{path: sha256 or None if unreadable} of the build's two diagnostic model evidence files."""
+    return {path: sha(path) if (REPO / path).is_file() else None for path in diagnostic_evidence_paths(build)}
+
+
+def diagnostic_evidence_problems(build):
+    """Problems with the diagnostic model evidence a freeze binds ([] = usable): the fidelity record passed (true)
+    for this build's source; gate_vs_c72 names this build and lists every required model driver, each with
+    verdicts_identical true and diag_exit_code 0."""
+    build = Path(build)
+    values, problems = {}, []
+    for name, path in zip(DIAG_EVIDENCE, diagnostic_evidence_paths(build)):
+        try:
+            values[name] = json.loads((REPO / path).read_text())
+        except (OSError, ValueError) as error:
+            problems.append('diagnostic evidence %s unreadable: %s' % (path, error))
+    if problems:
+        return problems
+    fidelity, gate = values[DIAG_EVIDENCE[0]], values[DIAG_EVIDENCE[1]]
+    if not isinstance(fidelity, dict) or not isinstance(gate, dict):
+        return ['diagnostic evidence is not a JSON object']
+    try:
+        source = hashlib.sha256((build / 'response_only.p4').read_bytes()).hexdigest()
+        required = set(model_summary_module().required_drivers(build))
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        return ['diagnostic evidence cannot be checked: %s' % error]
+    if fidelity.get('passed') is not True:
+        problems.append('%s: fidelity passed is %r, not true' % (DIAG_EVIDENCE[0], fidelity.get('passed')))
+    if fidelity.get('source_sha256') != source:
+        problems.append('%s: source_sha256 %s is not the build source %s'
+                        % (DIAG_EVIDENCE[0], fidelity.get('source_sha256'), source))
+    if gate.get('build') != build.name:
+        problems.append('%s: build %r is not %s' % (DIAG_EVIDENCE[1], gate.get('build'), build.name))
+    drivers = gate.get('drivers') if isinstance(gate.get('drivers'), dict) else {}
+    if required - set(drivers):
+        problems.append('%s: required drivers missing: %s' % (DIAG_EVIDENCE[1], sorted(required - set(drivers))))
+    for driver, verdict in sorted(drivers.items()):
+        verdict = verdict if isinstance(verdict, dict) else {}
+        code = verdict.get('diag_exit_code')
+        if verdict.get('verdicts_identical') is not True or type(code) is not int or code != 0:
+            problems.append('%s: driver %s verdicts_identical %r, diag_exit_code %r (need true, 0)'
+                            % (DIAG_EVIDENCE[1], driver, verdict.get('verdicts_identical'), code))
+    return problems
+
+
 def compile_problems(build,source):
+    """Problems binding BUILD's compile to SOURCE ([] = bound). A build without diag_mirror.json must be the canonical
+    source; a declared diagnostic build must pass diagnostic_problems instead. Every other check is shared."""
     compiler=compiler_module()
     problems=[]
-    if sha('p4/response_only.p4')!=source:
+    if declared_diagnostic(build):
+        problems += diagnostic_problems(build,source)
+    elif sha(CANONICAL_P4)!=source:
         problems.append('candidate is not the canonical current P4 source')
     try:
         result=compiler.verify_evidence(build/'compile_local',source_root=build)

@@ -14,6 +14,8 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path[:0] = [str(HERE), str(HERE.parent / 'checks')]
 import campaign_base
+import checks
+import diag_mirror_sessions
 import evaluation_campaign
 import freeze_gate
 import relay_check
@@ -26,6 +28,12 @@ DEFINITIONS = {'qualification': dict(file='lab.json', blocks=10, exchanges=2440)
 # TIMEOUT in one condition must not leave the other predetermined conditions unexecuted.
 RECOVERY_BLOCKS = {'recovery_r1': 'r1_d20_combined', 'recovery_r2': 'r2_d20_size_only', 'recovery_r3': 'r3_d5_combined'}
 DEFINITIONS.update({name: dict(file='lab_recovery.json', blocks=1, exchanges=132) for name in RECOVERY_BLOCKS})
+# One campaign per registered D3/E2 diagnostic-mirror block (results/analysis/diag_mirror_d3/DESIGN.json), for the same
+# reason; only the declared c72_diag_mirror build may prepare them (diagnostic_contract).
+DIAG_BLOCKS = {'diag_d3_on': 'd3_mirror_on_d20', 'diag_d3_off': 'd3_mirror_off_d20',
+               'diag_e2_first': 'e2_first_request_d20'}
+DEFINITIONS.update({name: dict(file='lab_diag.json', blocks=1, exchanges=exchanges, diagnostic=True)
+                    for name, exchanges in (('diag_d3_on', 1544), ('diag_d3_off', 1544), ('diag_e2_first', 256))})
 
 
 def sha(path):
@@ -65,6 +73,55 @@ def expand_recovery(spec):
     return dict(common=base['common'], blocks=blocks)
 
 
+def expand_diag(spec):
+    """The reference block at one D per registered diagnostic block: only the arms, the trial counts, the READ count
+    and SBO, the master ports and the mirror state change."""
+    base = json.loads((HERE / spec['base']).read_text())
+    template = next(block for block in base['blocks'] if block['id'] == spec['template'])
+    arms = {arm['name']: arm for arm in template['arms']}
+    blocks = []
+    for condition in spec['blocks']:
+        if condition['diag_mirror'] not in ('on', 'off') or not set(condition['arms']) <= set(arms):
+            raise ValueError('diagnostic block %s needs mirror state on/off and template arms' % condition['id'])
+        block = copy.deepcopy(template)
+        block['id'] = condition['id']
+        block['diag_mirror'] = condition['diag_mirror']
+        block['config']['timing_params_ns']['gap'] = spec['d_ms'] * 1000000
+        block['config']['trials']['trials_per_arm'] = condition['trials_per_arm']
+        if 'reads_per_trial' in condition:
+            block['config']['trials']['reads_per_trial'] = condition['reads_per_trial']
+        if condition.get('run_sbo') is False:
+            block['traffic']['run_sbo'] = False
+            block['traffic'].pop('sbo_cycles', None)
+        block['arms'] = [copy.deepcopy(arms[name]) for name in condition['arms']]
+        block['traffic']['master_port_range'] = copy.deepcopy(condition['master_port_range'])
+        blocks.append(block)
+    return dict(common=base['common'], blocks=blocks,
+                diag=dict(capture_interface=spec['capture_interface'], build_label=spec['build_label']))
+
+
+def diagnostic_contract(build, source_hash, declared):
+    """The diag_mirror fields of every diagnostic block config, only from a build the freeze gate admits as the
+    declared diagnostic build: its compiled copy port, the registered capture interface and label, its source."""
+    if not freeze_gate.declared_diagnostic(build):
+        raise ValueError('a diagnostic definition needs the declared diagnostic build %s; %s has no %s'
+                         % (declared['build_label'], build, freeze_gate.DIAG_IDENTITY))
+    problems = freeze_gate.diagnostic_problems(build, source_hash)
+    if build.name != declared['build_label']:
+        problems.append('build %s is not the registered diagnostic build %s' % (build.name, declared['build_label']))
+    constants = {}
+    if not problems:
+        try:
+            constants = diag_mirror_sessions.load(build)
+            problems += diag_mirror_sessions.validate(constants)
+        except (OSError, ValueError) as error:
+            problems.append('diagnostic constants unreadable: %s' % error)
+    if problems:
+        raise ValueError('diagnostic build refused: ' + '; '.join(problems))
+    return dict(copy_port=constants['copy_port'], capture_interface=declared['capture_interface'],
+                build_label=declared['build_label'], source_sha256=source_hash)
+
+
 def load_definition(name):
     spec = DEFINITIONS[name]
     definition = json.loads((HERE / spec['file']).read_text())
@@ -75,6 +132,10 @@ def load_definition(name):
     elif name in RECOVERY_BLOCKS:
         full = expand_recovery(definition)
         definition = dict(common=full['common'], blocks=[b for b in full['blocks'] if b['id'] == RECOVERY_BLOCKS[name]])
+    elif name in DIAG_BLOCKS:
+        full = expand_diag(definition)
+        definition = dict(common=full['common'], diag=full['diag'],
+                          blocks=[b for b in full['blocks'] if b['id'] == DIAG_BLOCKS[name]])
     return definition, spec
 
 
@@ -87,6 +148,7 @@ def prepare(build, native, output, campaign_id, definition='qualification'):
     definition, spec = load_definition(definition)
     manifest = json.loads((build / 'compile_local/manifest.json').read_text())
     source_hash = sha(build / 'response_only.p4')
+    diag = diagnostic_contract(build, source_hash, definition['diag']) if spec.get('diagnostic') else None
     output.mkdir(parents=True)
     configs = output / 'configs'
     configs.mkdir()
@@ -94,6 +156,9 @@ def prepare(build, native, output, campaign_id, definition='qualification'):
     for block in definition['blocks']:
         if set(block['config']) & {'endpoints','endpoint','ports_map'}:
             raise ValueError('matrix blocks cannot override the fixed reciprocal IP/port binding')
+        if set(block['config']) & {'purpose', 'diag_mirror'} or ('diag_mirror' in block) != (diag is not None):
+            raise ValueError('only a diagnostic definition, with the admitted diagnostic build, carries the '
+                             'diagnostic contract')
         cfg = copy.deepcopy(definition['common'])
         cfg.update(block['config'])
         cfg['traffic'] = block['traffic']
@@ -114,6 +179,10 @@ def prepare(build, native, output, campaign_id, definition='qualification'):
                                    native_observation_sha256=sha(native))
         cfg['ctl_timing_identity'] = dict(source_sha256=source_hash,
             switch_compile=dict(out_dir=cfg['builds']['current']['out_dir']))
+        if diag is not None:
+            cfg['purpose'] = 'diagnostic'
+            cfg['diag_mirror'] = dict(state=block['diag_mirror'], **diag)
+            cfg['ports_map']['stat_ports'] += ',%d' % diag['copy_port']
         path = configs / (block['id'] + '.json')
         path.write_text(json.dumps(cfg, indent=2) + '\n')
         campaign_base.load_config(path)
@@ -123,8 +192,10 @@ def prepare(build, native, output, campaign_id, definition='qualification'):
         multiplier = 3 if block['tool'] == 'persistence' or '--scenario' in block['arguments'] else 1
         if '--loss' in block['arguments']:
             multiplier = len(cfg['loss']['presets'][block['arguments'][1]])
-        exchanges = len(cfg['arms']) * multiplier * (cfg['trials']['reads_per_trial'] +
-                                                     2 * cfg['traffic'].get('sbo_cycles', 1))
+        # a plain block runs trials_per_arm cold connections per arm; SBO pairs follow checks.sbo_count (0 without SBO)
+        trials = cfg['trials']['trials_per_arm'] if block['tool'] == 'campaign' and not block['arguments'] else 1
+        exchanges = len(cfg['arms']) * trials * multiplier * (cfg['trials']['reads_per_trial'] +
+                                                              2 * checks.sbo_count(cfg['traffic']))
         count += exchanges
         steps.append(dict(id=block['id'], kind='block', argv=argv, expected_exchanges=exchanges,
                           run_root=str(ROOT / cfg['evidence_dir'] / run_id)))

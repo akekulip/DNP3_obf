@@ -22,6 +22,7 @@ RUNS/LABEL: out.pcap (tcpdump -Q out on the parent NIC: frames as the endpoints 
 (-Q in: frames as the switch returned them), master.json, outstation.json, state.txt, result.json.
 Nothing here touches the parent NIC's addresses or routes, or any global sysctl."""
 import argparse
+import contextlib
 import json
 import os
 import random
@@ -80,8 +81,26 @@ def relay_offload_lifecycle(mode, baseline_path=None, run=None, loss_baseline=Fa
         cleanup = relay_loss.restore_owned(HOME + '/relay_loss_state.json', run=run)
         errors = capture_observation.restore_offload_baseline(baseline_path, PARENT, run=run)
         errors += cleanup['errors']
-        return dict(errors=errors, restored=not errors, loss=cleanup)
+        mirror = restore_mirror_offloads(run) if os.path.exists(MIRROR_OFFLOAD_BASELINE) else None
+        if mirror is not None:
+            errors += mirror['errors']
+        result = dict(errors=errors, restored=not errors, loss=cleanup)
+        if mirror is not None:
+            result['mirror'] = mirror
+        return result
     raise ValueError('physical offload lifecycle supports setup/restore only')
+
+def restore_mirror_offloads(run):
+    """Campaign restore: put back the --mirror-iface receive aggregation that a run left pending (killed before
+    stop(), or its own restore failed). The baseline file is removed only once the interface verifies equal to it."""
+    try:
+        with open(MIRROR_OFFLOAD_BASELINE) as stream:
+            interface = json.load(stream)['interface']
+    except (OSError, ValueError, KeyError) as error:
+        return dict(interface=None, errors=['mirror offload baseline unreadable: %s' % error], restored=False)
+    errors = capture_observation.restore_offload_baseline(MIRROR_OFFLOAD_BASELINE, interface, run=run)
+    return dict(interface=interface, errors=['mirror interface %s: %s' % (interface, e) for e in errors],
+                restored=not errors)
 
 def run_relay_connection(run_dir, label, master_port, reads, gap_ms=0, read_pause_ms=25, run_sbo=True, close_grace_ms=0, sbo_cycles=0, read_schedule=None, qualify_capture=False, start_delay_max=0, start_seed=0, close_mode='graceful', **unused):
     """Capture one real master socket. Never start an outstation or alter TCP settings."""
@@ -91,6 +110,7 @@ def run_relay_connection(run_dir, label, master_port, reads, gap_ms=0, read_paus
     open(os.path.join(run_dir, 'state.txt'), 'w').write(state() + '\n')
     result = dict(label=label, endpoint_profile='sel751', master_port=master_port, reads=reads, observation_scope='single master NIC TX/RX; switch emission not observed', endpoint_controls=dict(read_pause_ms=read_pause_ms, run_sbo=bool(run_sbo), close_grace_ms=close_grace_ms), tcpdump={}, ok=False)
     caps, loss_owner = ({}, [None])
+    mirror = MirrorCapture(run_dir, unused['mirror_iface']) if unused.get('mirror_iface') is not None else None
 
     def capture():
         try:
@@ -105,6 +125,8 @@ def run_relay_connection(run_dir, label, master_port, reads, gap_ms=0, read_paus
             for direction, proc in caps.items():
                 if proc.poll() is not None or not os.path.isfile(os.path.join(run_dir, direction + '.pcap')):
                     raise RuntimeError('relay capture failed before traffic: ' + direction)
+            if mirror is not None:
+                mirror.start()
             if unused.get('drop'):
                 import relay_loss
                 loss_owner[0] = relay_loss.RelayLoss(unused['drop'], master_port, label, HOME + '/relay_loss_state.json', capture=os.path.join(run_dir, 'in.pcap'))
@@ -140,6 +162,12 @@ def run_relay_connection(run_dir, label, master_port, reads, gap_ms=0, read_paus
                     proc.kill()
                     _, stderr = proc.communicate()
                 result['tcpdump'][direction] = parse_tcpdump_stats(stderr or '')
+            if mirror is not None:
+                result['mirror'] = mirror.stop()
+                if not result['mirror']['ok']:
+                    result['ok'] = False
+                    failed = '; '.join(result['mirror']['failures'])
+                    result.setdefault('error', 'diagnostic mirror capture failed: ' + failed)
             json.dump(result, open(os.path.join(run_dir, 'result.json'), 'w'), indent=2)
         return result
     with capture_observation.offload_capture_context(run_dir, interface=PARENT):
@@ -217,11 +245,136 @@ BIN, LIB, RUNS = (HOME + '/case4_socket_gate_pad58b', HOME + '/lib', HOME + '/ru
 PROFILE = ('net.ipv4.tcp_timestamps', 'net.ipv4.tcp_sack', 'net.ipv4.tcp_window_scaling')
 DEFAULT_RANGE = '32768 60999'
 OFFLOAD_BASELINE = HOME + '/offload_baseline.json'
+MIRROR_OFFLOAD_BASELINE = HOME + '/mirror_offload_baseline.json'
 RX_COALESCE_BASELINE = HOME + '/rx_coalesce_baseline.json'
 CPU_LATENCY_STATE = HOME + '/cpu_latency_state.json'
 READ_SCHEDULES = ('rotate4', 'mixed_full', 'mixed', 'full')
 PAD_EXPECT_RE = re.compile('(range|analog|class0|integrity|mixed)=[1-9][0-9]{0,3}(,(range|analog|class0|integrity|mixed)=[1-9][0-9]{0,3})*')
 DBS = ('base', 'large')
+MIRROR_IFACE = re.compile('[A-Za-z0-9_.-]{1,15}')
+MIRROR_FILES = ('mirror.pcap', 'mirror_iface_before.json', 'mirror_iface_after.json', 'mirror_offloads.json',
+                'mirror_capture.json')
+
+class MirrorCapture:
+    """--mirror-iface (c72_diag_mirror only): relay-leg copies arriving on a separate capture interface. Identity
+    before and after, receive aggregation off for the run (offload_capture_context, restored on every exit path) and
+    an unfiltered tcpdump -Q in verified as started before traffic. start() raises before traffic on any failure;
+    stop() never raises and records every failure in mirror_capture.json, which then fails the run."""
+
+    def __init__(self, run_dir, interface, run=None, popen=None, sleep=None):
+        self.dir, self.interface = (run_dir, interface)
+        self.run = capture_observation.sh if run is None else run
+        self.popen = subprocess.Popen if popen is None else popen
+        self.sleep = time.sleep if sleep is None else sleep
+        self.pcap = os.path.join(run_dir, 'mirror.pcap')
+        self.command = ['tcpdump', '-i', interface, '-Q', 'in', '-s0', '-U', '-n', '--immediate-mode', '-w', self.pcap]
+        self.proc, self.offloads = (None, contextlib.ExitStack())
+        self.baseline, self.baseline_written = (MIRROR_OFFLOAD_BASELINE, False)
+        self.record = dict(interface=interface, command=self.command, started=False, failures=[])
+
+    def identity(self, name):
+        """ethtool -i, ip -j -s link show and the ethtool -S rx counters of the interface into NAME; returns errors."""
+        out, errors = (dict(interface=self.interface, observed_at_epoch_ns=time.time_ns(), commands={}), [])
+        commands = (('driver', ['ethtool', '-i', self.interface]), ('stats', ['ethtool', '-S', self.interface]),
+                    ('link', ['ip', '-j', '-s', 'link', 'show', self.interface]))
+        for key, argv in commands:
+            result = self.run(argv)
+            out['commands'][key] = dict(argv=argv, returncode=result.returncode, stdout=result.stdout,
+                                        stderr=result.stderr)
+            if result.returncode:
+                errors.append('%s failed (rc %d): %s' % (' '.join(argv), result.returncode,
+                                                         (result.stderr or '').strip()))
+        lines = out['commands']['driver']['stdout'].splitlines()
+        out['driver'] = dict((part.strip() for part in line.split(':', 1)) for line in lines if ':' in line)
+        try:
+            out['link'] = json.loads(out['commands']['link']['stdout'])
+        except ValueError as error:
+            out['link'] = None
+            errors.append('ip -j -s link show %s: unparsable JSON (%s)' % (self.interface, error))
+        counters = re.findall('^\\s*(\\S*rx\\S*):\\s*(\\d+)\\s*$', out['commands']['stats']['stdout'], re.M | re.I)
+        out['rx_counters'] = {name: int(value) for name, value in counters}
+        if not out['rx_counters']:
+            errors.append('ethtool -S %s reported no rx counters' % self.interface)
+        out['errors'] = errors
+        with open(os.path.join(self.dir, name), 'w') as stream:
+            json.dump(out, stream, indent=1)
+        return errors
+
+    def start(self):
+        try:
+            if os.path.exists(self.baseline):
+                raise RuntimeError('a mirror offload baseline is pending at %s; restore first' % self.baseline)
+            errors = self.identity('mirror_iface_before.json')
+            if errors:
+                raise RuntimeError('mirror interface identity before traffic failed: ' + '; '.join(errors))
+            capture_observation.record_offload_baseline(self.baseline, self.interface, run=self.run)
+            self.baseline_written = True         # vision_run.py restore repairs the interface if this run dies
+            self.offloads.enter_context(capture_observation.offload_capture_context(
+                self.dir, interface=self.interface, run=self.run, evidence_name='mirror_offloads.json'))
+            self.proc = self.popen(self.command, stderr=subprocess.PIPE, text=True)
+            self.sleep(2)
+            exited, header = (self.proc.poll(), os.path.isfile(self.pcap) and os.path.getsize(self.pcap) >= 24)
+            if exited is not None or not header:
+                raise RuntimeError('mirror capture on %s failed before traffic (tcpdump rc %s, pcap header written %s)'
+                                   % (self.interface, exited, header))
+            self.record['started'] = True
+        except Exception as error:
+            self.record['failures'].append(str(error))
+            raise
+
+    def stop(self):
+        failures = self.record['failures']
+        try:
+            if self.proc is not None:
+                early = self.proc.poll()
+                if early is not None and self.record['started']:
+                    failures.append('mirror tcpdump exited early (rc %s)' % early)
+                self.proc.terminate()
+                try:
+                    _, stderr = self.proc.communicate(timeout=10)
+                except subprocess.TimeoutExpired:
+                    self.proc.kill()
+                    _, stderr = self.proc.communicate()
+                self.record['tcpdump'] = parse_tcpdump_stats(stderr or '')
+                stats = self.record['tcpdump']
+                missing = [key for key in ('captured', 'received', 'dropped_kernel') if key not in stats]
+                if missing:
+                    failures.append('mirror tcpdump statistics not reported: ' + ', '.join(missing))
+            if not (os.path.isfile(self.pcap) and os.path.getsize(self.pcap) >= 24):
+                failures.append('mirror.pcap missing or without a pcap header')
+            self.record['pcap_bytes'] = os.path.getsize(self.pcap) if os.path.isfile(self.pcap) else None
+        except Exception as error:
+            failures.append('mirror capture stop failed: %r' % error)
+        try:
+            errors = self.identity('mirror_iface_after.json')
+            failures += ['mirror interface identity after traffic: ' + e for e in errors]
+        except Exception as error:
+            failures.append('mirror interface identity after traffic failed: %r' % error)
+        try:
+            self.offloads.close()
+        except Exception as error:
+            failures.append('mirror receive offload restore failed: %s' % error)
+        try:
+            with open(os.path.join(self.dir, 'mirror_offloads.json')) as stream:
+                self.record['offload_restore_ok'] = json.load(stream).get('restore_ok')
+        except (OSError, ValueError) as error:
+            self.record['offload_restore_ok'] = None
+            failures.append('mirror_offloads.json unreadable: %s' % error)
+        if self.baseline_written and self.record['offload_restore_ok'] is True:
+            try:
+                pending = capture_observation.restore_offload_baseline(self.baseline, self.interface, run=self.run)
+            except Exception as error:
+                pending = [repr(error)]
+            failures += ['mirror offload baseline not cleared: ' + e for e in pending]
+        self.record['offload_baseline_pending'] = os.path.exists(self.baseline)
+        self.record['ok'] = not failures
+        try:
+            with open(os.path.join(self.dir, 'mirror_capture.json'), 'w') as stream:
+                json.dump(self.record, stream, indent=1)
+        except OSError as error:
+            failures.append('mirror_capture.json not written: %s' % error)
+            self.record['ok'] = False
+        return self.record
 
 def endpoint_env(read_pause_ms, run_sbo, close_grace_ms, sbo_cycles, read_schedule=None, db=None):
     """The env prefix both endpoints run under. CASE4_SBO_CYCLES, CASE4_READ_SCHEDULE and CASE4_DB appear only when
@@ -391,12 +544,19 @@ def _run_master_evidence(run_dir, master_port, command, timeout):
         json.dump(readback, stream, indent=1, allow_nan=False)
     return dict(master_rc=rc, master_timeout=timed_out, endpoint_collection=dict(schema_version='vision-endpoint-collection-v1', status='timeout' if timed_out else 'completed', partial=timed_out, stdout='master.stdout', stderr='master.stderr'), tcp_rto=readback)
 
-def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None, connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False, qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None, endpoint_binary_name=None, pad_expect=None, endpoint_profile='sel751', relay_close_mode='graceful'):
+def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None,
+                   connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False,
+                   qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None, endpoint_binary_name=None,
+                   pad_expect=None, endpoint_profile='sel751', relay_close_mode='graceful', mirror_iface=None):
     if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':
         raise ValueError('physical run requires authorization before capture/socket creation')
     if connect_must_fail or endpoint_binary_name or pad_expect:
         raise ValueError('unsupported physical relay control; refusing before traffic')
-    return run_relay_connection(run_dir, label, master_port, reads, gap_ms=gap_ms, read_pause_ms=read_pause_ms, run_sbo=run_sbo, close_grace_ms=close_grace_ms, sbo_cycles=sbo_cycles, read_schedule=read_schedule, qualify_capture=qualify_capture, start_delay_max=start_delay_max, start_seed=start_seed, close_mode=relay_close_mode, drop=drop)
+    return run_relay_connection(run_dir, label, master_port, reads, gap_ms=gap_ms, read_pause_ms=read_pause_ms,
+                                run_sbo=run_sbo, close_grace_ms=close_grace_ms, sbo_cycles=sbo_cycles,
+                                read_schedule=read_schedule, qualify_capture=qualify_capture,
+                                start_delay_max=start_delay_max, start_seed=start_seed, close_mode=relay_close_mode,
+                                drop=drop, mirror_iface=mirror_iface)
 
 def _run_connection_created(run_dir, label, master_port, reads, rng, gap_ms, start_delay_max, start_seed, drop=None, connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False, qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None, endpoint_binary_name=None, pad_expect=None):
     open(os.path.join(run_dir, 'state.txt'), 'w').write(state() + '\n')
@@ -570,7 +730,13 @@ def main():
     ap.add_argument('--db', choices=DBS, help='read-schedule endpoint: CASE4_DB for both endpoints')
     ap.add_argument('--endpoint-binary', help='endpoint file beside this script (default case4_socket_gate_pad58b)')
     ap.add_argument('--pad-expect', help='read-schedule endpoint, padded arm: CASE4_PAD_EXPECT for the master only (<class>=<n>[,...]; needs --read-schedule)')
+    ap.add_argument('--mirror-iface', metavar='IFACE',
+                    help='c72_diag_mirror only: capture the relay-leg copies arriving on IFACE (mirror.pcap)')
     a = ap.parse_args()
+    if a.mirror_iface is not None and (a.mode != 'run' or a.scenario or a.drop or a.event_clear or a.connect_must_fail
+                                       or not MIRROR_IFACE.fullmatch(a.mirror_iface) or a.mirror_iface == PARENT):
+        sys.exit('--mirror-iface IFACE is only for one plain physical SEL-751 run, on an interface other than '
+                 + PARENT)
     if a.event_clear:
         if a.mode != 'run' or a.drop or a.scenario:
             sys.exit('--event-clear is only for one plain physical SEL-751 run')
@@ -674,7 +840,13 @@ def main():
         print(json.dumps(out))
         sys.exit(0 if out['ok'] else 1)
     try:
-        result = run_connection(os.path.join(RUNS, a.label), a.label, a.master_port, a.reads, a.range, a.gap_ms, a.start_delay_ms, a.start_seed, drop, a.connect_must_fail, a.read_pause_ms, bool(a.run_sbo), a.close_grace_ms, qualify_capture=a.qualify_capture, sbo_cycles=a.sbo_cycles, read_schedule=a.read_schedule, db=a.db, endpoint_binary_name=a.endpoint_binary, pad_expect=a.pad_expect, endpoint_profile=a.endpoint_profile, relay_close_mode=a.close_mode)
+        result = run_connection(os.path.join(RUNS, a.label), a.label, a.master_port, a.reads, a.range, a.gap_ms,
+                                a.start_delay_ms, a.start_seed, drop, a.connect_must_fail, a.read_pause_ms,
+                                bool(a.run_sbo), a.close_grace_ms, qualify_capture=a.qualify_capture,
+                                sbo_cycles=a.sbo_cycles, read_schedule=a.read_schedule, db=a.db,
+                                endpoint_binary_name=a.endpoint_binary, pad_expect=a.pad_expect,
+                                endpoint_profile=a.endpoint_profile, relay_close_mode=a.close_mode,
+                                mirror_iface=a.mirror_iface)
     except (RuntimeError, ValueError) as e:
         sys.exit(str(e))
     print(json.dumps(result))

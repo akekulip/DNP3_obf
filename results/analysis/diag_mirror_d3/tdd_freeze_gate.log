@@ -1,0 +1,191 @@
+=== Task A RED: tests/hardware/test_freeze_gate_diagnostic.py before any freeze_gate.py change (2026-10-29T00:39:58Z) ===
+freeze_gate.py sha256 9ce09e733667e3fec4ef149d324c32589d14f070103591ac84c1a51e493dc45b (HEAD f2c32cf2a)
+        assert results['canonical']['qualifies'] is True and 'diagnostic' not in results['canonical']
+>       assert results['diagnostic']['qualifies'] is False and results['diagnostic']['diagnostic'] is True
+E       assert (True is False)
+
+tests/hardware/test_freeze_gate_diagnostic.py:417: AssertionError
+______ test_canonical_c72_freeze_keeps_the_model_gate_rules_and_qualifies ______
+
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-3393/test_canonical_c72_freeze_keep0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd4097c2ac0>
+
+    @needs_c72
+    def test_canonical_c72_freeze_keeps_the_model_gate_rules_and_qualifies(tmp_path, monkeypatch):
+        stored = json.loads((C72 / 'model_summary_v3.json').read_text())
+        real = freeze_gate.model_summary_module
+    
+        def stored_gate():
+            module = real()
+            module.summarize_v3 = lambda build: {key: stored[key] for key in
+                                                 ('qualification', 'blocked_reasons', 'latest_by_driver')}
+            return module
+        monkeypatch.setattr(freeze_gate, 'model_summary_module', stored_gate)
+        for name in ('diagnostic_problems', 'diagnostic_evidence', 'diagnostic_evidence_problems'):
+>           monkeypatch.setattr(freeze_gate, name, refuse)
+E           AttributeError: <module 'freeze_gate' from '/home/philip/Projects/DNP3/scripts/hardware/freeze_gate.py'> has no attribute 'diagnostic_problems'
+
+tests/hardware/test_freeze_gate_diagnostic.py:432: AttributeError
+=========================== short test summary info ============================
+FAILED tests/hardware/test_freeze_gate_diagnostic.py::test_canonical_c72_compile_check_never_consults_the_diagnostic_rules
+FAILED tests/hardware/test_freeze_gate_diagnostic.py::test_undeclared_build_keeps_exactly_the_canonical_source_problem
+FAILED tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_admitted_when_every_identity_matches
+FAILED tests/hardware/test_freeze_gate_diagnostic.py::test_admitted_diagnostic_build_passes_every_other_compile_check_unchanged
+FAILED tests/hardware/test_freeze_gate_diagnostic.py::test_candidate_source_must_be_the_regenerated_derived_source
+FAILED tests/hardware/test_freeze_gate_diagnostic.py::test_build_without_identity_is_not_diagnostic_and_fails_the_canonical_check
+FAILED tests/hardware/test_freeze_gate_diagnostic.py::test_committed_diagnostic_model_evidence_passes
+FAILED tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_candidate_records_hashed_model_evidence_and_never_qualifies
+FAILED tests/hardware/test_freeze_gate_diagnostic.py::test_check_never_reports_a_diagnostic_candidate_as_qualifying
+FAILED tests/hardware/test_freeze_gate_diagnostic.py::test_canonical_c72_freeze_keeps_the_model_gate_rules_and_qualifies
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[canonical_changed]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[derived_source_one_byte]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[derived_source_one_byte_identity_rehashed]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[generator_changed]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_canonical_sha]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_dangling_link]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_generator_sha]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_hashes_absent]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_not_an_object]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_source_sha]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_unreadable]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_changed_generator_is_never_executed
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[driver_exit_absent]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[driver_exit_false]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[driver_exit_nonzero]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[driver_verdicts_absent]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[driver_verdicts_differ]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[fidelity_not_passed]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[fidelity_other_source]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[fidelity_passed_absent]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[fidelity_passed_not_boolean]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[gate_other_build]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[no_drivers]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[required_driver_missing]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_missing_or_unreadable_diagnostic_evidence_is_refused[diag_mirror_fidelity_01.json]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_missing_or_unreadable_diagnostic_evidence_is_refused[gate_vs_c72_01.json]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_freeze_write_refuses_a_diagnostic_candidate_whose_fidelity_did_not_pass
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_freeze_of_an_admitted_diagnostic_build_records_a_non_qualifying_candidate
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_bound_diagnostic_block_is_admitted_but_never_qualifies
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_requires_the_diagnostic_config_contract[purpose_absent-purpose]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_requires_the_diagnostic_config_contract[purpose_qualification-purpose]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_requires_the_diagnostic_config_contract[mirror_absent-diag_mirror.source_sha256]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_requires_the_diagnostic_config_contract[mirror_not_an_object-diag_mirror.source_sha256]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_requires_the_diagnostic_config_contract[mirror_source_c72-diag_mirror.source_sha256]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_refuses_model_evidence_changed_since_the_freeze[diag_mirror_fidelity_01.json]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_refuses_model_evidence_changed_since_the_freeze[gate_vs_c72_01.json]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_rechecks_admission[generator-generator_sha256]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_rechecks_admission[canonical-canonical_sha256]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_refuses_a_forged_candidate_record[flag_removed]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_refuses_a_forged_candidate_record[qualification_model_gate_passed]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_refuses_a_forged_candidate_record[evidence_hash]
+ERROR tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_refuses_a_forged_candidate_record[evidence_absent]
+10 failed, 42 errors in 0.57s
+
+=== Task A GREEN: after the freeze_gate.py change (2026-10-29T00:52:33Z) ===
+freeze_gate.py sha256 f1dff612fc9e08589b17c33d7db63afd551177d089f1c2215c63d1690893d449 (HEAD f2c32cf2a)
+============================= test session starts ==============================
+platform linux -- Python 3.8.10, pytest-8.3.5, pluggy-1.5.0 -- /usr/bin/python3
+rootdir: /home/philip/Projects/DNP3
+plugins: anyio-4.5.2
+collecting ... collected 52 items
+
+tests/hardware/test_freeze_gate_diagnostic.py::test_canonical_c72_compile_check_never_consults_the_diagnostic_rules PASSED [  1%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_undeclared_build_keeps_exactly_the_canonical_source_problem PASSED [  3%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_admitted_when_every_identity_matches PASSED [  5%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_admitted_diagnostic_build_passes_every_other_compile_check_unchanged PASSED [  7%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[canonical_changed] PASSED [  9%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[derived_source_one_byte] PASSED [ 11%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[derived_source_one_byte_identity_rehashed] PASSED [ 13%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[generator_changed] PASSED [ 15%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_canonical_sha] PASSED [ 17%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_dangling_link] PASSED [ 19%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_generator_sha] PASSED [ 21%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_hashes_absent] PASSED [ 23%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_not_an_object] PASSED [ 25%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_source_sha] PASSED [ 26%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_declared_diagnostic_build_is_refused_on_any_identity_mismatch[identity_unreadable] PASSED [ 28%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_changed_generator_is_never_executed PASSED [ 30%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_candidate_source_must_be_the_regenerated_derived_source PASSED [ 32%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_build_without_identity_is_not_diagnostic_and_fails_the_canonical_check PASSED [ 34%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_committed_diagnostic_model_evidence_passes PASSED [ 36%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[driver_exit_absent] PASSED [ 38%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[driver_exit_false] PASSED [ 40%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[driver_exit_nonzero] PASSED [ 42%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[driver_verdicts_absent] PASSED [ 44%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[driver_verdicts_differ] PASSED [ 46%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[fidelity_not_passed] PASSED [ 48%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[fidelity_other_source] PASSED [ 50%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[fidelity_passed_absent] PASSED [ 51%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[fidelity_passed_not_boolean] PASSED [ 53%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[gate_other_build] PASSED [ 55%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[no_drivers] PASSED [ 57%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_evidence_that_did_not_pass_is_refused[required_driver_missing] PASSED [ 59%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_missing_or_unreadable_diagnostic_evidence_is_refused[diag_mirror_fidelity_01.json] PASSED [ 61%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_missing_or_unreadable_diagnostic_evidence_is_refused[gate_vs_c72_01.json] PASSED [ 63%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_candidate_records_hashed_model_evidence_and_never_qualifies PASSED [ 65%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_freeze_write_refuses_a_diagnostic_candidate_whose_fidelity_did_not_pass PASSED [ 67%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_freeze_of_an_admitted_diagnostic_build_records_a_non_qualifying_candidate PASSED [ 69%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_bound_diagnostic_block_is_admitted_but_never_qualifies PASSED [ 71%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_requires_the_diagnostic_config_contract[purpose_absent-purpose] PASSED [ 73%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_requires_the_diagnostic_config_contract[purpose_qualification-purpose] PASSED [ 75%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_requires_the_diagnostic_config_contract[mirror_absent-diag_mirror.source_sha256] PASSED [ 76%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_requires_the_diagnostic_config_contract[mirror_not_an_object-diag_mirror.source_sha256] PASSED [ 78%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_requires_the_diagnostic_config_contract[mirror_source_c72-diag_mirror.source_sha256] PASSED [ 80%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_refuses_model_evidence_changed_since_the_freeze[diag_mirror_fidelity_01.json] PASSED [ 82%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_refuses_model_evidence_changed_since_the_freeze[gate_vs_c72_01.json] PASSED [ 84%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_rechecks_admission[generator-generator_sha256] PASSED [ 86%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_rechecks_admission[canonical-canonical_sha256] PASSED [ 88%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_refuses_a_forged_candidate_record[flag_removed] PASSED [ 90%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_refuses_a_forged_candidate_record[qualification_model_gate_passed] PASSED [ 92%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_refuses_a_forged_candidate_record[evidence_hash] PASSED [ 94%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_diagnostic_binding_refuses_a_forged_candidate_record[evidence_absent] PASSED [ 96%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_check_never_reports_a_diagnostic_candidate_as_qualifying PASSED [ 98%]
+tests/hardware/test_freeze_gate_diagnostic.py::test_canonical_c72_freeze_keeps_the_model_gate_rules_and_qualifies PASSED [100%]
+
+============================= 52 passed in 17.92s ==============================
+
+=== Task A isolation update: freeze-writing tests now use a fixed file set (concurrent edits elsewhere) (2026-10-29T01:01:03Z) ===
+....................................................                     [100%]
+52 passed in 6.23s
+
+=== Task B RED: tests/hardware/test_diag_definitions.py before any matrix.py / lab_diag.json change (2026-10-29T01:01:09Z) ===
+matrix.py sha256 cd99601736bee5c2e66a21f2afdabefa281a6b5863ff176da602fc4402d53792 (git diff vs HEAD: none); lab_diag.json present: no
+FAILED tests/hardware/test_diag_definitions.py::test_diag_definition_is_one_registered_block_with_its_arms_trials_and_d[diag_d3_off]
+FAILED tests/hardware/test_diag_definitions.py::test_diag_definition_is_one_registered_block_with_its_arms_trials_and_d[diag_d3_on]
+FAILED tests/hardware/test_diag_definitions.py::test_diag_definition_is_one_registered_block_with_its_arms_trials_and_d[diag_e2_first]
+FAILED tests/hardware/test_diag_definitions.py::test_every_registered_diag_block_has_exactly_one_definition
+FAILED tests/hardware/test_diag_definitions.py::test_diag_master_ports_are_disjoint_from_each_other_and_every_existing_definition
+FAILED tests/hardware/test_diag_definitions.py::test_prepare_of_a_diag_definition_refuses_a_non_diagnostic_build
+FAILED tests/hardware/test_diag_definitions.py::test_prepare_of_a_diag_definition_refuses_a_build_failing_admission
+FAILED tests/hardware/test_diag_definitions.py::test_non_diagnostic_definition_cannot_carry_the_diagnostic_contract[config_purpose]
+FAILED tests/hardware/test_diag_definitions.py::test_non_diagnostic_definition_cannot_carry_the_diagnostic_contract[config_diag_mirror]
+FAILED tests/hardware/test_diag_definitions.py::test_non_diagnostic_definition_cannot_carry_the_diagnostic_contract[block_diag_mirror]
+ERROR tests/hardware/test_diag_definitions.py::test_prepare_writes_the_diagnostic_contract_into_each_diag_config[diag_d3_off]
+ERROR tests/hardware/test_diag_definitions.py::test_prepare_writes_the_diagnostic_contract_into_each_diag_config[diag_d3_on]
+ERROR tests/hardware/test_diag_definitions.py::test_prepare_writes_the_diagnostic_contract_into_each_diag_config[diag_e2_first]
+ERROR tests/hardware/test_diag_definitions.py::test_prepared_diag_configs_freeze_and_bind_to_the_diag_build_but_never_qualify
+10 failed, 6 passed, 4 errors in 0.38s
+
+=== Task B GREEN: after the matrix.py change and the new lab_diag.json (2026-10-29T01:02:46Z) ===
+matrix.py sha256 2e19c072edb644cd8c82b818b3de91bcc28141dfc652768288d93cd9ec80fdcb; lab_diag.json sha256 33d5dba11e64bf895a2e513ee3e9c49459cd9f0e4a08d7ada7d9e3e86a3688bf
+tests/hardware/test_diag_definitions.py::test_diag_definition_is_one_registered_block_with_its_arms_trials_and_d[diag_d3_off] PASSED [  5%]
+tests/hardware/test_diag_definitions.py::test_diag_definition_is_one_registered_block_with_its_arms_trials_and_d[diag_d3_on] PASSED [ 10%]
+tests/hardware/test_diag_definitions.py::test_diag_definition_is_one_registered_block_with_its_arms_trials_and_d[diag_e2_first] PASSED [ 15%]
+tests/hardware/test_diag_definitions.py::test_every_registered_diag_block_has_exactly_one_definition PASSED [ 20%]
+tests/hardware/test_diag_definitions.py::test_diag_master_ports_are_disjoint_from_each_other_and_every_existing_definition PASSED [ 25%]
+tests/hardware/test_diag_definitions.py::test_prepare_writes_the_diagnostic_contract_into_each_diag_config[diag_d3_off] PASSED [ 30%]
+tests/hardware/test_diag_definitions.py::test_prepare_writes_the_diagnostic_contract_into_each_diag_config[diag_d3_on] PASSED [ 35%]
+tests/hardware/test_diag_definitions.py::test_prepare_writes_the_diagnostic_contract_into_each_diag_config[diag_e2_first] PASSED [ 40%]
+tests/hardware/test_diag_definitions.py::test_prepare_of_a_diag_definition_refuses_a_non_diagnostic_build PASSED [ 45%]
+tests/hardware/test_diag_definitions.py::test_prepare_of_a_diag_definition_refuses_a_build_failing_admission PASSED [ 50%]
+tests/hardware/test_diag_definitions.py::test_non_diagnostic_definition_cannot_carry_the_diagnostic_contract[config_purpose] PASSED [ 55%]
+tests/hardware/test_diag_definitions.py::test_non_diagnostic_definition_cannot_carry_the_diagnostic_contract[config_diag_mirror] PASSED [ 60%]
+tests/hardware/test_diag_definitions.py::test_non_diagnostic_definition_cannot_carry_the_diagnostic_contract[block_diag_mirror] PASSED [ 65%]
+tests/hardware/test_diag_definitions.py::test_non_diagnostic_prepare_is_byte_for_byte_unchanged[qualification] PASSED [ 70%]
+tests/hardware/test_diag_definitions.py::test_non_diagnostic_prepare_is_byte_for_byte_unchanged[evaluation] PASSED [ 75%]
+tests/hardware/test_diag_definitions.py::test_non_diagnostic_prepare_is_byte_for_byte_unchanged[recovery] PASSED [ 80%]
+tests/hardware/test_diag_definitions.py::test_non_diagnostic_prepare_is_byte_for_byte_unchanged[recovery_r1] PASSED [ 85%]
+tests/hardware/test_diag_definitions.py::test_non_diagnostic_prepare_is_byte_for_byte_unchanged[recovery_r2] PASSED [ 90%]
+tests/hardware/test_diag_definitions.py::test_non_diagnostic_prepare_is_byte_for_byte_unchanged[recovery_r3] PASSED [ 95%]
+tests/hardware/test_diag_definitions.py::test_prepared_diag_configs_freeze_and_bind_to_the_diag_build_but_never_qualify PASSED [100%]
+============================== 20 passed in 1.33s ==============================

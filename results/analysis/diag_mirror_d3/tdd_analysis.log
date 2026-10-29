@@ -1,0 +1,123 @@
+=== RED 2026-10-29T00:49:44Z interpreter: /home/philip/.venvs/research/bin/python (3.12.13 scapy 2.7.0)
+tests/analysis/test_diag_mirror_d3.py written before scripts/analysis/diag_mirror_d3.py and diag_mirror_capture.py exist
+$ ls scripts/analysis/diag_mirror_d3.py scripts/analysis/diag_mirror_capture.py
+ls: cannot access 'scripts/analysis/diag_mirror_d3.py': No such file or directory
+ls: cannot access 'scripts/analysis/diag_mirror_capture.py': No such file or directory
+$ $RESEARCH_PYTHON -m pytest tests/analysis/test_diag_mirror_d3.py -q -p no:cacheprovider
+____________ ERROR collecting tests/analysis/test_diag_mirror_d3.py ____________
+ImportError while importing test module '/home/philip/Projects/DNP3/tests/analysis/test_diag_mirror_d3.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/analysis/test_diag_mirror_d3.py:22: in <module>
+    import diag_mirror_capture as cap  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ModuleNotFoundError: No module named 'diag_mirror_capture'
+=========================== short test summary info ============================
+ERROR tests/analysis/test_diag_mirror_d3.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.44s
+pytest rc=2
+
+=== GREEN 2026-10-29T00:53:10Z interpreter: /home/philip/.venvs/research/bin/python
+Implemented scripts/analysis/diag_mirror_capture.py (trial loading, D3b fidelity, E2 per connection) and
+scripts/analysis/diag_mirror_d3.py (D3a, D3c, D3d, E1 entry via preservation_check, E2 block, CLI).
+Test edits after RED (no assertion weakened):
+  - harness: dict(..., **overrides) raised on duplicate keys in write_trial; merged with dict(dict(...), **overrides)
+  - test_a_missing_copy_is_detected: the expected failed-check set omitted the gated off-arm check
+    'connection to_relay copies / frames at the master NIC (out.pcap)', which also fails; added (stricter)
+  - two test lines and one module line wrapped to <= 120 columns
+$ $RESEARCH_PYTHON -m pytest tests/analysis/test_diag_mirror_d3.py -v -p no:cacheprovider
+tests/analysis/test_diag_mirror_d3.py::test_identical_copies_pass PASSED [  4%]
+tests/analysis/test_diag_mirror_d3.py::test_one_changed_byte_is_detected_with_its_offset_and_field PASSED [  8%]
+tests/analysis/test_diag_mirror_d3.py::test_a_truncated_copy_is_detected[snap] PASSED [ 12%]
+tests/analysis/test_diag_mirror_d3.py::test_a_truncated_copy_is_detected[cut] PASSED [ 16%]
+tests/analysis/test_diag_mirror_d3.py::test_a_missing_copy_is_detected[False] PASSED [ 20%]
+tests/analysis/test_diag_mirror_d3.py::test_a_missing_copy_is_detected[True] PASSED [ 25%]
+tests/analysis/test_diag_mirror_d3.py::test_a_counter_mismatch_or_capture_drop_is_detected[counters0-None-failed0] PASSED [ 29%]
+tests/analysis/test_diag_mirror_d3.py::test_a_counter_mismatch_or_capture_drop_is_detected[counters1-None-failed1] PASSED [ 33%]
+tests/analysis/test_diag_mirror_d3.py::test_a_counter_mismatch_or_capture_drop_is_detected[None-stats2-failed2] PASSED [ 37%]
+tests/analysis/test_diag_mirror_d3.py::test_a_counter_mismatch_or_capture_drop_is_detected[None-stats3-failed3] PASSED [ 41%]
+tests/analysis/test_diag_mirror_d3.py::test_d3a_is_falsified_when_dev10_advances_and_no_copy_arrives PASSED [ 45%]
+tests/analysis/test_diag_mirror_d3.py::test_a_tx_offload_placeholder_checksum_in_out_pcap_is_not_a_difference PASSED [ 50%]
+tests/analysis/test_diag_mirror_d3.py::test_on_off_flags_a_response_size_difference PASSED [ 54%]
+tests/analysis/test_diag_mirror_d3.py::test_on_off_flags_a_timed_arm_clrt_shift_above_50_us_only[timing_only-60.0-True] PASSED [ 58%]
+tests/analysis/test_diag_mirror_d3.py::test_on_off_flags_a_timed_arm_clrt_shift_above_50_us_only[timing_only-30.0-False] PASSED [ 62%]
+tests/analysis/test_diag_mirror_d3.py::test_on_off_flags_a_timed_arm_clrt_shift_above_50_us_only[combined--60.0-True] PASSED [ 66%]
+tests/analysis/test_diag_mirror_d3.py::test_on_off_flags_a_timed_arm_clrt_shift_above_50_us_only[size_only-60.0-None] PASSED [ 70%]
+tests/analysis/test_diag_mirror_d3.py::test_e2_classifies_each_registered_class_and_no_retransmission PASSED [ 75%]
+tests/analysis/test_diag_mirror_d3.py::test_e2_mirror_off_connections_count_retransmissions_without_a_location PASSED [ 79%]
+tests/analysis/test_diag_mirror_d3.py::test_e2_class_texts_are_the_registered_design_classes PASSED [ 83%]
+tests/analysis/test_diag_mirror_d3.py::test_missing_build_label_is_refused[--build-label] PASSED [ 87%]
+tests/analysis/test_diag_mirror_d3.py::test_missing_build_label_is_refused[--source-sha256] PASSED [ 91%]
+tests/analysis/test_diag_mirror_d3.py::test_a_label_that_disagrees_with_the_build_inputs_is_refused PASSED [ 95%]
+tests/analysis/test_diag_mirror_d3.py::test_command_line_run_on_a_synthetic_trial_set_writes_the_json PASSED [100%]
+============================== 24 passed in 0.69s ==============================
+pytest rc=0
+
+=== Full analysis suite after the last edit (2026-10-29T00:53:11Z)
+$ $RESEARCH_PYTHON -m pytest tests/analysis -q -p no:cacheprovider
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+124 passed, 2 skipped, 16 warnings in 242.20s (0:04:02)
+pytest rc=0
+
+$ python3 -m pyflakes scripts/analysis/diag_mirror_d3.py scripts/analysis/diag_mirror_capture.py tests/analysis/test_diag_mirror_d3.py
+pyflakes rc=0
+$ wc -l / max line length
+  322 scripts/analysis/diag_mirror_d3.py
+  252 scripts/analysis/diag_mirror_capture.py
+  388 tests/analysis/test_diag_mirror_d3.py
+  962 total
+max line length 120
+
+=== CLI on a synthetic trial set (test module's synthetic_set: 4 mirror-on arms, 4 mirror-off arms, 2 E2 trials)
+built under the session scratchpad (not in the repository); output JSON written there
+$ $RESEARCH_PYTHON scripts/analysis/diag_mirror_d3.py --on <4> --off <4> --e2 <2> --build-label c72_diag_mirror --source-sha256 a46cc55a... --out <scratch>/cli_out/diag_mirror_d3.json
+{
+  "ok": true,
+  "build": {
+    "label": "c72_diag_mirror",
+    "source_sha256": "a46cc55a73a77dfa5691e292451d18d4ec663a04fb5f07b39c6e91915010d437"
+  },
+  "verdicts": {
+    "D3a": true,
+    "D3b": true,
+    "D3c": true,
+    "D3d": true,
+    "E1": true,
+    "E2_evaluable": true
+  }
+}
+exit 0
+written: /tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/cli_out/diag_mirror_d3.json schema c72-diag-mirror-d3-v1 keys ['D3a', 'D3b', 'D3c', 'D3d', 'E1', 'E2']
+D3b to_relay identical {'n': 10, 'of': 10} from_relay {'n': 9, 'of': 9}
+E1 responses_identical {'n': 8, 'of': 8} E2 retransmitted (all) {'n': 1, 'of': 10}
+$ (same, without --build-label)
+REFUSED: evidence must carry the build identity: give --build-label and --source-sha256
+exit 2; refused.json exists: no
+
+=== 2026-10-29 alignment with the runtime evidence formats (coordinator edit) ===
+Reason: the runtime side (vision_run.MirrorCapture) writes tcpdump statistics into mirror_capture.json['tcpdump'] and
+the interface identity as parsed ethtool -i plus ip -j -s link output; campaign_base takes the switch counter
+snapshots before and after the whole Vision step, so the counters can include relay-leg frames outside the mirror
+capture window. Changes: readers use the runtime formats; copies-vs-counter checks are bounds (copies <= counter),
+while dev10 TX == dev64 RX + TX, connection copies == master-NIC frames (off arm), tcpdump captured == records,
+zero drops and no truncation stay exact gates. New test: a wider counter window passes with uncaptured reported, and
+more copies than counted fails. Order note: the code change was made before the new test was written (not RED first).
+
+=== 2026-10-29 fixes from the independent code review (coordinator edit) ===
+HIGH: E2 classified "no egress copy" before checking the ingress copies, so a capture-missed copy that the relay
+answered was placed "before or inside the switch". Fix: that contradiction goes to the existing UNCLASSIFIED class;
+E2 is usable only when D3a, D3b, D3c and completeness of every E2-block trial pass (D3c_e2_block).
+MEDIUM: removed the false assumption that the capture brackets the snapshots; copies <= capture-interface RX packets
+is now a gated bound; NIC rx drop/miss/discard/error counter deltas are reported; D3a also requires the registered
+bus-info 0000:3b:00.1 (LOW).
+New tests (4) written after the code change; mutation check: with the UNCLASSIFIED line removed the contradiction
+test FAILS (1 failed), restored file -> 29 passed.
+=========================== short test summary info ============================
+FAILED tests/analysis/test_diag_mirror_d3.py::test_e2_no_egress_copy_but_a_relay_reply_is_a_contradiction_not_a_switch_loss
+1 failed, 28 deselected in 0.50s

@@ -407,7 +407,7 @@ def restore_offload_baseline(path, interface=PARENT, run=sh):
 
 
 @contextmanager
-def offload_capture_context(evidence_dir, interface=PARENT, run=sh):
+def offload_capture_context(evidence_dir, interface=PARENT, run=sh, evidence_name='capture_offloads.json'):
     evidence_dir = Path(evidence_dir)
     evidence_dir.mkdir(parents=True, exist_ok=True)
     commands, restore_errors = [], []
@@ -456,7 +456,7 @@ def offload_capture_context(evidence_dir, interface=PARENT, run=sh):
         }
         if block_error is not None:
             evidence['block_error'] = str(block_error)
-        (evidence_dir / 'capture_offloads.json').write_text(json.dumps(evidence, indent=2) + '\n')
+        (evidence_dir / evidence_name).write_text(json.dumps(evidence, indent=2) + '\n')
         if not restore_ok and block_error is None:
             raise RuntimeError('receive offload restore failed: ' + '; '.join(restore_errors))
 

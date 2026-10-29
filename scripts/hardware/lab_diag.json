@@ -1,0 +1,17 @@
+{
+  "_note": "c72_diag_mirror D3/E2 blocks of results/analysis/diag_mirror_d3/DESIGN.json; see matrix.expand_diag.",
+  "base": "lab.json",
+  "template": "02_d5_reference",
+  "d_ms": 20,
+  "capture_interface": "enp59s0f1np1",
+  "build_label": "c72_diag_mirror",
+  "blocks": [
+    {"id": "d3_mirror_on_d20", "diag_mirror": "on", "arms": ["off", "timing_only", "size_only", "combined"],
+     "trials_per_arm": 2, "master_port_range": {"first": 60100, "last": 60107}},
+    {"id": "d3_mirror_off_d20", "diag_mirror": "off", "arms": ["off", "timing_only", "size_only", "combined"],
+     "trials_per_arm": 2, "master_port_range": {"first": 60110, "last": 60117}},
+    {"id": "e2_first_request_d20", "diag_mirror": "on", "arms": ["off"],
+     "trials_per_arm": 32, "reads_per_trial": 8, "run_sbo": false,
+     "master_port_range": {"first": 60120, "last": 60151}}
+  ]
+}

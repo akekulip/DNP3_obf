@@ -32,6 +32,43 @@ FIXTURES = ('physical_relay',)
 LADDER = (0, 58, 232, 930, 3723, 14892, 59570, 238281)
 HEX64 = re.compile('[0-9a-f]{64}')
 HEX40 = re.compile('[0-9a-f]{40}')
+DIAG_MIRROR_KEYS = ('state', 'copy_port', 'capture_interface', 'build_label', 'source_sha256')
+
+def validate_diag_mirror(cfg, arms):
+    """A diagnostic-mirror block (c72_diag_mirror only) declares purpose 'diagnostic' and a complete label that names
+    the selected build, its compiled copy port and a capture interface other than the master NIC."""
+    dm = cfg['diag_mirror']
+    if cfg.get('purpose') != 'diagnostic':
+        raise ValueError("diag_mirror requires purpose 'diagnostic', not %r: refusing the diagnostic block"
+                         % cfg.get('purpose'))
+    missing = [key for key in DIAG_MIRROR_KEYS if not isinstance(dm, dict) or key not in dm]
+    if missing:
+        raise ValueError('diag_mirror is missing ' + ', '.join(missing))
+    if dm['state'] not in ('on', 'off'):
+        raise ValueError('diag_mirror state must be on or off, got %r' % dm['state'])
+    interface = dm['capture_interface']
+    if not isinstance(interface, str) or not vr.MIRROR_IFACE.fullmatch(interface) or interface == vr.PARENT:
+        raise ValueError('diag_mirror capture_interface %r is not a separate interface name' % (interface,))
+    if not isinstance(dm['build_label'], str) or not re.fullmatch('[A-Za-z0-9_.-]+', dm['build_label']):
+        raise ValueError('diag_mirror build_label must be a plain name')
+    if not isinstance(dm['source_sha256'], str) or not HEX64.fullmatch(dm['source_sha256']):
+        raise ValueError('diag_mirror source_sha256 must be a sha256')
+    stat_ports = str(cfg['ports_map'].get('stat_ports')).split(',')
+    if type(dm['copy_port']) is not int or str(dm['copy_port']) not in stat_ports:
+        raise ValueError('diag_mirror copy port %r must be one of ports_map.stat_ports' % (dm['copy_port'],))
+    import diag_mirror_sessions
+    for name in selected_builds(cfg, arms):
+        build = cfg['builds'][name]
+        if build.get('source_sha256') != dm['source_sha256']:
+            raise ValueError('diag_mirror source_sha256 does not name selected build %s (%s)'
+                             % (name, build.get('source_sha256')))
+        try:
+            port = diag_mirror_sessions.load(path_of(build['out_dir']))['copy_port']
+        except (OSError, ValueError) as error:
+            raise ValueError('diag_mirror build %s has no diagnostic constants: %s' % (name, error))
+        if port != dm['copy_port']:
+            raise ValueError('diag_mirror copy port %d differs from build %s copy port %d'
+                             % (dm['copy_port'], name, port))
 
 def relay_checker_files():
     return [str(p) for p in sorted((Path(HERE).parent / 'checks').glob('*.py'))] + [str(Path(HERE) / name) for name in ('relay_master.py', 'relay_loss.py', 'loss.py')] + [str(p) for p in sorted((Path(HERE) / 'active_harness').glob('*.py'))]
@@ -386,6 +423,9 @@ class Campaign:
 
     def __init__(self, cfg, runner_, run_id, arms=None, installer_flags=None, out=print, fixtures=None, paired=None, loss=None, scenario=None, reconnect_policy=None, config_path=None):
         self.cfg, self.rn, self.run_id, self.out = (cfg, runner_, run_id, out)
+        if 'diag_mirror' in cfg and (loss is not None or scenario is not None or paired is not None):
+            raise ValueError('a diagnostic mirror block runs plain trials only '
+                             '(no loss preset, scenario or paired block)')
         self.installer_has = installer_flags or (lambda flag: default_installer_flags(flag))
         names = [a['name'] for a in cfg['arms']]
         want = arms or names
@@ -427,6 +467,43 @@ class Campaign:
         self.switch_touched = False
         self.standing = []
         self.vision_touched = False
+        if 'diag_mirror' in cfg:
+            validate_diag_mirror(cfg, self.arms)
+            self.record.update(purpose=cfg['purpose'], diag_mirror=self.diag_label())
+
+    def diag_label(self):
+        """The identity every diagnostic-mirror result carries, kept distinct from c72 evidence."""
+        keys = ('build_label', 'source_sha256', 'state', 'copy_port', 'capture_interface')
+        return {key: self.cfg['diag_mirror'][key] for key in keys}
+
+    def mirror_iface_arg(self):
+        if 'diag_mirror' not in self.cfg:
+            return ''
+        return ' --mirror-iface %s' % q(self.cfg['diag_mirror']['capture_interface'])
+
+    def diag_mirror_evidence(self, trial, dest):
+        """Diagnostic blocks: the mirror capture and its evidence, collected with the Vision run directory beside
+        in.pcap/out.pcap, hashed into the trial record. A missing or empty file, or a mirror capture that vision_run
+        did not report ok, is a trial failure."""
+        if 'diag_mirror' not in self.cfg:
+            return []
+        files, failures = ({}, [])
+        for name in vr.MIRROR_FILES:
+            path = Path(dest) / name
+            if path.is_file() and path.stat().st_size:
+                files[name] = sha256_file(path)
+            else:
+                failures.append('diagnostic mirror evidence missing or empty: ' + name)
+        if 'mirror_capture.json' in files:
+            try:
+                capture = json.loads((Path(dest) / 'mirror_capture.json').read_text())
+            except ValueError as error:
+                capture = {'failures': ['mirror_capture.json unreadable: %s' % error]}
+            if capture.get('ok') is not True:
+                reported = capture.get('failures') or ['capture not reported ok']
+                failures += ['diagnostic mirror: ' + f for f in reported]
+        trial['diag_mirror'] = dict(trial.get('diag_mirror') or {}, files=files)
+        return failures
 
     def standards_context(self, trial, arm, connection_id=None, unbound_native=False):
         build = self.cfg['builds'][arm['build']]
@@ -765,6 +842,8 @@ class Campaign:
         manifest, log = ('%s/bringup_manifest_%s.json' % (R, label), '%s/switchd_%s.log' % (R, label))
         rec = self.arm_record(fixture, arm)
         trial = {'fixture': fixture, 'label': label, 'master_port': port, 'reads': reads, 'ok': False, 'failures': [], 'max_token_stale': checks.max_token_stale(b), 'reconnect_policy': self.reconnect_policy, 'diagnostic': b.get('diagnostic', False), 'preset': preset or c['shaping']['preset'], 'conditions': {k: unit[k] for k in ('delay_ms', 'gap_ms', 'start_delay_ms', 'start_seed')}}
+        if 'diag_mirror' in c:
+            trial['diag_mirror'] = self.diag_label()
         rec['trials'].append(trial)
         pair = None
         if unit['pair'] is not None:
@@ -794,7 +873,14 @@ class Campaign:
             self.snapshot(out_remote, label + '_before', preset=preset)
             state['before'] = True
             state['ran'] = True
-            v = self.step('vision', '%s: traffic + capture on master port %d' % (label, port), runner.vision_cmd(label, port, reads, tr['range'], unit['gap_ms'], unit['start_delay_ms'], unit['start_seed'], drop=unit.get('drop'), scenario=unit.get('scenario'), reconnect_port=port + c['scenarios'][unit['scenario']]['reconnect_port_offset'] if unit.get('scenario') else None).replace(runner.V_RUN, self.V).replace('sudo python3', RELAY_PYTHON) + self.endpoint_control_args() + self.endpoint_binary_arg() + self.pad_expect_arg(arm) + self.qualify_capture_arg(arm), check=False)
+            vision = runner.vision_cmd(label, port, reads, tr['range'], unit['gap_ms'], unit['start_delay_ms'],
+                                       unit['start_seed'], drop=unit.get('drop'), scenario=unit.get('scenario'),
+                                       reconnect_port=port + c['scenarios'][unit['scenario']]['reconnect_port_offset']
+                                       if unit.get('scenario') else None)
+            vision = (vision.replace(runner.V_RUN, self.V).replace('sudo python3', RELAY_PYTHON)
+                      + self.endpoint_control_args() + self.endpoint_binary_arg() + self.pad_expect_arg(arm)
+                      + self.qualify_capture_arg(arm) + self.mirror_iface_arg())
+            v = self.step('vision', '%s: traffic + capture on master port %d' % (label, port), vision, check=False)
             self.save(dest, 'vision_run.out', v)
             state['after'] = True
             self.snapshot(out_remote, label + '_after', check=False, preset=preset)
@@ -924,12 +1010,16 @@ class Campaign:
         read_piggybacks = sum((row['operation'] == 'READ' and row['piggyback'] for report in installed_reports for row in report['exchanges']))
         control_piggybacks = sum((row['operation'] in ('SELECT', 'OPERATE') and row['piggyback'] for report in installed_reports for row in report['exchanges']))
         switch_failures, switch_observed = checks.evaluate_switch(self.cfg['expectations'], arm, installed * trial['reads'], snapshots, checks.allowed_gap(build), self.cfg['service']['k'] if build.get('mirror_fix') else None, checks.max_token_stale(build), diagnostic=build.get('diagnostic', False), sbo_count=installed * sbo, piggyback_reads=read_piggybacks, piggyback_controls=control_piggybacks, control_timed=bool(build.get('control_timed')), piggyback_bound=bool(build.get('piggyback_bound')), gen_exhausted_outcome=build.get('gen_exhausted_outcome'), timing_contract=self.cfg.get('timing_contract'), telemetry=build.get('switch_telemetry') is not False)
-        failures = application_failures + failures + switch_failures + standards_failures
+        mirror_failures = self.diag_mirror_evidence(trial, dest)
+        failures = application_failures + failures + switch_failures + standards_failures + mirror_failures
         if v is None or v.rc:
             failures.append('physical relay Vision workload failed')
         trial.update(ok=not failures, failures=failures, observed=dict(connections=observed, switch=switch_observed), endpoint_profile='sel751', dimension_verdicts=dict(application=not application_failures, switch=not switch_failures, standards=not standards_failures))
+        if 'diag_mirror' in self.cfg:
+            trial['dimension_verdicts']['diag_mirror'] = not mirror_failures
         (Path(dest) / 'trial.json').write_text(json.dumps(trial, indent=2) + '\n')
-        if raise_on_failure and (application_failures or switch_failures or standards_failures or (v is None) or v.rc):
+        if raise_on_failure and (application_failures or switch_failures or standards_failures or mirror_failures
+                                 or (v is None) or v.rc):
             raise StepFailed('physical relay application/switch gate failed: ' + '; '.join(failures[:4]))
         return trial
 
@@ -978,7 +1068,15 @@ class Campaign:
         t = c['timing_params_ns']
         expects = ' '.join(('--expect %s=%s' % (name, digest) for name, digest in sorted(self.bound[build].items())))
         timing = '--t-gap %d --t-budget %d --t-enabled %d' % (t['gap'], t['budget'], t['enabled'])
-        return 'python3 %s/%s/bringup_composite.py --build-out %s %s --master-ip %s --master-port %d --master-dev %d --relay-ip %s --relay-port %d --relay-dev %d --read-dst 0x%04x --read-src 0x%04x %s --k %d %s --pad-enable %d' % (self.R, HW, out_remote, expects, e['master_ip'], port, pm['master_dev'], e['outstation_ip'], e['outstation_port'], pm['relay_dev'], *installer_read_addresses(c), timing, c['service']['k'], shaping_args(c, preset=preset), padding)
+        cmd = ('python3 %s/%s/bringup_composite.py --build-out %s %s --master-ip %s --master-port %d --master-dev %d '
+               '--relay-ip %s --relay-port %d --relay-dev %d --read-dst 0x%04x --read-src 0x%04x %s --k %d %s '
+               '--pad-enable %d' % (self.R, HW, out_remote, expects, e['master_ip'], port, pm['master_dev'],
+                                    e['outstation_ip'], e['outstation_port'], pm['relay_dev'],
+                                    *installer_read_addresses(c), timing, c['service']['k'],
+                                    shaping_args(c, preset=preset), padding))
+        if 'diag_mirror' in c:
+            cmd += ' --diag-mirror %s' % c['diag_mirror']['state']
+        return cmd
 
     def snapshot(self, out_remote, name, check=True, preset=None):
         spec = self.cfg.get('diagnostic_mau_snapshot')
