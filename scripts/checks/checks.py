@@ -55,6 +55,26 @@ def sbo_count(traffic):
     return int((traffic or {}).get('sbo_cycles') or 1)
 
 
+def sbo_select_only(traffic):
+    """True only for an explicit traffic.sbo_select_only true (E4b): each of traffic.sbo_cycles guarded SELECTs is
+    followed by READs and no OPERATE is planned. Absent = SELECT then OPERATE; any other value or shape is refused."""
+    traffic = traffic or {}
+    if 'sbo_select_only' not in traffic:
+        return False
+    if traffic['sbo_select_only'] is not True:
+        raise ValueError('traffic.sbo_select_only must be true when present, got %r' % (traffic['sbo_select_only'],))
+    if traffic.get('run_sbo', True) is not True or 'sbo_cycles' not in traffic:
+        raise ValueError('traffic.sbo_select_only requires traffic.run_sbo and traffic.sbo_cycles')
+    return True
+
+
+def planned_controls(traffic):
+    """Planned {SELECT, OPERATE} per connection: sbo_count of each, or sbo_count SELECTs and OPERATE 0 only when the
+    config declares traffic.sbo_select_only."""
+    sbo = sbo_count(traffic)
+    return dict(SELECT=sbo, OPERATE=0 if sbo_select_only(traffic) else sbo)
+
+
 
 
 def _loop_gap(before, after):
@@ -71,7 +91,7 @@ def _loop_gap(before, after):
 
 
 def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0, control_timed=False,
-                   timing_contract=None):
+                   timing_contract=None, operate_count=None):
     """Generator counters (snapshot pktgen block, after minus before) on a build carrying the compiler-mirror
     fix: T on -> READ triggers == READs, READ packets == 2k per trigger, OPERATE triggers == SBOs, stale == 0;
     T off -> no generator activity at all (what the T-off silicon evidence shows). No-J contract: app1 (OPERATE)
@@ -98,8 +118,9 @@ def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0, 
     sbo = sbo_count
     if arm['T']:
         if no_j:
-            # SELECT and OPERATE both pass the common admission and its app0 trigger; app1 is disabled
-            lane = reads + 2 * sbo
+            # SELECT and OPERATE both pass the common admission and its app0 trigger; app1 is disabled. A select-only
+            # plan passes operate_count 0 (its SELECTs are admitted, no OPERATE is sent); None means one per SELECT.
+            lane = reads + sbo + (sbo if operate_count is None else operate_count)
             want = {'READ': (lane, 2 * k * lane)}
             if 'OPERATE' in d:
                 want['OPERATE'] = (0, 0)
@@ -122,7 +143,7 @@ def _mirror_checks(mx, arm, reads, sbo_count, b, a, k, fails, obs, max_stale=0, 
 def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=0, diagnostic=False,
                     sbo_count=1, complete_reads=None, piggyback_reads=0, control_timed=False,
                     piggyback_bound=False, piggyback_controls=0, gen_exhausted_outcome=None,
-                    timing_contract=None, telemetry=False):
+                    timing_contract=None, telemetry=False, operate_count=None):
     loop_roles(timing_contract)
     failures, observed = [], {'outcomes': 'no switch telemetry in this build'}
     if telemetry:
@@ -136,7 +157,7 @@ def evaluate_switch(exp, arm, reads, ev, allowed=None, mirror_k=None, max_stale=
             failures.append('current switch check requires generator K')
         else:
             _mirror_checks(exp['mirror_fix'], arm, reads, sbo_count, before, after, mirror_k,
-                           failures, observed, timing_contract=timing_contract)
+                           failures, observed, timing_contract=timing_contract, operate_count=operate_count)
         gaps = _loop_gap(before, after)
         observed['loop_octet_gap'] = {role: gap for role, (gap, _) in gaps.items()}
         for role, (gap, error) in gaps.items():

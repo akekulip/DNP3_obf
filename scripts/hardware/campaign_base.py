@@ -158,6 +158,8 @@ def validate_profile(cfg):
             raise ValueError('trials.reads_per_trial counts every READ and must be >= sbo_cycles + 1')
         if cfg.get('loss', {}).get('presets'):
             raise ValueError('traffic.sbo_cycles is not supported with loss presets (unsupported shape)')
+    # E4b: present only as true, and only with sbo_cycles (each SELECT is followed by READs); absent = today
+    checks.sbo_select_only(cfg['traffic'])
     validate_read_classes(cfg)
     spec = cfg.get('diagnostic_mau_snapshot')
     if spec is not None and (not (isinstance(spec, str) and MAU_SNAPSHOT_SPEC.fullmatch(spec))):
@@ -616,6 +618,8 @@ class Campaign:
         controls = {key: self.cfg['traffic'].get(key, default) for key, default in (('read_pause_ms', 25), ('run_sbo', True), ('close_grace_ms', 0))}
         if 'sbo_cycles' in self.cfg['traffic']:
             controls['sbo_cycles'] = self.cfg['traffic']['sbo_cycles']
+        if 'sbo_select_only' in self.cfg['traffic']:
+            controls['sbo_select_only'] = self.cfg['traffic']['sbo_select_only']
         for key in ('read_schedule', 'db'):
             if key in self.cfg['traffic']:
                 controls[key] = self.cfg['traffic'][key]
@@ -966,12 +970,15 @@ class Campaign:
             return
         import relay_check
         failures, observed, application_failures, standards_failures = ([], {}, [], [])
-        sbo = checks.sbo_count(self.cfg['traffic'])
+        controls = checks.planned_controls(self.cfg['traffic'])        # OPERATE 0 only for declared select-only
+        sbo, planned = controls['SELECT'], dict(READ=trial['reads'], **controls)
+        select_only = {'select_only': True} if checks.sbo_select_only(self.cfg['traffic']) else {}
         connections = connections or {'single': (dest, trial['master_port'])}
         reports = {}
         for name, (directory, port) in connections.items():
             try:
-                report = relay_check.analyze(directory, port, dict(READ=trial['reads'], SELECT=sbo, OPERATE=sbo), self.cfg['traffic']['read_schedule'])
+                report = relay_check.analyze(directory, port, planned, self.cfg['traffic']['read_schedule'],
+                                             **select_only)
                 master = json.loads((Path(directory) / 'master.json').read_text())
                 for direction, packets in report['packets'].items():
                     for packet in packets:
@@ -995,7 +1002,9 @@ class Campaign:
                 (Path(directory) / 'relay_wire.json').write_text(json.dumps(report, indent=2) + '\n')
                 reports[name] = report
                 application_failures += [name + ': ' + error for error in report['failures']]
-                observed[name] = dict(application=report['ok'], master_acceptance=master.get('ok') is True and master.get('counts') == dict(READ=trial['reads'], SELECT=sbo, OPERATE=sbo), visible_clrt=relay_check.visible_clrt(report))
+                observed[name] = dict(application=report['ok'],
+                                      master_acceptance=master.get('ok') is True and master.get('counts') == planned,
+                                      visible_clrt=relay_check.visible_clrt(report))
             except (OSError, ValueError, KeyError, TypeError) as error:
                 application_failures.append(name + ': missing/malformed physical relay evidence: ' + str(error))
             try:
@@ -1009,7 +1018,15 @@ class Campaign:
         installed_reports = [report for name, report in reports.items() if not (self.scenario == 'reconnect' and name == 'c2')]
         read_piggybacks = sum((row['operation'] == 'READ' and row['piggyback'] for report in installed_reports for row in report['exchanges']))
         control_piggybacks = sum((row['operation'] in ('SELECT', 'OPERATE') and row['piggyback'] for report in installed_reports for row in report['exchanges']))
-        switch_failures, switch_observed = checks.evaluate_switch(self.cfg['expectations'], arm, installed * trial['reads'], snapshots, checks.allowed_gap(build), self.cfg['service']['k'] if build.get('mirror_fix') else None, checks.max_token_stale(build), diagnostic=build.get('diagnostic', False), sbo_count=installed * sbo, piggyback_reads=read_piggybacks, piggyback_controls=control_piggybacks, control_timed=bool(build.get('control_timed')), piggyback_bound=bool(build.get('piggyback_bound')), gen_exhausted_outcome=build.get('gen_exhausted_outcome'), timing_contract=self.cfg.get('timing_contract'), telemetry=build.get('switch_telemetry') is not False)
+        switch_failures, switch_observed = checks.evaluate_switch(
+            self.cfg['expectations'], arm, installed * trial['reads'], snapshots, checks.allowed_gap(build),
+            self.cfg['service']['k'] if build.get('mirror_fix') else None, checks.max_token_stale(build),
+            diagnostic=build.get('diagnostic', False), sbo_count=installed * sbo, piggyback_reads=read_piggybacks,
+            piggyback_controls=control_piggybacks, control_timed=bool(build.get('control_timed')),
+            piggyback_bound=bool(build.get('piggyback_bound')),
+            gen_exhausted_outcome=build.get('gen_exhausted_outcome'), timing_contract=self.cfg.get('timing_contract'),
+            telemetry=build.get('switch_telemetry') is not False,
+            operate_count=installed * controls['OPERATE'])
         mirror_failures = self.diag_mirror_evidence(trial, dest)
         failures = application_failures + failures + switch_failures + standards_failures + mirror_failures
         if v is None or v.rc:

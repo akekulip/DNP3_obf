@@ -1,0 +1,10 @@
+{
+  "_note": "c72 E4b SELECT without OPERATE: qualification block 10 (10_d20_loss_full) without its loss preset, as plain trials. Each trial is one cold connection with 20 full-schedule READs, the first four followed by a guarded SELECT on points {1,3} that is never operated (traffic.sbo_select_only). Only D, the arm, the trial and READ counts, the SBO cycles and the master ports change. Six trials are a bounded diagnostic, not a rate estimate; design in results/analysis/e4b_select_only/DESIGN.json.",
+  "base": "lab.json",
+  "template": "10_d20_loss_full",
+  "blocks": [
+    {"id": "e4b_select_only_d20_combined", "d_ms": 20, "arm": {"name": "combined", "T": 1, "padding": 1},
+     "trials_per_arm": 6, "reads_per_trial": 20, "sbo_cycles": 4, "sbo_select_only": true,
+     "master_port_range": {"first": 60160, "last": 60165}}
+  ]
+}

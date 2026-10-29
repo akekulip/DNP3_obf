@@ -34,6 +34,8 @@ DIAG_BLOCKS = {'diag_d3_on': 'd3_mirror_on_d20', 'diag_d3_off': 'd3_mirror_off_d
                'diag_e2_first': 'e2_first_request_d20'}
 DEFINITIONS.update({name: dict(file='lab_diag.json', blocks=1, exchanges=exchanges, diagnostic=True)
                     for name, exchanges in (('diag_d3_on', 1544), ('diag_d3_off', 1544), ('diag_e2_first', 256))})
+# E4b SELECT without OPERATE (results/analysis/e4b_select_only/DESIGN.json): 6 trials x (20 READ + 4 SELECT)
+DEFINITIONS['e4b_select_only'] = dict(file='lab_e4b.json', blocks=1, exchanges=144)
 
 
 def sha(path):
@@ -100,6 +102,29 @@ def expand_diag(spec):
                 diag=dict(capture_interface=spec['capture_interface'], build_label=spec['build_label']))
 
 
+def expand_select_only(spec):
+    """The reference block as plain trials (loss preset removed) per registered E4b condition: only D, the arm, the
+    trial and READ counts, the SBO cycles with sbo_select_only and the master ports change."""
+    base = json.loads((HERE / spec['base']).read_text())
+    template = next(block for block in base['blocks'] if block['id'] == spec['template'])
+    blocks = []
+    for condition in spec['blocks']:
+        if condition.get('sbo_select_only') is not True or not condition.get('sbo_cycles'):
+            raise ValueError('E4b block %s needs sbo_cycles with sbo_select_only true' % condition['id'])
+        block = copy.deepcopy(template)
+        block['id'] = condition['id']
+        block['config']['timing_params_ns']['gap'] = condition['d_ms'] * 1000000
+        block['config']['trials'] = dict(reads_per_trial=condition['reads_per_trial'],
+                                         trials_per_arm=condition['trials_per_arm'])
+        block['config']['loss']['presets'] = {}
+        block['arms'] = [copy.deepcopy(condition['arm'])]
+        block['traffic'].update(sbo_cycles=condition['sbo_cycles'], sbo_select_only=True,
+                                master_port_range=copy.deepcopy(condition['master_port_range']))
+        block['arguments'] = []
+        blocks.append(block)
+    return dict(common=base['common'], blocks=blocks)
+
+
 def diagnostic_contract(build, source_hash, declared):
     """The diag_mirror fields of every diagnostic block config, only from a build the freeze gate admits as the
     declared diagnostic build: its compiled copy port, the registered capture interface and label, its source."""
@@ -136,6 +161,8 @@ def load_definition(name):
         full = expand_diag(definition)
         definition = dict(common=full['common'], diag=full['diag'],
                           blocks=[b for b in full['blocks'] if b['id'] == DIAG_BLOCKS[name]])
+    elif name == 'e4b_select_only':
+        definition = expand_select_only(definition)
     return definition, spec
 
 
@@ -192,10 +219,11 @@ def prepare(build, native, output, campaign_id, definition='qualification'):
         multiplier = 3 if block['tool'] == 'persistence' or '--scenario' in block['arguments'] else 1
         if '--loss' in block['arguments']:
             multiplier = len(cfg['loss']['presets'][block['arguments'][1]])
-        # a plain block runs trials_per_arm cold connections per arm; SBO pairs follow checks.sbo_count (0 without SBO)
+        # a plain block runs trials_per_arm cold connections per arm; SELECT/OPERATE follow checks.planned_controls
+        # (sbo_count each, 0 without SBO; OPERATE 0 only for a declared select-only plan)
         trials = cfg['trials']['trials_per_arm'] if block['tool'] == 'campaign' and not block['arguments'] else 1
         exchanges = len(cfg['arms']) * trials * multiplier * (cfg['trials']['reads_per_trial'] +
-                                                              2 * checks.sbo_count(cfg['traffic']))
+                                                              sum(checks.planned_controls(cfg['traffic']).values()))
         count += exchanges
         steps.append(dict(id=block['id'], kind='block', argv=argv, expected_exchanges=exchanges,
                           run_root=str(ROOT / cfg['evidence_dir'] / run_id)))

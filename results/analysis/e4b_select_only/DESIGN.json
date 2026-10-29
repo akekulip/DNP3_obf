@@ -1,0 +1,93 @@
+{
+ "schema": "c72-e4b-select-only-design-v1",
+ "registered_before_traffic": "2026-10-29",
+ "status": "registered offline before traffic; prepared, frozen and dry-run immediately before init (see runs/)",
+ "run_authorization": "Philip approved the plan with E4b as step 5 (6 trials at D = 20 ms, combined) under the overnight autonomy rules on 2026-10-28, after his instruction of the same day to investigate the timing-enabled abandoned SELECT with predetermined trial counts. It runs after the E3/D3/E2 campaigns, under its own freeze.",
+ "plan": "~/.claude/plans/we-were-on-tract-expressive-planet.md step 5 (E4b on c72)",
+ "definition": "scripts/hardware/lab_e4b.json via scripts/hardware/matrix.py prepare --definition e4b_select_only",
+ "build": "results/builds/c72",
+ "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+ "evidence_label": "c72 build evidence (not the c72_diag_mirror diagnostic build)",
+ "model_counterpart": {
+  "scenario": "E4 abandoned SELECT with timing enabled (ABANDON_T=1), a labelled scenario outside the 17-driver model gate",
+  "expectations": "results/models/c72_e4_abandon_t1/EXPECTATIONS.json",
+  "result": "results/models/c72_e4_abandon_t1/model_abandon_t1_c72_02/abandon_t1_results.json",
+  "result_sha256": "1b20da9aa173c21e00ebee693f2ff7f91ecb8db8c2f219115dde51f4b23b3402",
+  "result_summary": "14 of 14 cases passed, including READ_after_SELECT_cancels_selection_forwarded, RST_after_abandoned_SELECT_forwarded, new_SYN_after_abandoned_SELECT_admitted and N_work_free_after_every_step",
+  "scope_difference": "the model drives one synthetic connection through the Tofino model; E4b drives the physical SEL-751 through the switch, so the relay itself decides whether the following READ is answered"
+ },
+ "block": {
+  "id": "e4b_select_only_d20_combined",
+  "template": "scripts/hardware/lab.json 10_d20_loss_full, with its loss preset removed (plain trials, no --loss argument)",
+  "d_ms": 20,
+  "arm": "combined",
+  "T": 1,
+  "padding": 1,
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "trial_mode": "per_trial_cold (each trial is one fresh connection after a cold program load)",
+  "trials_per_arm": 6,
+  "fresh_connections": 6,
+  "reads_per_trial": 20,
+  "read_schedule": "full",
+  "sbo_cycles": 4,
+  "sbo_select_only": true,
+  "guarded_points": [
+   1,
+   3
+  ],
+  "master_port_range": [
+   60160,
+   60165
+  ],
+  "request_order_per_trial": "READ, then 4 x (guarded SELECT on points 1 and 3 with no OPERATE, then READ), then 15 READs, then graceful close",
+  "copied_from_block_10": "every config field except timing_params_ns.gap (unchanged at 20 ms), trials, loss.presets (emptied), arms and traffic.master_port_range; traffic adds sbo_cycles 4 and sbo_select_only true"
+ },
+ "fixed_denominators": {
+  "trials": 6,
+  "exchanges_per_trial": "20 READ + 4 SELECT + 0 OPERATE = 24",
+  "exchanges": 144,
+  "abandoned_selects": 24,
+  "reads_directly_after_an_abandoned_select": 24,
+  "computed_as": "matrix.prepare: arms x trials_per_arm x (reads_per_trial + SELECT + OPERATE), with SELECT and OPERATE from checks.planned_controls (OPERATE 0 only because the config declares sbo_select_only true)"
+ },
+ "observable": {
+  "select": "per abandoned SELECT: the master outcome and the CROB status of points 1 and 3 decoded from the captured response bytes (relay_check application_observation); it must be SUCCESS on both points",
+  "read_after_select": "per READ that directly follows an abandoned SELECT: forwarded (request located in out.pcap), answered (complete response located in in.pcap, acknowledging exactly its request), response size and class as normal (integrity READ, padded image 158 octets on the combined arm), CLRT reported by class as data",
+  "no_operate": "no OPERATE in the master records and no OPERATE, DIRECT_OPERATE or DIRECT_OPERATE_NR request in the reassembled master-to-relay TCP stream; the wire request sequence equals the master records",
+  "switch_state_after_trial": "existing switch checks on the before/after counter snapshots: T on, the common generator trigger count equals READ + SELECT + OPERATE = 24 per trial with 2k packets per trigger, retired app1 idle, loop-port octet gaps zero",
+  "restoration": "per-trial teardown and the block's verified production restoration (restore_verify)"
+ },
+ "mechanism": {
+  "relay": "IEEE 1815 select-before-operate: an outstation cancels a pending selection when any other request arrives before the matching OPERATE (or when its select timeout expires), so the READ after each SELECT is an ordinary READ and the next SELECT starts a new selection",
+  "switch": "T's response-ready release (contract response_ready_ack_d_no_j_v3): every admitted READ and SELECT is timed once through the common generator lane, and the no-J contract keeps no OPERATE-specific hold (app1 retired), so no T or N state should outlive an abandoned SELECT; the model shows this for one connection (E4 N_work_free_after_every_step), the hardware run tests it with the existing counter checks"
+ },
+ "falsifier": [
+  "any READ after an abandoned SELECT that is not forwarded, not answered, answered with a wrong size or class, or fails application validation",
+  "any unexpected drop: a planned exchange missing from the captures, a capture drop, or a master transaction that is not OK",
+  "stale T/N state reported by the existing switch checks (generator trigger or packet deltas other than 24 triggers and 2k per trigger, app1 activity, loop-port octet gaps)",
+  "failed restoration",
+  "a SELECT whose captured CROB status is not SUCCESS, or any OPERATE observed, fails the trial (a precondition of the scenario, not the falsifier of the mechanism)"
+ ],
+ "verdict_path": "campaign.CandidateCampaign.relay_verdict: relay_check.analyze(select_only=True) with planned READ 20, SELECT 4, OPERATE 0; standards.validate_standards with the select-only plan (observed.operate_absent replaces observed.operate_success); checks.evaluate_switch with sbo_count 4 and operate_count 0",
+ "checker_identity": "relay_master.py, checks.py, relay_check.py and standards.py are in the relay-checker hash closure (campaign_base.relay_checker_files). The select-only change gives future runs a new checker identity; retained verdicts replay with scripts/analysis/replay_frozen.py from git at their recorded commit.",
+ "generation_reserve": "campaign.CandidateCampaign._headroom_reserve keeps reads + 2 x SELECT = 28 per connection (4 more than the 24 the switch allocates); a larger reserve can only refuse more, never less",
+ "interpretation_limits": [
+  "Six trials and 24 abandoned SELECTs are a bounded diagnostic, not a rate estimate.",
+  "Master-NIC captures do not observe the relay-facing link, switch-emitted packet boundaries or departure timing.",
+  "A passing READ shows that the relay answered after an unpaired SELECT; it does not read the relay's internal selection state or its select timeout (STIMEO1, configured value unverified).",
+  "Only the combined arm at D = 20 ms is covered; no other arm or D is claimed."
+ ],
+ "stop_rules": [
+  "unsafe ownership or unverified restoration stops all writes",
+  "no rerun-until-pass, no extra trials or blocks",
+  "a failed trial stays FAIL and is reported as found"
+ ],
+ "excluded": [
+  "any OPERATE (none is built or sent)",
+  "relay settings changes",
+  "timeout, threshold or default changes",
+  "P4 changes",
+  "new instrumentation",
+  "manuscript edits"
+ ]
+}

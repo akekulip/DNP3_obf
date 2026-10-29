@@ -4,6 +4,11 @@ import json
 import os
 from pathlib import Path
 
+if __package__:
+    from . import checks
+else:
+    import checks
+
 SBO = ("SELECT", "OPERATE")
 
 SCHEMA_VERSION_SEL751 = 'dnp3-standards-sel751-v1'
@@ -76,7 +81,8 @@ def expected_counts(context):
     sbo = int(traffic.get('sbo_cycles') or 1) if traffic.get('run_sbo', True) else 0
     counts = {'READ': reads}
     if sbo:
-        counts.update({'SELECT': sbo, 'OPERATE': sbo})
+        # OPERATE 0 only for an explicitly declared select-only plan (E4b); a malformed declaration raises
+        counts.update({'SELECT': sbo, 'OPERATE': 0 if checks.sbo_select_only(traffic) else sbo})
     return counts
 
 
@@ -186,9 +192,12 @@ def _sel751_expected(context):
         cls = order[i % len(order)]
         classes.setdefault(cls, {'count': 0, 'image': images[cls]})['count'] += 1
     lengths = {'READ': sorted({e['image'] for e in classes.values()})}
-    lengths.update({kind: [images[kind]] for kind in SBO if kind in counts})
-    return {'counts': counts, 'lengths': lengths, 'read_classes': classes, 'read_schedule': schedule,
-            'padded': padded, 'planned_exchanges': sum(counts.values())}
+    lengths.update({kind: [images[kind]] for kind in SBO if counts.get(kind)})
+    expected = {'counts': counts, 'lengths': lengths, 'read_classes': classes, 'read_schedule': schedule,
+                'padded': padded, 'planned_exchanges': sum(counts.values())}
+    if checks.sbo_select_only((config.get('traffic') or {})):
+        expected['select_only'] = True
+    return expected
 
 
 def _sel751_root(captures):
@@ -222,6 +231,7 @@ def _sel751_observed(context, captures, expected):
         port = (context.get('trial') or {}).get('master_port')
     counts = expected['counts']
     planned = {kind: int(counts.get(kind, 0)) for kind in ('READ', 'SELECT', 'OPERATE')}
+    select_only = expected.get('select_only') is True
     transport, application, sizes, rows, crob_failed = [], [], [], {}, set()
     try:
         if missing:
@@ -229,13 +239,16 @@ def _sel751_observed(context, captures, expected):
         if not isinstance(port, int) or isinstance(port, bool) or not 0 < port < 65536:
             raise ValueError('master_port missing or malformed: %r' % (port,))
         master = json.loads((root / 'master.json').read_text())
-        findings = relay_check.master_checks(master, port, planned, expected['read_schedule'])
-        report = relay_check.analyze(root, port, planned, expected['read_schedule'])
+        findings = relay_check.master_checks(master, port, planned, expected['read_schedule'], select_only=select_only)
+        report = relay_check.analyze(root, port, planned, expected['read_schedule'], select_only=select_only)
         if report['failures'][:len(findings)] != findings:
             raise ValueError('relay_check failure order differs from its master checks')
+        # the select-only wire findings (an OPERATE on the wire) are application findings, not transport ones
+        captured = report['failures'][len(findings):]
         transport = [f for f in findings if f.startswith(SEL751_TRANSPORT_MASTER_FINDINGS)] + \
-            report['failures'][len(findings):]
-        application = [f for f in findings if not f.startswith(SEL751_TRANSPORT_MASTER_FINDINGS)]
+            [f for f in captured if not f.startswith(relay_check.SELECT_ONLY)]
+        application = [f for f in findings if not f.startswith(SEL751_TRANSPORT_MASTER_FINDINGS)] + \
+            [f for f in captured if f.startswith(relay_check.SELECT_ONLY)]
         records = master.get('records') or []
         for record, exchange in zip(records, report['exchanges']):
             operation = record.get('operation')
@@ -264,6 +277,11 @@ def _sel751_observed(context, captures, expected):
                                        (operation, bad or points, '; '.join(decoded.get('failures') or [])))
         wanted = {'READ:' + cls: e['count'] for cls, e in expected['read_classes'].items()}
         wanted.update({kind: counts[kind] for kind in SBO if kind in counts})
+        if select_only:
+            del wanted['OPERATE']
+            operated = rows.get('OPERATE', {}).get('count', 0)
+            if operated:
+                application.append('select-only plan: %d OPERATE exchange(s) observed, none planned' % operated)
         for key, count in sorted(wanted.items()):
             got = rows.get(key, {}).get('count', 0)
             if got != count:
@@ -278,6 +296,10 @@ def _sel751_observed(context, captures, expected):
     operate_ok = 'OPERATE' not in counts or (select_ok and 'OPERATE' not in crob_failed and
                                              rows.get('OPERATE', {}).get('ok') == counts['OPERATE'] ==
                                              rows.get('OPERATE', {}).get('count'))
+    if select_only:
+        # select-only: every SELECT SUCCESS from the captured bytes and no OPERATE in the records or on the wire
+        operate_ok = select_ok and counts.get('OPERATE') == 0 and 'OPERATE' not in rows and \
+            not any(f.startswith(relay_check.SELECT_ONLY) for f in application)
     transport_ok = not transport and not any(f.startswith('SEL-751 evidence unreadable') for f in application)
     return {
         'exchanges': rows,
@@ -286,12 +308,17 @@ def _sel751_observed(context, captures, expected):
         'size_failures': sizes,
         'transport_ok': transport_ok,
         'select_authorizes_operate': bool(select_ok),
-        'operate_success': bool(operate_ok),
+        operate_key(expected): bool(operate_ok),
         'size_ok': not sizes and transport_ok,
         'aggregate_verdict': bool(transport_ok and not application and not sizes and select_ok and operate_ok),
         'not_evaluated': {name: 'NOT EVALUATED' for name in SEL751_NOT_EVALUATED},
         'trial_level_checks': SEL751_TRIAL_LEVEL_CHECKS,
     }
+
+
+def operate_key(expected):
+    """The OPERATE verdict: operate_success, or operate_absent for a declared select-only plan."""
+    return 'operate_absent' if expected.get('select_only') is True else 'operate_success'
 
 
 def _build_sel751_artifact(context, captures):
@@ -355,14 +382,15 @@ def _validate_sel751(artifact, context, captures, expected):
     failures += ['transport: ' + f for f in derived['transport_failures']]
     failures += ['application: ' + f for f in derived['application_failures']]
     failures += ['size: ' + f for f in derived['size_failures']]
-    for key in ('transport_ok', 'select_authorizes_operate', 'operate_success', 'size_ok', 'aggregate_verdict'):
+    operate = operate_key(expected['expected'])
+    for key in ('transport_ok', 'select_authorizes_operate', operate, 'size_ok', 'aggregate_verdict'):
         if derived[key] is not True:
             failures.append('observed.%s is %r, expected True' % (key, derived[key]))
     return {'ok': not failures, 'failures': failures, 'expected': expected['expected'],
             'capture_hashes': capture_hashes, 'scope': SEL751_SCOPE,
             'verdicts': {'transport': derived['transport_ok'],
                          'application': not derived['application_failures'] and derived['select_authorizes_operate']
-                         and derived['operate_success'],
+                         and derived[operate],
                          'size': derived['size_ok']},
             'not_evaluated': derived['not_evaluated']}
 

@@ -1,0 +1,106 @@
+== BASELINE (HEAD ca0db02d1, no change) 2026-10-29T09:02:51-04:00
+$ python3 -m pytest tests --ignore=tests/analysis -q -p no:cacheprovider
+=========================== short test summary info ============================
+FAILED tests/hardware/test_diag_runtime.py::test_unit_commands_are_unchanged_without_diag_mirror[Campaign]
+FAILED tests/hardware/test_diag_runtime.py::test_unit_commands_are_unchanged_without_diag_mirror[CandidateCampaign]
+2 failed, 376 passed in 29.29s
+
+== RED: new tests against unchanged code 2026-10-29T09:10:12-04:00
+$ python3 -m pytest tests/checks/test_select_only_checks.py tests/hardware/test_e4b_select_only_runtime.py tests/hardware/test_e4b_definition.py -q -p no:cacheprovider
+_ test_a_failed_select_or_a_failed_read_after_it_fails_the_select_only_workload[probe0] _
+    def test_a_failed_select_or_a_failed_read_after_it_fails_the_select_only_workload(monkeypatch, probe):
+_ test_a_failed_select_or_a_failed_read_after_it_fails_the_select_only_workload[probe1] _
+    def test_a_failed_select_or_a_failed_read_after_it_fails_the_select_only_workload(monkeypatch, probe):
+_ test_a_failed_select_or_a_failed_read_after_it_fails_the_select_only_workload[probe2] _
+    def test_a_failed_select_or_a_failed_read_after_it_fails_the_select_only_workload(monkeypatch, probe):
+FAILED tests/checks/test_select_only_checks.py::test_planned_controls_are_pairs_unless_select_only_is_declared
+FAILED tests/checks/test_select_only_checks.py::test_a_select_only_declaration_that_is_not_explicit_and_complete_is_refused[traffic0]
+FAILED tests/checks/test_select_only_checks.py::test_a_select_only_declaration_that_is_not_explicit_and_complete_is_refused[traffic1]
+FAILED tests/checks/test_select_only_checks.py::test_a_select_only_declaration_that_is_not_explicit_and_complete_is_refused[traffic2]
+FAILED tests/checks/test_select_only_checks.py::test_a_select_only_declaration_that_is_not_explicit_and_complete_is_refused[traffic3]
+FAILED tests/checks/test_select_only_checks.py::test_a_select_only_declaration_that_is_not_explicit_and_complete_is_refused[traffic4]
+FAILED tests/checks/test_select_only_checks.py::test_standards_expected_counts_carry_an_explicit_zero_operate_only_for_select_only
+FAILED tests/checks/test_select_only_checks.py::test_select_only_switch_lane_counts_reads_and_selects_only
+FAILED tests/checks/test_select_only_checks.py::test_switch_lane_without_operate_count_is_unchanged
+FAILED tests/checks/test_select_only_checks.py::test_select_only_master_and_wire_pass_only_with_the_explicit_plan
+FAILED tests/checks/test_select_only_checks.py::test_select_only_plan_needs_the_master_to_have_run_select_only
+FAILED tests/checks/test_select_only_checks.py::test_a_normal_master_claiming_select_only_fails
+FAILED tests/checks/test_select_only_checks.py::test_an_operate_request_on_the_wire_fails_the_select_only_plan
+FAILED tests/checks/test_select_only_checks.py::test_a_recorded_operate_fails_the_select_only_plan
+FAILED tests/checks/test_select_only_checks.py::test_select_only_plan_itself_must_be_selects_with_zero_operate[plan0]
+FAILED tests/checks/test_select_only_checks.py::test_select_only_plan_itself_must_be_selects_with_zero_operate[plan1]
+FAILED tests/checks/test_select_only_checks.py::test_relay_check_cli_derives_the_select_only_plan
+FAILED tests/checks/test_select_only_checks.py::test_select_only_observed_verdict_passes_with_select_success_and_no_operate
+FAILED tests/checks/test_select_only_checks.py::test_select_only_observed_verdict_fails_on_any_operate[wire_only0]
+FAILED tests/checks/test_select_only_checks.py::test_select_only_observed_verdict_fails_on_any_operate[wire_only1]
+FAILED tests/checks/test_select_only_checks.py::test_select_only_select_must_carry_captured_crob_success[1]
+FAILED tests/checks/test_select_only_checks.py::test_select_only_select_must_carry_captured_crob_success[4]
+FAILED tests/checks/test_select_only_checks.py::test_public_select_only_validation_binds_the_declared_plan
+FAILED tests/checks/test_select_only_checks.py::test_select_only_artifact_cannot_be_replayed_as_a_normal_plan
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_select_only_workload_sends_no_operate_and_plans_operate_zero
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_a_failed_select_or_a_failed_read_after_it_fails_the_select_only_workload[probe0]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_a_failed_select_or_a_failed_read_after_it_fails_the_select_only_workload[probe1]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_a_failed_select_or_a_failed_read_after_it_fails_the_select_only_workload[probe2]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_an_operate_returned_as_sent_fails_the_select_only_workload_and_is_recorded
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_select_only_stub_from_the_driver_is_not_attempted_and_unsent
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_select_only_needs_an_explicit_true_with_sbo_cycles[kwargs0]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_select_only_needs_an_explicit_true_with_sbo_cycles[kwargs1]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_select_only_needs_an_explicit_true_with_sbo_cycles[kwargs2]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_select_only_needs_an_explicit_true_with_sbo_cycles[kwargs3]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_normal_workload_output_and_requests_are_byte_identical[True-no_sbo]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_normal_workload_output_and_requests_are_byte_identical[True-run_sbo_end_full]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_normal_workload_output_and_requests_are_byte_identical[True-sbo4_full]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_normal_workload_output_and_requests_are_byte_identical[True-sbo64_mixed_full]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_relay_connection_passes_select_only_to_the_workload_and_records_it
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_vision_main_without_the_flag_passes_exactly_todays_arguments
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_vision_main_passes_select_only_with_sbo_cycles
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_vision_main_refuses_select_only_outside_one_plain_run[argv0]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_vision_main_refuses_select_only_outside_one_plain_run[argv1]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_vision_main_refuses_select_only_outside_one_plain_run[argv2]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_vision_main_refuses_select_only_outside_one_plain_run[argv3]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_vision_main_refuses_select_only_outside_one_plain_run[argv4]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_campaign_refuses_a_select_only_declaration_that_is_not_explicit_and_complete[<lambda>0]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_campaign_refuses_a_select_only_declaration_that_is_not_explicit_and_complete[<lambda>1]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_campaign_refuses_a_select_only_declaration_that_is_not_explicit_and_complete[<lambda>2]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_campaign_refuses_a_select_only_declaration_that_is_not_explicit_and_complete[<lambda>3]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_select_only_unit_adds_only_the_endpoint_flag[Campaign]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_select_only_unit_adds_only_the_endpoint_flag[CandidateCampaign]
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_select_only_verdict_plans_zero_operate_for_wire_master_and_switch
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_normal_verdict_keeps_todays_relay_check_call
+FAILED tests/hardware/test_e4b_select_only_runtime.py::test_select_only_endpoint_controls_reach_the_effective_record
+FAILED tests/hardware/test_e4b_definition.py::test_e4b_definition_is_block_10_without_loss_with_the_registered_select_only_workload
+FAILED tests/hardware/test_e4b_definition.py::test_e4b_master_ports_are_disjoint_from_every_existing_definition
+FAILED tests/hardware/test_e4b_definition.py::test_only_the_e4b_definition_was_added
+ERROR tests/hardware/test_e4b_definition.py::test_prepare_writes_one_select_only_config_the_campaign_accepts
+ERROR tests/hardware/test_e4b_definition.py::test_dry_plan_runs_six_plain_trials_with_the_select_only_endpoint
+58 failed, 28 passed, 2 errors in 1.40s
+
+== RED (re-run, final new-test set) against HEAD scripts/ (implementation reverted in the worktree only) 2026-10-29T09:16:00-04:00
+$ python3 -m pytest tests/checks/test_select_only_checks.py tests/hardware/test_e4b_select_only_runtime.py tests/hardware/test_e4b_definition.py -q -p no:cacheprovider
+59 failed, 28 passed, 2 errors in 0.73s
+
+== GREEN: new tests after the implementation 2026-10-29T09:16:09-04:00
+$ python3 -m pytest tests/checks/test_select_only_checks.py tests/hardware/test_e4b_select_only_runtime.py tests/hardware/test_e4b_definition.py -q -p no:cacheprovider
+89 passed in 0.41s
+
+== absent-key golden values recomputed with the patched code (scratch golden.py; diff against the values recorded before any edit)
+golden values identical (workload x4, relay_check report, standards artifact/verdict/expected x3, unit calls x2, trial records x2, endpoint controls x2)
+
+== FINAL: full repository suite (tests/analysis excluded as specified) 2026-10-29T09:16:36-04:00
+$ python3 -m pytest tests --ignore=tests/analysis -q -p no:cacheprovider
+=========================== short test summary info ============================
+FAILED tests/hardware/test_diag_runtime.py::test_unit_commands_are_unchanged_without_diag_mirror[Campaign]
+FAILED tests/hardware/test_diag_runtime.py::test_unit_commands_are_unchanged_without_diag_mirror[CandidateCampaign]
+2 failed, 465 passed in 29.78s
+note: the 2 failures are the pre-existing baseline failures above; their golden hash embeds the main checkout path /home/philip/Projects/DNP3 and this worktree lives elsewhere. test_e4b_select_only_runtime.py::test_absent_select_only_unit_commands_and_records_are_byte_identical recomputes the same hash with the main checkout path substituted and passes.
+
+$ python3 -m pyflakes <touched .py files>
+scripts/checks/checks.py scripts/checks/relay_check.py scripts/checks/standards.py scripts/hardware/campaign_base.py scripts/hardware/matrix.py scripts/hardware/relay_master.py scripts/hardware/vision_run.py tests/checks/test_select_only_checks.py tests/hardware/test_e4b_definition.py tests/hardware/test_e4b_select_only_runtime.py 
+pyflakes exit 0
+
+$ added/modified .py lines longer than 120 columns (git diff -U0 | awk)
+count: 0
+$ git diff --check
+git diff --check exit 0
+
+== patch: git add -N (new files), git diff > /tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/e4b.patch; applies to HEAD ca0db02d1 checked in a temporary index (git apply --cached --check)

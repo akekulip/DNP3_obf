@@ -9,7 +9,7 @@ import struct
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'active_harness'))
 # Repository checkout and deployed helper use the same master sources.
-from session import Session
+from session import Session, OUTCOME_NOT_ATTEMPTED
 from sbo_driver import one_sbo, guarded
 from read_requests import mixed_read_frame, integrity_read_frame
 from dnp3_codec import FUNC_READ, FUNC_SELECT, FUNC_OPERATE, parse_frame
@@ -31,9 +31,13 @@ def preflight():
 
 def workload(master_port, reads, schedule='mixed_full', sbo_cycles=0, run_sbo=True,
              gap_ms=0, read_pause_ms=25, close_grace_ms=0, budget_ms=3000, close_mode='graceful',
-             loss_target=None):
+             loss_target=None, select_only=False):
+    """select_only (E4b): each of the sbo_cycles cycles is a guarded SELECT with no OPERATE, then the READ schedule
+    continues; the plan is SELECT=sbo_cycles, OPERATE=0. Only an explicit True with sbo_cycles is accepted."""
     if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':
         raise ValueError('relay master requires DEFENSE4_HW_AUTHORIZED=1')
+    if select_only is not False and (select_only is not True or not sbo_cycles or run_sbo is not True):
+        raise ValueError('select-only workload needs select_only=True with sbo_cycles and run_sbo')
     if not 1024 <= master_port <= 65535 or reads < 1 or sbo_cycles < 0 or sbo_cycles >= reads:
         raise ValueError('invalid bounded relay workload')
     if schedule not in ('mixed_full', 'mixed', 'full'):
@@ -44,8 +48,13 @@ def workload(master_port, reads, schedule='mixed_full', sbo_cycles=0, run_sbo=Tr
     order = ('mixed', 'integrity') if schedule == 'mixed_full' else (('mixed',) if schedule == 'mixed' else ('integrity',))
     def sbo(session):
         nonlocal seq
-        selected, operated = one_sbo(session, seq & 15, (seq + 1) & 15, [1, 3], budget_ms, False)
+        selected, operated = one_sbo(session, seq & 15, (seq + 1) & 15, [1, 3], budget_ms, select_only)
         seq += 2
+        if select_only:
+            # sbo_driver builds and sends nothing for the OPERATE; anything else is recorded and fails the workload
+            unsent = operated.outcome == OUTCOME_NOT_ATTEMPTED and not operated.request_wire_hex
+            records.extend([selected.as_dict()] + ([] if unsent else [operated.as_dict()]))
+            return selected.ok and unsent
         records.extend([selected.as_dict(), operated.as_dict()])
         return selected.ok and operated.ok
     with Session(RELAY_IP, RELAY_PORT, source_address=(MASTER_IP, master_port)) as session:
@@ -82,13 +91,17 @@ def workload(master_port, reads, schedule='mixed_full', sbo_cycles=0, run_sbo=Tr
     expected_sbo = sbo_cycles if sbo_cycles else int(run_sbo)
     counts = {name: sum(r['operation'] == name and r['outcome'] == 'OK' for r in records)
               for name in ('READ', 'SELECT', 'OPERATE')}
-    ok = counts == dict(READ=reads, SELECT=expected_sbo, OPERATE=expected_sbo)
-    return dict(schema='sel751-master-v1', endpoint_profile='sel751', ok=ok, records=records,
-                counts=counts, planned=dict(READ=reads, SELECT=expected_sbo, OPERATE=expected_sbo),
-                read_pause_ms=read_pause_ms, run_sbo=run_sbo, close_grace_ms=close_grace_ms,
-                sbo_cycles=sbo_cycles, read_schedule=schedule,
-                close_mode=close_mode,
-                observation_scope='master application/socket; TCP ACK evidence requires pcap')
+    planned = dict(READ=reads, SELECT=expected_sbo, OPERATE=0 if select_only else expected_sbo)
+    ok = counts == planned and not (select_only and any(r['operation'] == 'OPERATE' for r in records))
+    result = dict(schema='sel751-master-v1', endpoint_profile='sel751', ok=ok, records=records,
+                  counts=counts, planned=planned,
+                  read_pause_ms=read_pause_ms, run_sbo=run_sbo, close_grace_ms=close_grace_ms,
+                  sbo_cycles=sbo_cycles, read_schedule=schedule,
+                  close_mode=close_mode,
+                  observation_scope='master application/socket; TCP ACK evidence requires pcap')
+    if select_only:
+        result['sbo_select_only'] = True
+    return result
 
 
 if __name__ == '__main__':

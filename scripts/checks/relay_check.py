@@ -24,6 +24,9 @@ sys.path.insert(0, str(_active))
 import dnp3_codec as codec
 
 SCHEMA_VERSION = 'sel751-wire-v3'
+SELECT_ONLY = 'select-only plan: '
+# IEEE 1815 function codes that operate an output: OPERATE, DIRECT_OPERATE, DIRECT_OPERATE_NR
+OPERATE_FUNCTIONS = (codec.FUNC_OPERATE, 0x05, 0x06)
 
 
 def application_from_wire(raw):
@@ -86,12 +89,69 @@ def application_observation(request_wire, response_wire, record):
                 request_app_hex=request.hex(), response_app_hex=response.hex())
 
 
-def master_checks(master, master_port, expected=None, schedule=None):
+def plan_checks(master, expected, select_only=False):
+    """A planned OPERATE count other than SELECT is accepted only for an explicit select-only plan (E4b), which plans
+    SELECTs and no OPERATE, comes from a master that ran select-only and records no OPERATE."""
+    if not select_only:
+        if expected.get('SELECT') != expected.get('OPERATE'):
+            return ['planned OPERATE differs from SELECT without an explicit select-only plan']
+        if 'sbo_select_only' in master:
+            return [SELECT_ONLY + 'the master ran select-only but the frozen plan is SELECT then OPERATE']
+        return []
+    failures = []
+    if not expected.get('SELECT') or expected.get('OPERATE') != 0:
+        failures.append(SELECT_ONLY + 'needs planned SELECT >= 1 and OPERATE 0, got %r' % (expected,))
+    if master.get('sbo_select_only') is not True:
+        failures.append(SELECT_ONLY + 'the master did not run the select-only workload')
+    operates = sum(r.get('operation') == 'OPERATE' for r in master.get('records') or [])
+    if operates:
+        failures.append(SELECT_ONLY + '%d OPERATE master record(s)' % operates)
+    return failures
+
+
+def request_functions(stream):
+    """Application function of every complete request in the reassembled master-to-relay stream, in stream order."""
+    if stream is None:
+        raise ValueError('no single-incarnation master stream')
+    functions = []
+    for _start, data in stream['runs']:
+        raw, assembler = bytes(data), codec.TransportAssembler()
+        while raw:
+            frame, raw = codec.parse_frame(raw)
+            if frame is None:
+                raise ValueError('incomplete DNP3 link frame')
+            fragment = assembler.add(frame.user_data)
+            if fragment is not None:
+                functions.append(fragment[1] if len(fragment) > 1 else None)
+        if assembler.in_progress:
+            raise ValueError('unfinished transport fragment')
+    return functions
+
+
+def select_only_wire_checks(stream, records):
+    """From captured bytes, not master claims: no OPERATE-class request left the master, and the captured request
+    sequence is exactly the recorded one."""
+    try:
+        functions = request_functions(stream)
+    except (ValueError, codec.TransportError) as error:
+        return [SELECT_ONLY + 'captured master stream cannot be decoded: %s' % error]
+    failures = []
+    operates = sum(function in OPERATE_FUNCTIONS for function in functions)
+    if operates:
+        failures.append(SELECT_ONLY + '%d OPERATE request(s) in the captured master stream' % operates)
+    names = {codec.FUNC_READ: 'READ', codec.FUNC_SELECT: 'SELECT', codec.FUNC_OPERATE: 'OPERATE'}
+    if [names.get(function, function) for function in functions] != [r.get('operation') for r in records]:
+        failures.append(SELECT_ONLY + 'captured request sequence differs from the master records')
+    return failures
+
+
+def master_checks(master, master_port, expected=None, schedule=None, select_only=False):
     failures = []
     records = master.get('records') or []
     if expected is None:
         failures.append('frozen expected transaction denominators not supplied')
     else:
+        failures += plan_checks(master, expected, select_only)
         actual = {operation: sum(r.get('operation') == operation and r.get('outcome') == 'OK' for r in records)
                   for operation in ('READ', 'SELECT', 'OPERATE')}
         if actual != expected or master.get('counts') != expected or master.get('planned') != expected:
@@ -271,11 +331,11 @@ def byte_counts(segments):
                 retransmitted_segments=sum(contributed.get(seg['index'], 0) < b - a for a, b, seg in stream['copies']))
 
 
-def analyze(root, master_port, expected=None, schedule=None):
+def analyze(root, master_port, expected=None, schedule=None, select_only=False):
     root = Path(root)
     master = json.loads((root / 'master.json').read_text())
     result = json.loads((root / 'result.json').read_text())
-    failures = master_checks(master, master_port, expected, schedule)
+    failures = master_checks(master, master_port, expected, schedule, select_only=select_only)
     streams, packets = {}, {}
     for direction, src, dst, sport, dport in [('out', MASTER_IP, RELAY_IP, master_port, RELAY_PORT),
                                             ('in', RELAY_IP, MASTER_IP, RELAY_PORT, master_port)]:
@@ -296,6 +356,8 @@ def analyze(root, master_port, expected=None, schedule=None):
     cursors = dict(out=0, **{'in': 0})
     reassembled = {direction: tcp_stream(stream) for direction, stream in streams.items()}
     accounting = {direction: byte_counts(stream) for direction, stream in streams.items()}
+    if select_only:
+        failures += select_only_wire_checks(reassembled['out'], master.get('records', []))
     for record in master.get('records', []):
         request = locate(reassembled['out'], record.get('request_wire_hex', ''), cursors['out'])
         response = locate(reassembled['in'], record.get('response_wire_hex', ''), cursors['in'])
@@ -420,10 +482,12 @@ def main(argv=None):
     parser.add_argument('--reads', type=int, required=True)
     parser.add_argument('--sbo', type=int, required=True)
     parser.add_argument('--read-schedule', choices=('mixed_full', 'mixed', 'full'), required=True)
+    parser.add_argument('--select-only', action='store_true', help='E4b plan: --sbo SELECTs and no OPERATE')
     args = parser.parse_args(argv)
     try:
         result = analyze(args.root, args.master_port,
-                         dict(READ=args.reads, SELECT=args.sbo, OPERATE=args.sbo), args.read_schedule)
+                         dict(READ=args.reads, SELECT=args.sbo, OPERATE=0 if args.select_only else args.sbo),
+                         args.read_schedule, select_only=args.select_only)
     except (OSError, ValueError, KeyError, TypeError) as error:
         result = dict(ok=False, failures=[str(error)])
     (args.root / 'relay_wire.json').write_text(json.dumps(result, indent=2) + '\n')
