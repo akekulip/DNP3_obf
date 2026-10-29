@@ -151,3 +151,7 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
 - Part 2: Python purge committed cafc0adcd (scripts/ 32,692 -> 31,087 lines; c72 gate still passes; tests 471/138).
   c73 (optimised P4, variant D2 cumulative) running in the detached worktree scratchpad/c73_wt; merge after its
   17-driver model gate and the comparison with c72.
+- 2026-10-29 Part 2 DONE: purge cafc0adcd + review follow-up 3897ea9df; c73 candidate 4ff48b19c (model 17/17,
+  identical verdicts; independent P4 review: behaviour-preserving). c72 stays canonical; results/builds/c73/
+  canonical_switch.patch switches after Philip approves hardware qualification. Final checks: repository 474, build 48,
+  c72 live gate passed. Running: offline investigation of the connection-start drop (E2 mechanism), scratch only.
