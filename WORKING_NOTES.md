@@ -148,3 +148,6 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   t17, t27) plus 3 first requests = 8 of 40 mirror-on fresh connections (earlier notes and commit 04e29045d said 4
   and 7: the size_only t0 case was missed because completeness is gated only in the off arm). fig_validation.py
   counts it from the retained captures.
+- Part 2: Python purge committed cafc0adcd (scripts/ 32,692 -> 31,087 lines; c72 gate still passes; tests 471/138).
+  c73 (optimised P4, variant D2 cumulative) running in the detached worktree scratchpad/c73_wt; merge after its
+  17-driver model gate and the comparison with c72.
