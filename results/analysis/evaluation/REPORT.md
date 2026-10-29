@@ -110,6 +110,12 @@ conflicts with the paper's RO3 wording, "no request is retransmitted", and is re
 request loss. The mechanism has not been determined: the captures are master-NIC only and no switch-side trace was
 taken.
 
+**Update 2026-10-29 (diagnostic-build evidence, `results/analysis/diag_mirror_d3/SUMMARY.md`).** A relay-leg mirror on
+the `c72_diag_mirror` build located the loss. In 3 of 40 mirror-on fresh connections the first request reached the
+switch (dev9 RX counted it), and no copy of it ever left toward the relay; only the retransmission did. In 4 more
+connections the switch did not forward the master's final handshake ACK, which TCP does not notice. That fits the
+one-frame deficit seen above in connections without a retransmission. The pipeline mechanism is still open.
+
 ## Limits of this evidence
 
 - Captures were taken at the master NIC. They do not show when the switch emitted a packet, its departure timing, or

@@ -1,0 +1,115 @@
+# c72 correction-and-validation pass: four questions (2026-10-28/29)
+
+This pass follows the independent audit `DNP3_c72_Independent_Audit_20261028.md`. The scope is fixed: the physical
+SEL-751, two READ workloads plus SELECT/OPERATE, two READ padding targets, and timing plus padding on one Tofino-1
+with no OPERATE hold. Each answer names its evidence and its label:
+- **c72:** the exact c72 binary, source SHA-256 `97812585…`;
+- **diagnostic:** the `c72_diag_mirror` build, which differs from c72 by 13 pipe-0 mirror insertions and
+  establishes nothing about the c72 binary by itself;
+- **model:** SDK tofino-model functional runs, which are not hardware.
+
+## 1. Does the mechanism work?
+
+Yes, as constructed, on the physical relay (c72).
+- **Size:** in the 2 padded arms of the 49,408-exchange evaluation, every one of 24,704 responses equals its class
+  image: READ mixed 141 octets, READ integrity 158, SELECT and OPERATE 60. There are 0 violations.
+- **Timing:** in the timed arms the per-class median CLRT lies within 0.004–0.036 ms of the other classes at every D
+  (5, 10, 15, 20 ms). With no obfuscation the classes are 0.40–0.58 ms apart. Every class concentrates at D: median
+  within 0.035 ms of D, standard deviation 0.86–1.70 ms (`results/analysis/evaluation/REPORT.md`, Fig. 1–3).
+
+## 2. Does legitimate communication survive?
+
+Yes for the scoped workload. The recovery edge cases are below, with their denominators.
+
+| Evidence | Label | Result |
+|---|---|---|
+| Delivery in the evaluation | c72 | 49,408/49,408 exchanges OK; 32,768/32,768 SELECT/OPERATE responses decode to CROB SUCCESS on points 1 and 3 |
+| Same-transaction preservation (E1) | diagnostic | 772/772 relay responses content-identical to the padded responses the master received, once only the declared padding is removed; 772/772 requests identical; sequence translation consistent at 776/776 points |
+| Independent reassembly of the transport wrap | c72 captures, offline | opendnp3 reassembled all 128 READ responses that span the 63→0 transport wrap (8,320/8,320 READ delivered); SELECT/OPERATE wrap responses not replayed |
+| SELECT-response loss recovery (E3) | c72 | 16/18 OPERATE SUCCESS after a dropped padded SELECT response (r1 5/6, r2 6/6, r3 5/6) |
+| Abandoned SELECT with timing on (E4) | model | 14/14: the READ after the SELECT, an RST and a new SYN are forwarded; N work state free after every step |
+| Abandoned SELECT on the relay (E4b) | c72 | 6/6 trials pass: 24/24 SELECTs CROB SUCCESS, 0 OPERATE sent, 24/24 READs right after an abandoned SELECT answered and padded to their class image |
+| First request on fresh connections (E2) | diagnostic | 3/48 retransmitted at 206–218 ms; all 3 lost inside the switch |
+
+**E3, SELECT-response loss.** The relay retransmits a dropped SELECT response after 998–1023 ms in every trial, so
+the recovered OPERATE always leaves the master at about 1.0 s (999.1–1024.0 ms). That is the edge of the SEL-751
+selection window, whose manual default is 1.0 s (the setting was not read from the relay).
+- r1 t3 (D = 20 ms, timing+size): the OPERATE request was itself retransmitted after 214 ms. It reached the relay
+  at about 1.22 s and was answered TIMEOUT.
+- r3 t2 (D = 5 ms, timing+size): TIMEOUT with a single OPERATE copy at 1004.7 ms, while later OPERATEs (up to
+  1024.0 ms) succeeded.
+- The outcomes are not ordered by OPERATE departure time, so the window boundary cannot be bracketed from master
+  captures. The padding does not break the recovery path: the dropped padded response is retransmitted and
+  delivered (`results/analysis/recovery_e3/SUMMARY.md`).
+
+**E2, first-request loss.** The diagnostic mirror resolves the open data event of the evaluation (16/256 first
+requests retransmitted). In 3 of 40 mirror-on fresh connections the master's first request reached the switch and
+was not emitted toward the relay:
+- dev9 RX counted every master frame in the window;
+- the mirror holds no egress copy of the original request, only of the retransmission;
+- dev64 TX is one lower than dev9 RX.
+
+In 4 more connections the switch received the master's final handshake ACK and did not forward it, which TCP does
+not notice. In all 7 cases the frame not forwarded is one of the first two master frames after the relay's
+SYN-ACK. The loss is inside the switch at connection start; its mechanism in the pipeline is not yet identified
+(`results/analysis/diag_mirror_d3/SUMMARY.md`).
+
+**Observation path.** The mirror was validated before its data were used, against the master-NIC captures:
+- dev10 → Vision `enp59s0f1np1` is confirmed;
+- off-arm copies are byte-identical, 1,173/1,173;
+- completeness holds in 40/40 trials.
+
+The registered mirror on/off timing test (D3d) failed its 50 µs bound: four timed cells shift by −231 to +142.5 µs.
+That is inside c72's own repetition-to-repetition spread of 266–1,085 µs. Delivery and sizes were identical. No
+claim relies on mirror timing.
+
+## 3. Is the fingerprinting feature less useful?
+
+For CLRT, yes at D ≥ 10 ms; at D = 5 ms only partly. Size separates READ from SELECT/OPERATE by design. All figures
+are balanced accuracy over 3 classes (chance 0.333), K = 64, retrained naive Bayes, with paired block-bootstrap
+intervals for Δ = off − arm (`results/analysis/evaluation/final_v2/SUMMARY.md`).
+
+| Feature | Off (D = 5/10/15/20 ms) | Timing+size (D = 5/10/15/20 ms) |
+|---|---|---|
+| CLRT (preregistered, primary) | 0.625 / 0.708 / 0.750 / 0.750 | 0.375 / 0.458 / 0.458 / 0.250; Δ excludes zero at D = 10, 15, 20, includes zero at D = 5 |
+| Response size (preregistered) | 0.667 in every cell | 0.667 in every cell (READ separated from SELECT/OPERATE; SELECT and OPERATE share one size) |
+| Joint CLRT + size (preregistered) | 1.000 in every cell | 0.667 / 0.833 / 0.833 / 0.875 |
+
+- **Timing alone:** CLRT falls to 0.375–0.417, with Δ excluding zero at every D.
+- **Joint, SELECT/OPERATE windows (exploratory):** 45/64 correct under timing+size (block-clustered interval
+  [0.609, 0.797]) against 64/64 with no obfuscation. A residual SELECT/OPERATE CLRT difference remains under
+  timing+size; its mechanism is not determined.
+- **Request size:** requests keep their native size (25, 27 and 45 octets), so request size still identifies the
+  operation class in every arm.
+- **Padding policy:** under every attainable target assignment except merging all classes into one size (162
+  octets, +84% bytes, not proposed), the size-only balanced accuracy stays at 0.667. The cheaper READ merge adds
+  2.91 octets per transaction on average over the workload, and each affected mixed READ grows by 17 octets
+  (`results/analysis/padding_policy/SUMMARY.md`).
+- **Scope of the claim:** this is operation classification on one SEL-751 with one master, not device
+  identification.
+
+## 4. What does it cost?
+
+(c72 evaluation; `results/analysis/evaluation/overhead_v2/SUMMARY.md`.)
+- **Latency.** Request-to-response p50 is 6.0 ms with no obfuscation. It rises by about D with timing: 10.8, 16.0,
+  20.8 and 25.7 ms at D = 5, 10, 15 and 20 ms for timing+size. The p95 is 16.8 / 21.6 / 27.6 / 31.4 ms and the p99
+  is 23.7 / 28.3 / 33.5 / 37.7 ms. The maxima (up to 236 ms) are the 16 first exchanges with a retransmitted first
+  request. Size alone adds at most 0.11 ms to the median.
+- **Bytes.** Padding raises TCP payload (request plus response) by 18.21%. Captured Ethernet frames rise by 6.40%
+  and the estimated physical wire occupancy by 5.18%; the wire figure is an estimate (FCS, preamble, IFG), not a
+  measurement. Frame counts do not change.
+- **Rate.** A sequential master falls from about 62 exchanges per second per connection to 47, 38, 32 and 28 at
+  D = 5, 10, 15 and 20 ms.
+- **Retransmissions.** 16 first-request retransmissions in 256 connections, in every arm including no obfuscation;
+  E2 places that loss inside the switch at connection start (diagnostic evidence).
+- **Switch resources.** The stage counts of c72 are p0 10/10 and p1 8/4.
+
+## What remains open
+
+- The mechanism of the connection-start drop inside the switch (E2). Next check: a model reproduction with the final
+  handshake ACK and the first request sent right after the SYN-ACK.
+- The SEL-751 select-timeout setting and relay-side timing for E3; it needs relay settings access, which was not
+  used.
+- opendnp3 replay of the 256 SELECT/OPERATE wrap responses (a safety check stopped the replay; it needs Philip's
+  decision), and a live-master check against the physical SEL-751.
+- The residual SELECT/OPERATE CLRT difference under timing+size, and the native request sizes.
