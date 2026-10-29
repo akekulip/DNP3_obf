@@ -43,14 +43,14 @@ Every claim is labelled c72, diagnostic or model.
 | E3 SELECT-response loss | c72 | `rc01_hw_c72_recovery_r{1,2,3}_20261028_01` | 16/18 OPERATE SUCCESS; OPERATE always lands at about 1.0 s, the select-window edge (`recovery_e3/SUMMARY.md`) |
 | D3 mirror validation | diagnostic | `rc01_hw_c72diag_d3on/_d3off_20261028_01` | mapping, fidelity (1,173/1,173) and completeness pass; mirror on/off timing fails its registered 50 µs bound, within c72's own spread |
 | E1 preservation | diagnostic | d3on | 772/772 responses and 772/772 requests content-identical across the padding |
-| E2 first request | diagnostic | `rc01_hw_c72diag_e2_20261028_01` + d3 | 3/48 first requests lost inside the switch; 4 more final handshake ACKs not forwarded (`diag_mirror_d3/SUMMARY.md`) |
+| E2 first request | diagnostic | `rc01_hw_c72diag_e2_20261028_01` + d3 | 3/48 first requests lost inside the switch; 5 more final handshake ACKs not forwarded (`diag_mirror_d3/SUMMARY.md`) |
 | E4 abandoned SELECT, timing on | model | `results/models/c72_e4_abandon_t1/` | 14/14 |
 | E4b SELECT without OPERATE | c72 | `rc01_hw_c72_e4b_20261029_01` | 6/6; 24/24 READs after an abandoned SELECT answered (`e4b_select_only/SUMMARY.md`) |
 
 ## Open items for Philip
 
-1. **E2 mechanism.** The switch drops one of the first two master frames after the relay's SYN-ACK in about 1 in 6
-   fresh connections. When it drops the first request, the cost is a 206–218 ms retransmission. A model reproduction
+1. **E2 mechanism.** The switch drops one of the first two master frames after the relay's SYN-ACK in 8 of 40
+   mirror-on fresh connections. When it drops the first request, the cost is a 206–218 ms retransmission. A model reproduction
    is the next step. The paper's RO3 wording ("no request retransmitted") needs a decision either way.
 2. **SELECT/OPERATE wrap replay.** The 256 SELECT/OPERATE responses that span the 63→0 transport wrap were not
    replayed through opendnp3: a safety check stopped the SelectAndOperate replay (offline, localhost). It needs your

@@ -144,3 +144,7 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   results/analysis/validation/REPORT.md answers the four questions; HANDOVER rewritten. Next: tag
   c72-validation-final, then Part 2 (purge + c73 in worktree; inventories in the scratchpad SUMMARY_FOR_PART2.md files).
 
+- Correction 2026-10-29: the connection-start drops are 5 final handshake ACKs (d3on off t1 and size_only t0; E2 t0,
+  t17, t27) plus 3 first requests = 8 of 40 mirror-on fresh connections (earlier notes and commit 04e29045d said 4
+  and 7: the size_only t0 case was missed because completeness is gated only in the off arm). fig_validation.py
+  counts it from the retained captures.

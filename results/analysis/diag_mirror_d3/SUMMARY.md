@@ -76,9 +76,10 @@ translation agrees with the declared padding growth at all 776 points.
 The narrowest supported location is inside the switch: the request was received on dev9 and never emitted on
 dev64. The 8 mirror-off connections show no retransmission, so 3 of all 48 fresh connections retransmitted.
 
-**A related observation at connection start.** In 4 further fresh connections (d3on off t1; E2 t0, t17 and t27)
+**A related observation at connection start.** In 5 further fresh connections (d3on off t1 and size_only t0; E2 t0,
+t17 and t27)
 the switch received the master's final handshake ACK and did not forward it. TCP does not notice, because the
-next data segment carries the same acknowledgement. In every one of these 7 connections, the frame the switch did
+next data segment carries the same acknowledgement. In every one of these 8 connections (8 of 40), the frame the switch did
 not forward is one of the first two master frames after the relay's SYN-ACK. The mechanism inside the pipeline is
 not identified here. A model reproduction (ACK and first request right after the SYN-ACK) is the next check.
 
