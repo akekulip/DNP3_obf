@@ -47,7 +47,35 @@ Every claim is labelled c72, diagnostic or model.
 | E4 abandoned SELECT, timing on | model | `results/models/c72_e4_abandon_t1/` | 14/14 |
 | E4b SELECT without OPERATE | c72 | `rc01_hw_c72_e4b_20261029_01` | 6/6; 24/24 READs after an abandoned SELECT answered (`e4b_select_only/SUMMARY.md`) |
 
+## Part 2: refactor and purge (2026-10-29)
+
+**Python.** Proven-dead code outside the c72 model-gate closure was removed. `scripts/` went from 32,692 to 31,087
+lines (−1,605) across 21 paths: 3 dead files, the unreachable old software-outstation paths in `vision_run.py`, the
+uncalled calibration and host-diagnostic helpers in `capture_observation.py`, the capture-side `loss.py` chain, and
+unused helpers. Every change, with its evidence of no use, is in `results/analysis/purge/PURGE_LOG.json`. The 58
+closure files were left alone on purpose, because the c72 gate binds them byte for byte. Tests unchanged: repository
+471, analysis 138.
+
+**P4: candidate c73** (`results/builds/c73`, source SHA-256 `3e7dbb38…`; model-qualified only).
+- **How it was made:** `derive_c73.py` removes provably dead or no-op code from c72: 13 unapplied tables, 8 uncallable
+  T actions, 36 never-read fields, unreachable parser states, never-valid headers, never-selected const actions and a
+  no-op table.
+- **Size:** 2,256 → 2,100 lines.
+- **Resources:** stages unchanged (p0 10/10, p1 8/4); p0 PHV −9 bits, egress tagalong containers 48 → 35, VLIW
+  119 → 115, SRAM 158 → 154, hash bits 1,017 → 977.
+- **Model gate:** 17/17, with case names and verdicts identical to c72 over 6,339 cases. The only differences are T
+  timestamps and hold-wait counts, which also differ between runs of the same T binary.
+- **Independent review:** behaviour-preserving, no critical or high finding. E4 passes 14/14 on c73 too. One open
+  gap: no gate driver sends an IHL ≠ 5 packet, so the `odd_ip_t` removal rests on a static proof.
+- **c72 stays canonical** so c72 remains runnable and every test stays green. `results/builds/c73/canonical_switch.patch`
+  makes c73 canonical in one step. With it applied, all 737 closure files of the 19 c73 model runs match, so the c73
+  gate recomputes as passed.
+
 ## Open items for Philip
+
+0. **c73.** Approve a hardware qualification of c73, then apply the switch patch. When you do, retire or re-target
+   the c72-premise tests; the list is in the c73 README. Also confirm whether the kind-12 replay domain is retired: it
+   was kept, and removing it frees one more VLIW instruction.
 
 1. **E2 mechanism.** The switch drops one of the first two master frames after the relay's SYN-ACK in 8 of 40
    mirror-on fresh connections. When it drops the first request, the cost is a 206–218 ms retransmission. A model reproduction

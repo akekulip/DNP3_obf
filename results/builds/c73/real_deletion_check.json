@@ -1,0 +1,47 @@
+{
+ "schema": "c73-real-deletion-check-v1",
+ "claim": "Deleting lines (c73) instead of blanking them changes only bf-p4c generated names (tbl_response_onlyNNN, response_onlyNNN, cond-N).",
+ "twin_source_sha256": "2d861aabb90b15a46fb8e96a7de7830c40d95c287dfb7fc1fe7b03e8457938fa",
+ "twin_lines": 2256,
+ "twin_compile": {
+  "command_flags": [
+   "--target",
+   "tofino",
+   "--arch",
+   "tna",
+   "-g"
+  ],
+  "compiler": "p4c 9.13.2 (SHA: 1baf055)",
+  "exit_code": 0,
+  "stages": {
+   "p0": {
+    "egress": 10,
+    "ingress": 10
+   },
+   "p1": {
+    "egress": 4,
+    "ingress": 8
+   }
+  }
+ },
+ "normalisation": "scripts/diag_mirror_checks.py normalised() (generated names renamed by first appearance, run_id dropped) plus .bfa comments dropped",
+ "result": {
+  "p0": {
+   "lines": [
+    53806,
+    53806
+   ],
+   "differing": 0,
+   "sample": []
+  },
+  "p1": {
+   "lines": [
+    6540,
+    6540
+   ],
+   "differing": 0,
+   "sample": []
+  }
+ },
+ "note": "The twin is the same edit set in blank-line mode (derive_c73.py BLANK_OUT); it was compiled in the scratchpad and is not retained."
+}

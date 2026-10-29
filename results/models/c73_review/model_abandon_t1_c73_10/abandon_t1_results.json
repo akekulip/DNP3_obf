@@ -1,0 +1,717 @@
+{
+ "cases": [
+  {
+   "characterization": false,
+   "expected": {
+    "ABANDON_T": "1",
+    "read_cancels_selection": true,
+    "timing_contract": "response_ready_ack_d_no_j_v3"
+   },
+   "name": "timed_scenario_preconditions",
+   "observed": {
+    "ABANDON_T": "1",
+    "read_cancels_selection": true,
+    "timing_contract": "response_ready_ack_d_no_j_v3"
+   },
+   "ok": true
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200000006400000000a002100029c10000020405b40402080a000f42400000000001030307"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200000006400000000a002100029c10000020405b40402080a000f42400000000001030307",
+   "work": {
+    "action_name": null,
+    "generation": [
+     1
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e8120000038400000065b0121000aacc0000020405b401030300010104020101080a000f6951000f4240"
+    ]
+   },
+   "want": "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e8120000038400000065b0121000aacc0000020405b401030300010104020101080a000f6951000f4240",
+   "work": {
+    "action_name": null,
+    "generation": [
+     2
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e20000000650000038580101000eb9500000101080a000f4242000f6951"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e20000000650000038580101000eb9500000101080a000f4242000f6951",
+   "work": {
+    "action_name": null,
+    "generation": [
+     3
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "READ_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500004d000140004006a551c0a80a01c0a80a07e8124e20000000650000038580181000bbc200000101080a000f4243000f6951056412c400000100d0bbc0c001010200000f1e01000007fb5c"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc008004500004d000140004006a551c0a80a01c0a80a07e8124e20000000650000038580181000bbc200000101080a000f4243000f6951056412c400000100d0bbc0c001010200000f1e01000007fb5c",
+   "work": {
+    "action_name": null,
+    "generation": [
+     4
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact ACK then whole response",
+   "name": "READ_ACK_and_response_61",
+   "observed": 2,
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000034000140004006a56ac0a80a07c0a80a014e20e812000003850000007e80101000eb7800000101080a000f6954000f4243",
+     "3cfdfecc5dc00030a7024ca20800450000c1000140004006a4ddc0a80a07c0a80a014e20e812000003850000007e80181000b88400000101080a000f6955000f42430564274401000000c8c240c08180000102010004190400000000427b00000000000000000000000000000000ffff0000ffff05644c4401000000bb948100000000010200000f810101010101db29010101010101010101011e0100000701e70802000000010900000001020000000105431700000001080000000105000000010e00684b0000013c000000ed51"
+    ]
+   },
+   "want": [
+    "3cfdfecc5dc00030a7024ca2080045000034000140004006a56ac0a80a07c0a80a014e20e812000003850000007e80101000eb7800000101080a000f6954000f4243",
+    "3cfdfecc5dc00030a7024ca20800450000c1000140004006a4ddc0a80a07c0a80a014e20e812000003850000007e80181000b88400000101080a000f6955000f42430564274401000000c8c240c08180000102010004190400000000427b00000000000000000000000000000000ffff0000ffff05644c4401000000bb948100000000010200000f810101010101db29010101010101010101011e0100000701e70802000000010900000001020000000105431700000001080000000105000000010e00684b0000013c000000ed51"
+   ],
+   "work": {
+    "action_name": null,
+    "generation": [
+     6
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": {
+    "forbidden": [],
+    "passed": true
+   },
+   "name": "READ_T_clock_response_ready_ACK_then_D",
+   "observed": {
+    "forbidden": [],
+    "passed": true
+   },
+   "ok": true,
+   "response_ready_clock_proof": {
+    "ack_release_units": 53154296,
+    "gap_units": 19534,
+    "held_ack_units": 52861328,
+    "passed": true,
+    "response_arrival_units": 53134764,
+    "response_release_units": 53222656
+   },
+   "t_record_count": 7,
+   "t_records": [
+    {
+     "actions": [
+      "t_Ingress.set_params",
+      "t_Ingress.match_epoch",
+      "t_Ingress.clock_sample",
+      "t_Ingress.live_gen",
+      "t_Ingress.held_offsets",
+      "t_Ingress.read_lgen_diff",
+      "t_Ingress.set_ack_go",
+      "t_Ingress.read_ack_completion",
+      "t_Ingress.hold_ack"
+     ],
+     "port": 180,
+     "t_units": 52861328
+    },
+    {
+     "actions": [
+      "t_Ingress.set_params",
+      "t_Ingress.match_epoch",
+      "t_Ingress.clock_sample",
+      "t_Ingress.live_gen",
+      "t_Ingress.held_offsets",
+      "t_Ingress.try_seen0",
+      "t_Ingress.read_lgen_diff",
+      "t_Ingress.set_ack_go",
+      "t_Ingress.read_ack_completion",
+      "t_Ingress.response_done_wait",
+      "t_Ingress.admit_response"
+     ],
+     "port": 180,
+     "t_units": 53134765
+    },
+    {
+     "actions": [
+      "t_Ingress.set_params",
+      "t_Ingress.match_epoch",
+      "t_Ingress.clock_sample",
+      "t_Ingress.live_gen",
+      "t_Ingress.held_offsets",
+      "t_Ingress.read_seen0",
+      "t_Ingress.read_lgen_diff",
+      "t_Ingress.set_ack_go",
+      "t_Ingress.try_ack_completion",
+      "t_Ingress.mark_ack_commit_gen",
+      "t_Ingress.mark_ack_commit_at",
+      "t_Ingress.release_ack_commit"
+     ],
+     "port": 182,
+     "t_units": 53154296
+    },
+    {
+     "actions": [
+      "t_Ingress.set_params",
+      "t_Ingress.match_epoch",
+      "t_Ingress.clock_sample",
+      "t_Ingress.live_gen",
+      "t_Ingress.held_offsets",
+      "t_Ingress.read_seen0",
+      "t_Ingress.read_lgen_diff",
+      "t_Ingress.set_ack_go",
+      "t_Ingress.read_ack_completion",
+      "t_Ingress.read_commit_gen",
+      "t_Ingress.read_gap_delta",
+      "t_Ingress.response_done_commit",
+      "t_Ingress.release_response_counted"
+     ],
+     "port": 182,
+     "t_units": 53222656
+    }
+   ]
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "SELECT_request",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000061000140004006a53dc0a80a01c0a80a07e8124e200000007e000003e080181000bd4000000101080a000f4246000f6955056424c4000001004a59c1c1030c011702010101c800000000007020000000030101c8000000000000000015ee"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc0080045000061000140004006a53dc0a80a01c0a80a07e8124e200000007e000003e080181000bd4000000101080a000f4246000f6955056424c4000001004a59c1c1030c011702010101c800000000007020000000030101c8000000000000000015ee",
+   "work": {
+    "action_name": null,
+    "generation": [
+     7
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact ACK then whole response",
+   "name": "SELECT_ACK_and_response_61",
+   "observed": 2,
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000034000140004006a56ac0a80a07c0a80a014e20e81200000412000000ab80101000eab800000101080a000f6957000f4246",
+     "3cfdfecc5dc00030a7024ca2080045000070000140004006a52ec0a80a07c0a80a014e20e81200000412000000ab801810006de500000101080a000f6958000f424605641544010000003c6d41c18100000c011702010101c800000093fd05641744010000008b4b820000000000030101c8000000000000d1d60000ffff"
+    ]
+   },
+   "want": [
+    "3cfdfecc5dc00030a7024ca2080045000034000140004006a56ac0a80a07c0a80a014e20e81200000412000000ab80101000eab800000101080a000f6957000f4246",
+    "3cfdfecc5dc00030a7024ca2080045000070000140004006a52ec0a80a07c0a80a014e20e81200000412000000ab801810006de500000101080a000f6958000f424605641544010000003c6d41c18100000c011702010101c800000093fd05641744010000008b4b820000000000030101c8000000000000d1d60000ffff"
+   ],
+   "work": {
+    "action_name": null,
+    "generation": [
+     9
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": {
+    "forbidden": [],
+    "passed": true
+   },
+   "name": "SELECT_T_clock_response_ready_ACK_then_D",
+   "observed": {
+    "forbidden": [],
+    "passed": true
+   },
+   "ok": true,
+   "response_ready_clock_proof": {
+    "ack_release_units": 56684570,
+    "gap_units": 19534,
+    "held_ack_units": 56367186,
+    "passed": true,
+    "response_arrival_units": 56660156,
+    "response_release_units": 56752928
+   },
+   "t_record_count": 8,
+   "t_records": [
+    {
+     "actions": [
+      "t_Ingress.set_params",
+      "t_Ingress.match_epoch",
+      "t_Ingress.clock_sample",
+      "t_Ingress.live_gen",
+      "t_Ingress.held_offsets",
+      "t_Ingress.read_lgen_diff",
+      "t_Ingress.set_ack_go",
+      "t_Ingress.read_ack_completion",
+      "t_Ingress.hold_ack"
+     ],
+     "port": 180,
+     "t_units": 56367187
+    },
+    {
+     "actions": [
+      "t_Ingress.set_params",
+      "t_Ingress.match_epoch",
+      "t_Ingress.clock_sample",
+      "t_Ingress.live_gen",
+      "t_Ingress.held_offsets",
+      "t_Ingress.try_seen0",
+      "t_Ingress.read_lgen_diff",
+      "t_Ingress.set_ack_go",
+      "t_Ingress.read_ack_completion",
+      "t_Ingress.response_done_wait",
+      "t_Ingress.admit_response"
+     ],
+     "port": 180,
+     "t_units": 56660156
+    },
+    {
+     "actions": [
+      "t_Ingress.set_params",
+      "t_Ingress.match_epoch",
+      "t_Ingress.clock_sample",
+      "t_Ingress.live_gen",
+      "t_Ingress.held_offsets",
+      "t_Ingress.read_seen0",
+      "t_Ingress.read_lgen_diff",
+      "t_Ingress.set_ack_go",
+      "t_Ingress.try_ack_completion",
+      "t_Ingress.mark_ack_commit_gen",
+      "t_Ingress.mark_ack_commit_at",
+      "t_Ingress.release_ack_commit"
+     ],
+     "port": 182,
+     "t_units": 56684570
+    },
+    {
+     "actions": [
+      "t_Ingress.set_params",
+      "t_Ingress.match_epoch",
+      "t_Ingress.clock_sample",
+      "t_Ingress.live_gen",
+      "t_Ingress.held_offsets",
+      "t_Ingress.read_seen0",
+      "t_Ingress.read_lgen_diff",
+      "t_Ingress.set_ack_go",
+      "t_Ingress.read_ack_completion",
+      "t_Ingress.read_commit_gen",
+      "t_Ingress.read_gap_delta",
+      "t_Ingress.response_done_commit",
+      "t_Ingress.release_response_counted"
+     ],
+     "port": 182,
+     "t_units": 56752929
+    }
+   ]
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "READ_after_SELECT_cancels_selection_forwarded",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500004d000140004006a551c0a80a01c0a80a07e8124e20000000ab00000411801810009fa200000101080a000f4249000f6958056412c400000100d0bbc2c201010200000f1e010000073a76"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc008004500004d000140004006a551c0a80a01c0a80a07e8124e20000000ab00000411801810009fa200000101080a000f4249000f6958056412c400000100d0bbc2c201010200000f1e010000073a76",
+   "work": {
+    "action_name": null,
+    "generation": [
+     10
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "RST_after_abandoned_SELECT_forwarded",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e20000000c40000041180141000ea9700000101080a000f424a000f6958"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e20000000c40000041180141000ea9700000101080a000f424a000f6958",
+   "work": {
+    "action_name": null,
+    "generation": [
+     10
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": "one exact frame",
+   "name": "new_SYN_after_abandoned_SELECT_admitted",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200000138800000000a002100016920000020405b40402080a000f424b0000000001030307"
+    ],
+    "9": []
+   },
+   "want": "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200000138800000000a002100016920000020405b40402080a000f424b0000000001030307",
+   "work": {
+    "action_name": null,
+    "generation": [
+     11
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  {
+   "characterization": false,
+   "expected": [
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ]
+   ],
+   "name": "N_work_free_after_every_step",
+   "observed": [
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ],
+    [
+     4
+    ]
+   ],
+   "ok": true
+  }
+ ],
+ "meta": {
+  "driver_sha256": "bc2ee0d238f3645204c60488e94dc4e8af800a23ee6701dc5672f1c7a06d5980",
+  "endpoint_profile": {
+   "alternate_tcp_port_fixture": "Unconfigured-connection probes use master source port 59411",
+   "dnp_master": 1,
+   "dnp_relay": 0,
+   "master_dev": 9,
+   "master_ip": "192.168.10.1",
+   "master_mac": "3c:fd:fe:cc:5d:c0",
+   "master_tcp_port": 59410,
+   "master_window_scale": 7,
+   "name": "sel751",
+   "relay_dev": 64,
+   "relay_ip": "192.168.10.7",
+   "relay_mac": "00:30:a7:02:4c:a2",
+   "relay_tcp_port": 20000,
+   "relay_window_scale": 0,
+   "syn_tcp_header_octets": 40,
+   "synack_tcp_header_octets": 44,
+   "tcp_header_octets": 32,
+   "tcp_profile": "sel751_ts",
+   "timestamp_policy": "monotonic logical steps; exact options retained across seq/ack mapping"
+  },
+  "expectations": "results/models/c73_e4_abandon_t1/EXPECTATIONS.json",
+  "gate_driver_sha256": "00059dce369af4017eaf5a657f4476a86323765e1e23eb142419102da8ef919a",
+  "measurement_source": "SDK model action log plus functional BFRT state; no physical switch timing",
+  "model_gate": false,
+  "physical": false,
+  "read_after_select": [
+   {
+    "attempt": 0,
+    "forwarded_exact": true,
+    "waited_s": 0,
+    "work": {
+     "action_name": null,
+     "generation": [
+      10
+     ],
+     "is_default_entry": false,
+     "phase": [
+      4
+     ]
+    }
+   }
+  ],
+  "recovery": {
+   "new_syn_forwarded_exact": true,
+   "rst_forwarded_exact": true,
+   "work": {
+    "action_name": null,
+    "generation": [
+     11
+    ],
+    "is_default_entry": false,
+    "phase": [
+     4
+    ]
+   }
+  },
+  "scenario": "E4_abandoned_SELECT_timing_enabled",
+  "scope": "E4 abandoned SELECT with timing enabled (ABANDON_T=1), contract response_ready_ack_d_no_j_v3; a separate labelled scenario, not part of the model gate",
+  "timed_steps": [
+   [
+    "SYN",
+    [
+     "SYN"
+    ],
+    [],
+    [
+     "SYN"
+    ],
+    "immediate"
+   ],
+   [
+    "SYNACK",
+    [
+     "SYNACK"
+    ],
+    [
+     "SYNACK"
+    ],
+    [],
+    "immediate"
+   ],
+   [
+    "final_ACK",
+    [
+     "final_ACK"
+    ],
+    [],
+    [
+     "final_ACK"
+    ],
+    "immediate"
+   ],
+   [
+    "READ_request",
+    [
+     "READ_request"
+    ],
+    [],
+    [
+     "READ_request"
+    ],
+    "immediate"
+   ],
+   [
+    "READ_ACK_and_response_61",
+    [
+     "READ_server_ACK",
+     "READ_response_61"
+    ],
+    [
+     "READ_server_ACK",
+     "READ_response_61"
+    ],
+    [],
+    "response_ready_D"
+   ],
+   [
+    "SELECT_request",
+    [
+     "SELECT_request"
+    ],
+    [],
+    [
+     "SELECT_request"
+    ],
+    "immediate"
+   ],
+   [
+    "SELECT_ACK_and_response_61",
+    [
+     "SELECT_server_ACK",
+     "SELECT_response_61"
+    ],
+    [
+     "SELECT_server_ACK",
+     "SELECT_response_61"
+    ],
+    [],
+    "response_ready_D"
+   ],
+   [
+    "READ_after_SELECT_cancels_selection_forwarded",
+    [
+     "READ_after_SELECT"
+    ],
+    [],
+    [
+     "READ_after_SELECT"
+    ],
+    "immediate"
+   ],
+   [
+    "RST_after_abandoned_SELECT_forwarded",
+    [
+     "RST"
+    ],
+    [],
+    [
+     "RST"
+    ],
+    "immediate"
+   ],
+   [
+    "new_SYN_after_abandoned_SELECT_admitted",
+    [
+     "new_SYN"
+    ],
+    [],
+    [
+     "new_SYN"
+    ],
+    "immediate"
+   ]
+  ],
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "work_after_select": {
+   "action_name": null,
+   "generation": [
+    9
+   ],
+   "is_default_entry": false,
+   "phase": [
+    4
+   ]
+  }
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [],
+  "passed": 14,
+  "total": 14
+ }
+}

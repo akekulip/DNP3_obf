@@ -1,0 +1,21 @@
+2026-10-29T20:11:02Z
+    PID    PPID STAT     ELAPSED %CPU COMMAND
+     25       1 Sl         00:21  7.6 tofino-model --no-cli -d 1 -k 1 -f /tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c73_review/wtcopy/results/models/c73_e4_abandon_t1/model_abandon_t1_c73_09/ports.json --p4-target-config /tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c73_review/wtcopy/results/models/c73_e4_abandon_t1/model_abandon_t1_c73_09/noagent.conf --install-dir /home/philip/bf-sde-9.13.2/install --chip-type 2 --log-dir . --pkt-log-len 256
+     29       1 Dl         00:18 12.5 bf_switchd --install-dir /home/philip/bf-sde-9.13.2/install --conf-file /tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c73_review/wtcopy/results/models/c73_e4_abandon_t1/model_abandon_t1_c73_09/noagent.conf --init-mode=cold --status-port 7777 --background
+State     Recv-Q    Send-Q       Local Address:Port        Peer Address:Port    Process                                                                         
+LISTEN    0         1024               0.0.0.0:9090             0.0.0.0:*        users:(("bf_switchd",pid=29,fd=11))                                            
+LISTEN    0         1                  0.0.0.0:7777             0.0.0.0:*        users:(("bf_switchd",pid=29,fd=3))                                             
+LISTEN    0         1                  0.0.0.0:8001             0.0.0.0:*        users:(("tofino-model",pid=25,fd=0))                                           
+process 25
+__do_sys_pauseState:	S (sleeping)
+VmRSS:	  519332 kB
+Threads:	14
+process 29
+wait_on_page_bit_commonState:	D (disk sleep)
+VmRSS:	 1657812 kB
+Threads:	9
+7fb4437b3000-7fb4437b4000 r--p 00000000 08:02 53891238                   /tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c73_review/wtcopy/results/models/c73_e4_abandon_t1/model_abandon_t1_c73_09/pagemap_shim.so
+7fb4437b4000-7fb4437b5000 r-xp 00001000 08:02 53891238                   /tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c73_review/wtcopy/results/models/c73_e4_abandon_t1/model_abandon_t1_c73_09/pagemap_shim.so
+7fb4437b5000-7fb4437b6000 r--p 00002000 08:02 53891238                   /tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c73_review/wtcopy/results/models/c73_e4_abandon_t1/model_abandon_t1_c73_09/pagemap_shim.so
+7fb4437b6000-7fb4437b7000 r--p 00002000 08:02 53891238                   /tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c73_review/wtcopy/results/models/c73_e4_abandon_t1/model_abandon_t1_c73_09/pagemap_shim.so
+7fb4437b7000-7fb4437b8000 rw-p 00003000 08:02 53891238                   /tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c73_review/wtcopy/results/models/c73_e4_abandon_t1/model_abandon_t1_c73_09/pagemap_shim.so

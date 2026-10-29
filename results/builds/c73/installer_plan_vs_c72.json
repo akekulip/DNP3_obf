@@ -1,0 +1,63 @@
+{
+ "schema": "c73-installer-plan-check-v1",
+ "method": "tests/hardware/test_diag_runtime.py planned() (offline bringup_composite plan, c72 campaign argv), run on the commit tree (git archive HEAD) and on this worktree",
+ "c72_plan_ops_with_commit_tooling": 36,
+ "c72_plan_ops_with_c73_tooling": 34,
+ "c73_plan_ops_with_c73_tooling": 34,
+ "removed_ops": [
+  {
+   "action": "r_Egress.odd_conn",
+   "data": [
+    [
+     "idx",
+     0
+    ]
+   ],
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238087,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238081,
+     null
+    ]
+   ],
+   "kind": "p4",
+   "pipe": 65535,
+   "priority": null,
+   "table": "p0.r_Egress.odd_ip_t"
+  },
+  {
+   "action": "r_Egress.odd_conn",
+   "data": [
+    [
+     "idx",
+     0
+    ]
+   ],
+   "key": [
+    [
+     "hdr.ip.src",
+     3232238081,
+     null
+    ],
+    [
+     "hdr.ip.dst",
+     3232238087,
+     null
+    ]
+   ],
+   "kind": "p4",
+   "pipe": 65535,
+   "priority": null,
+   "table": "p0.r_Egress.odd_ip_t"
+  }
+ ],
+ "added_ops": [],
+ "remaining_order_preserved": true,
+ "c73_plan_equals_c72_plan_with_c73_tooling": true,
+ "consequence": "scripts/model/cp_base.py no longer emits the two r_Egress.odd_ip_t rows, so every response_only install (model and hardware rows.py) omits them; tests/hardware/test_diag_runtime.py GOLDEN_PLAN_SHA and GOLDEN_C72_DRY_RUN_STDOUT_SHA (recorded for c72) therefore no longer match"
+}

@@ -1,0 +1,247 @@
+{
+ "schema": "current-action-map-review-v1",
+ "source_sha256": "3e7dbb38c0bbd03f7cb0946c4621b043172a6eab3b839be0c1ed6389b4e77b2c",
+ "previous_source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+ "previous_map_sha256": "0f04b0e921cfcf945c86a296dfb87698670fddfcad404fe3a7b5fbabe8cca233",
+ "map_sha256": "8766cca23939e5b41f7dcb329d81f8b727d9f1641ab58f96dc6da1258a37d24b",
+ "numeric_observation_mapping_unchanged_for_retained_actions": true,
+ "changes": {
+  "n_Ingress.next_stage": {
+   "change": "body",
+   "removed_writes": [
+    "m.emit_loop=(bit<1>)(8w1);"
+   ],
+   "observation": "non-counting transition",
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "n_Ingress.terminal_open": {
+   "change": "body",
+   "removed_writes": [
+    "m.emit_loop=(bit<1>)(8w0);"
+   ],
+   "observation": "non-counting transition",
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.armed_map": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_ARM_MAP;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    13
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.armed_nat": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_ARM_NAT;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    14
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.drop_odd": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_DROP_ODD;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    8
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.native": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_NATIVE;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    12
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.out_commit": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_COMMIT;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    1
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.out_replay": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_REPLAY;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    4
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.out_reset_front_rd": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_RESET_FRONT;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    16
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.out_stale": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_STALE;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    5
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.out_translate": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_TRANSLATE;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    2
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.out_zero": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_ZERO;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    3
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.out_zero_img_141": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_ZERO;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    3
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.out_zero_img_158": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_ZERO;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    3
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.out_zero_img_60": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_ZERO;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    3
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.out_zero_img_61": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_ZERO;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    3
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.rev_drop": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_REV_DROP_STALE;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    11
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.rev_translate": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_REV_TRANSLATE;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    9
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.rev_withhold_open": {
+   "change": "body",
+   "removed_writes": [
+    "m.result = r_OUT_REV_WITHHOLD;"
+   ],
+   "observation": [
+    "p0.r_Egress.outcome",
+    10
+   ],
+   "reason": "only writes to never-read metadata removed (no PHV container in c72; m.result never appears in the c72 model logs)"
+  },
+  "r_Egress.rev_withhold_zero": {
+   "change": "removed",
+   "reason": "never selectable: in classify_rev's action list but in no const entry and not the const default",
+   "c72_observation": [
+    "p0.r_Egress.outcome",
+    10
+   ]
+  },
+  "t_Ingress.bypass_request": {
+   "change": "removed",
+   "reason": "uncallable T action (in no table action list); c73 deletes it",
+   "c72_observation": [
+    "p1.t_Ingress.outcomes",
+    13
+   ]
+  },
+  "t_Ingress.stop_blocking_off": {
+   "change": "removed",
+   "reason": "uncallable T action (in no table action list); c73 deletes it",
+   "c72_observation": [
+    "p1.t_Ingress.outcomes",
+    12
+   ]
+  },
+  "t_Ingress.unmatched": {
+   "change": "removed",
+   "reason": "uncallable T action (in no table action list); c73 deletes it",
+   "c72_observation": [
+    "p1.t_Ingress.outcomes",
+    0
+   ]
+  }
+ },
+ "binding": "Exact canonical source hash plus every retained mapped/countless transition action body hash.",
+ "review_result": "accepted for functional model observations; the four removed actions could never execute, so no observed count changes; no physical register meaning is claimed"
+}
