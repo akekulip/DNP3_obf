@@ -1,0 +1,160 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 2, device 0
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS untimed_SYN                        expected=one exact frame observed=1 frames
+PASS untimed_SYNACK                     expected=one exact frame observed=1 frames
+PASS untimed_final_ACK                  expected=one exact frame observed=1 frames
+PASS untimed_lead_READ_request          expected=one exact frame observed=1 frames
+PASS untimed_lead_READ_server_ACK       expected=one exact frame observed=1 frames
+PASS untimed_lead_READ_response_61      expected=one exact frame observed=1 frames
+PASS untimed_cancel_SELECT_request      expected=one exact frame observed=1 frames
+PASS untimed_cancel_SELECT_response_61  expected=one exact frame observed=1 frames
+PASS untimed_cancel_selection_in_effect_owner_0xa expected=10         observed=10
+PASS untimed_cancel_by_READ_request     expected=one exact frame observed=1 frames
+PASS untimed_cancel_by_READ_server_ACK  expected=one exact frame observed=1 frames
+PASS untimed_cancel_by_READ_response_61 expected=one exact frame observed=1 frames
+PASS untimed_cancel_owner_idle          expected=5          observed=5
+PASS untimed_new_sbo_SELECT_request     expected=one exact frame observed=1 frames
+PASS untimed_new_sbo_SELECT_response_61 expected=one exact frame observed=1 frames
+PASS untimed_new_sbo_OPERATE_request    expected=one exact frame observed=1 frames
+PASS untimed_new_sbo_OPERATE_response_61 expected=one exact frame observed=1 frames
+PASS untimed_replace_A_SELECT_request   expected=one exact frame observed=1 frames
+PASS untimed_replace_A_SELECT_response_61 expected=one exact frame observed=1 frames
+PASS untimed_replace_B_SELECT_request   expected=one exact frame observed=1 frames
+PASS untimed_replace_B_SELECT_response_61 expected=one exact frame observed=1 frames
+PASS untimed_replace_B_OPERATE_request  expected=one exact frame observed=1 frames
+PASS untimed_replace_B_OPERATE_response_61 expected=one exact frame observed=1 frames
+PASS untimed_retry_first_SELECT_request expected=one exact frame observed=1 frames
+PASS untimed_retry_first_SELECT_response_61 expected=one exact frame observed=1 frames
+PASS untimed_retry_again_SELECT_retry_request expected=one exact frame observed=1 frames
+PASS untimed_retry_again_SELECT_retry_response_61 expected=one exact frame observed=1 frames
+PASS untimed_retry_same_application_sequence expected=8          observed=8
+PASS untimed_retry_OPERATE_request      expected=one exact frame observed=1 frames
+PASS untimed_retry_OPERATE_response_61  expected=one exact frame observed=1 frames
+PASS untimed_after_retry_READ_request   expected=one exact frame observed=1 frames
+PASS untimed_after_retry_READ_server_ACK expected=one exact frame observed=1 frames
+PASS untimed_after_retry_READ_response_61 expected=one exact frame observed=1 frames
+PASS untimed_old_sel_A_SELECT_request   expected=one exact frame observed=1 frames
+PASS untimed_old_sel_A_SELECT_response_61 expected=one exact frame observed=1 frames
+PASS untimed_old_sel_B_SELECT_request   expected=one exact frame observed=1 frames
+PASS untimed_old_sel_B_SELECT_response_61 expected=one exact frame observed=1 frames
+PASS untimed_replaced_selection_OPERATE_dropped expected=0          observed=0
+PASS untimed_replaced_selection_OPERATE_no_release expected=0          observed=0
+PASS untimed_replaced_selection_OPERATE_no_generation expected=1          observed=1
+PASS untimed_out_of_profile_second_CROB_OPERATE_dropped expected=0          observed=0
+PASS untimed_out_of_profile_OPERATE_no_generation expected=1          observed=1
+PASS untimed_out_of_profile_OPERATE_no_release expected=0          observed=0
+PASS untimed_replaced_RST               expected=one exact frame observed=1 frames
+PASS untimed_after_replaced_SYN         expected=one exact frame observed=1 frames
+PASS untimed_after_replaced_SYNACK      expected=one exact frame observed=1 frames
+PASS untimed_after_replaced_final_ACK   expected=one exact frame observed=1 frames
+PASS untimed_stale_SELECT_request       expected=one exact frame observed=1 frames
+PASS untimed_stale_SELECT_response_61   expected=one exact frame observed=1 frames
+PASS untimed_stale_cancel_READ_request  expected=one exact frame observed=1 frames
+PASS untimed_stale_cancel_READ_server_ACK expected=one exact frame observed=1 frames
+PASS untimed_stale_cancel_READ_response_61 expected=one exact frame observed=1 frames
+PASS untimed_stale_OPERATE_dropped      expected=0          observed=0
+PASS untimed_stale_OPERATE_no_release   expected=0          observed=0
+PASS untimed_stale_OPERATE_no_generation expected=3          observed=3
+PASS untimed_RST                        expected=one exact frame observed=1 frames
+PASS timed_SYN                          expected=one exact frame observed=1 frames
+PASS timed_SYNACK                       expected=one exact frame observed=1 frames
+PASS timed_final_ACK                    expected=one exact frame observed=1 frames
+PASS timed_lead_READ_request            expected=one exact frame observed=1 frames
+PASS timed_lead_READ_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_lead_READ_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_cancel_SELECT_request        expected=one exact frame observed=1 frames
+PASS timed_cancel_SELECT_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_cancel_SELECT_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_cancel_selection_in_effect_owner_0xa expected=10         observed=10
+PASS timed_cancel_by_READ_request       expected=one exact frame observed=1 frames
+PASS timed_cancel_by_READ_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_cancel_by_READ_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_cancel_owner_idle            expected=5          observed=5
+PASS timed_cancel_lane_generations      expected=2          observed=2
+PASS timed_cancel_ACK_commits           expected=2          observed=2
+PASS timed_cancel_response_releases     expected=2          observed=2
+PASS timed_cancel_completed_OPERATE_exchanges expected=0          observed=0
+PASS timed_new_sbo_SELECT_request       expected=one exact frame observed=1 frames
+PASS timed_new_sbo_SELECT_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_new_sbo_SELECT_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_new_sbo_OPERATE_request      expected=one exact frame observed=1 frames
+PASS timed_new_sbo_OPERATE_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_new_sbo_OPERATE_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_new_sbo_lane_generations     expected=2          observed=2
+PASS timed_new_sbo_ACK_commits          expected=2          observed=2
+PASS timed_new_sbo_response_releases    expected=2          observed=2
+PASS timed_new_sbo_completed_OPERATE_exchanges expected=1          observed=1
+PASS timed_replace_A_SELECT_request     expected=one exact frame observed=1 frames
+PASS timed_replace_A_SELECT_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_replace_A_SELECT_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_replace_B_SELECT_request     expected=one exact frame observed=1 frames
+PASS timed_replace_B_SELECT_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_replace_B_SELECT_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_replace_B_OPERATE_request    expected=one exact frame observed=1 frames
+PASS timed_replace_B_OPERATE_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_replace_B_OPERATE_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_replace_lane_generations     expected=3          observed=3
+PASS timed_replace_ACK_commits          expected=3          observed=3
+PASS timed_replace_response_releases    expected=3          observed=3
+PASS timed_replace_completed_OPERATE_exchanges expected=1          observed=1
+PASS timed_retry_first_SELECT_request   expected=one exact frame observed=1 frames
+PASS timed_retry_first_SELECT_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_retry_first_SELECT_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_retry_again_SELECT_retry_request expected=one exact frame observed=1 frames
+PASS timed_retry_again_SELECT_retry_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_retry_again_SELECT_retry_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_retry_same_application_sequence expected=8          observed=8
+PASS timed_retry_OPERATE_request        expected=one exact frame observed=1 frames
+PASS timed_retry_OPERATE_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_retry_OPERATE_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_retry_lane_generations       expected=3          observed=3
+PASS timed_retry_ACK_commits            expected=3          observed=3
+PASS timed_retry_response_releases      expected=3          observed=3
+PASS timed_retry_completed_OPERATE_exchanges expected=1          observed=1
+PASS timed_after_retry_READ_request     expected=one exact frame observed=1 frames
+PASS timed_after_retry_READ_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_after_retry_READ_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_old_sel_A_SELECT_request     expected=one exact frame observed=1 frames
+PASS timed_old_sel_A_SELECT_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_old_sel_A_SELECT_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_old_sel_B_SELECT_request     expected=one exact frame observed=1 frames
+PASS timed_old_sel_B_SELECT_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_old_sel_B_SELECT_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_replaced_selection_OPERATE_dropped expected=0          observed=0
+PASS timed_replaced_selection_OPERATE_no_release expected=0          observed=0
+PASS timed_replaced_selection_OPERATE_no_generation expected=19         observed=19
+PASS timed_out_of_profile_second_CROB_OPERATE_dropped expected=0          observed=0
+PASS timed_out_of_profile_OPERATE_no_generation expected=19         observed=19
+PASS timed_out_of_profile_OPERATE_no_release expected=0          observed=0
+PASS timed_replaced_RST                 expected=one exact frame observed=1 frames
+PASS timed_after_replaced_SYN           expected=one exact frame observed=1 frames
+PASS timed_after_replaced_SYNACK        expected=one exact frame observed=1 frames
+PASS timed_after_replaced_final_ACK     expected=one exact frame observed=1 frames
+PASS timed_stale_SELECT_request         expected=one exact frame observed=1 frames
+PASS timed_stale_SELECT_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_stale_SELECT_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_stale_cancel_READ_request    expected=one exact frame observed=1 frames
+PASS timed_stale_cancel_READ_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS timed_stale_cancel_READ_T_clock_response_ready_ACK_then_D expected=True       observed=True
+PASS timed_stale_OPERATE_dropped        expected=0          observed=0
+PASS timed_stale_OPERATE_no_release     expected=0          observed=0
+PASS timed_stale_OPERATE_no_generation  expected=23         observed=23
+PASS timed_RST                          expected=one exact frame observed=1 frames
+PASS after_SYN                          expected=one exact frame observed=1 frames
+PASS after_SYNACK                       expected=one exact frame observed=1 frames
+PASS after_final_ACK                    expected=one exact frame observed=1 frames
+PASS after_reconnect_READ_request       expected=one exact frame observed=1 frames
+PASS after_reconnect_READ_genuine_ACK_and_complete_response expected=exact ACK then whole response observed=2
+PASS after_reconnect_READ_T_clock_response_ready_ACK_then_D expected=True       observed=True
+SUMMARY {'total': 146, 'passed': 146, 'failed': []}
+COMPANION on model_select_lifecycle.py driver_exit 0 {"every_copy_matches_a_relay_frame": true, "every_relay_frame_copied": true} {'dev9_injected': 53, 'dev9_emitted': 59, 'dev64_injected': 59, 'dev64_emitted': 47, 'dev10_copies': 106} {'emitted_exact': 47, 'injected_exact': 59, 'injected_min_padding': 0} relay egress drops 2
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

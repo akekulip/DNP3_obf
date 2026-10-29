@@ -1,0 +1,327 @@
+{
+ "schema": "c72-diag-mirror-companion-summary-v1",
+ "build": "c72_diag_mirror",
+ "source_sha256": "a46cc55a73a77dfa5691e292451d18d4ec663a04fb5f07b39c6e91915010d437",
+ "observation": "SDK tofino-model functional output; not hardware, not timing",
+ "drivers": {
+  "smoke": {
+   "absent": {
+    "passed": true,
+    "checks": {
+     "no_copies": true
+    },
+    "counts": {
+     "dev9_injected": 8,
+     "dev9_emitted": 5,
+     "dev64_injected": 5,
+     "dev64_emitted": 8,
+     "dev10_copies": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 0
+   },
+   "on": {
+    "passed": true,
+    "checks": {
+     "every_copy_matches_a_relay_frame": true,
+     "every_relay_frame_copied": true
+    },
+    "counts": {
+     "dev9_injected": 8,
+     "dev9_emitted": 5,
+     "dev64_injected": 5,
+     "dev64_emitted": 8,
+     "dev10_copies": 13
+    },
+    "copy_kinds": {
+     "emitted_exact": 8,
+     "injected_exact": 5,
+     "injected_min_padding": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 0,
+    "egress_drops_by_port": {},
+    "unmatched_copies": [],
+    "uncopied": []
+   },
+   "forwarding_vs_absent": {
+    "dev64_emitted": "identical_order",
+    "dev64_injected": "identical_order",
+    "dev9_emitted": "identical_order",
+    "dev9_injected": "identical_order"
+   },
+   "driver_verdicts_identical": {
+    "smoke_results.json": true
+   },
+   "passed": true
+  },
+  "relay_sbo": {
+   "absent": {
+    "passed": true,
+    "checks": {
+     "no_copies": true
+    },
+    "counts": {
+     "dev9_injected": 309,
+     "dev9_emitted": 297,
+     "dev64_injected": 297,
+     "dev64_emitted": 300,
+     "dev10_copies": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 0
+   },
+   "on": {
+    "passed": true,
+    "checks": {
+     "every_copy_matches_a_relay_frame": true,
+     "every_relay_frame_copied": true
+    },
+    "counts": {
+     "dev9_injected": 309,
+     "dev9_emitted": 297,
+     "dev64_injected": 297,
+     "dev64_emitted": 300,
+     "dev10_copies": 597
+    },
+    "copy_kinds": {
+     "emitted_exact": 300,
+     "injected_exact": 297,
+     "injected_min_padding": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 0,
+    "egress_drops_by_port": {},
+    "unmatched_copies": [],
+    "uncopied": []
+   },
+   "forwarding_vs_absent": {
+    "dev64_emitted": "identical_order",
+    "dev64_injected": "identical_order",
+    "dev9_emitted": "identical_order",
+    "dev9_injected": "identical_order"
+   },
+   "driver_verdicts_identical": {
+    "relay_sbo_results.json": true
+   },
+   "passed": true
+  },
+  "packets": {
+   "absent": {
+    "passed": false,
+    "checks": {
+     "no_copies": true
+    },
+    "counts": {
+     "dev9_injected": 84,
+     "dev9_emitted": 81,
+     "dev64_injected": 81,
+     "dev64_emitted": 84,
+     "dev10_copies": 0
+    },
+    "driver_exit": 1,
+    "relay_egress_drops": 0
+   },
+   "on": {
+    "passed": true,
+    "checks": {
+     "every_copy_matches_a_relay_frame": true,
+     "every_relay_frame_copied": true
+    },
+    "counts": {
+     "dev9_injected": 348,
+     "dev9_emitted": 243,
+     "dev64_injected": 246,
+     "dev64_emitted": 344,
+     "dev10_copies": 590
+    },
+    "copy_kinds": {
+     "emitted_exact": 344,
+     "injected_exact": 246,
+     "injected_min_padding": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 0,
+    "egress_drops_by_port": {
+     "r_Egress.drop_lifetime@9": 3
+    },
+    "unmatched_copies": [],
+    "uncopied": []
+   },
+   "forwarding_vs_absent": {
+    "dev64_emitted": "different",
+    "dev64_injected": "different",
+    "dev9_emitted": "different",
+    "dev9_injected": "different"
+   },
+   "driver_verdicts_identical": {
+    "packet_results.json": false
+   },
+   "passed": false
+  },
+  "select_lifecycle": {
+   "absent": {
+    "passed": true,
+    "checks": {
+     "no_copies": true
+    },
+    "counts": {
+     "dev9_injected": 53,
+     "dev9_emitted": 59,
+     "dev64_injected": 59,
+     "dev64_emitted": 47,
+     "dev10_copies": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 2
+   },
+   "on": {
+    "passed": true,
+    "checks": {
+     "every_copy_matches_a_relay_frame": true,
+     "every_relay_frame_copied": true
+    },
+    "counts": {
+     "dev9_injected": 53,
+     "dev9_emitted": 59,
+     "dev64_injected": 59,
+     "dev64_emitted": 47,
+     "dev10_copies": 106
+    },
+    "copy_kinds": {
+     "emitted_exact": 47,
+     "injected_exact": 59,
+     "injected_min_padding": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 2,
+    "egress_drops_by_port": {
+     "r_Egress.drop_lifetime@64": 2
+    },
+    "unmatched_copies": [],
+    "uncopied": []
+   },
+   "forwarding_vs_absent": {
+    "dev64_emitted": "identical_order",
+    "dev64_injected": "identical_order",
+    "dev9_emitted": "identical_order",
+    "dev9_injected": "identical_order"
+   },
+   "driver_verdicts_identical": {
+    "select_lifecycle_results.json": true
+   },
+   "passed": true
+  },
+  "two_read_robust": {
+   "absent": {
+    "passed": true,
+    "checks": {
+     "no_copies": true
+    },
+    "counts": {
+     "dev9_injected": 87,
+     "dev9_emitted": 67,
+     "dev64_injected": 69,
+     "dev64_emitted": 81,
+     "dev10_copies": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 6
+   },
+   "on": {
+    "passed": true,
+    "checks": {
+     "every_copy_matches_a_relay_frame": true,
+     "every_relay_frame_copied": true
+    },
+    "counts": {
+     "dev9_injected": 87,
+     "dev9_emitted": 67,
+     "dev64_injected": 69,
+     "dev64_emitted": 81,
+     "dev10_copies": 150
+    },
+    "copy_kinds": {
+     "emitted_exact": 81,
+     "injected_exact": 69,
+     "injected_min_padding": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 6,
+    "egress_drops_by_port": {
+     "r_Egress.drop_lifetime@9": 2,
+     "r_Egress.drop_lifetime@64": 6
+    },
+    "unmatched_copies": [],
+    "uncopied": []
+   },
+   "forwarding_vs_absent": {
+    "dev64_emitted": "identical_order",
+    "dev64_injected": "identical_order",
+    "dev9_emitted": "identical_order",
+    "dev9_injected": "identical_order"
+   },
+   "driver_verdicts_identical": {
+    "robust_results.json": true
+   },
+   "passed": true
+  },
+  "response_ready": {
+   "absent": {
+    "passed": true,
+    "checks": {
+     "no_copies": true
+    },
+    "counts": {
+     "dev9_injected": 403,
+     "dev9_emitted": 289,
+     "dev64_injected": 298,
+     "dev64_emitted": 394,
+     "dev10_copies": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 0
+   },
+   "on": {
+    "passed": true,
+    "checks": {
+     "every_copy_matches_a_relay_frame": true,
+     "every_relay_frame_copied": true
+    },
+    "counts": {
+     "dev9_injected": 403,
+     "dev9_emitted": 289,
+     "dev64_injected": 298,
+     "dev64_emitted": 394,
+     "dev10_copies": 692
+    },
+    "copy_kinds": {
+     "emitted_exact": 394,
+     "injected_exact": 298,
+     "injected_min_padding": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 0,
+    "egress_drops_by_port": {
+     "r_Egress.drop_lifetime@9": 1,
+     "r_Egress.out_drop@9": 1
+    },
+    "unmatched_copies": [],
+    "uncopied": []
+   },
+   "forwarding_vs_absent": {
+    "dev64_emitted": "identical_order",
+    "dev64_injected": "identical_order",
+    "dev9_emitted": "identical_order",
+    "dev9_injected": "identical_order"
+   },
+   "driver_verdicts_identical": {
+    "response_ready_results.json": false
+   },
+   "passed": false
+  }
+ },
+ "companion_sha256": "1f7ada95d3b6b6d87baf12ed595632b6da84d6a8a7b5857c92970391bb051fd1",
+ "runner_sha256": "70fc34d332ad92d044c465b6ed5b71f4b6dfbb1608b6e42e75423114128a2fc7",
+ "passed": false
+}

@@ -1,0 +1,112 @@
+--- a/p4/response_only.p4
++++ b/results/builds/c72_diag_mirror/response_only.p4
+@@ -80,6 +80,12 @@
+ const PortId_t n_N_ACK_RETURN=9w48; /* dev48, pipe0 local48: front-panel ACK-normalization return, configured for MAC loopback. */
+ const bit<32> n_RETRY_BUDGET=32;
+ const PortId_t n_READ_HANDOFF_PORT=9w180; /* N-to-T handoff at dev180; matches t_T_IN. */
++/* DIAG MIRROR (c72_diag_mirror only; scripts/build_diag_mirror.py, never in p4/response_only.p4): every frame received on
++   n_DIAG_RELAY_PORT is copied as received (TNA ingress mirror) to session n_DIAG_SESSION_RX. */
++const MirrorType_t n_DIAG_MIRROR_TYPE=1;
++const PortId_t n_DIAG_RELAY_PORT=9w64;
++const MirrorId_t n_DIAG_SESSION_RX=10w101;
++const MirrorId_t n_DIAG_NO_SESSION=10w0;
+ header n_dl_h{bit<16> magic;bit<8> len;bit<8> ctrl;bit<16> dst;bit<16> src;bit<16> crc;}
+ header n_block_h{bit<32> w0;bit<32> w1;bit<32> w2;bit<32> w3;bit<16> crc;}
+ header n_tail_h{bit<16> off;bit<8> status;bit<8> index2;bit<8> code2;bit<8> count2;bit<32> on2;bit<32> off2;bit<8> status2;bit<16> crc;}
+@@ -107,7 +113,7 @@
+ header n_expected_cell_h{bit<32> expected_cell;}
+ header n_event_h{bit<8> phase;bit<8> code;bit<16> reserved;}
+ struct n_headers_t{n_envelope_h envelope;n_work_generation_h work_generation;n_expected_cell_h expected_cell;n_event_h event;n_t0_h t0;n_ack_origin_h origin;n_eth_h eth;n_ip_h ip;n_tcp_h tcp;n_mss_h mss;n_opt12_h tso;n_opt4_h hs0;n_opt4_h hs1;n_opt4_h hs2;n_opt4_h oa;n_opt4_h ob;n_ts_word_h rts0;n_ts_word_h rts1;n_ts_body_h rts;n_dl_h dl;n_block_h first;n_block_h second;n_tail_h tail;n_response_tail_h response_tail;n_rtail_h rtail;n_cstatus_h cstatus;n_read_req_h rd_req;n_read_req_full_h rd_req_full;n_read_req_mx_h rd_req_mx;n_read_tail_h rd_tail;n_replay_h rb;}
+-struct n_meta_t{bit<32> wire_ack;bit<32> normalized_epoch;bit<1> same_syn;bit<1> lap;bit<1> committed;bit<32> next_owner_gen;bit<8> cache_mode;bit<8> association_allowed;bit<1> response;bit<1> matched;bit<8> operate_qualified;bit<32> prefix_difference;bit<32> accepted_diff;bit<16> crc1;bit<1> bad1;bit<32> compare_real_links;bit<8> diff_real_links;bit<32> compare_real_tcp_dst;bit<8> diff_real_tcp_dst;bit<32> compare_real_tcp_ports;bit<32> compare_native_start;bit<32> compare_native_end;bit<8> diff_native_end;bit<32> compare_server_start;bit<32> compare_application;bit<16> diff_application;bit<32> compare_frozen_decoy_object;bit<32> diff_frozen_decoy_object;bit<32> compare_frozen_decoy_on;bit<32> compare_frozen_decoy_off;bit<32> diff_frozen_decoy_off;bit<32> context_generation;bit<32> native_end;bit<1> enabled;bit<8> profile;bit<1> changed;bit<16> tcp_length;bit<16> decoy_index;bit<8> decoy_code;bit<8> decoy_repeat;bit<32> decoy_on;bit<32> decoy_off;bit<16> hcrc;bit<16> bcrc;bit<16> tcrc;bit<1> badh;bit<1> badb;bit<1> badt;bit<1> return_abort;bit<1> data_valid;bit<32> ack_native;bit<32> expected_work_phase;bit<1> go;bit<16> link_dst;bit<16> link_src;bit<32> compare_read_app;bit<1> parsed;bit<1> port_valid;bit<2> direction;bit<1> network_valid;bit<1> shape_valid;bit<8> packet_kind;bit<2> stage;bit<8> kind;bit<8> work_op;bit<1> owner_op;bit<1> epoch_valid;bit<1> emit_loop;PortId_t output_port;bool ip_error;bit<16> tcp_sum;bit<32> counter;bit<32> generation;bit<32> work_phase;bit<32> epoch;bit<32> client;bit<32> server;bit<32> new_seq;bit<32> client_diff;bit<32> server_diff;bit<32> epoch_diff;bit<32> expected;bit<32> desired;bit<32> observed;bit<32> owner_diff;bit<2> retry;}
++struct n_meta_t{bit<32> wire_ack;bit<32> normalized_epoch;bit<1> same_syn;bit<1> lap;bit<1> committed;bit<32> next_owner_gen;bit<8> cache_mode;bit<8> association_allowed;bit<1> response;bit<1> matched;bit<8> operate_qualified;bit<32> prefix_difference;bit<32> accepted_diff;bit<16> crc1;bit<1> bad1;bit<32> compare_real_links;bit<8> diff_real_links;bit<32> compare_real_tcp_dst;bit<8> diff_real_tcp_dst;bit<32> compare_real_tcp_ports;bit<32> compare_native_start;bit<32> compare_native_end;bit<8> diff_native_end;bit<32> compare_server_start;bit<32> compare_application;bit<16> diff_application;bit<32> compare_frozen_decoy_object;bit<32> diff_frozen_decoy_object;bit<32> compare_frozen_decoy_on;bit<32> compare_frozen_decoy_off;bit<32> diff_frozen_decoy_off;bit<32> context_generation;bit<32> native_end;bit<1> enabled;bit<8> profile;bit<1> changed;bit<16> tcp_length;bit<16> decoy_index;bit<8> decoy_code;bit<8> decoy_repeat;bit<32> decoy_on;bit<32> decoy_off;bit<16> hcrc;bit<16> bcrc;bit<16> tcrc;bit<1> badh;bit<1> badb;bit<1> badt;bit<1> return_abort;bit<1> data_valid;bit<32> ack_native;bit<32> expected_work_phase;bit<1> go;bit<16> link_dst;bit<16> link_src;bit<32> compare_read_app;bit<1> parsed;bit<1> port_valid;bit<2> direction;bit<1> network_valid;bit<1> shape_valid;bit<8> packet_kind;bit<2> stage;bit<8> kind;bit<8> work_op;bit<1> owner_op;bit<1> epoch_valid;bit<1> emit_loop;PortId_t output_port;bool ip_error;bit<16> tcp_sum;bit<32> counter;bit<32> generation;bit<32> work_phase;bit<32> epoch;bit<32> client;bit<32> server;bit<32> new_seq;bit<32> client_diff;bit<32> server_diff;bit<32> epoch_diff;bit<32> expected;bit<32> desired;bit<32> observed;bit<32> owner_diff;bit<2> retry;MirrorId_t diag_ses;}
+ parser n_IgParser(packet_in pkt,out n_headers_t hdr,out n_meta_t m,out ingress_intrinsic_metadata_t ig){
+  Checksum() ic;Checksum() tc;
+  state start{pkt.extract(ig);pkt.advance(PORT_METADATA_SIZE);m.retry=2w0;m.wire_ack=32w0;m.normalized_epoch=32w0;m.same_syn=(bit<1>)(8w0);m.lap=(bit<1>)(8w0);m.committed=(bit<1>)(8w0);m.parsed=(bit<1>)(8w0);m.enabled=(bit<1>)(8w0);m.profile=8w0;m.response=(bit<1>)(8w0);m.matched=(bit<1>)(8w0);m.data_valid=(bit<1>)(8w0);m.cache_mode=8w0;m.badh=(bit<1>)(8w0);m.badb=(bit<1>)(8w0);m.bad1=(bit<1>)(8w0);m.badt=(bit<1>)(8w0);m.stage=(bit<2>)(8w0);m.kind=8w0;m.port_valid=(bit<1>)(8w0);m.direction=(bit<2>)(8w0);m.network_valid=(bit<1>)(8w0);m.shape_valid=(bit<1>)(8w0);m.epoch_valid=(bit<1>)(8w0);m.emit_loop=(bit<1>)(8w0);transition select(ig.ingress_port){n_RETURN_PORT:envelope;n_N_ACK_RETURN:normalized;default:native_prefix;}}
+@@ -218,6 +224,8 @@
+ @pa_solitary("ingress","m.diff_real_links")
+ @pa_solitary("ingress", "m.diff_real_tcp_dst")
+ @pa_solitary("ingress", "m.diff_native_end")
++@pa_no_overlay("ingress", "ig_intr_md_for_dprsr.mirror_type")   /* DIAG MIRROR: unwritten value must stay 0 */
++@pa_no_overlay("ingress", "m.diag_ses")
+ control n_Ingress(inout n_headers_t hdr,inout n_meta_t m,in ingress_intrinsic_metadata_t ig,in ingress_intrinsic_metadata_from_parser_t p,inout ingress_intrinsic_metadata_for_deparser_t md,inout ingress_intrinsic_metadata_for_tm_t tm){
+  n_ExpectedWorkRecord() work;
+  Register<bit<32>,bit<1>>(1,0) counter;
+@@ -528,6 +536,9 @@
+ table guard{key={m.stage:ternary;m.packet_kind:ternary;m.kind:ternary;m.direction:ternary;m.shape_valid:ternary;m.enabled:ternary;m.profile:ternary;m.badh:ternary;m.hcrc:ternary;m.bcrc:ternary;m.crc1:ternary;m.tcrc:ternary;m.output_port:ternary;m.retry:ternary;}
+ actions={go_new;go_keep;go_ret_work;go_ret_nowork;go_ret_abort;go_retry;go_stale;refuse_n_ack_return;NoAction;}size=54;const default_action=NoAction();const entries={(_,8w5,8w24,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,_,16w0x993a,_,_):go_ret_work();(_,8w9,8w24,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,_,_,_,_):go_ret_work();(2w0,8w6,8w0,2w2,1w1,1w1,8w1,1w0,16w0x993a,16w0x993a,16w0x993a,16w0x993a,_,2w1):go_retry(8w6);(2w0,8w11,8w0,2w2,1w1,1w1,8w1,1w0,16w0x993a,16w0x993a,16w0x993a,16w0x993a,_,2w1):go_retry(8w11);(2w0,8w4,8w0,2w1,1w1,_,_,_,_,_,_,_,_,2w1):go_keep(8w4);(2w0,8w4,8w0,2w2,1w1,_,_,_,_,_,_,_,_,2w1):go_keep(8w4);(2w0,8w3,8w0,2w1,1w1,_,_,_,_,_,_,_,_,2w1):go_retry(8w3);(2w0,8w3,8w0,2w2,1w1,_,_,_,_,_,_,_,_,2w1):go_retry(8w10);(_,_,_,_,_,_,_,_,_,_,_,_,_,2w1):go_stale();(_,_,_,_,_,_,_,_,_,_,_,_,_,2w2):go_stale();(_,_,_,_,_,_,_,_,_,_,_,_,n_N_ACK_RETURN,_):refuse_n_ack_return();(_,8w5,8w8,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,_,16w0x993a,_,_):go_ret_work();(_,8w6,8w8,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,16w0x993a,16w0x993a,_,_):go_ret_work();(_,8w6,8w25,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,16w0x993a,16w0x993a,_,_):go_ret_work();(_,8w7,8w8,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,_,16w0x993a,_,_):go_ret_work();(_,8w7,8w24,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,_,16w0x993a,_,_):go_ret_work();(_,8w9,8w8,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,_,_,_,_):go_ret_work();(_,8w11,8w8,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,16w0x993a,16w0x993a,_,_):go_ret_work();(_,8w11,8w25,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,16w0x993a,16w0x993a,_,_):go_ret_work();(2w1,_,_,2w0,_,_,_,_,_,_,_,_,_,_):go_ret_abort();(2w2,_,_,2w0,_,_,_,_,_,_,_,_,_,_):go_ret_abort();(2w3,_,_,2w0,_,_,_,_,_,_,_,_,_,_):go_ret_abort();(2w0,8w1,8w0,2w1,1w1,_,_,_,_,_,_,_,_,_):go_new(8w1);(2w0,8w2,8w0,2w2,1w1,_,_,_,_,_,_,_,_,_):go_new(8w2);(2w0,8w3,8w0,2w1,1w1,_,_,_,_,_,_,_,_,_):go_new(8w3);(2w0,8w4,8w0,2w1,1w1,_,_,_,_,_,_,_,_,_):go_keep(8w4);(2w0,8w4,8w0,2w2,1w1,_,_,_,_,_,_,_,_,_):go_keep(8w4);(2w0,8w5,8w0,2w1,1w1,1w1,8w1,1w0,16w0x993a,16w0x993a,_,16w0x993a,_,_):go_new(8w5);(2w0,8w6,8w0,2w2,1w1,1w1,8w1,1w0,16w0x993a,16w0x993a,16w0x993a,16w0x993a,_,_):go_new(8w6);(2w0,8w7,8w0,2w1,1w1,1w1,8w1,1w0,16w0x993a,16w0x993a,_,16w0x993a,_,_):go_new(8w7);(2w0,8w9,8w0,2w1,1w1,1w1,8w1,1w0,16w0x993a,16w0x993a,_,_,_,_):go_new(8w9);(2w0,8w11,8w0,2w2,1w1,1w1,8w1,1w0,16w0x993a,16w0x993a,16w0x993a,16w0x993a,_,_):go_new(8w11);(2w0,8w3,8w0,2w2,1w1,_,_,_,_,_,_,_,_,_):go_new(8w10);(2w0,8w12,8w0,2w1,1w1,_,_,_,_,_,_,_,_,_):go_new(8w12);(_,8w1,8w1,_,_,_,_,_,_,_,_,_,_,_):go_ret_work();(_,8w2,8w2,_,_,_,_,_,_,_,_,_,_,_):go_ret_work();(_,8w3,8w3,_,_,_,_,_,_,_,_,_,_,_):go_ret_work();(_,8w4,8w4,_,_,_,_,_,_,_,_,_,_,_):go_ret_nowork();(_,8w5,8w5,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,_,16w0x993a,_,_):go_ret_work();(_,8w6,8w6,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,16w0x993a,16w0x993a,_,_):go_ret_work();(_,8w7,8w7,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,_,16w0x993a,_,_):go_ret_work();(_,8w1,8w8,_,_,_,_,_,_,_,_,_,_,_):go_ret_work();(_,8w2,8w8,_,_,_,_,_,_,_,_,_,_,_):go_ret_work();(_,8w3,8w8,_,_,_,_,_,_,_,_,_,_,_):go_ret_work();(_,8w3,8w17,_,_,_,_,_,_,_,_,_,_,_):go_ret_work();(_,8w9,8w9,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,_,_,_,_):go_ret_work();(_,8w3,8w10,_,_,_,_,_,_,_,_,_,_,_):go_ret_work();(_,8w11,8w11,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,16w0x993a,16w0x993a,_,_):go_ret_work();(_,8w6,8w16,_,_,1w1,8w1,1w0,16w0x993a,16w0x993a,16w0x993a,16w0x993a,_,_):go_ret_work();(_,8w12,8w12,_,_,_,_,_,_,_,_,_,_,_):go_ret_work();(_,_,8w255,_,_,_,_,_,_,_,_,_,_,_):go_ret_work();(2w1,_,_,_,_,_,_,_,_,_,_,_,_,_):go_ret_abort();(2w2,_,_,_,_,_,_,_,_,_,_,_,_,_):go_ret_abort();(2w3,_,_,_,_,_,_,_,_,_,_,_,_,_):go_ret_abort();}}
+  apply{
++  /* DIAG MIRROR: always select mirror entry 1, never bf-p4c's type-0 entry (see t_NO_MIRROR_SESSION); session 0 = no copy. */
++  md.mirror_type=n_DIAG_MIRROR_TYPE;m.diag_ses=n_DIAG_NO_SESSION;
++  if(ig.ingress_port==n_DIAG_RELAY_PORT){m.diag_ses=n_DIAG_SESSION_RX;}
+   m.return_abort=(bit<1>)(8w0);m.work_op=8w0;m.owner_op=(bit<1>)(8w0);m.generation=32w0;m.expected=hdr.expected_cell.expected_cell;m.desired=32w0;m.go=(bit<1>)(8w0);m.owner_diff=32w1;m.expected_work_phase=(bit<32>)(bit<8>)m.stage;
+   connection.apply();retry_epoch_t.apply();crc_t.apply();
+    if(m.packet_kind==8w5||m.packet_kind==8w6||m.packet_kind==8w7){
+@@ -572,7 +583,7 @@
+   }else if((bit<8>)m.stage!=8w0||m.retry!=2w0){deny();}
+  }
+ }
+-control n_IgDeparser(packet_out pkt,inout n_headers_t hdr,in n_meta_t m,in ingress_intrinsic_metadata_for_deparser_t md){apply{pkt.emit(hdr);}}
++control n_IgDeparser(packet_out pkt,inout n_headers_t hdr,in n_meta_t m,in ingress_intrinsic_metadata_for_deparser_t md){Mirror() n_diag_mirror;apply{if(md.mirror_type==n_DIAG_MIRROR_TYPE){n_diag_mirror.emit(m.diag_ses);}pkt.emit(hdr);}}
+ parser n_EgParser(packet_in pkt,out n_headers_t hdr,out n_meta_t m,out egress_intrinsic_metadata_t eg){state start{pkt.extract(eg);transition accept;}}
+ control n_Egress(inout n_headers_t hdr,inout n_meta_t m,in egress_intrinsic_metadata_t eg,in egress_intrinsic_metadata_from_parser_t p,inout egress_intrinsic_metadata_for_deparser_t md,inout egress_intrinsic_metadata_for_output_port_t port){apply{}}
+ control n_EgDeparser(packet_out pkt,inout n_headers_t hdr,in n_meta_t m,in egress_intrinsic_metadata_for_deparser_t md){apply{}}
+@@ -617,6 +628,14 @@
+ const bit<8> r_OUT_DROP_MERGED = 15; const bit<8> r_OUT_RESET_FRONT = 16;   // replay with a native suffix: not checksummable in one pass (spec 10)
+ 
+ const bit<32> r_IMAGE_LEN = 61;
++/* DIAG MIRROR (c72_diag_mirror only): every frame that leaves on r_DIAG_RELAY_PORT and is not dropped is copied as
++   emitted (TNA egress mirror) to session r_DIAG_SESSION_TX. Both diagnostic sessions send their copies to
++   r_DIAG_COPY_PORT, which r_EgParser does not parse (default: accept): no header, register or mirror there. */
++const MirrorType_t r_DIAG_MIRROR_TYPE = 1;
++const PortId_t r_DIAG_RELAY_PORT = 9w64;
++const PortId_t r_DIAG_COPY_PORT = 9w10;
++const MirrorId_t r_DIAG_SESSION_TX = 10w102;
++const MirrorId_t r_DIAG_NO_SESSION = 10w0;
+ 
+ typedef bit<4> r_slot_t;
+ struct r_pair32 { bit<32> lo; bit<32> hi; }
+@@ -675,6 +694,7 @@
+     bit<1> read_shape; bit<1> ctl_shape;
+     bit<16> in_dl; bit<16> in_rb0; bit<16> in_rb1; bit<16> in_rt; bit<16> in_cb0; bit<16> in_ct;
+     bit<1> badh; bit<1> rbad0; bit<1> rbad1; bit<1> rbadt; bit<1> cbad0; bit<1> cbadt;
++    MirrorId_t diag_ses;   /* DIAG MIRROR */
+ }
+ /* Same reason as in case4_pad58b_wire.p4: independent single-bit writers must not share a container. */
+ @pa_solitary("egress","m.read_shape") @pa_solitary("egress","m.ctl_shape")
+@@ -816,6 +836,8 @@
+ @pa_no_pack("egress","hdr.ip.checksum.$deparse_updated_csum_0","hdr.tcp.checksum.$deparse_original_csum")
+ @pa_no_pack("egress","hdr.ip.checksum.$deparse_updated_csum_0","hdr.tcp.checksum.$deparse_updated_csum_0")
+ @pa_no_pack("egress","hdr.ip.checksum.$deparse_updated_csum_0","hdr.tcp.checksum.$deparse_updated_csum_1")
++@pa_no_overlay("egress", "eg_intr_md_for_dprsr.mirror_type")   /* DIAG MIRROR: unwritten value must stay 0 */
++@pa_no_overlay("egress", "m.diag_ses")
+ control r_Egress(inout r_headers_t hdr, inout r_meta_t m, in egress_intrinsic_metadata_t eg,
+                in egress_intrinsic_metadata_from_parser_t prs, inout egress_intrinsic_metadata_for_deparser_t md,
+                inout egress_intrinsic_metadata_for_output_port_t port) {
+@@ -1232,6 +1254,8 @@
+     }
+ 
+     apply {
++        /* DIAG MIRROR: always select mirror entry 1 (session 0 = no copy); the session is chosen at the end. */
++        md.mirror_type = r_DIAG_MIRROR_TYPE;
+         /* stage 0 */
+         conn.apply();
+         normalization_ack_t.apply(); prepare_open_t.apply();
+@@ -1286,12 +1310,18 @@
+             else if (hdr.prov.kind == 8w0xe0) { unbound_normalization(); }
+             else { strip_provenance(); }
+         }
++        /* DIAG MIRROR: copy only a frame that leaves on the relay port. drop_ctl bit 0 drops the frame but does not
++           stop an egress mirror copy (tofino1_base.p4: bit 2 does), so a dropped frame must not name a session. */
++        if (eg.egress_port == r_DIAG_RELAY_PORT && md.drop_ctl[0:0] == 1w0) { m.diag_ses = r_DIAG_SESSION_TX; }
++        else { m.diag_ses = r_DIAG_NO_SESSION; }
+     }
+ }
+ 
+ control r_EgDeparser(packet_out pkt, inout r_headers_t hdr, in r_meta_t m, in egress_intrinsic_metadata_for_deparser_t md) {
+     Checksum() ip_new; Checksum() tcp_plain; Checksum() tcp_read; Checksum() tcp_ctl;
++    Mirror() r_diag_mirror;   /* DIAG MIRROR */
+     apply {
++        if (md.mirror_type == r_DIAG_MIRROR_TYPE) { r_diag_mirror.emit(m.diag_ses); }   /* DIAG MIRROR */
+         if (m.pad == 1w1) {
+             hdr.ip.checksum = ip_new.update({hdr.ip.version, hdr.ip.ihl, hdr.ip.tos, hdr.ip.len, hdr.ip.id, hdr.ip.flags,
+                                              hdr.ip.frag, hdr.ip.ttl, hdr.ip.proto, hdr.ip.src, hdr.ip.dst});

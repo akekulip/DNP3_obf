@@ -1,0 +1,189 @@
+{
+ "schema": "c72-diag-mirror-companion-v1",
+ "state": "on",
+ "driver": "model_smoke.py",
+ "driver_sha256": "91fd32c53a79d82facbdbb5df4be071abb7b4eab6803d6ce03c2296617d88722",
+ "driver_exit": 0,
+ "session_apply": {
+  "state": "on",
+  "ops": [
+   {
+    "kind": "mirror",
+    "table": "$mirror.cfg",
+    "pipe": 65535,
+    "label": "relay_rx_ingress_copy",
+    "key": [
+     [
+      "$sid",
+      101,
+      null
+     ]
+    ],
+    "action": "$normal",
+    "data": [
+     [
+      "$direction",
+      "INGRESS"
+     ],
+     [
+      "$ucast_egress_port",
+      10
+     ],
+     [
+      "$ucast_egress_port_valid",
+      true
+     ],
+     [
+      "$session_enable",
+      true
+     ],
+     [
+      "$max_pkt_len",
+      16384
+     ]
+    ]
+   },
+   {
+    "kind": "mirror",
+    "table": "$mirror.cfg",
+    "pipe": 65535,
+    "label": "relay_tx_egress_copy",
+    "key": [
+     [
+      "$sid",
+      102,
+      null
+     ]
+    ],
+    "action": "$normal",
+    "data": [
+     [
+      "$direction",
+      "EGRESS"
+     ],
+     [
+      "$ucast_egress_port",
+      10
+     ],
+     [
+      "$ucast_egress_port_valid",
+      true
+     ],
+     [
+      "$session_enable",
+      true
+     ],
+     [
+      "$max_pkt_len",
+      16384
+     ]
+    ]
+   }
+  ],
+  "readback": {
+   "101": {
+    "$copy_to_cpu": false,
+    "$direction": "INGRESS",
+    "$egress_port_queue": 0,
+    "$icos_for_copy_to_cpu": 0,
+    "$ingress_cos": 0,
+    "$level1_mcast_hash": 0,
+    "$level2_mcast_hash": 0,
+    "$max_pkt_len": 16384,
+    "$mcast_grp_a": 0,
+    "$mcast_grp_a_valid": false,
+    "$mcast_grp_b": 0,
+    "$mcast_grp_b_valid": false,
+    "$mcast_l1_xid": 0,
+    "$mcast_l2_xid": 0,
+    "$mcast_rid": 0,
+    "$packet_color": "GREEN",
+    "$session_enable": true,
+    "$ucast_egress_port": 10,
+    "$ucast_egress_port_valid": true,
+    "action_name": "$normal",
+    "is_default_entry": false
+   },
+   "102": {
+    "$copy_to_cpu": false,
+    "$direction": "EGRESS",
+    "$egress_port_queue": 0,
+    "$icos_for_copy_to_cpu": 0,
+    "$ingress_cos": 0,
+    "$level1_mcast_hash": 0,
+    "$level2_mcast_hash": 0,
+    "$max_pkt_len": 16384,
+    "$mcast_grp_a": 0,
+    "$mcast_grp_a_valid": false,
+    "$mcast_grp_b": 0,
+    "$mcast_grp_b_valid": false,
+    "$mcast_l1_xid": 0,
+    "$mcast_l2_xid": 0,
+    "$mcast_rid": 0,
+    "$packet_color": "GREEN",
+    "$session_enable": true,
+    "$ucast_egress_port": 10,
+    "$ucast_egress_port_valid": true,
+    "action_name": "$normal",
+    "is_default_entry": false
+   }
+  }
+ },
+ "counts": {
+  "dev9_injected": 8,
+  "dev9_emitted": 5,
+  "dev64_injected": 5,
+  "dev64_emitted": 8,
+  "dev10_copies": 13
+ },
+ "copy_kinds": {
+  "emitted_exact": 8,
+  "injected_exact": 5,
+  "injected_min_padding": 0
+ },
+ "unmatched_copies": [],
+ "uncopied_relay_frames": [],
+ "egress_drops_by_port": {},
+ "relay_egress_drops": 0,
+ "digests": {
+  "dev9_injected": [
+   "8ec86d5c2446a7c30eb154b820955ccc97f9b141d1d152944b9df8ceeb4668b2",
+   "6eb4de5a45299f52f79d83533fc287f145f9e8167cfce73370dc3d3169a78c0b",
+   "8a35803c4ae2df814be9043e49fe76cecdd2c36bb3ee71a69a0352c4bb5e79ee",
+   "3b931dd27747e8da732bfd335b0d658a0a82db3fa4f0aeab593828db18c896fa",
+   "d6a95604ab426ab63a7372edfc4f83e9a7b1f5b10880463fb0a9c7cad89ca96d",
+   "5a5bb54298a9bad14b886fb9eda95a3bc3e3217dbe65ac2a8dd933e9234aeff1",
+   "aa8131963e48781bdc49cd395d7810d6cd0a976ba6568203c34802a79f339de1",
+   "0d76f00011e9c795bfdd5c734298a1d132038918fc1359873dc02b83403620e6"
+  ],
+  "dev9_emitted": [
+   "24f08a6eb07b83004d529c0581160dc1f8db63bfc4e9e2f552c0a11239859670",
+   "9b9bd9860c7dce7b2192b4d454191110fae1b3882d4ed46cb031014ef1eed716",
+   "4d6f3953fbc386bee706632a8c0bfb5583a4064807965fd2ea6f3ad629c019e1",
+   "5ee5390e6951c09b925147bdf3b71e54377580bda774cb1f7dfffe6207b3b315",
+   "759beae1419831d935c77fdd217a592da848a20566141814f1a23fb6f4f3b618"
+  ],
+  "dev64_injected": [
+   "24f08a6eb07b83004d529c0581160dc1f8db63bfc4e9e2f552c0a11239859670",
+   "9b9bd9860c7dce7b2192b4d454191110fae1b3882d4ed46cb031014ef1eed716",
+   "70ea7e1e7f1c17040030a886a7de8b18a00ea6fa0fb4f191f80235d9b8e6a401",
+   "ed79059f11f3fcdc8cd5af71398b5ed9fca3817588179d2a4013e87518e92912",
+   "045833e5862dab80140f6611eea7099e26184d162c7de1009754944c02b51b11"
+  ],
+  "dev64_emitted": [
+   "8ec86d5c2446a7c30eb154b820955ccc97f9b141d1d152944b9df8ceeb4668b2",
+   "6eb4de5a45299f52f79d83533fc287f145f9e8167cfce73370dc3d3169a78c0b",
+   "8a35803c4ae2df814be9043e49fe76cecdd2c36bb3ee71a69a0352c4bb5e79ee",
+   "1cf98289db517751a1a4d8ec504759c92021f1ecb6a530f944ce8626328cc09c",
+   "14cab1e74218a81189ab9546f9f7edf861d342bd6b33de25a9ea44b9fdc3c438",
+   "8c8087546d20edaca2165a18b75f73537adfa57e19654419bfc48570f3b552a7",
+   "f136e5928a9c94390493eddc02ffda57e0ec60f761b8f87891199ebaf7728584",
+   "941ed60ea059ff15c7b7e771a4a949358e0d281fec034e2d72d61b6cabb745a7"
+  ]
+ },
+ "checks": {
+  "every_copy_matches_a_relay_frame": true,
+  "every_relay_frame_copied": true
+ },
+ "passed": true
+}

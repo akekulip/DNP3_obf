@@ -1,0 +1,64 @@
+{
+ "schema": "c72-diag-mirror-companion-summary-v1",
+ "build": "c72_diag_mirror",
+ "source_sha256": "a46cc55a73a77dfa5691e292451d18d4ec663a04fb5f07b39c6e91915010d437",
+ "observation": "SDK tofino-model functional output; not hardware, not timing",
+ "drivers": {
+  "packets": {
+   "absent": {
+    "passed": true,
+    "checks": {
+     "no_copies": true
+    },
+    "counts": {
+     "dev9_injected": 348,
+     "dev9_emitted": 243,
+     "dev64_injected": 246,
+     "dev64_emitted": 344,
+     "dev10_copies": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 0
+   },
+   "on": {
+    "passed": true,
+    "checks": {
+     "every_copy_matches_a_relay_frame": true,
+     "every_relay_frame_copied": true
+    },
+    "counts": {
+     "dev9_injected": 348,
+     "dev9_emitted": 243,
+     "dev64_injected": 246,
+     "dev64_emitted": 345,
+     "dev10_copies": 591
+    },
+    "copy_kinds": {
+     "emitted_exact": 345,
+     "injected_exact": 246,
+     "injected_min_padding": 0
+    },
+    "driver_exit": 0,
+    "relay_egress_drops": 0,
+    "egress_drops_by_port": {
+     "r_Egress.drop_lifetime@9": 3
+    },
+    "unmatched_copies": [],
+    "uncopied": []
+   },
+   "forwarding_vs_absent": {
+    "dev64_emitted": "different",
+    "dev64_injected": "identical_order",
+    "dev9_emitted": "identical_order",
+    "dev9_injected": "identical_order"
+   },
+   "driver_verdicts_identical": {
+    "packet_results.json": true
+   },
+   "passed": false
+  }
+ },
+ "companion_sha256": "1f7ada95d3b6b6d87baf12ed595632b6da84d6a8a7b5857c92970391bb051fd1",
+ "runner_sha256": "70fc34d332ad92d044c465b6ed5b71f4b6dfbb1608b6e42e75423114128a2fc7",
+ "passed": false
+}

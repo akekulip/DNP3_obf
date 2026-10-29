@@ -1,0 +1,44 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 2, device 0
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS SYN                                expected=one exact frame observed=1
+PASS SYN_checksums                      expected=True       observed=True
+PASS SYNACK                             expected=one exact frame observed=1
+PASS SYNACK_checksums                   expected=True       observed=True
+PASS ACK                                expected=one exact frame observed=1
+PASS ACK_checksums                      expected=True       observed=True
+PASS READ_request                       expected=one exact frame observed=1
+PASS READ_request_checksums             expected=True       observed=True
+PASS READ_ack                           expected=one exact frame observed=1
+PASS READ_ack_checksums                 expected=True       observed=True
+PASS distinct_READ_141                  expected=one exact frame observed=1
+PASS distinct_READ_141_checksums        expected=True       observed=True
+PASS READ_independent_crc_points        expected=True       observed=True
+PASS READ_mapped_ACK                    expected=one exact frame observed=1
+PASS READ_mapped_ACK_checksums          expected=True       observed=True
+PASS SELECT_request                     expected=one exact frame observed=1
+PASS SELECT_request_checksums           expected=True       observed=True
+PASS SELECT_60                          expected=one exact frame observed=1
+PASS SELECT_60_checksums                expected=True       observed=True
+PASS SELECT_independent_application_and_framing expected=True       observed=True
+PASS SELECT_mapped_ACK                  expected=one exact frame observed=1
+PASS SELECT_mapped_ACK_checksums        expected=True       observed=True
+PASS OPERATE_request                    expected=one exact frame observed=1
+PASS OPERATE_request_checksums          expected=True       observed=True
+PASS OPERATE_60                         expected=one exact frame observed=1
+PASS OPERATE_60_checksums               expected=True       observed=True
+PASS OPERATE_independent_application_and_framing expected=True       observed=True
+PASS OPERATE_mapped_ACK                 expected=one exact frame observed=1
+PASS OPERATE_mapped_ACK_checksums       expected=True       observed=True
+PASS cumulative_growth                  expected=72         observed=72
+SUMMARY {'total': 30, 'passed': 30, 'failed': []}
+COMPANION on model_smoke.py driver_exit 0 {"every_copy_matches_a_relay_frame": true, "every_relay_frame_copied": true} {'dev9_injected': 8, 'dev9_emitted': 5, 'dev64_injected': 5, 'dev64_emitted': 8, 'dev10_copies': 13} {'emitted_exact': 8, 'injected_exact': 5, 'injected_min_padding': 0} relay egress drops 0
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

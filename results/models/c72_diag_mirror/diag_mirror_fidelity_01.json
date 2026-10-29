@@ -1,0 +1,163 @@
+{
+ "schema": "c72-diag-mirror-model-fidelity-v1",
+ "build": "c72_diag_mirror",
+ "source_sha256": "a46cc55a73a77dfa5691e292451d18d4ec663a04fb5f07b39c6e91915010d437",
+ "observation": "SDK tofino-model functional output; not hardware, not timing",
+ "constants": {
+  "session_rx": 101,
+  "session_tx": 102,
+  "copy_port": 10,
+  "relay_in": 64,
+  "relay_out": 64,
+  "t_clone": 7,
+  "internal_ports": {
+   "n_RETURN_PORT": 68,
+   "n_N_ACK_RETURN": 48,
+   "n_READ_HANDOFF_PORT": 180,
+   "t_PKTGEN_RETURN": 196,
+   "t_T_IN": 180,
+   "t_HELD_RETURN": 182,
+   "t_N_RETURN": 68,
+   "t_FORWARD_PORT": 9,
+   "t_RELAY_PORT": 64
+  },
+  "egress_parsed_ports": [
+   9,
+   48,
+   64
+  ]
+ },
+ "launches": {
+  "on": {
+   "command": [
+    "bash",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/overlay/scripts/model/launch_model.sh",
+    "-p",
+    "/home/philip/Projects/DNP3/results/builds/c72_diag_mirror/compile_local/out",
+    "-o",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/overlay/results/models/c72_diag_mirror/model_diag_mirror_on_c72_diag_mirror_01",
+    "-P",
+    "9 48 64 68 180 182 196 10",
+    "-d",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/overlay/scripts/model/record_closure.py"
+   ],
+   "exit_code": 0,
+   "PORT_MAP": "/home/philip/Projects/DNP3/results/builds/c72_diag_mirror/response_only.inputs.json",
+   "DIAG_MIRROR_STATE": "on",
+   "stimulus_environment": {
+    "PAD_ENABLE": "1",
+    "MILESTONE": "current",
+    "ABANDON_T": "0",
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2",
+    "REPEAT_CYCLES": "64",
+    "REPEAT_TIMED_CYCLES": "3"
+   },
+   "dependency_closure_sha256": "532294dd68b60c1f1822c67efc674e866e7e9179d1b5f3c5c1c2342476fe0a44"
+  },
+  "off": {
+   "command": [
+    "bash",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/overlay/scripts/model/launch_model.sh",
+    "-p",
+    "/home/philip/Projects/DNP3/results/builds/c72_diag_mirror/compile_local/out",
+    "-o",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/overlay/results/models/c72_diag_mirror/model_diag_mirror_off_c72_diag_mirror_01",
+    "-P",
+    "9 48 64 68 180 182 196 10",
+    "-d",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/overlay/scripts/model/record_closure.py"
+   ],
+   "exit_code": 0,
+   "PORT_MAP": "/home/philip/Projects/DNP3/results/builds/c72_diag_mirror/response_only.inputs.json",
+   "DIAG_MIRROR_STATE": "off",
+   "stimulus_environment": {
+    "PAD_ENABLE": "1",
+    "MILESTONE": "current",
+    "ABANDON_T": "0",
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2",
+    "REPEAT_CYCLES": "64",
+    "REPEAT_TIMED_CYCLES": "3"
+   },
+   "dependency_closure_sha256": "532294dd68b60c1f1822c67efc674e866e7e9179d1b5f3c5c1c2342476fe0a44"
+  },
+  "absent": {
+   "command": [
+    "bash",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/overlay/scripts/model/launch_model.sh",
+    "-p",
+    "/home/philip/Projects/DNP3/results/builds/c72_diag_mirror/compile_local/out",
+    "-o",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/overlay/results/models/c72_diag_mirror/model_diag_mirror_absent_c72_diag_mirror_01",
+    "-P",
+    "9 48 64 68 180 182 196 10",
+    "-d",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/overlay/scripts/model/record_closure.py"
+   ],
+   "exit_code": 0,
+   "PORT_MAP": "/home/philip/Projects/DNP3/results/builds/c72_diag_mirror/response_only.inputs.json",
+   "DIAG_MIRROR_STATE": "absent",
+   "stimulus_environment": {
+    "PAD_ENABLE": "1",
+    "MILESTONE": "current",
+    "ABANDON_T": "0",
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2",
+    "REPEAT_CYCLES": "64",
+    "REPEAT_TIMED_CYCLES": "3"
+   },
+   "dependency_closure_sha256": "532294dd68b60c1f1822c67efc674e866e7e9179d1b5f3c5c1c2342476fe0a44"
+  }
+ },
+ "criteria": {
+  "driver_checks": [],
+  "forwarding_identical": [],
+  "pass_counts_identical": [],
+  "extra_passes_only_copies": [],
+  "copies_only_when_on": [],
+  "reflections_identical": []
+ },
+ "passed": true,
+ "copy_matches": {
+  "SYN": "exact",
+  "SYNACK": "exact",
+  "ACK": "exact",
+  "READ_request": "exact",
+  "READ_ack": "exact",
+  "READ_response": "exact",
+  "READ_mapped_ACK": "exact",
+  "SELECT_request": "exact",
+  "SELECT_response": "exact",
+  "SELECT_mapped_ACK": "exact",
+  "OPERATE_request": "exact",
+  "OPERATE_response": "exact",
+  "OPERATE_mapped_ACK": "exact",
+  "PROBE_ip_options": null,
+  "PROBE_ack_without_timestamps": null,
+  "PROBE_ack_far_ahead": null,
+  "LLDP_into_copy_port": null
+ },
+ "copies_per_step": {
+  "SYN": 1,
+  "SYNACK": 1,
+  "ACK": 1,
+  "READ_request": 1,
+  "READ_ack": 1,
+  "READ_response": 1,
+  "READ_mapped_ACK": 1,
+  "SELECT_request": 1,
+  "SELECT_response": 1,
+  "SELECT_mapped_ACK": 1,
+  "OPERATE_request": 1,
+  "OPERATE_response": 1,
+  "OPERATE_mapped_ACK": 1,
+  "PROBE_ip_options": 0,
+  "PROBE_ack_without_timestamps": 0,
+  "PROBE_ack_far_ahead": 0,
+  "LLDP_into_copy_port": 0
+ },
+ "driver_sha256": "6863dadca7c210821854d3ceb548b45dbf1677713243c1299caf8e6be7b1d740",
+ "runner_sha256": "70fc34d332ad92d044c465b6ed5b71f4b6dfbb1608b6e42e75423114128a2fc7",
+ "sessions_script_sha256": "3bd5feb26b4b946dc37fd6ea72cd64d207ea10dd7d84b65da413e20c965cbe80",
+ "observations_file": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/overlay/scripts/model/action_observations.json",
+ "observations_sha256": "ffe05866cb9923736deca0372dba2f884e5bd9e89551ed55245b0e05d0de55de",
+ "repository_root": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/overlay"
+}
