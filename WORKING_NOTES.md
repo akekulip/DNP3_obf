@@ -139,3 +139,8 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   have repetition-median spans of 266-1,085 us over 16 reps (IQR 1.3-1.6 ms), so the bound was tighter than the
   system's own block-to-block variation; no mirror effect detectable, no equivalence claimed. D3d gates mirror TIMING
   use only; E1 (content) and E2 (copy presence/order) stay usable.
+- 2026-10-29 Part 1 DONE. E2 complete (32/32); analysis fixed (master-MAC direction, IP-ID pairing, explained missing
+  copies, counter narrowing) -> 04e29045d. E4b applied with review M1/M2 tests (563b9efee) and run 6/6 (3bd4baefb).
+  results/analysis/validation/REPORT.md answers the four questions; HANDOVER rewritten. Next: tag
+  c72-validation-final, then Part 2 (purge + c73 in worktree; inventories in the scratchpad SUMMARY_FOR_PART2.md files).
+
