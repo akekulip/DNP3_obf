@@ -1,0 +1,62 @@
+=== RED 2026-10-28T19:32:17Z interpreter: /home/philip/.venvs/research/bin/python (3.12.13 scapy 2.7.0)
+$ $RESEARCH_PYTHON -m pytest tests/analysis/test_preservation_check.py -q
+__________ ERROR collecting tests/analysis/test_preservation_check.py __________
+ImportError while importing test module '/home/philip/Projects/DNP3/tests/analysis/test_preservation_check.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/analysis/test_preservation_check.py:20: in <module>
+    import preservation_check as pc  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ModuleNotFoundError: No module named 'preservation_check'
+=========================== short test summary info ============================
+ERROR tests/analysis/test_preservation_check.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 2.98s
+exit: 2
+
+=== GREEN 2026-10-28T23:54:35Z interpreter: /home/philip/.venvs/research/bin/python
+$ $RESEARCH_PYTHON -m pytest tests/analysis/test_preservation_check.py -v
+hypothesis profile 'default'
+rootdir: /home/philip/Projects/DNP3
+plugins: typeguard-4.5.2, anyio-4.14.1, hypothesis-6.168.3
+collecting ... collected 18 items
+
+tests/analysis/test_preservation_check.py::test_declared_construction_equals_the_repository_oracles_and_the_captured_images PASSED [  5%]
+tests/analysis/test_preservation_check.py::test_a_identical_content_across_padding_passes PASSED [ 11%]
+tests/analysis/test_preservation_check.py::test_b_a_changed_value_flag_or_iin_bit_is_detected_and_named[<lambda>-objects[1] g30v1 index 0 value] PASSED [ 16%]
+tests/analysis/test_preservation_check.py::test_b_a_changed_value_flag_or_iin_bit_is_detected_and_named[<lambda>-objects[0] g1v2 index 2 flags] PASSED [ 22%]
+tests/analysis/test_preservation_check.py::test_b_a_changed_value_flag_or_iin_bit_is_detected_and_named[<lambda>-iin.IIN1.1 class_1_events] PASSED [ 27%]
+tests/analysis/test_preservation_check.py::test_c_a_dropped_or_reordered_object_is_detected[mixed-drop_g30-dropped] PASSED [ 33%]
+tests/analysis/test_preservation_check.py::test_c_a_dropped_or_reordered_object_is_detected[integrity-swap_g10_g30-reordered] PASSED [ 38%]
+tests/analysis/test_preservation_check.py::test_d_a_wrong_sequence_translation_is_detected PASSED [ 44%]
+tests/analysis/test_preservation_check.py::test_d_a_request_ack_not_translated_is_detected PASSED [ 50%]
+tests/analysis/test_preservation_check.py::test_e_transport_wrap_inside_a_padded_fragment_reassembles_and_passes PASSED [ 55%]
+tests/analysis/test_preservation_check.py::test_f_application_sequence_wrap_is_matched PASSED [ 61%]
+tests/analysis/test_preservation_check.py::test_g_a_retransmitted_segment_is_reported_not_a_difference[relay] PASSED [ 66%]
+tests/analysis/test_preservation_check.py::test_g_a_retransmitted_segment_is_reported_not_a_difference[master] PASSED [ 72%]
+tests/analysis/test_preservation_check.py::test_h_an_unmatched_transaction_on_either_side_is_reported PASSED [ 77%]
+tests/analysis/test_preservation_check.py::test_i_missing_build_label_is_refused[--build-label] PASSED [ 83%]
+tests/analysis/test_preservation_check.py::test_i_missing_build_label_is_refused[--source-sha256] PASSED [ 88%]
+tests/analysis/test_preservation_check.py::test_i_a_label_that_disagrees_with_the_build_inputs_is_refused PASSED [ 94%]
+tests/analysis/test_preservation_check.py::test_command_line_end_to_end_writes_the_json PASSED [100%]
+
+============================== 18 passed in 0.59s ==============================
+exit: 0
+$ pyflakes scripts/analysis/preservation_check.py scripts/analysis/preservation_dnp3.py tests/analysis/test_preservation_check.py
+exit: 0
+$ lines > 120 (awk)
+(none above = clean)
+$ wc -l
+  364 scripts/analysis/preservation_check.py
+  231 scripts/analysis/preservation_dnp3.py
+  307 tests/analysis/test_preservation_check.py
+  902 total
+
+=== Full analysis suite after the last edit (2026-10-29T00:02:03Z)
+$ $RESEARCH_PYTHON -m pytest tests/analysis -q -p no:cacheprovider
+100 passed, 2 skipped, 16 warnings in 422.57s (0:07:02)
+
+=== CLI end-to-end: results/analysis/preservation_e1/synthetic/cli_run.log (exit 0; without --build-label exit 2, no JSON)

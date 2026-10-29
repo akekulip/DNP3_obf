@@ -1,0 +1,581 @@
+{
+  "schema": "c72-preservation-e1-v1",
+  "ok": true,
+  "build": {
+    "label": "c72_diag_mirror",
+    "source_sha256": "a46cc55a73a77dfa5691e292451d18d4ec663a04fb5f07b39c6e91915010d437",
+    "inputs": "/home/philip/Projects/DNP3/results/builds/c72_diag_mirror/response_only.inputs.json",
+    "inputs_sha256": "cf7d08776d76c96fc9b4b09069016b128229aa639a058e7eace1b52522866a09"
+  },
+  "inputs": {
+    "results/analysis/preservation_e1/synthetic/relay.pcap": "074e379d97019478bb48a59dd6c81a4f39d398f1fb81a30f929fba2f1d789f64",
+    "results/analysis/preservation_e1/synthetic/trial/out.pcap": "9fcc1615fa32ae2fb6ae60810c239a168dd0d0d73f30c476e73375cd3199a4c9",
+    "results/analysis/preservation_e1/synthetic/trial/in.pcap": "b6336e8748dd68871bd470fc0189ac481e5b35ee609857a136bbff8c18665be6"
+  },
+  "declared_padding": {
+    "constants_file": "tests/fixtures/vectors/constants_two_read_relay.json",
+    "constants_sha256": "9e715d8f02d60d909333aa09ba42f6adec92d7f04e5846fc457bf412066dd745",
+    "read_shapes": {
+      "mixed_g1v2_g30v1_91": {
+        "native": 91,
+        "target": 141,
+        "growth": 50,
+        "prefix_link_len": 39,
+        "application_prefix_hex": "010201000419040000000000000000000000000000000000000000000000000000"
+      },
+      "integrity_134": {
+        "native": 134,
+        "target": 158,
+        "growth": 24,
+        "prefix_link_len": 17,
+        "application_prefix_hex": "0102010004030400000000"
+      }
+    },
+    "control_image": {
+      "partition": [
+        15,
+        17
+      ],
+      "growth": 11
+    },
+    "source": "Declared padding, as the build declares it (c72; c72_diag_mirror adds only mirror hunks, so its copy of the source,\nresults/builds/c72_diag_mirror/response_only.p4, has the same actions 30 lines later, e.g. prefix_mx at 2220):\n\nREAD  results/builds/<build>/response_only.inputs.json `policy` binds tests/fixtures/vectors/\n      constants_two_read_relay.json by SHA-256 (9e715d8f...); its shapes give prefix_link_len 39/17 (lines 53, 101)\n      and padobj_head (lines 56, 104). p4/response_only.p4, pipe-1 egress x_Egress, applies them:\n  2185-2189 read_profile  pads only IP length 143 + LEN 0x4c (mixed 91) or 186 + 0x73 (integrity 134), transport\n                          FIR|FIN, application FIR|FIN without CON/UNS, function 0x81, first object g1v2 q0x00 0..15.\n  2190-2200 prefix_mx     a new link frame (LEN 39, the native CTRL/DST/SRC): transport FIR|s, the native application\n                          control, function and IIN, then g1v2 q0x01 1024..1049 (0x01020100041904, line 2194) and\n                          22 zero point octets. The native frame keeps its link header; its transport becomes FIN|s+1\n                          (set_tp_t, 2166-2167) and its first four application octets become zero (the last four of\n                          the 26 padding points); block-0 CRC recomputed; IP length 193 (+50).\n  2202-2211 prefix_full   the same with LEN 17 and g1v2 q0x01 1024..1027 (0x01020100040304), IP length 210 (+24).\n  2224-2232 x_EgDeparser  IP checksum (IP ID unchanged) and TCP checksum.\n      In application coordinates the declared prefix is app[4:4+7+points] = padobj_header + `points` zero octets.\n      Software oracle: scripts/model/read_policy_expect.py:264-277 construct().\nSELECT/OPERATE  p4/response_only.p4:1150 ctl_eligible (pipe-0 egress): the whole 49-octet response becomes transport\n      FIR|s + application octets 0..14 and FIN|s+1 + octets 15..31 (60 octets, no application octet added);\n      supported_profile.json encoding.control_application_partition [15, 17]; inputs control_growth 11;\n      oracle scripts/model/relay_sbo_vectors.py:30-36 control_image().\n"
+  },
+  "mirror_assumptions": [
+    "relay-side responses are the complete frames received on dev64 before any transformation (ingress mirror)",
+    "relay-side requests are the frames as emitted on dev64, ACK already translated (egress mirror)",
+    "the mirror neither truncates, coalesces nor duplicates frames; a lost copy shows as a gap or unmatched item",
+    "both mirror directions share the master-side 4-tuple; the relay-to-master SYN-ACK sequence is not translated"
+  ],
+  "totals": {
+    "responses_identical": {
+      "n": 8,
+      "of": 8
+    },
+    "requests_identical": {
+      "n": 8,
+      "of": 8
+    },
+    "translation_verified": {
+      "n": 9,
+      "of": 9
+    },
+    "translation_consistent": {
+      "n": 9,
+      "of": 9
+    },
+    "request_ack_consistent": {
+      "n": 8,
+      "of": 8
+    },
+    "connections_ok": {
+      "n": 1,
+      "of": 1
+    },
+    "responses_unmatched_relay_side": {
+      "n": 0,
+      "of": 8
+    },
+    "responses_unmatched_master_side": {
+      "n": 0,
+      "of": 8
+    },
+    "requests_unmatched_relay_side": {
+      "n": 0,
+      "of": 8
+    },
+    "requests_unmatched_master_side": {
+      "n": 0,
+      "of": 8
+    },
+    "retransmitted_segments_relay_side": {
+      "n": 0,
+      "of": 16
+    },
+    "retransmitted_bytes_relay_side": {
+      "n": 0,
+      "of": 930
+    },
+    "retransmitted_segments_master_side": {
+      "n": 0,
+      "of": 16
+    },
+    "retransmitted_bytes_master_side": {
+      "n": 0,
+      "of": 1122
+    }
+  },
+  "connections": [
+    {
+      "connection": {
+        "master": [
+          "192.168.10.1",
+          59410
+        ],
+        "relay": [
+          "192.168.10.7",
+          20000
+        ]
+      },
+      "tcp": {
+        "relay_side": {
+          "to_relay": {
+            "segments": 10,
+            "payload_segments": 8,
+            "incarnations": 1,
+            "unique_bytes": 284,
+            "packet_bytes": 284,
+            "retransmitted_bytes": 0,
+            "retransmitted_segments": 0,
+            "retransmitted": [],
+            "gaps": [],
+            "frames": 8,
+            "conflicting_offsets": [],
+            "framing_errors": [],
+            "fragments": 8
+          },
+          "from_relay": {
+            "segments": 9,
+            "payload_segments": 8,
+            "incarnations": 1,
+            "unique_bytes": 646,
+            "packet_bytes": 646,
+            "retransmitted_bytes": 0,
+            "retransmitted_segments": 0,
+            "retransmitted": [],
+            "gaps": [],
+            "frames": 8,
+            "conflicting_offsets": [],
+            "framing_errors": [],
+            "fragments": 8
+          }
+        },
+        "master_side": {
+          "to_relay": {
+            "segments": 10,
+            "payload_segments": 8,
+            "incarnations": 1,
+            "unique_bytes": 284,
+            "packet_bytes": 284,
+            "retransmitted_bytes": 0,
+            "retransmitted_segments": 0,
+            "retransmitted": [],
+            "gaps": [],
+            "frames": 8,
+            "conflicting_offsets": [],
+            "framing_errors": [],
+            "fragments": 8
+          },
+          "from_relay": {
+            "segments": 9,
+            "payload_segments": 8,
+            "incarnations": 1,
+            "unique_bytes": 838,
+            "packet_bytes": 838,
+            "retransmitted_bytes": 0,
+            "retransmitted_segments": 0,
+            "retransmitted": [],
+            "gaps": [],
+            "frames": 16,
+            "conflicting_offsets": [],
+            "framing_errors": [],
+            "fragments": 8
+          }
+        }
+      },
+      "ok": true,
+      "failures": [],
+      "responses": {
+        "compared": 8,
+        "identical": {
+          "n": 8,
+          "of": 8
+        },
+        "different": {
+          "n": 0,
+          "of": 8
+        },
+        "unmatched": {
+          "relay_side": {
+            "n": 0,
+            "of": 8
+          },
+          "master_side": {
+            "n": 0,
+            "of": 8
+          }
+        },
+        "unmatched_items": {
+          "relay_side": [],
+          "master_side": []
+        },
+        "transactions": [
+          {
+            "index": 0,
+            "app_seq": 12,
+            "function": 129,
+            "form": "read_mixed_g1v2_g30v1_91",
+            "growth": 50,
+            "relay_offset": 1,
+            "master_offset": 1,
+            "relay_len": 91,
+            "master_len": 141,
+            "identical": true
+          },
+          {
+            "index": 1,
+            "app_seq": 13,
+            "function": 129,
+            "form": "control_image",
+            "growth": 11,
+            "relay_offset": 92,
+            "master_offset": 142,
+            "relay_len": 49,
+            "master_len": 60,
+            "identical": true
+          },
+          {
+            "index": 2,
+            "app_seq": 14,
+            "function": 129,
+            "form": "control_image",
+            "growth": 11,
+            "relay_offset": 141,
+            "master_offset": 202,
+            "relay_len": 49,
+            "master_len": 60,
+            "identical": true
+          },
+          {
+            "index": 3,
+            "app_seq": 15,
+            "function": 129,
+            "form": "read_integrity_134",
+            "growth": 24,
+            "relay_offset": 190,
+            "master_offset": 262,
+            "relay_len": 134,
+            "master_len": 158,
+            "identical": true
+          },
+          {
+            "index": 4,
+            "app_seq": 0,
+            "function": 129,
+            "form": "read_mixed_g1v2_g30v1_91",
+            "growth": 50,
+            "relay_offset": 324,
+            "master_offset": 420,
+            "relay_len": 91,
+            "master_len": 141,
+            "identical": true
+          },
+          {
+            "index": 5,
+            "app_seq": 1,
+            "function": 129,
+            "form": "control_image",
+            "growth": 11,
+            "relay_offset": 415,
+            "master_offset": 561,
+            "relay_len": 49,
+            "master_len": 60,
+            "identical": true
+          },
+          {
+            "index": 6,
+            "app_seq": 2,
+            "function": 129,
+            "form": "control_image",
+            "growth": 11,
+            "relay_offset": 464,
+            "master_offset": 621,
+            "relay_len": 49,
+            "master_len": 60,
+            "identical": true
+          },
+          {
+            "index": 7,
+            "app_seq": 3,
+            "function": 129,
+            "form": "read_integrity_134",
+            "growth": 24,
+            "relay_offset": 513,
+            "master_offset": 681,
+            "relay_len": 134,
+            "master_len": 158,
+            "identical": true
+          }
+        ],
+        "differences": [],
+        "forms": {
+          "read_mixed_g1v2_g30v1_91": 2,
+          "control_image": 4,
+          "read_integrity_134": 2
+        }
+      },
+      "requests": {
+        "compared": 8,
+        "identical": {
+          "n": 8,
+          "of": 8
+        },
+        "different": {
+          "n": 0,
+          "of": 8
+        },
+        "unmatched": {
+          "relay_side": {
+            "n": 0,
+            "of": 8
+          },
+          "master_side": {
+            "n": 0,
+            "of": 8
+          }
+        },
+        "unmatched_items": {
+          "relay_side": [],
+          "master_side": []
+        },
+        "transactions": [
+          {
+            "index": 0,
+            "app_seq": 12,
+            "function": 1,
+            "relay_offset": 1,
+            "master_offset": 1,
+            "length": 25,
+            "identical": true
+          },
+          {
+            "index": 1,
+            "app_seq": 13,
+            "function": 3,
+            "relay_offset": 26,
+            "master_offset": 26,
+            "length": 45,
+            "identical": true
+          },
+          {
+            "index": 2,
+            "app_seq": 14,
+            "function": 4,
+            "relay_offset": 71,
+            "master_offset": 71,
+            "length": 45,
+            "identical": true
+          },
+          {
+            "index": 3,
+            "app_seq": 15,
+            "function": 1,
+            "relay_offset": 116,
+            "master_offset": 116,
+            "length": 27,
+            "identical": true
+          },
+          {
+            "index": 4,
+            "app_seq": 0,
+            "function": 1,
+            "relay_offset": 143,
+            "master_offset": 143,
+            "length": 25,
+            "identical": true
+          },
+          {
+            "index": 5,
+            "app_seq": 1,
+            "function": 3,
+            "relay_offset": 168,
+            "master_offset": 168,
+            "length": 45,
+            "identical": true
+          },
+          {
+            "index": 6,
+            "app_seq": 2,
+            "function": 4,
+            "relay_offset": 213,
+            "master_offset": 213,
+            "length": 45,
+            "identical": true
+          },
+          {
+            "index": 7,
+            "app_seq": 3,
+            "function": 1,
+            "relay_offset": 258,
+            "master_offset": 258,
+            "length": 27,
+            "identical": true
+          }
+        ],
+        "differences": []
+      },
+      "translation": [
+        {
+          "at": "syn",
+          "relay_seq": 4294967040,
+          "master_seq": 4294967040,
+          "observed": 0,
+          "declared": 0,
+          "consistent": true
+        },
+        {
+          "response": 0,
+          "app_seq": 12,
+          "form": "read_mixed_g1v2_g30v1_91",
+          "relay_seq": 4294967041,
+          "master_seq": 4294967041,
+          "observed": 0,
+          "declared": 0,
+          "consistent": true
+        },
+        {
+          "response": 1,
+          "app_seq": 13,
+          "form": "control_image",
+          "relay_seq": 4294967132,
+          "master_seq": 4294967182,
+          "observed": 50,
+          "declared": 50,
+          "consistent": true
+        },
+        {
+          "response": 2,
+          "app_seq": 14,
+          "form": "control_image",
+          "relay_seq": 4294967181,
+          "master_seq": 4294967242,
+          "observed": 61,
+          "declared": 61,
+          "consistent": true
+        },
+        {
+          "response": 3,
+          "app_seq": 15,
+          "form": "read_integrity_134",
+          "relay_seq": 4294967230,
+          "master_seq": 6,
+          "observed": 72,
+          "declared": 72,
+          "consistent": true
+        },
+        {
+          "response": 4,
+          "app_seq": 0,
+          "form": "read_mixed_g1v2_g30v1_91",
+          "relay_seq": 68,
+          "master_seq": 164,
+          "observed": 96,
+          "declared": 96,
+          "consistent": true
+        },
+        {
+          "response": 5,
+          "app_seq": 1,
+          "form": "control_image",
+          "relay_seq": 159,
+          "master_seq": 305,
+          "observed": 146,
+          "declared": 146,
+          "consistent": true
+        },
+        {
+          "response": 6,
+          "app_seq": 2,
+          "form": "control_image",
+          "relay_seq": 208,
+          "master_seq": 365,
+          "observed": 157,
+          "declared": 157,
+          "consistent": true
+        },
+        {
+          "response": 7,
+          "app_seq": 3,
+          "form": "read_integrity_134",
+          "relay_seq": 257,
+          "master_seq": 425,
+          "observed": 168,
+          "declared": 168,
+          "consistent": true
+        }
+      ],
+      "request_segments": {
+        "checked": 8,
+        "ack_consistent": {
+          "n": 8,
+          "of": 8
+        },
+        "ack_undetermined": {
+          "n": 0,
+          "of": 8
+        },
+        "mismatches": [],
+        "header_differences": [],
+        "syn_offset": 0
+      },
+      "trial": {},
+      "counts": {
+        "responses_identical": {
+          "n": 8,
+          "of": 8
+        },
+        "requests_identical": {
+          "n": 8,
+          "of": 8
+        },
+        "translation_verified": {
+          "n": 9,
+          "of": 9
+        },
+        "translation_consistent": {
+          "n": 9,
+          "of": 9
+        },
+        "request_ack_consistent": {
+          "n": 8,
+          "of": 8
+        },
+        "connections_ok": {
+          "n": 1,
+          "of": 1
+        },
+        "responses_unmatched_relay_side": {
+          "n": 0,
+          "of": 8
+        },
+        "responses_unmatched_master_side": {
+          "n": 0,
+          "of": 8
+        },
+        "requests_unmatched_relay_side": {
+          "n": 0,
+          "of": 8
+        },
+        "requests_unmatched_master_side": {
+          "n": 0,
+          "of": 8
+        },
+        "retransmitted_segments_relay_side": {
+          "n": 0,
+          "of": 16
+        },
+        "retransmitted_bytes_relay_side": {
+          "n": 0,
+          "of": 930
+        },
+        "retransmitted_segments_master_side": {
+          "n": 0,
+          "of": 16
+        },
+        "retransmitted_bytes_master_side": {
+          "n": 0,
+          "of": 1122
+        }
+      }
+    }
+  ]
+}

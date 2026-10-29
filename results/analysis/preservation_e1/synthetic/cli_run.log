@@ -1,0 +1,67 @@
+$ $RESEARCH_PYTHON scripts/analysis/preservation_check.py --relay-pcap results/analysis/preservation_e1/synthetic/relay.pcap --trial-dir results/analysis/preservation_e1/synthetic/trial --master-port 59410 --master-ip 192.168.10.1 --relay-ip 192.168.10.7 --build-label c72_diag_mirror --source-sha256 a46cc55a73a77dfa5691e292451d18d4ec663a04fb5f07b39c6e91915010d437 --out results/analysis/preservation_e1/synthetic/preservation.json
+{
+  "ok": true,
+  "build": "c72_diag_mirror",
+  "totals": {
+    "responses_identical": {
+      "n": 8,
+      "of": 8
+    },
+    "requests_identical": {
+      "n": 8,
+      "of": 8
+    },
+    "translation_verified": {
+      "n": 9,
+      "of": 9
+    },
+    "translation_consistent": {
+      "n": 9,
+      "of": 9
+    },
+    "request_ack_consistent": {
+      "n": 8,
+      "of": 8
+    },
+    "connections_ok": {
+      "n": 1,
+      "of": 1
+    },
+    "responses_unmatched_relay_side": {
+      "n": 0,
+      "of": 8
+    },
+    "responses_unmatched_master_side": {
+      "n": 0,
+      "of": 8
+    },
+    "requests_unmatched_relay_side": {
+      "n": 0,
+      "of": 8
+    },
+    "requests_unmatched_master_side": {
+      "n": 0,
+      "of": 8
+    },
+    "retransmitted_segments_relay_side": {
+      "n": 0,
+      "of": 16
+    },
+    "retransmitted_bytes_relay_side": {
+      "n": 0,
+      "of": 930
+    },
+    "retransmitted_segments_master_side": {
+      "n": 0,
+      "of": 16
+    },
+    "retransmitted_bytes_master_side": {
+      "n": 0,
+      "of": 1122
+    }
+  }
+}
+exit: 0
+$ (same, without --build-label)
+REFUSED: evidence must carry the build identity: give --build-label and --source-sha256
+exit: 2 ; refused.json exists: no

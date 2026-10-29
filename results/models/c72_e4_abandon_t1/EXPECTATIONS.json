@@ -1,0 +1,279 @@
+{
+ "schema": "c72-e4-abandon-t1-expectations-v1",
+ "scenario": "E4 abandoned SELECT with timing enabled (ABANDON_T=1). A separate labelled scenario; NOT part of the 17-driver model gate, whose run_model.gate_environment keeps ABANDON_T='0' (scripts/model/run_model.py:29).",
+ "build": "results/builds/c72",
+ "source": "p4/response_only.p4",
+ "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+ "timing_contract": "response_ready_ack_d_no_j_v3",
+ "derivation_basis": "Derived from the P4 source, the supported profile and the existing T=1 expectations of the gate drivers for this contract (model_response_ready, model_repeat timed phase, model_select_lifecycle timed phase). Not derived from any model run of this scenario.",
+ "parameters": {
+  "D_ns": 5000000,
+  "gap_written_t_units": 19534,
+  "t_unit_ns": 256,
+  "budget": 240000,
+  "enabled": 1,
+  "citations": [
+   "results/builds/c72/supported_profile.json:36 D_release_budget 5000000",
+   "results/builds/c72/supported_profile.json:30 t_unit_ns 256",
+   "scripts/model/model_abandon.py:55-58 timing_params_for_profile: gap=D_release_budget, budget=240000, enabled",
+   "scripts/model/model_abandon.py:108-109 the params are the T set_params default",
+   "p4/response_only.p4:1546-1549 t_Ingress.set_params(gap, budget, enabled)",
+   "tests/model/test_current_closure.py:88-89 t_units(gap=5000000) == 19534"
+  ]
+ },
+ "ports": {"master": 9, "relay": 64},
+ "coordinates": "c = master sequence (starts 100), s = relay native sequence (starts 900), growth = sum of image-minus-native octets of the responses already released; frames toward the master carry s + growth, frames toward the relay carry s (scripts/model/model_abandon.py:133-155).",
+ "t_independence": "Only T reads md.enabled (p4/response_only.p4:1546-1549, a pipe-1 table); N (pipe-0 ingress) and E (pipe-0 egress) do not. A step therefore differs from T=0 only where a T verdict row keys on enabled for that event kind.",
+ "rows": [
+  {
+   "row": "SYN",
+   "stimulus": ["SYN"],
+   "inject": "master",
+   "master": [],
+   "relay": ["SYN"],
+   "release": "immediate",
+   "same_as_t0": true,
+   "frames": {"SYN": "vectors.packet(2, c, mss=1460), forwarded unchanged"},
+   "expectation": "Exactly one exact frame at the relay, none at the master.",
+   "citations": [
+    "p4/response_only.p4:509 continuation_t: kind 1 -> terminal_open (T OPEN, kind 14)",
+    "p4/response_only.p4:1591 lifetime_access OPEN -> open_epoch; :1651 gen_access OPEN -> live_reset_gen (no enabled key)",
+    "p4/response_only.p4:1959 tin_verdict OPEN -> passthrough_tev_relay (enabled is a wildcard)",
+    "scripts/model/model_abandon.py:134 T=0 expectation (same frame)"
+   ]
+  },
+  {
+   "row": "SYNACK",
+   "stimulus": ["SYNACK"],
+   "inject": "relay",
+   "master": ["SYNACK"],
+   "relay": [],
+   "release": "immediate",
+   "same_as_t0": true,
+   "frames": {"SYNACK": "vectors.packet(18, s, c + 1, reverse=True, mss=1460), forwarded unchanged"},
+   "expectation": "Exactly one exact frame at the master; the SYN-ACK does not enter T.",
+   "citations": [
+    "p4/response_only.p4:509 continuation_t: kind 2 -> terminal_synack (output port, not the T handoff)",
+    "scripts/model/model_abandon.py:135-136 T=0 expectation"
+   ]
+  },
+  {
+   "row": "final_ACK",
+   "stimulus": ["final_ACK"],
+   "inject": "master",
+   "master": [],
+   "relay": ["final_ACK"],
+   "release": "immediate",
+   "same_as_t0": true,
+   "frames": {"final_ACK": "vectors.packet(16, c, s), forwarded unchanged"},
+   "expectation": "Exactly one exact frame at the relay; the master's handshake ACK does not enter T.",
+   "citations": [
+    "p4/response_only.p4:509 continuation_t: direction-1 default -> terminal_ack",
+    "scripts/model/model_abandon.py:138 T=0 expectation"
+   ]
+  },
+  {
+   "row": "READ_request",
+   "stimulus": ["READ_request"],
+   "inject": "master",
+   "master": [],
+   "relay": ["READ_request"],
+   "release": "immediate",
+   "same_as_t0": true,
+   "frames": {"READ_request": "sent vectors.packet(24, c, s + growth, payload=request); relay gets vectors.packet(24, c, s, payload=request)"},
+   "expectation": "Exactly one exact frame at the relay, forwarded at once. With T enabled the request is admitted: one new generation and an E100 clone to mirror session 7, which T drops on re-entry, so the observed frames are the same as at T=0.",
+   "citations": [
+    "p4/response_only.p4:509 continuation_t: kind 9 -> commit_before_t(9); :231 committed_t -> T REQUEST (kind 9)",
+    "p4/response_only.p4:1655 gen_access REQUEST, enabled != 0 -> live_admit_gen",
+    "p4/response_only.p4:1978 tin_verdict REQUEST -> admit_request; :1769-1775 admit_request: t_RELAY_PORT plus clone session 7",
+    "p4/response_only.p4:2036 a clone re-entering T is dropped (drop_clone)",
+    "scripts/model/model_response_ready.py:601-613 the original request must reach the relay before the ACK/response",
+    "scripts/model/model_repeat.py:241-255 timed-phase request step: one exact frame at the far endpoint"
+   ]
+  },
+  {
+   "row": "READ_ACK_and_response_61",
+   "stimulus": ["READ_server_ACK", "READ_response_61"],
+   "inject": "relay",
+   "master": ["READ_server_ACK", "READ_response_61"],
+   "relay": [],
+   "release": "response_ready_D",
+   "same_as_t0": false,
+   "frames": {
+    "READ_server_ACK": "sent vectors.packet(16, s, c, reverse=True); master gets rp.preserve_options(sent, vectors.packet(16, s + growth, c, reverse=True))",
+    "READ_response_61": "sent vectors.packet(24, s, c, reverse=True, payload=native READ 91); master gets rp.preserve_options(sent, vectors.packet(24, s + growth, c, reverse=True, payload=encode61.read61(native))), the 141-octet policy image"
+   },
+   "expectation": "The relay's genuine ACK and whole response are sent as one pair with no observation between (the gate convention). Relay READ ACK: held at T (hold_ack), not forwarded at once; it may commit only once the whole response's child0 is admitted in the same generation, and is then emitted first. READ response: admitted and held; released only when the ACK committed in this generation and now >= ACK commit + D. At the master: exactly [ACK, response], both exact; nothing at the relay. T clock: exactly one hold_ack, admit_response, release_ack_commit and release_response_counted pass; commit not before the held ACK nor before the response arrival; response release - ACK commit >= gap units. No stale-flush, duplicate-drop or old-epoch drop.",
+   "t0_difference": "At T=0 the ACK is forwarded at once as its own frame and the response follows within the same exchange (scripts/model/model_abandon.py:147-153; p4/response_only.p4:1977 disabled -> passthrough_tev_forward). That expectation does not hold at T=1.",
+   "citations": [
+    "p4/response_only.p4:509 continuation_t: kind 10 (relay pure ACK) -> emit_tev 0x0a00 (T ACK); kind 11 (READ response) -> emit_tev 0x0b00 (T RESPONSE)",
+    "p4/response_only.p4:1980 tin_verdict ACK, ack not done in this generation -> hold_ack; :1781-1787 hold_ack -> role 14 to t_HELD_RETURN",
+    "p4/response_only.p4:1863 ack_go_check: go only with current epoch/generation AND seen0_diff == 0 (child0 admitted); :1850 no request-age/readiness fallback",
+    "p4/response_only.p4:2013 held ACK with ack_go -> release_ack_commit; :1871-1874 release_ack to t_FORWARD_PORT; :1882/:1891 commit time and generation recorded; :2014 otherwise rewait_ack",
+    "p4/response_only.p4:1758 RESPONSE child0 recorded (try_seen0); :1983 tin_verdict RESPONSE -> admit_response; :1788-1794 role 15 to t_HELD_RETURN",
+    "p4/response_only.p4:1917 response_done_commit only with lgen_diff 0, gap delta sign clear (now >= commit + gap) and commit_diff 0; :1904 nonmatching rows wait, no fallback",
+    "p4/response_only.p4:2017 release_response_counted; :2018 otherwise rewait_response; :2015/:2019 flush only for a changed generation; :2020 old epoch dropped",
+    "results/builds/c72/supported_profile.json:102 genuine ACK waits for whole child0; response follows ACK commit by D",
+    "scripts/model/model_repeat.py:106-123 response_ready_pair: the genuine pair sent without observing between; exactly [ACK, response] at the master, nothing elsewhere",
+    "scripts/model/model_repeat.py:126-138 repeat_clock_proof: one hold_ack/admit_response/release_ack_commit/release_response_counted, commit after held and arrival, release - commit >= gap",
+    "scripts/model/model_repeat.py:281-302 the timed phase replaces the separate ACK step by this pair and proof",
+    "scripts/model/model_response_ready.py:213-228 committed_problems: same contract (ACK commit after whole response, release >= commit + D, one commit and one release, wire [ack, response])"
+   ]
+  },
+  {
+   "row": "SELECT_request",
+   "stimulus": ["SELECT_request"],
+   "inject": "master",
+   "master": [],
+   "relay": ["SELECT_request"],
+   "release": "immediate",
+   "same_as_t0": true,
+   "frames": {"SELECT_request": "sent vectors.packet(24, c, s + growth, payload=request) with crob(100); relay gets vectors.packet(24, c, s, payload=request)"},
+   "expectation": "Exactly one exact frame at the relay, forwarded at once (admitted: new generation, clone dropped). It may be sent only after the READ response was released; otherwise the new generation would flush the held READ response as stale.",
+   "citations": [
+    "p4/response_only.p4:509 continuation_t: kind 5 (SELECT) -> commit_before_t(9) (T REQUEST)",
+    "p4/response_only.p4:1655, :1978, :1769-1775, :2036 as for READ_request",
+    "p4/response_only.p4:2019 a held response of an older generation is flushed (flush_response_stale)",
+    "scripts/model/model_abandon.py:145 T=0 expectation"
+   ]
+  },
+  {
+   "row": "SELECT_ACK_and_response_61",
+   "stimulus": ["SELECT_server_ACK", "SELECT_response_61"],
+   "inject": "relay",
+   "master": ["SELECT_server_ACK", "SELECT_response_61"],
+   "relay": [],
+   "release": "response_ready_D",
+   "same_as_t0": false,
+   "frames": {
+    "SELECT_server_ACK": "ADDED at T=1 (decision D1). sent vectors.packet(16, s, c, reverse=True); master gets rp.preserve_options(sent, vectors.packet(16, s + growth, c, reverse=True))",
+    "SELECT_response_61": "sent vectors.packet(24, s, c, reverse=True, payload=native SELECT 49, body bytes(2) + crob(100)); master gets rp.preserve_options(sent, vectors.packet(24, s + growth, c, reverse=True, payload=encode61.ctl61(native))), the 60-octet image"
+   },
+   "expectation": "As READ_ACK_and_response_61, with the SELECT response: exactly [ACK, 60-octet image] at the master, nothing at the relay, and the same T-clock proof (one hold/arrival/commit/release, release - commit >= gap).",
+   "t0_difference": "At T=0 the SELECT response is sent alone and forwarded within the same exchange (scripts/model/model_abandon.py:142-153: only READ gets a separate ACK, line 147). Under this contract a SELECT response with no genuine ACK in its generation is never released (commit_diff != 0 keeps it in rewait_response) and is flushed as stale when the next request opens a new generation.",
+   "citations": [
+    "p4/response_only.p4:1917, :1904, :2018, :2019 as above: no release without a genuine ACK commit in the same generation, no fallback",
+    "p4/response_only.p4:403-405 first_event: kind-10 rows (first_read_ack) classify the relay's pure ACK in the post-request owner states",
+    "results/builds/c72/supported_profile.json:102 genuine ACK waits for whole child0; response follows ACK commit by D",
+    "scripts/model/model_repeat.py:288-302 timed SELECT/OPERATE exchanges send the genuine relay ACK with the response",
+    "scripts/model/model_select_lifecycle.py:141-165 timed SELECT exchanges send the genuine relay ACK with the response and check the T-clock proof",
+    "scripts/model/model_response_ready.py:1112-1115 the D matrix runs SELECT exchanges with a separate genuine ACK"
+   ]
+  },
+  {
+   "row": "READ_after_SELECT_cancels_selection_forwarded",
+   "stimulus": ["READ_after_SELECT"],
+   "inject": "master",
+   "master": [],
+   "relay": ["READ_after_SELECT"],
+   "release": "immediate",
+   "same_as_t0": true,
+   "frames": {"READ_after_SELECT": "sent vectors.packet(24, c, s + growth, payload=request) (READ instead of OPERATE); relay gets vectors.packet(24, c, s, payload=request)"},
+   "expectation": "Exactly one exact frame at the relay, forwarded at once: N cancels the selection (from m4 on) and T admits the READ as a new REQUEST generation. No ACK or response follows in this scenario, so T holds nothing for it. A drop is a FAILURE, not a characterization.",
+   "citations": [
+    "scripts/model/model_abandon.py:36-37, :161-168 m4+ selection cancellation: the READ is forwarded unchanged (T=0 expectation)",
+    "scripts/model/model_select_lifecycle.py:206-219 timed phase 'cancel': SELECT then a cancelling READ, forwarded with T enabled",
+    "p4/response_only.p4:1655, :1978 T admits it (live_admit_gen, admit_request to t_RELAY_PORT)"
+   ]
+  },
+  {
+   "row": "RST_after_abandoned_SELECT_forwarded",
+   "stimulus": ["RST"],
+   "inject": "master",
+   "master": [],
+   "relay": ["RST"],
+   "release": "immediate",
+   "same_as_t0": true,
+   "frames": {"RST": "sent vectors.packet(20, c, s + growth); relay gets vectors.packet(20, c, s)"},
+   "expectation": "Exactly one exact frame at the relay; the T epoch is closed. Nothing is held at that point, so nothing may be released to the master. A drop is a FAILURE.",
+   "citations": [
+    "p4/response_only.p4:508 reset_boundary -> emit_reset; :503 emit_reset: T RESET (kind 13), code = direction",
+    "p4/response_only.p4:1592 lifetime_access RESET -> close_epoch; :1653 gen_access RESET -> live_reset_gen (no enabled key)",
+    "p4/response_only.p4:1962 tin_verdict RESET, stage 1 (master) -> passthrough_tev_relay (enabled is a wildcard)",
+    "p4/response_only.p4:2020 any held packet of the sealed epoch would be dropped (drop_old_epoch)",
+    "scripts/model/model_abandon.py:178 T=0 expectation"
+   ]
+  },
+  {
+   "row": "new_SYN_after_abandoned_SELECT_admitted",
+   "stimulus": ["new_SYN"],
+   "inject": "master",
+   "master": [],
+   "relay": ["new_SYN"],
+   "release": "immediate",
+   "same_as_t0": true,
+   "frames": {"new_SYN": "vectors.packet(2, 5000, mss=1460), forwarded unchanged"},
+   "expectation": "Exactly one exact frame at the relay: a new connection opens a new T epoch exactly as at T=0. A drop is a FAILURE.",
+   "citations": [
+    "p4/response_only.p4:509 terminal_open; :1591 open_epoch; :1651 live_reset_gen; :1959 passthrough_tev_relay (no enabled key)",
+    "scripts/model/model_abandon.py:179-180 T=0 expectation"
+   ]
+  }
+ ],
+ "fixed_checks": {
+  "clock_rows": {
+   "READ_T_clock_response_ready_ACK_then_D": "repeat_clock_proof over the T ingress records from just before the READ ACK/response pair",
+   "SELECT_T_clock_response_ready_ACK_then_D": "repeat_clock_proof over the T ingress records from just before the SELECT ACK/response pair",
+   "forbidden_actions": ["flush_ack_stale", "flush_response_stale", "drop_duplicate_response", "drop_old_epoch", "drop_tin"],
+   "citations": [
+    "scripts/model/model_repeat.py:126-138 repeat_clock_proof",
+    "scripts/model/model_repeat.py:256-262 timing_proof: written gap from t_params_written.json, row name <tag>_T_clock_response_ready_ACK_then_D",
+    "p4/response_only.p4:2015, :2019, :1982, :2020, :1979 the forbidden actions are stale flushes, duplicate drops and old-epoch/completed-ACK drops"
+   ]
+  },
+  "work_row": {
+   "N_work_free_after_every_step": "N's expected-work cell phase is 4 (free) after every row has resolved",
+   "citations": [
+    "p4/response_only.p4:30 work register initial {generation 0, phase 4}",
+    "p4/response_only.p4:34 a new claim succeeds only when phase == 4",
+    "p4/response_only.p4:24 Free4 is published only by an actual expected-phase3 return",
+    "scripts/model/model_abandon.py:118-120 work() reads p0.n_Ingress.work.work; T=0 records it without asserting"
+   ]
+  }
+ },
+ "decisions": [
+  {
+   "id": "D1",
+   "question": "The T=0 stimulus sends the SELECT response with no separate relay ACK. What does T=1 do with it?",
+   "decision": "The T=1 scenario adds the relay's genuine SELECT ACK, sent with the SELECT response as one pair.",
+   "reason": "Under this contract a response is released only after a genuine ACK commit in its generation, with no fallback. Without the ACK the SELECT response is never delivered, so the SELECT is not answered and the selection is not abandoned. The T=0 stimulus would then have the master acknowledge, in the READ-after-SELECT, 60 octets it never received. The gate's timed drivers send the genuine relay ACK for SELECT in the same situation.",
+   "citations": [
+    "p4/response_only.p4:1917", "p4/response_only.p4:1904", "p4/response_only.p4:2018", "p4/response_only.p4:2019",
+    "results/builds/c72/supported_profile.json:102",
+    "scripts/model/model_repeat.py:288-302", "scripts/model/model_select_lifecycle.py:149-165"
+   ]
+  },
+  {
+   "id": "D2",
+   "question": "How is the hold of the relay ACK observed?",
+   "decision": "ACK and response are sent back to back (response_ready_pair). The hold is proved on the T clock: hold_ack recorded, commit not before the whole response arrived, response release >= commit + D. No wall-clock silence window between ACK and response.",
+   "reason": "This is the convention of the gate's timed drivers. The model clock is not wall time, so a host silence window would not show D.",
+   "citations": ["scripts/model/model_repeat.py:106-138", "scripts/model/model_response_ready.py:614-617", "scripts/model/model_control_timing.py:25"]
+  },
+  {
+   "id": "D3",
+   "question": "What counts as stale work state?",
+   "decision": "N's work phase must be 4 (free) after every resolved row; asserted at T=1 only. The T=0 gate path still only records it.",
+   "citations": ["p4/response_only.p4:24", "p4/response_only.p4:30", "p4/response_only.p4:34"]
+  },
+  {
+   "id": "D4",
+   "question": "Immediate rows: count only, or port too?",
+   "decision": "At T=1 the single frame must arrive at the far endpoint (master->relay, relay->master), as in model_repeat's step. T=0's send() checks count and bytes only; it stays unchanged.",
+   "citations": ["scripts/model/model_repeat.py:241-255", "scripts/model/model_abandon.py:122-131"]
+  },
+  {
+   "id": "D5",
+   "question": "Which builds can run the T=1 scenario?",
+   "decision": "Only a response_ready_ack_d_no_j_v3 build where a READ cancels the selection (MILESTONE not m1-m3). Otherwise the T=1 scenario records a failed precondition row and stops. The derivation covers no other contract.",
+   "citations": ["scripts/model/model_abandon.py:36-37", "scripts/model/model_profile.py:72"]
+  },
+  {
+   "id": "D6",
+   "question": "Is model_abandon_c72_01 (T=0 expectations run with ABANDON_T=1 by the relocation drift) used?",
+   "decision": "No. It ran the old stimulus with the T=0 expectations and is not a derivation source.",
+   "citations": ["results/models/c72/model_abandon_c72_01/launch_command.json"]
+  }
+ ],
+ "failure_policy": "Every T=1 row is asserted (characterization=false). Unexpected drops, extra or reordered frames, a missing T-clock proof, stale N work state, or a failed READ-after-SELECT/RST/new SYN are FAILURES."
+}
