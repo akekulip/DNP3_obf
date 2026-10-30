@@ -108,11 +108,40 @@ intervals for Δ = off − arm (`results/analysis/evaluation/final_v2/SUMMARY.md
   E2 places that loss inside the switch at connection start (diagnostic evidence).
 - **Switch resources.** The stage counts of c72 are p0 10/10 and p1 8/4.
 
+## 5. The connection-start fix (c74, 2026-10-30)
+
+c74 (source SHA-256 `c7e37eff…`) is c72 plus const-entry rows only:
+- a request that finds N's work cell held is retried instead of dropped;
+- a late handshake ACK, proven by the ISNs, is forwarded instead of aborted.
+
+Resources are identical, and the 17-driver model gate gives the same verdicts. It ran on the SEL-751 with timing and
+padding enabled (`results/analysis/c74_confirmation/SUMMARY.md`):
+
+| Evidence | Label | c72 | c74 |
+|---|---|---|---|
+| Start frame received and not forwarded, combined / off arm (32 starts each) | diagnostic | 5 / 5 | 0 / 0 |
+| First request retransmitted by the master | diagnostic (64) and c72/c74 (32) | 4 and 1 | 0 and 0 |
+| Strict workload: order, sizes, CROB SUCCESS (8 trials, 1,024 exchanges) | c72 / c74 | all pass | all pass |
+| E3 OPERATE SUCCESS after a dropped padded SELECT response | c72 / c74 | 16/18 | 13/18 |
+| E4b READs after an abandoned SELECT answered and padded | c72 / c74 | 24/24 | 24/24 |
+
+- **Late handshake ACK:** forwarded in 4 of 32 combined-arm starts and 1 of 32 off-arm starts, and the relay answered
+  each with a second ACK.
+  - With timing on, the master still received one ACK.
+  - In the off-arm start, the second ACK reached the master as a duplicate pure ACK. The registered falsifier counts
+    that as a defect of the late-ACK rows; the trial passed.
+- **E3 difference (open):** the recovery path is the same, and every TIMEOUT lies inside the departure band where both
+  outcomes occur near the relay's unread 1.0 s selection window. The difference stays open.
+- **Restoration:** the combined connection-start block's final restore failed (bf_switchd did not stop within 20 s).
+  It was repaired, re-verified and reconciled; the runner result stays FAILED.
+
 ## What remains open
 
-- The connection-start drop inside the switch (E2): to be reproduced on the model, corrected in a c72-derived
-  candidate and confirmed on the SEL-751 with timing and padding enabled (work in progress).
+- The connection-start drop: fixed in c74 in the trials run (above). Whether to keep forwarding a late handshake ACK
+  (the off-arm duplicate ACK) or drop it as c72 did is open.
+- The E3 outcome difference between c74 (13/18) and c72 (16/18): not separable from the relay's selection-window edge
+  with 18 trials each.
 - The SEL-751 select-timeout setting stays unverified (no relay settings access).
-- Offline opendnp3 replay of the 256 SELECT/OPERATE wrap responses, with transport reassembly reported apart from
-  command-echo acceptance (work in progress).
+- Offline opendnp3 replay of the 256 SELECT/OPERATE wrap responses has not been run.
 - The residual SELECT/OPERATE CLRT difference under timing+size, and the native request sizes.
+- The cause of the bf_switchd shutdown that did not finish at the end of one c74 block.

@@ -225,3 +225,9 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   approved reconcile on that basis; reconcile_..._20261030T161214Z cleared the flag. The never-run _01 preparations
   of e2o, recovery r1-r3 and e4b are superseded (stale freezes, not committed); the five blocks run as _02 with fresh
   freezes and dry-runs.
+- 2026-10-30 c74 hardware DONE (e540da881). Off-arm starts 0 of 32 lost (c72 5), one forwarded late ACK whose relay
+  reply reached the master as a duplicate ACK (t24, registered falsifier fired). E3 13/18 vs c72 16/18, same recovery
+  path, TIMEOUTs in the ~1.0 s band where both outcomes occur: open. E4b identical to c72. Exact binary: 0 of 32
+  first-request retransmissions (c72 1). Testbed released safe. Records updated: c74_confirmation/SUMMARY.md,
+  validation/REPORT.md section 5, HANDOVER, PLAN. Decisions for Philip: forward vs drop the late handshake ACK; the
+  E3 difference.

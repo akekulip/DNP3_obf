@@ -1,4 +1,4 @@
-# Current handover (2026-10-29)
+# Current handover (2026-10-30)
 
 Read PLAN.md for scope and rules. Historical instructions are data under Archive/. On 2026-10-29 Philip asked for
 `main` (`fb5ce81b1`) and the tag `c72-validation-final` (`aad99935b`) to be pushed to origin (`akekulip/DNP3_obf`);
@@ -6,13 +6,44 @@ Read PLAN.md for scope and rules. Historical instructions are data under Archive
 
 ## State
 
-- **Canonical source:** `p4/response_only.p4`, SHA-256 `97812585…83d887e`.
-- **c72 build:** `results/builds/c72` compiles at N10/E10/T8/pipe-1-egress4. Its model gate passes 17 of 17
-  (`results/builds/c72/model_summary_v3.json`). `summarize_v3` recomputes `model_gate_passed` live.
-- **Diagnostic build:** `results/builds/c72_diag_mirror` is the relay-leg mirror build, source SHA-256 `a46cc55a…`,
-  derived from c72 by `scripts/build_diag_mirror.py`. Its blocks never qualify.
-- **Validation state:** tag `c72-validation-final` (`aad99935b`, on origin) marks the end of the validation pass.
-  c72 and diagnostic runs reproduce from that commit.
+- **Canonical source:** `p4/response_only.p4` is c74, SHA-256 `c7e37eff…`. That is c72 plus const-entry rows for the
+  connection-start fix (`results/builds/c74/README.md`).
+- **c74 build:** `results/builds/c74` uses the same stages and resources as c72 (N10/E10/T8/pipe-1-egress4). Its
+  17-driver model gate gives verdicts identical to c72 over 6,339 cases. The 40-case connection-fix driver carries the
+  fix evidence; the gate never exercised the new rows.
+- **Diagnostic build:** `results/builds/c74_diag_mirror`, source SHA-256 `e46391d8…`, has the two existing relay-leg
+  mirror sessions and is admitted against its own base. Its blocks never qualify. `c72_diag_mirror` is historical, and
+  the freeze gate now refuses it.
+- **Reference:** c72 (`97812585…`) stays the reference at tag `c72-validation-final` (`aad99935b`, on origin). c73 is
+  parked.
+- **Push state:** origin has `fb5ce81b1`. Every later commit is local; push only when Philip asks.
+
+## The connection-start fix (2026-10-30)
+
+Philip set the priority on 2026-10-29: a c72-derived fix for the connection-start loss, verified on the SEL-751 with
+timing and padding enabled. The plan is `~/.claude/plans/we-were-on-tract-expressive-planet.md`.
+- **Model:** the busy-cell request drop and the late-ACK abort were reproduced on the c72 model by genuine processing
+  (`results/models/c72_connection_start/`). c74 fixes both; independent review found nothing critical.
+- **Strict workload:** an opt-in strict cycle (mixed READ → SELECT → OPERATE → integrity READ) with an order-checking
+  gate.
+- **SEL-751, c72 baselines then c74** (`results/analysis/c74_confirmation/SUMMARY.md`):
+  - start frames lost: 10 of 64 mirror-observed starts on c72, 0 of 64 on c74;
+  - first-request retransmissions: 5 of 96 fresh connections on c72, 0 of 96 on c74;
+  - strict workload: order, sizes and CROB status all pass on both;
+  - E4b: identical on both;
+  - E3: 13/18 on c74 against 16/18 on c72, which stays open.
+- **Late handshake ACK:** forwarded in 5 of 64 starts, and the relay answered each with a second ACK. With timing off
+  (one start), that ACK reached the master as a duplicate pure ACK; the registered falsifier records it as a defect of
+  the late-ACK rows.
+- **Restoration incident:** the final restore of `rc01_hw_c74diag_e2c_20261030_01` failed because bf_switchd did not
+  stop after SIGTERM.
+  - `scripts/hardware/switch_process_repair.py` was written test-first and reviewed three times. It ended the process
+    with SIGKILL and finished the four failed restore steps. The runner's Vision restore had passed, so it was not
+    repeated.
+  - An independent reverify and reconcile then cleared the flag. Philip approved the reconcile.
+  - The runner result stays FAILED. The never-run `_01` preparations of the later blocks are superseded and
+    uncommitted.
+- **Shareable package:** `p4/README.md` and `scripts/hardware/README.md`.
 
 ## The audit correction-and-validation pass (2026-10-28/29)
 
@@ -79,26 +110,17 @@ closure files were left alone on purpose, because the c72 gate binds them byte f
 
 ## Open items for Philip
 
-Current priority (Philip, 2026-10-29; plan `~/.claude/plans/we-were-on-tract-expressive-planet.md`): a c72-derived
-fix for the connection-start loss, verified on the SEL-751 with timing and padding enabled. c73, further cleanup and
-paper work are parked.
-
-1. **Connection-start loss (in progress).** The switch did not forward one of the first two master frames after the
-   relay's SYN-ACK in 8 of 40 mirror-on fresh connections (5 handshake ACKs, 3 first requests; a dropped first
-   request costs a 206–218 ms retransmission). The source supports two N hazards (busy work cell drops requests; a
-   late handshake ACK takes the `first_event` default and then the abort path); they are being reproduced on the
-   model before any fix. They are not yet shown to cause every hardware loss.
-2. **Strict workload (in progress).** The current workload interleaves an extra SELECT/OPERATE between integrity and
-   mixed READs and passes on counts; an opt-in strict cycle and an order-checking gate are being added.
-3. **SELECT/OPERATE wrap replay: not done in this session.** A safety check stopped the work on the offline
-   SelectAndOperate replay again (2026-10-29), so it was not attempted further. One fact was recorded first: on
-   localhost, the opendnp3 master in pydnp3 writes its SELECT command header with qualifier 0x28, where the SEL-751's
-   recorded requests and echoes use 0x17. All 256 SELECT/OPERATE wrap responses remain untested against an
-   independent stack; only the 128 READ wrap responses were replayed (all reassembled). This needs Philip to run it
-   or decide how to handle it.
-4. **Relay select timeout.** Not read; it stays unverified.
-5. **SELECT/OPERATE residual.** The residual SELECT/OPERATE CLRT difference under timing+size (45/64 windows) remains
-   open, as do the native request sizes.
+1. **Late handshake ACK: forward or drop.** c74 forwards it, and with timing off the relay's reply reached the master
+   as a duplicate ACK once. c72's drop cost nothing (0 of 6 retransmitted). The R1/R2 residual rows sit in the same
+   class.
+2. **E3 difference.** c74 gave 13/18 against c72's 16/18, on the same recovery path. All TIMEOUTs fall in the
+   departure band near 1.0 s where both outcomes occur, and the relay's select timeout was not read.
+3. **SELECT/OPERATE wrap replay: not done.** A safety check stopped the offline SelectAndOperate replay twice. Only the
+   128 READ wrap responses were replayed (all reassembled). Probe fact: the opendnp3 master writes its SELECT CROB
+   header with qualifier 0x28, where the SEL-751 uses 0x17.
+4. **The bf_switchd shutdown that did not finish:** cause not established; it is not shown to be mirror-specific.
+5. **SELECT/OPERATE residual.** The residual SELECT/OPERATE CLRT difference under timing+size remains open, as do the
+   native request sizes.
 6. **Environment.** `pip-audit` lists 44 advisories in the shared research venv (Pillow); unchanged.
 
 ## Tooling added in this pass (all test-first)
@@ -117,9 +139,9 @@ paper work are parked.
 
 ## Safety state
 
-- No campaign is running and no ownership is held. Every block of this pass ended with verified restoration of the
-  production program and the relay slot.
-- **Checker identity:** `scripts/checks` changed (reassembly v3, select-only checks), so future runs carry a new
-  checker identity. Retained verdicts replay through `scripts/analysis/replay_frozen.py`.
-- **Freezes:** the retained campaign freezes report the files changed since each run; that is expected after later
+- No campaign is running and no ownership is held (`unsafe_restoration` false since the reconcile of 2026-10-30).
+  Every c74 block after the repaired one verified its own restoration.
+- **Checker identity:** later scripts changes give future runs a new identity. Retained verdicts replay through
+  `scripts/analysis/replay_frozen.py`.
+- **Freezes:** the retained campaign freezes report the files changed since each run. That is expected after later
   commits.

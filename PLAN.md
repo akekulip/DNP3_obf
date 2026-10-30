@@ -1,4 +1,4 @@
-# Current task: c72-derived connection-start loss fix, verified on the SEL-751 (status 2026-10-30)
+# Current task: c72-derived connection-start loss fix, verified on the SEL-751 (status 2026-10-30, hardware done)
 
 Set by Philip on 2026-10-29 after his review of `fb5ce81b1`. The detailed plan is
 `~/.claude/plans/we-were-on-tract-expressive-planet.md`. c72 stays the reference at tag `c72-validation-final`.
@@ -14,21 +14,23 @@ correct, data and command responses are preserved, and timing and padding work.
 | 0 | Record corrections (padding cost scope, select timeout, mirror timing, classifier scope, c73, push state) | done, `1433c5c31` |
 | 1 | Strict workload (mixed READ → SELECT → OPERATE → integrity READ) with an order-checking gate; c72 baselines | done, `87b1184cb`, `3f4a0a248` |
 | 2 | Reproduce the loss paths on the c72 model by genuine processing | done, `5979e3654` |
-| 3 | Smallest fix (c74: const-entry rows only) with regressions | model-qualified; independent P4 review running |
-| 4 | Integrate c74 as canonical; `c74_diag_mirror`; focused SEL-751 confirmation | in progress |
+| 3 | Smallest fix (c74: const-entry rows only) with regressions | done; independent P4 review: no critical finding |
+| 4 | Integrate c74 as canonical; `c74_diag_mirror`; focused SEL-751 confirmation | done, `bffcf6339`, `e540da881`; results in `results/analysis/c74_confirmation/SUMMARY.md` |
 | 4b | Before/after padding pcaps | curated extraction stopped by a safety check; retained captures pointed to instead |
 | 5 | Offline SELECT/OPERATE wrap replay | stopped by a safety check; handed to Philip |
-| 6 | Shareable package: READMEs for the P4 and the master/run scripts, lab-specific settings listed | after the hardware runs |
+| 6 | Shareable package: READMEs for the P4 and the master/run scripts, lab-specific settings listed | done, `367b5a842`, `96cdfa4f6` |
 
 **c72 baselines** (`results/analysis/strict_cycle/SUMMARY_c72_baseline.md`): strict workload 8/8 trials pass with
 the strict order; combined-arm connection starts lose a start frame inside the switch in 5 of 32 connections, as in
 the off arm.
 
-**SEL-751 confirmation of c74**, each block registered, frozen, dry-run and restored:
-- strict workload at D = 20 and 5 ms, 4 trials each;
-- combined-arm connection starts on `c74_diag_mirror`, 32 fresh connections (primary; c72: 5 of 32);
-- off-arm connection starts, 32 fresh connections (c72: 5 of 32);
-- E3 SELECT-response loss recovery, 3 × 6, and E4b SELECT without OPERATE, 6.
+**SEL-751 confirmation of c74** (all eight blocks run; summary in `results/analysis/c74_confirmation/SUMMARY.md`):
+- start frames lost: 0 of 64 mirror-observed starts (c72: 10 of 64);
+- first-request retransmissions: 0 of 96 fresh connections (c72: 5 of 96);
+- strict workload and E4b: all checks pass, as on c72;
+- E3: 13/18 against c72's 16/18, which stays open;
+- one off-arm duplicate ACK after a forwarded late handshake ACK (registered falsifier);
+- one block's final restore failed, then repaired and reconciled.
 
 Results are reported as "k of N", or "zero observed in N trials", never as an unconditional loss-free claim.
 
