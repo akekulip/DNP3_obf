@@ -1,62 +1,44 @@
-# Current task: c72 qualification and evaluation (status 2026-10-28)
+# Current task: c72-derived connection-start loss fix, verified on the SEL-751 (status 2026-10-30)
 
-Resumed 2026-10-27 at Philip's instruction. Done: model gate 17/17; qualification matrix 9/10 (block 10 loss_full
-FAIL, restoration verified); Formby-style evaluation campaign 64/64 (Philip-approved scope, results/analysis/
-evaluation/). Clean-checkout reproduction (step 3) ran 2026-10-28: compile and model gate reproduced; the frozen
-replay tool replays 7 of the 10 qualification blocks, and blocks 06-08 need a decision (HANDOVER item 3). Figures
-were redesigned in the P4USE style on 2026-10-28. Remaining: Philip's decisions in HANDOVER.md open items.
+Set by Philip on 2026-10-29 after his review of `fb5ce81b1`. The detailed plan is
+`~/.claude/plans/we-were-on-tract-expressive-planet.md`. c72 stays the reference at tag `c72-validation-final`.
+c73 promotion, further cleanup and paper work are parked.
 
-Approved scope: current implementation and paper in the shallow layout; historical material in Archive/;
-current logs, PCAPs and JSON in results/. Work on main and commit locally. Push only on Philip's explicit instruction
-(he asked for one on 2026-10-28); no
-history rewrite.
+**Done when**, on the exact tested hardware image: the connection-start loss is shown fixed, transaction order is
+correct, data and command responses are preserved, and timing and padding work.
 
-## Completed implementation and cleanup
+## Steps
 
-- Canonical editable p4/response_only.p4 replaces the historical transform chain.
-- SDK9.13.2 source97812585…83d887e compiles N10/E10/T8/pipe-1-egress4, based on highest occupied stage+1.
-- Changes preserve the protocol contract, add no packet passes, and reduce persistent state by64bits.
-- Current build/model/checker/hardware tools use scripts/tests; historical PCAPs are not current prerequisites.
-- Captured CROB bytes determine application status; metadata cannot turn TIMEOUT into success.
-- Paper relocated without scientific or figure-content changes; standalone build/protected-text checks pass.
-- Historical files archived by original tracked/local status. Only SHA-verified XZ duplicates were pruned.
+| Step | Content | Status |
+|---|---|---|
+| 0 | Record corrections (padding cost scope, select timeout, mirror timing, classifier scope, c73, push state) | done, `1433c5c31` |
+| 1 | Strict workload (mixed READ → SELECT → OPERATE → integrity READ) with an order-checking gate; c72 baselines | done, `87b1184cb`, `3f4a0a248` |
+| 2 | Reproduce the loss paths on the c72 model by genuine processing | done, `5979e3654` |
+| 3 | Smallest fix (c74: const-entry rows only) with regressions | model-qualified; independent P4 review running |
+| 4 | Integrate c74 as canonical; `c74_diag_mirror`; focused SEL-751 confirmation | in progress |
+| 4b | Before/after padding pcaps | curated extraction stopped by a safety check; retained captures pointed to instead |
+| 5 | Offline SELECT/OPERATE wrap replay | stopped by a safety check; handed to Philip |
+| 6 | Shareable package: READMEs for the P4 and the master/run scripts, lab-specific settings listed | after the hardware runs |
 
-## Remaining work, in order
+**c72 baselines** (`results/analysis/strict_cycle/SUMMARY_c72_baseline.md`): strict workload 8/8 trials pass with
+the strict order; combined-arm connection starts lose a start frame inside the switch in 5 of 32 connections, as in
+the off arm.
 
-1. Finish the current c72 package and reviewed source/action bindings. Run model smoke, then all17 required
-   scenarios with their full original coverage. Repair demonstrated harness/fixture defects before judging the
-   candidate; a real implementation defect requires a new source/compile and a complete new gate.
-2. After compile and model gates pass, take a fresh native READ observation, generate the fixed matrix below,
-   freeze candidate/profile/artifacts/checkers/configs, and run through existing guarded ownership/restoration.
-   Current endpoint binding is one fixed reciprocal master/outstation tuple; no live BFRT IP rebinding.
-3. Retain selected current compiler/model/hardware evidence with hashes. Reproduce from a clean checkout with
-   Archive unavailable: restore only the selected current evidence, independently compile, recompute the17-model
-   gate and replay only the new matrix. A faithfully reproduced hardware FAIL is a valid reproduction outcome.
-4. Update HANDOVER.md, results/current.json and the short WORKING_NOTES.md. Verify current tests/static checks,
-   paper and explicit staging. Commit locally as akekulip <akekulip@gmail.com>, author and committer, no trailer.
+**SEL-751 confirmation of c74**, each block registered, frozen, dry-run and restored:
+- strict workload at D = 20 and 5 ms, 4 trials each;
+- combined-arm connection starts on `c74_diag_mirror`, 32 fresh connections (primary; c72: 5 of 32);
+- off-arm connection starts, 32 fresh connections (c72: 5 of 32);
+- E3 SELECT-response loss recovery, 3 × 6, and E4b SELECT without OPERATE, 6.
 
-## One fresh SEL-751 matrix
-
-| Workload | Exchanges |
-|---|---:|
-| D5 combined smoke | 4 |
-| D5 four arms | 772 |
-| D10/D15/D20 timing_only+combined | 1158 |
-| D20 graceful/RST persistence and reconnect | 198 |
-| D20 mixed/full loss, seven identity-targeted trials each | 308 |
-| Total | 2440 |
-
-Use the existing guarded points{1,3}, command parameters, freeze, host-wide ownership and independent restoration.
-Smoke failure stops the larger matrix. Unsafe ownership/restoration stops writes. Later failures remain FAIL;
-finish only remaining planned safe trials. No extra matrix, rerun-until-pass campaign or causal instrumentation.
+Results are reported as "k of N", or "zero observed in N trials", never as an unconditional loss-free claim.
 
 ## Boundaries
 
-Four arms use one binary with runtime T/padding flags. Keep response-ready ACK/D, no J or new timing criterion.
-CLRT is reported by class as data; piggyback exchanges stay separate. Faithful error delivery is transport evidence,
-not successful SELECT authorization or OPERATE. Receiver captures do not prove switch-emitted packet boundaries,
-departure timing or protection against physical-event fingerprinting.
-
-No SER/unsolicited/classifier project, new register state, extra passes, timeout/threshold/default changes,
-production compatibility work, manuscript revision or speculative diagnosis. Do not resurrect archived tasks.
-Original root deletions stay deleted; their last Git bytes are archived. Private Git/agent/session state is preserved.
+- Four arms use one binary with runtime T and padding settings; timing parameters stay gap/budget/enabled. Keep the
+  response-ready ACK and D; no J and no CLRT precision criterion. CLRT is reported by class.
+- Guarded points stay {1, 3}. Stop writes on unsafe ownership or restoration; no rerun-until-pass.
+- Every hardware run states its observable, mechanism, falsifier and trial count before it runs.
+- The diagnostic mirror is used for packet presence and content only; its timing equivalence was not established.
+- Receiver captures do not prove switch emission boundaries, departure timing or protection against physical-event
+  fingerprinting.
+- Work on `main`, commit locally as akekulip, explicit staging paths, push only on Philip's word, no history rewrite.
