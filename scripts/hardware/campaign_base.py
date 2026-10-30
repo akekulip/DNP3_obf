@@ -234,6 +234,64 @@ def drop_text(entry):
     """A loss preset entry -> the --drop text: CLASS:N, or CLASS:N:identity for an explicit identity target."""
     return '%s:%d' % (entry['class'], entry['n']) + (':identity' if entry.get('target') == 'identity' else '')
 
+EXPECTED_CROB_STATUSES = ('SUCCESS', 'TIMEOUT')
+
+
+def validate_expected_outcomes(declared, pname):
+    """A loss entry's expected recovery outcome (Philip, 2026-10-30): the OPERATE CROB statuses on the guarded points
+    that are recorded as an expected outcome instead of a failure."""
+    points = declared.get('points') if isinstance(declared, dict) else None
+    statuses = declared.get('operate_crob_status') if isinstance(declared, dict) else None
+    if (not isinstance(declared, dict) or set(declared) != {'operate_crob_status', 'points'}
+            or not isinstance(statuses, list) or not statuses or not set(statuses) <= set(EXPECTED_CROB_STATUSES)
+            or not isinstance(points, list) or not points or not set(points) <= {1, 3}
+            or any(not isinstance(x, int) or isinstance(x, bool) for x in points)):
+        raise ValueError('loss.presets.%s: expected_outcomes needs operate_crob_status within %s and points within the '
+                         'guarded {1, 3}, got %r' % (pname, list(EXPECTED_CROB_STATUSES), declared))
+
+
+def expected_recovery_outcome(trial, wire, standards, declared):
+    """Pure. True when a failed loss trial's only deviation is a declared OPERATE CROB status: the switch and loss
+    target passed, standards transport and size passed, every exchange is complete, every exchange except the single
+    OPERATE succeeded, and the OPERATE answered the declared points with declared statuses at an expected size."""
+    dims = trial.get('dimension_verdicts') or {}
+    verdicts = (standards or {}).get('verdicts') or {}
+    exchanges = (wire or {}).get('exchanges') or []
+    ops = [e for e in exchanges if e.get('operation') == 'OPERATE']
+    if dims.get('switch') is not True or dims.get('loss_target') is not True:
+        return False
+    if verdicts.get('transport') is not True or verdicts.get('size') is not True or len(ops) != 1:
+        return False
+    if any(not e['response'].get('complete') for e in exchanges):
+        return False
+    if any(not e['application'].get('ok') for e in exchanges if e.get('operation') != 'OPERATE'):
+        return False
+    points = sorted(tuple(p) for p in ops[0]['application'].get('points') or [])
+    if [p for p, _ in points] != sorted(declared['points']):
+        return False
+    if not {s for _, s in points} <= set(declared['operate_crob_status']):
+        return False
+    sizes = ((standards or {}).get('expected') or {}).get('lengths', {}).get('OPERATE')
+    size = ops[0]['response']['end_offset'] - ops[0]['response']['start_offset']
+    return not sizes or size in sizes
+
+
+def loss_trial_decision(trial, wire, standards, declared, vision_rc, loss_failures):
+    """Pure. 'pass', 'expected_outcome', 'soft_failure' (no declaration: the historical rule, the block continues and
+    fails) or 'stop' (a declared block: an unexpected correctness failure ends the campaign)."""
+    dims = trial.get('dimension_verdicts') or {}
+    failed = bool(loss_failures) or not dims.get('application') or dims.get('standards') is not True or bool(vision_rc)
+    if vision_rc not in (0, 1):
+        return 'stop'
+    if not failed:
+        return 'pass'
+    if declared is None:
+        return 'soft_failure'
+    if not loss_failures and expected_recovery_outcome(trial, wire, standards, declared):
+        return 'expected_outcome'
+    return 'stop'
+
+
 def validate_loss_and_scenarios(cfg):
     lc = cfg['loss']
     mr = lc.get('max_recovery_s', 5.0)
@@ -243,8 +301,10 @@ def validate_loss_and_scenarios(cfg):
         if not entries:
             raise ValueError('loss.presets.%s must list at least one {class, n}' % pname)
         for e in entries:
-            if set(e) - {'target'} != {'class', 'n'} or not isinstance(e['n'], int) or isinstance(e['n'], bool):
+            if set(e) - {'target', 'expected_outcomes'} != {'class', 'n'} or not isinstance(e['n'], int) or isinstance(e['n'], bool):
                 raise ValueError('loss.presets.%s: each entry needs exactly class and integer n, got %r' % (pname, e))
+            if 'expected_outcomes' in e:
+                validate_expected_outcomes(e['expected_outcomes'], pname)
             if 'target' in e and e['target'] != 'identity':
                 raise ValueError('loss.presets.%s: target must be "identity" and needs the sel751 profile, got %r' % (pname, e))
             loss.parse_drop('%s:%d' % (e['class'], e['n']), cfg['trials']['reads_per_trial'])
@@ -443,6 +503,7 @@ class Campaign:
         self.config_file_sha256 = sha256_file(config_path) if config_path else None
         self.runner_identity = {str(Path(path).relative_to(ARCH)): sha256_file(path) for path in relay_checker_files()+[str(Path(HERE)/name)for name in ('campaign.py','campaign_base.py','vision_run.py')]}
         self.soft_failures = []
+        self.expected_outcomes = []
         if loss is not None and loss not in cfg['loss'].get('presets', {}):
             raise ValueError('unknown loss preset %r; the config defines %s' % (loss, sorted(cfg['loss'].get('presets', {}))))
         if scenario is not None:
@@ -561,7 +622,8 @@ class Campaign:
                     i = 0
                     entries = [None] if self.scenario else c['loss']['presets'][self.loss_preset]
                     for e in entries:
-                        out.append(dict(base, fixture=fx, arm=arm, i=i, preset=None, pair=None, reads=t['reads_per_trial'], start_seed=c['seeds']['rng_seed'] + len(out), drop=drop_text(e) + self._padded_suffix(arm, e['class']) if e else None, scenario=self.scenario))
+                        out.append(dict(base, fixture=fx, arm=arm, i=i, preset=None, pair=None, reads=t['reads_per_trial'], start_seed=c['seeds']['rng_seed'] + len(out), drop=drop_text(e) + self._padded_suffix(arm, e['class']) if e else None, scenario=self.scenario,
+                                        **({'expected_outcomes': e['expected_outcomes']} if e and 'expected_outcomes' in e else {})))
                         i += 1
             return out
         one = c['trial_mode'] == 'one_connection'
@@ -682,6 +744,8 @@ class Campaign:
         self.record['ok'] = not failed and restore_ok and (not self.soft_failures)
         if self.soft_failures:
             self.record['soft_failures'] = self.soft_failures
+        if self.expected_outcomes:
+            self.record['expected_recovery_outcomes'] = self.expected_outcomes
         self.record['gate_ok'] = gate_ok(self.record)
         if not dry:
             self.finish(dry)
@@ -1055,8 +1119,24 @@ class Campaign:
         Path(dest, 'trial.json').write_text(json.dumps(trial, indent=2) + '\n')
         if v.rc not in (0, 1):
             raise StepFailed('physical relay loss trial infrastructure failure (Vision run rc %s)' % v.rc)
-        if failures or not trial['dimension_verdicts']['application'] or trial['dimension_verdicts'].get('standards') is not True or v.rc:
+        try:
+            standards = json.loads(Path(dest, 'standards_verdict.json').read_text())
+        except (OSError, ValueError):
+            standards = None
+        decision = loss_trial_decision(trial, loaded['relay_wire.json'], standards, unit.get('expected_outcomes'),
+                                       v.rc, failures)
+        if decision == 'expected_outcome':
+            trial['expected_recovery_outcome'] = dict(declared=unit['expected_outcomes'], operate_points=next(
+                (e['application'].get('points') for e in loaded['relay_wire.json']['exchanges']
+                 if e.get('operation') == 'OPERATE'), None))
+            Path(dest, 'trial.json').write_text(json.dumps(trial, indent=2) + '\n')
+            self.expected_outcomes.append(label)
+        elif decision == 'soft_failure':
             self.soft_failures.append(label)
+        elif decision == 'stop':
+            self.soft_failures.append(label)
+            raise StepFailed('loss trial %s: correctness failure outside the declared expected recovery outcomes: %s'
+                             % (label, '; '.join(trial['failures'][:4])))
         return
 
     def verdict_scenario(self, trial, label, dest, v, arm):
