@@ -171,3 +171,7 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   installer_base.py:90, campaign_base.py:704, vision_run.py:404; SDE paths with user names in build.py:20,
   matrix.py:203, installer_base.py:75; Vision run-dir default campaign_base.py:462; host addresses/users only in
   lab.json common.hosts. P4 "token" hits are generator tokens, not secrets.
+- Step 2 DONE 5979e3654: H1 (READ busy_drop), H2/H2r (late ACK -> first_event default NoAction, code 255 ->
+  abort) reproduced by genuine processing for both READ lengths; collision rule reproduced (non-causal setup);
+  H1' forced control separate. Step 3 (c74 fix: request retry + narrow late-ACK acceptance, regressions, 17-driver
+  gate) running in worktree scratchpad/c74_wt. Strict-workload builder still running on main.
