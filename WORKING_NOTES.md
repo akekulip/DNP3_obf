@@ -179,3 +179,9 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   mutants killed; tests 604). c72 baselines running sequentially (stop on unverified restoration):
   rc01_hw_c72_sc20_20261030_01, rc01_hw_c72_sc5_20261030_01 (strict, combined arm, 4 trials each),
   rc01_hw_c72diag_e2c_20261030_01 (32 combined-arm fresh connections, mirror). c74 fix in worktree c74_wt.
+- c74 (worktree c74_wt) model-qualified: const-entry rows only (busy_t retries for READ/SELECT/OPERATE; guard
+  go_retry rows; 4 first_event forward_original rows for a late handshake ACK); resources identical to c72; gate
+  17/17 identical verdicts over 6,339 cases; 40-case regression (25 fixed vs c72, 11 unchanged). DECISION FOR PHILIP:
+  H2 rows also forward R1 (old ACK delayed behind the next READ; c72 drops it) and R2 (pure ACK at ISN-1 / ISN+3, not
+  produced by a conforming master); excluding them needs new state (new binary). Proceeding with c74 as built.
+  Running: independent P4 review; c74 integration + c74_diag_mirror + confirmation definitions in the worktree.
