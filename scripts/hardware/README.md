@@ -47,7 +47,11 @@ The relay-side checks (`scripts/checks/`) then judge every trial from the captur
   the isolated testbed. They are defined in `scripts/checks/endpoint_profiles.py` and repeated in a few checkers,
   model drivers and the SELECT/OPERATE driver (`grep -rn 192.168.10. scripts`). They stay in code because the checker
   and model closures bind those files by hash.
-- SDE install paths are in `scripts/build.py` (`--compiler`), `matrix.py` and `installer_base.py`.
-- The master host's run directory default is in `campaign_base.py`.
+- SDE install paths: `switch.py`, `installer_base.py`, `restore_ports.py`, `switch_slot.py` and `live_snapshot.py`
+  read `SDE_INSTALL` first and fall back to the switch's install path; `launch_composite.sh` takes it as its second
+  argument; `matrix.py` writes the switch's SDE path into each manifest; `scripts/build.py` takes `--compiler` (its
+  default is the build host's install).
+- The master host's run directory comes from `hosts.vision_run_dir` in the lab config, with a fallback in
+  `campaign_base.py`.
 
 No credentials are stored in the repository.
