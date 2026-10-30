@@ -12,7 +12,9 @@ standards_verdict.json, CROB SUCCESS on points 1 and 3, master and relay TCP ret
 
 starts: per mirror-on fresh connection, which of the master's first frames (SYN, final handshake ACK, first request)
 has no egress copy toward the relay while the switch counters show it received and not emitted (dev9 RX - dev64 TX
-covers it). A missing copy the counters do not cover is reported as unexplained, never as a switch loss. Also per
+covers it). A missing handshake-ACK copy is a suppressed obsolete ACK only when a later master segment that was forwarded
+covers everything it carries (sequence, acknowledgment, the same window, no newer timestamp); otherwise it is a lost
+valid ACK. A missing copy the counters do not cover is reported as unexplained, never as a switch loss. Also per
 connection, for a relay reply to a late forwarded handshake ACK: whether the handshake ACK's egress copy left after the
 first request's, the pure ACKs acknowledging the first request before the first response (relay side from the ingress
 copies, master side from in.pcap), and the first exchange's CLRT. The mirror is used for packet presence and order
@@ -31,6 +33,7 @@ sys.path.insert(0, str(HERE))
 import diag_mirror_capture as cap  # noqa: E402
 import diag_mirror_d3 as d3  # noqa: E402
 import preservation_check as pc  # noqa: E402
+import recovery_compare  # noqa: E402
 import relay_check as rc  # noqa: E402
 
 SYN = cap.wc.SYN
@@ -38,7 +41,7 @@ SYN = cap.wc.SYN
 CYCLE = (('READ', 'mixed'), ('SELECT', None), ('OPERATE', None), ('READ', 'integrity'))
 CLASS = {('READ', 'mixed'): 'READ mixed', ('SELECT', None): 'SELECT', ('OPERATE', None): 'OPERATE',
          ('READ', 'integrity'): 'READ integrity'}
-FRAMES = ('none', 'syn', 'handshake_ack', 'first_request', 'unexplained_missing_copy')
+FRAMES = ('none', 'syn', 'suppressed_obsolete_ack', 'lost_valid_ack', 'first_request', 'unexplained_missing_copy')
 
 
 def frac(n, of):
@@ -93,6 +96,25 @@ def strict(paths):
                 per_trial=[{k: v for k, v in r.items() if k != 'clrt_us'} for r in rows])
 
 
+def at_or_after(a, b):
+    """b is at or after a in 32-bit TCP sequence space."""
+    return (b - a) % (1 << 32) < (1 << 31)
+
+
+def obsolete(ack, later):
+    """Pure. A pure ACK is obsolete when a later forwarded master segment carries everything it carries: a sequence and
+    an acknowledgment at or beyond its own, the same window, and no older timestamp."""
+    if later is None:
+        return False
+    newer_ts = ack.get('tsval') is not None and (later.get('tsval') is None or not at_or_after(ack['tsval'], later['tsval']))
+    return (at_or_after(ack['seq'], later['seq']) and at_or_after(ack['ack'], later['ack'])
+            and later['window'] == ack['window'] and not newer_ts)
+
+
+def fields(seg):
+    return dict(seg, **recovery_compare.tcp_fields(seg['frame']))
+
+
 def start_row(trial):
     """The frame not forwarded at connection start, from the master's first three frames to the relay."""
     copies = {(s['seq'], s['ack'], s['flags'], s['frame'][18:20]) for s in trial['mirror']['to_relay']}
@@ -103,8 +125,13 @@ def start_row(trial):
     if not missing:
         frame = 'none'
     elif cnt and not_forwarded >= len(missing):
-        frame = ('first_request' if missing[0]['len'] else 'syn' if missing[0]['flags'] & SYN else
-                 'handshake_ack')
+        frame = 'first_request' if missing[0]['len'] else 'syn' if missing[0]['flags'] & SYN else None
+        if frame is None:
+            sent = trial['master']['to_relay']
+            later = next((s for s in sent[sent.index(missing[0]) + 1:]
+                          if (s['seq'], s['ack'], s['flags'], s['frame'][18:20]) in copies), None)
+            frame = ('suppressed_obsolete_ack' if obsolete(fields(missing[0]), later and fields(later))
+                     else 'lost_valid_ack')
     else:
         frame = 'unexplained_missing_copy'
     first = cap.first_request(trial)

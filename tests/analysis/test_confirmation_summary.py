@@ -56,11 +56,11 @@ def test_strict_order_failure_is_caught(tmp_path):
 def test_combined_starts_baseline():
     out = cs.starts(E2C, 'c72_diag_mirror', DIAG_SHA)
     assert out['connections'] == 32
-    assert out['not_forwarded'] == dict(none=27, syn=0, handshake_ack=3, first_request=2,
-                                         unexplained_missing_copy=0)
+    assert out['not_forwarded'] == dict(none=27, syn=0, suppressed_obsolete_ack=3, lost_valid_ack=0,
+                                         first_request=2, unexplained_missing_copy=0)
     lost = {r['trial'].rsplit('_', 1)[1]: r['frame'] for r in out['per_trial'] if r['frame'] != 'none'}
-    assert lost == dict(t0='first_request', t17='handshake_ack', t18='handshake_ack', t19='handshake_ack',
-                        t30='first_request')
+    assert lost == dict(t0='first_request', t17='suppressed_obsolete_ack', t18='suppressed_obsolete_ack',
+                        t19='suppressed_obsolete_ack', t30='first_request')
     assert out['first_request_retransmitted'] == dict(n=2, of=32)
 
 
@@ -88,3 +88,26 @@ def test_dropped_syn_is_not_a_handshake_ack(monkeypatch):
     monkeypatch.setattr(cs.d3, 'counters', lambda t: ({'dev9': dict(rx=9, tx=0), 'dev64': dict(rx=0, tx=7)}, None))
     monkeypatch.setattr(cs.d3, 'completeness', lambda t: dict(ok=True))
     assert cs.start_row(trial)['frame'] == 'syn'
+
+
+
+def seg(seq, ack, window, tsval, flags=0x10, length=0):
+    return dict(seq=seq, ack=ack, window=window, tsval=tsval, flags=flags, len=length)
+
+
+def test_an_ack_is_obsolete_only_when_a_forwarded_later_segment_covers_every_field():
+    ack = seg(101, 501, 502, 7000)
+    request = seg(101, 501, 502, 7001, flags=0x18, length=25)
+    assert cs.obsolete(ack, request) is True
+    assert cs.obsolete(ack, dict(request, ack=500)) is False          # acknowledgment not covered
+    assert cs.obsolete(ack, dict(request, window=600)) is False       # a window change is new information
+    assert cs.obsolete(ack, dict(request, tsval=6999)) is False       # the ACK carries the newer timestamp
+    assert cs.obsolete(ack, dict(request, seq=100)) is False          # the later segment does not reach the ACK
+    assert cs.obsolete(ack, None) is False                            # nothing later was forwarded
+
+
+@needs_evidence
+def test_c72_off_arm_handshake_ack_losses_are_suppressed_obsolete_acks():
+    off = sorted((BLOCKS / 'rc01_hw_c72diag_e2_20261028_01_e2_first_request_d20/physical_relay').glob('*/*_t*'))
+    out = cs.starts(off, 'c72_diag_mirror', DIAG_SHA)
+    assert out['not_forwarded']['suppressed_obsolete_ack'] == 3 and out['not_forwarded']['lost_valid_ack'] == 0
