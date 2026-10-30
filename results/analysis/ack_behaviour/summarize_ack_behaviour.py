@@ -8,7 +8,9 @@ new information, N state unchanged, generation consumed, the rule verdict, the r
 then per scenario and build the set of verdicts across the four class/T variants, the disposition predicted from the
 rows (DESIGN.json predictions_from_rows) against the observed one, the generation check, and the decision gate:
 a valid window update or keepalive (window_increase_outstanding, zero_window_outstanding, keepalive_*) whose case
-progress failed on c75 or c72."""
+progress failed on c75 or c72. For those scenarios the gate cannot fire in the model (DESIGN.json interpretation_limits:
+the scripted relay ignores the advertised window and runs no persist or keepalive timer), so its silence is reported as
+not testable there, not as cleared. A forwarded probe must also keep its advertised window on dev64."""
 import hashlib
 import json
 import sys
@@ -30,6 +32,9 @@ PREDICTED_FORWARDED = {
     'duplicate_ack_idle': {'duplicate_ACK_1': ALL_T, 'duplicate_ACK_2': ALL_T},
     'response_ack_control': {'response_ACK': ALL_T}}
 GATE_SCENARIOS = ('window_increase_outstanding', 'zero_window_outstanding', 'keepalive_idle', 'keepalive_outstanding')
+NOT_TESTABLE = ('the scripted model relay ignores the advertised window and runs no persist or keepalive timer, so '
+                'suppressing a window update, zero window, reopening or keepalive cannot change what reaches the master; '
+                'only N state was checkable for these scenarios. The real-TCP consequence is not testable in the model.')
 
 
 def load(run):
@@ -53,7 +58,7 @@ def main():
     out = Path(sys.argv[4])
     data = {b: load(r) for b, r in runs.items()}
     names = sorted(set().union(*[set(v) for v in data.values()]))
-    cases, scenarios, prediction_misses, gate_hits, problems = {}, {}, [], [], []
+    cases, scenarios, prediction_misses, gate_hits, problems, window_changed = {}, {}, [], [], [], []
     generation = {b: dict(suppressed=set(), forwarded=set()) for b in BUILDS}
     for name in names:
         row = {}
@@ -79,6 +84,9 @@ def main():
                 if want is not None and rec['state_reached'] is not False and want != p['forwarded']:
                     prediction_misses.append(dict(case=name, build=b, probe=probe, predicted_forwarded=want,
                                                   observed_forwarded=p['forwarded']))
+                if p['forwarded'] and (p['port64'] or {}).get('window') != p['sent']['window']:
+                    window_changed.append(dict(case=name, build=b, probe=probe, sent=p['sent']['window'],
+                                               port64=(p['port64'] or {}).get('window')))
                 if p['generation_consumed'] is not None:
                     generation[b]['forwarded' if p['forwarded'] else 'suppressed'].add(p['generation_consumed'])
             if b in ('c72', 'c75') and scenario in GATE_SCENARIOS and rec['state_reached'] is not False \
@@ -100,7 +108,9 @@ def main():
                   per_scenario=scenarios, prediction_misses=prediction_misses,
                   generation_consumed_by_disposition={b: {k: sorted(v) for k, v in g.items()} for b, g in generation.items()},
                   decision_gate=dict(rule=json.loads((HERE / 'DESIGN.json').read_text())['decision_gate'],
-                                     hits=gate_hits, stop=bool(gate_hits)),
+                                     hits=gate_hits, stop=bool(gate_hits), testable_in_model=False,
+                                     scenarios=list(GATE_SCENARIOS), status=NOT_TESTABLE),
+                  forwarded_window_changed=window_changed,
                   cases=cases, problems=problems,
                   summarizer=dict(sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                                   source=Path(__file__).read_text()))

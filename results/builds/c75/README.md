@@ -154,8 +154,17 @@ at the class image size (141 mixed, 158 integrity), with T counts (1, 1, 0, 0) w
 (the other READ class) was admitted once and delivered at its image size; the FIN close completed. A suppressed probe
 (`first_event` default `NoAction`, then the abort laps) consumed one generation, the same as a forwarded one; a 1-octet
 keepalive is not parsed into a packet kind and is dropped before the stage-0 claim (no generation consumed). Decision
-gate: no valid window update or keepalive broke a later transaction, a response or T on c75 or c72, so the gate did
-not stop the work and no rows were added.
+gate (corrected 2026-10-30 after the independent review): for window updates, zero windows and keepalives the gate
+could not fire in the model. The scripted relay ignores the advertised window and runs no persist or keepalive timer,
+so their suppression cannot change what reaches the master; only N state was checkable, and it was unchanged. The
+real-TCP consequence is therefore not testable here, not cleared (`summary.json` `decision_gate.testable_in_model`
+false). No rows were added. Every forwarded probe kept its advertised window on dev64 (`forwarded_window_changed`
+empty).
+
+Hardware occurrence (`results/analysis/ack_behaviour/hardware_master_ack_scan.json`,
+`scripts/analysis/master_ack_scan.py`): in all 498 retained master-NIC captures (61,693 master segments, c72 and c74
+blocks) the supported master sent no window update, no zero window and no keepalive; it never sent a pure ACK that
+repeated its previous acknowledgment. The limitation below is inherited and was not exercised by that workload.
 
 What the violations mean, and what the model cannot show (inferred, not observed):
 - While a READ is outstanding (owner 0xe) N has no kind-3 row for differences (0, 0) or a client difference of -1, on
@@ -176,6 +185,23 @@ attempts per case on any build, with either construction: the retrying ACK alway
 the reverse-order case's, which is tested. Also untested: window or keepalive probes while a SELECT or OPERATE is
 outstanding (owners 9 and 0xc have a (0, 0) row and would forward; a -1 client difference has none), relay-side
 keepalives, SACK and other options, and any real-TCP reaction to a suppressed window update.
+
+## Independent review of the ACK driver (2026-10-30)
+
+A cold review of the seven c75 commits found no classification error that masks a violation in the recorded data, no
+fitted predictions (they precede the driver, `d2dad24dd`), and no weakened tests. The derivation proof holds.
+- HIGH, addressed: the decision gate could not fire for window updates, zero windows and keepalives in the model
+  (above). The summary and this README now say "not testable in the model", not "did not trigger".
+- LOW, addressed offline: a forwarded probe was matched on direction, sequence, flags and length only.
+  `summarize_ack_behaviour.py` now also requires the dev64 copy to keep the sent window. No probe changed it.
+- LOW, latent, recorded: `ack_rule.classify` does not consult `new_information`. A probe that is obsolete under a later
+  covering segment while differing in window from the last forwarded segment would be labelled suppressed-obsolete
+  without the conflict being flagged. No recorded probe is in that position. The driver is left unchanged so that it
+  matches the `driver_sha256` its runs recorded.
+- MEDIUM, recorded: the wire-order late-ACK case reached its state 0 of 48 times on all three builds. On c72 the
+  READ was `busy_drop`ped in every attempt and recorded as progress null, not as a failure.
+- LOW, recorded: on c74 the relay's RFC 9293 reply is outside `progress_ok`. No unit test covers `run_case` or
+  `progress_ok` (the 14 tests cover `ack_rule.py`).
 
 ## Attempts and environment, disclosed
 
