@@ -197,6 +197,8 @@ def _sel751_expected(context):
                 'padded': padded, 'planned_exchanges': sum(counts.values())}
     if checks.sbo_select_only((config.get('traffic') or {})):
         expected['select_only'] = True
+    if checks.sbo_strict_cycle((config.get('traffic') or {})):
+        expected['strict_cycle'] = True
     return expected
 
 
@@ -232,6 +234,8 @@ def _sel751_observed(context, captures, expected):
     counts = expected['counts']
     planned = {kind: int(counts.get(kind, 0)) for kind in ('READ', 'SELECT', 'OPERATE')}
     select_only = expected.get('select_only') is True
+    # strict cycle: the order/binding gate, with the arm's class images; absent, both calls are today's
+    strict = {'strict_cycle': True} if expected.get('strict_cycle') is True else {}
     transport, application, sizes, rows, crob_failed = [], [], [], {}, set()
     try:
         if missing:
@@ -239,16 +243,20 @@ def _sel751_observed(context, captures, expected):
         if not isinstance(port, int) or isinstance(port, bool) or not 0 < port < 65536:
             raise ValueError('master_port missing or malformed: %r' % (port,))
         master = json.loads((root / 'master.json').read_text())
-        findings = relay_check.master_checks(master, port, planned, expected['read_schedule'], select_only=select_only)
-        report = relay_check.analyze(root, port, planned, expected['read_schedule'], select_only=select_only)
+        findings = relay_check.master_checks(master, port, planned, expected['read_schedule'], select_only=select_only,
+                                             **strict)
+        report = relay_check.analyze(root, port, planned, expected['read_schedule'], select_only=select_only,
+                                     **(dict(strict, images=SEL751_IMAGES[expected['padded']]) if strict else {}))
         if report['failures'][:len(findings)] != findings:
             raise ValueError('relay_check failure order differs from its master checks')
-        # the select-only wire findings (an OPERATE on the wire) are application findings, not transport ones
+        # the select-only and strict-cycle wire findings (an OPERATE on the wire, a wrong transaction order or binding)
+        # are application findings, not transport ones
         captured = report['failures'][len(findings):]
+        plans = (relay_check.SELECT_ONLY, relay_check.STRICT_CYCLE)
         transport = [f for f in findings if f.startswith(SEL751_TRANSPORT_MASTER_FINDINGS)] + \
-            [f for f in captured if not f.startswith(relay_check.SELECT_ONLY)]
+            [f for f in captured if not f.startswith(plans)]
         application = [f for f in findings if not f.startswith(SEL751_TRANSPORT_MASTER_FINDINGS)] + \
-            [f for f in captured if f.startswith(relay_check.SELECT_ONLY)]
+            [f for f in captured if f.startswith(plans)]
         records = master.get('records') or []
         for record, exchange in zip(records, report['exchanges']):
             operation = record.get('operation')

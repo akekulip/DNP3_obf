@@ -31,13 +31,19 @@ def preflight():
 
 def workload(master_port, reads, schedule='mixed_full', sbo_cycles=0, run_sbo=True,
              gap_ms=0, read_pause_ms=25, close_grace_ms=0, budget_ms=3000, close_mode='graceful',
-             loss_target=None, select_only=False):
+             loss_target=None, select_only=False, strict_cycle=False):
     """select_only (E4b): each of the sbo_cycles cycles is a guarded SELECT with no OPERATE, then the READ schedule
-    continues; the plan is SELECT=sbo_cycles, OPERATE=0. Only an explicit True with sbo_cycles is accepted."""
+    continues; the plan is SELECT=sbo_cycles, OPERATE=0. Only an explicit True with sbo_cycles is accepted.
+    strict_cycle: the SBO precedes only the odd-index READs, so the order is [READ mixed, SELECT, OPERATE, READ
+    integrity] x sbo_cycles; only an explicit True with mixed_full, run_sbo and reads == 2 x sbo_cycles is accepted."""
     if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':
         raise ValueError('relay master requires DEFENSE4_HW_AUTHORIZED=1')
     if select_only is not False and (select_only is not True or not sbo_cycles or run_sbo is not True):
         raise ValueError('select-only workload needs select_only=True with sbo_cycles and run_sbo')
+    if strict_cycle is not False and (strict_cycle is not True or schedule != 'mixed_full' or run_sbo is not True or
+                                      not sbo_cycles or reads != 2 * sbo_cycles or select_only is not False):
+        raise ValueError('strict-cycle workload needs strict_cycle=True with mixed_full, run_sbo, reads == 2 x '
+                         'sbo_cycles and no select-only')
     if not 1024 <= master_port <= 65535 or reads < 1 or sbo_cycles < 0 or sbo_cycles >= reads:
         raise ValueError('invalid bounded relay workload')
     if schedule not in ('mixed_full', 'mixed', 'full'):
@@ -68,7 +74,8 @@ def workload(master_port, reads, schedule='mixed_full', sbo_cycles=0, run_sbo=Tr
                 return send(**kwargs)
             session.transaction = transaction
         for i in range(reads):
-            if i and i <= sbo_cycles and not sbo(session):
+            due = i % 2 == 1 if strict_cycle else i and i <= sbo_cycles
+            if due and not sbo(session):
                 break
             name = order[i % len(order)]
             builder = mixed_read_frame if name == 'mixed' else integrity_read_frame
@@ -101,6 +108,8 @@ def workload(master_port, reads, schedule='mixed_full', sbo_cycles=0, run_sbo=Tr
                   observation_scope='master application/socket; TCP ACK evidence requires pcap')
     if select_only:
         result['sbo_select_only'] = True
+    if strict_cycle:
+        result['sbo_strict_cycle'] = True
     return result
 
 

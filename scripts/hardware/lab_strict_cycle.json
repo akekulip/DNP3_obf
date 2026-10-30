@@ -1,0 +1,13 @@
+{
+  "_note": "c72 strict-cycle baseline; design in results/analysis/strict_cycle/DESIGN.json.",
+  "base": "lab.json",
+  "template": "05_d20_reference_rest",
+  "blocks": [
+    {"id": "strict_cycle_d20_combined", "d_ms": 20, "arm": {"name": "combined", "T": 1, "padding": 1},
+     "trials_per_arm": 4, "reads_per_trial": 64, "sbo_cycles": 32, "sbo_strict_cycle": true,
+     "master_port_range": {"first": 60170, "last": 60173}},
+    {"id": "strict_cycle_d5_combined", "d_ms": 5, "arm": {"name": "combined", "T": 1, "padding": 1},
+     "trials_per_arm": 4, "reads_per_trial": 64, "sbo_cycles": 32, "sbo_strict_cycle": true,
+     "master_port_range": {"first": 60174, "last": 60177}}
+  ]
+}

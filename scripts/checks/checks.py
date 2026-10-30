@@ -68,6 +68,24 @@ def sbo_select_only(traffic):
     return True
 
 
+def sbo_strict_cycle(traffic):
+    """True only for an explicit traffic.sbo_strict_cycle true: [READ mixed, SELECT, OPERATE, READ integrity] x
+    traffic.sbo_cycles on the mixed_full schedule. Absent = today's order; any other value or shape, or the key
+    together with sbo_select_only, is refused."""
+    traffic = traffic or {}
+    if 'sbo_strict_cycle' not in traffic:
+        return False
+    if traffic['sbo_strict_cycle'] is not True:
+        raise ValueError('traffic.sbo_strict_cycle must be true when present, got %r' % (traffic['sbo_strict_cycle'],))
+    if traffic.get('run_sbo', True) is not True or 'sbo_cycles' not in traffic or \
+            traffic.get('read_schedule') != 'mixed_full':
+        raise ValueError('traffic.sbo_strict_cycle requires traffic.run_sbo, traffic.sbo_cycles and read_schedule '
+                         'mixed_full')
+    if 'sbo_select_only' in traffic:
+        raise ValueError('traffic.sbo_strict_cycle is refused together with traffic.sbo_select_only')
+    return True
+
+
 def planned_controls(traffic):
     """Planned {SELECT, OPERATE} per connection: sbo_count of each, or sbo_count SELECTs and OPERATE 0 only when the
     config declares traffic.sbo_select_only."""

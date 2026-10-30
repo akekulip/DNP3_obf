@@ -3,6 +3,7 @@
 import argparse
 import bisect
 import hashlib
+import itertools
 import json
 import statistics
 from pathlib import Path
@@ -27,6 +28,10 @@ SCHEMA_VERSION = 'sel751-wire-v3'
 SELECT_ONLY = 'select-only plan: '
 # IEEE 1815 function codes that operate an output: OPERATE, DIRECT_OPERATE, DIRECT_OPERATE_NR
 OPERATE_FUNCTIONS = (codec.FUNC_OPERATE, 0x05, 0x06)
+STRICT_CYCLE = 'strict-cycle plan: '
+# one strict cycle in request order: (operation, READ class)
+STRICT_STEPS = (('READ', 'mixed'), ('SELECT', None), ('OPERATE', None), ('READ', 'integrity'))
+STRICT_ORDER = '[READ mixed, SELECT, OPERATE, READ integrity]'
 
 
 def application_from_wire(raw):
@@ -145,13 +150,187 @@ def select_only_wire_checks(stream, records):
     return failures
 
 
-def master_checks(master, master_port, expected=None, schedule=None, select_only=False):
+def strict_plan_checks(master, expected, schedule, strict_cycle=False, select_only=False):
+    """The strict-cycle plan (mixed_full, READ = 2 x SELECT = 2 x OPERATE) from a master that ran it and recorded
+    exactly [READ mixed, SELECT, OPERATE, READ integrity] x N. A master claiming it under a normal plan fails."""
+    if not strict_cycle:
+        if 'sbo_strict_cycle' in master:
+            return [STRICT_CYCLE + 'the master ran the strict cycle but the frozen plan is not strict']
+        return []
+    failures = [STRICT_CYCLE + 'refused together with select-only'] if select_only else []
+    cycles = expected.get('SELECT')
+    cycles = cycles if isinstance(cycles, int) and not isinstance(cycles, bool) and cycles > 0 else 0
+    if schedule != 'mixed_full' or not cycles or expected != dict(READ=2 * cycles, SELECT=cycles, OPERATE=cycles):
+        failures.append(STRICT_CYCLE + 'needs mixed_full with READ = 2 x SELECT = 2 x OPERATE >= 2, got %r on %r'
+                        % (expected, schedule))
+    if master.get('sbo_strict_cycle') is not True:
+        failures.append(STRICT_CYCLE + 'the master did not run the strict-cycle workload')
+    steps = [(r.get('operation'), r.get('workload') if r.get('operation') == 'READ' else None)
+             for r in master.get('records') or []]
+    if steps != list(STRICT_STEPS) * cycles:
+        failures.append(STRICT_CYCLE + 'master record sequence is not %s x %d' % (STRICT_ORDER, cycles))
+    return failures
+
+
+def application_transactions(stream):
+    """The logical application fragments of one reassembled TCP direction in stream order, as dicts with the stream
+    offsets start/end, the link-frame wire bytes and the reassembled application bytes.
+
+    stream is tcp_stream's first-arrival reassembly anchored at the single SYN (one incarnation), so a TCP
+    retransmission of delivered bytes adds nothing, while a repeated request carried by new stream bytes is its own
+    fragment: nothing is deduplicated by content. The stream must be one contiguous run from its first data byte,
+    with no conflicting copies, and decode completely into DNP3 link frames and transport fragments."""
+    if stream is None:
+        raise ValueError('no single-incarnation stream (zero or several SYN sequences)')
+    if stream['conflicts']:
+        raise ValueError('%d stream offset(s) where a retransmitted copy conflicts' % len(stream['conflicts']))
+    runs = stream['runs']
+    if not runs:
+        return []
+    if len(runs) != 1 or runs[0][0] != 1:
+        raise ValueError('a gap: first-arrival bytes form %d run(s) from stream offset %d, not one run from 1'
+                         % (len(runs), runs[0][0]))
+    data, assembler, transactions, begin, position = bytes(runs[0][1]), codec.TransportAssembler(), [], None, 0
+    while position < len(data):
+        frame, rest = codec.parse_frame(data[position:])
+        if frame is None:
+            raise ValueError('incomplete DNP3 link frame at stream offset %d' % (1 + position))
+        begin = position if begin is None else begin
+        position = len(data) - len(rest)
+        fragment = assembler.add(frame.user_data)
+        if fragment is not None:
+            transactions.append(dict(start=1 + begin, end=1 + position, wire=data[begin:position], app=fragment))
+            begin = None
+    if assembler.in_progress:
+        raise ValueError('unfinished transport fragment at the end of the stream')
+    return transactions
+
+
+def _strict_kind(app):
+    """(operation, READ class) of one captured request fragment, decoded from its bytes."""
+    if len(app) < 2 or app[0] & 0xf0 != 0xc0:
+        return ('malformed request', None)
+    if app[1] == codec.FUNC_READ:
+        try:
+            return ('READ', codec.read_workload_for_request(app))
+        except ValueError:
+            return ('READ', 'outside the mixed/integrity contracts')
+    names = {codec.FUNC_SELECT: 'SELECT', codec.FUNC_OPERATE: 'OPERATE'}
+    return (names.get(app[1], 'function 0x%02x' % app[1]), None)
+
+
+def _strict_label(kind):
+    return 'nothing' if kind is None else ' '.join(part for part in kind if part)
+
+
+def _strict_response_problems(request, response, kind):
+    """Complete and successful from the captured bytes: the response fragment validates against its own request
+    (sequence, function, READ class objects, or the guarded CROB echo with SUCCESS on points 1 and 3)."""
+    if kind[0] == 'malformed request' or len(request) < 2:
+        return ['malformed request']             # no application header to validate against
+    kwargs = dict(expect_seq=request[0] & 15, expect_function=request[1], require_success=True)
+    problems = []
+    if kind[0] == 'READ' and kind[1] in ('mixed', 'integrity'):
+        kwargs['expect_read_workload'] = kind[1]
+    elif kind[0] in ('SELECT', 'OPERATE'):
+        kwargs['expect_points'] = [1, 3]
+        command = codec.parse_application_response(request[:1] + b'\x81\x00\x00' + request[2:])
+        problems += ['request: ' + error for error in codec.validate_response(command, **kwargs)]
+        decoded = codec.parse_application_response(response)
+        objects = [[(obj['group'], obj['variation'], obj['qualifier'],
+                     [(p['index'], p['raw_hex'][:-2]) for p in obj['points']]) for obj in fragment.objects]
+                   for fragment in (command, decoded)]
+        if objects[0] != objects[1]:
+            problems.append('response CROB echo differs from the captured request')
+    else:
+        return ['request %s has no strict-cycle response contract' % _strict_label(kind)]
+    return problems + codec.validate_response(codec.parse_application_response(response), **kwargs)
+
+
+def strict_cycle_wire_checks(streams, records, expected, images):
+    """From captured bytes, not master claims, for the strict-cycle plan:
+
+    * the logical request transactions (application_transactions of the master stream) are exactly [READ mixed,
+      SELECT, OPERATE, READ integrity] x N in stream order;
+    * the relay stream holds exactly one response transaction per request, bound by order and TCP identity: the k-th
+      response's first-arriving packets acknowledge exactly the k-th request's end, and it arrives after that request
+      and before the next (the application-sequence nibble alone is never the binding);
+    * every response is complete and successful against its own request, at the arm's class image size;
+    * the master records are exactly these transactions, byte for byte."""
+    if not isinstance(images, dict) or any(not isinstance(images.get(key), int)
+                                           for key in ('mixed', 'integrity', 'SELECT', 'OPERATE')):
+        return [STRICT_CYCLE + 'class image sizes not supplied for the arm']
+    cycles = (expected or {}).get('SELECT')
+    cycles = cycles if isinstance(cycles, int) and not isinstance(cycles, bool) and cycles > 0 else 0
+    failures, decoded = [], {}
+    for direction, name in (('out', 'master'), ('in', 'relay')):
+        try:
+            decoded[direction] = application_transactions(streams.get(direction))
+        except (ValueError, codec.TransportError) as error:
+            failures.append(STRICT_CYCLE + 'captured %s stream cannot be decoded into application transactions: %s'
+                            % (name, error))
+    requests, responses = decoded.get('out'), decoded.get('in')
+    if requests is None:
+        return failures
+    kinds = [_strict_kind(request['app']) for request in requests]
+    wanted = list(STRICT_STEPS) * cycles
+    if kinds != wanted:
+        first, (got, want) = next((i, pair) for i, pair in enumerate(itertools.zip_longest(kinds, wanted))
+                                  if pair[0] != pair[1])
+        failures.append(STRICT_CYCLE + 'captured request transactions are not %s x %d: %d request transaction(s), '
+                        'transaction %d is %s, expected %s' % (STRICT_ORDER, cycles, len(kinds), first,
+                                                               _strict_label(got), _strict_label(want)))
+    if responses is None:
+        return failures
+    if len(responses) != len(requests):
+        failures.append(STRICT_CYCLE + '%d relay response transaction(s) for %d request transaction(s)'
+                        % (len(responses), len(requests)))
+    spans = [span_record(streams['out'], t['start'], t['wire']) for t in requests]
+    ends = [span['sequence_end'] for span in spans]
+    for k, response in enumerate(responses[:len(requests)]):
+        span = span_record(streams['in'], response['start'], response['wire'])
+        acks = sorted({packet['ack'] for packet in span['packets']})
+        if acks != [ends[k]]:
+            failures.append(STRICT_CYCLE + 'response %d does not acknowledge exactly request %d: TCP ack %s, the end '
+                            'of request(s) %s' % (k, k, acks, [j for j, end in enumerate(ends) if end in acks]))
+            break
+        later = spans[k + 1]['first_timestamp_ns'] if k + 1 < len(spans) else None
+        if span['first_timestamp_ns'] < spans[k]['complete_timestamp_ns'] or \
+                (later is not None and span['complete_timestamp_ns'] > later):
+            failures.append(STRICT_CYCLE + 'response %d is not between request %d and the next request in capture '
+                            'time' % (k, k))
+            break
+        kind = kinds[k]
+        problems = _strict_response_problems(requests[k]['app'], response['app'], kind)
+        if problems:
+            failures.append(STRICT_CYCLE + 'transaction %d %s: %s' % (k, _strict_label(kind), '; '.join(problems)))
+        image = images.get(kind[1] if kind[0] == 'READ' else kind[0]) if kind in STRICT_STEPS else None
+        if image is not None and len(response['wire']) != image:
+            failures.append(STRICT_CYCLE + 'transaction %d %s response %d octets, expected the %s image %d'
+                            % (k, _strict_label(kind), len(response['wire']), kind[1] or kind[0], image))
+    if len(records) != len(requests) or len(records) != len(responses):
+        failures.append(STRICT_CYCLE + 'master records differ from the captured transactions: %d record(s) for %d '
+                        'request and %d response transaction(s)' % (len(records), len(requests), len(responses)))
+    else:
+        differ = [k for k, record in enumerate(records)
+                  if record.get('request_wire_hex') != requests[k]['wire'].hex() or
+                  record.get('response_wire_hex') != responses[k]['wire'].hex() or
+                  (record.get('operation'), record.get('workload') if record.get('operation') == 'READ' else None)
+                  != kinds[k]]
+        if differ:
+            failures.append(STRICT_CYCLE + 'master records differ from the captured transactions at %d of %d, first '
+                            'at transaction %d' % (len(differ), len(records), differ[0]))
+    return failures
+
+
+def master_checks(master, master_port, expected=None, schedule=None, select_only=False, strict_cycle=False):
     failures = []
     records = master.get('records') or []
     if expected is None:
         failures.append('frozen expected transaction denominators not supplied')
     else:
         failures += plan_checks(master, expected, select_only)
+        failures += strict_plan_checks(master, expected, schedule, strict_cycle, select_only)
         actual = {operation: sum(r.get('operation') == operation and r.get('outcome') == 'OK' for r in records)
                   for operation in ('READ', 'SELECT', 'OPERATE')}
         if actual != expected or master.get('counts') != expected or master.get('planned') != expected:
@@ -331,11 +510,13 @@ def byte_counts(segments):
                 retransmitted_segments=sum(contributed.get(seg['index'], 0) < b - a for a, b, seg in stream['copies']))
 
 
-def analyze(root, master_port, expected=None, schedule=None, select_only=False):
+def analyze(root, master_port, expected=None, schedule=None, select_only=False, strict_cycle=False, images=None):
+    """strict_cycle adds strict_cycle_wire_checks with images, the arm's {class: response octets}."""
     root = Path(root)
     master = json.loads((root / 'master.json').read_text())
     result = json.loads((root / 'result.json').read_text())
-    failures = master_checks(master, master_port, expected, schedule, select_only=select_only)
+    failures = master_checks(master, master_port, expected, schedule, select_only=select_only,
+                             **({'strict_cycle': True} if strict_cycle else {}))
     streams, packets = {}, {}
     for direction, src, dst, sport, dport in [('out', MASTER_IP, RELAY_IP, master_port, RELAY_PORT),
                                             ('in', RELAY_IP, MASTER_IP, RELAY_PORT, master_port)]:
@@ -358,6 +539,8 @@ def analyze(root, master_port, expected=None, schedule=None, select_only=False):
     accounting = {direction: byte_counts(stream) for direction, stream in streams.items()}
     if select_only:
         failures += select_only_wire_checks(reassembled['out'], master.get('records', []))
+    if strict_cycle:
+        failures += strict_cycle_wire_checks(reassembled, master.get('records') or [], expected, images)
     for record in master.get('records', []):
         request = locate(reassembled['out'], record.get('request_wire_hex', ''), cursors['out'])
         response = locate(reassembled['in'], record.get('response_wire_hex', ''), cursors['in'])
@@ -483,11 +666,23 @@ def main(argv=None):
     parser.add_argument('--sbo', type=int, required=True)
     parser.add_argument('--read-schedule', choices=('mixed_full', 'mixed', 'full'), required=True)
     parser.add_argument('--select-only', action='store_true', help='E4b plan: --sbo SELECTs and no OPERATE')
+    parser.add_argument('--strict-cycle', action='store_true',
+                        help='plan [READ mixed, SELECT, OPERATE, READ integrity] x --sbo; needs --padded')
+    parser.add_argument('--padded', type=int, choices=(0, 1), help='strict cycle: class images of a padded arm (1)')
     args = parser.parse_args(argv)
+    if args.strict_cycle != (args.padded is not None):
+        parser.error('--strict-cycle and --padded 0/1 (the arm class images) go together')
+    strict = {}
+    if args.strict_cycle:
+        if __package__:
+            from . import standards
+        else:
+            import standards
+        strict = dict(strict_cycle=True, images=standards.SEL751_IMAGES[bool(args.padded)])
     try:
         result = analyze(args.root, args.master_port,
                          dict(READ=args.reads, SELECT=args.sbo, OPERATE=0 if args.select_only else args.sbo),
-                         args.read_schedule, select_only=args.select_only)
+                         args.read_schedule, select_only=args.select_only, **strict)
     except (OSError, ValueError, KeyError, TypeError) as error:
         result = dict(ok=False, failures=[str(error)])
     (args.root / 'relay_wire.json').write_text(json.dumps(result, indent=2) + '\n')

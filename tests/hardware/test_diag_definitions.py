@@ -105,7 +105,14 @@ def test_diag_definition_is_one_registered_block_with_its_arms_trials_and_d(name
 
 def test_every_registered_diag_block_has_exactly_one_definition():
     assert sorted(DIAG_DEFINITIONS.values()) == sorted(block['id'] for block in DESIGN['blocks'])
-    assert sorted(n for n, spec in matrix.DEFINITIONS.items() if spec.get('diagnostic')) == sorted(DIAG_DEFINITIONS)
+    # every diagnostic definition is registered by a design: the D3/E2 design's three blocks, plus the definitions
+    # that later design files register themselves (the combined-arm connection-start baseline)
+    later_blocks = {json.loads((ROOT / 'results/analysis/diag_mirror_d3' / name).read_text())['block']['id']
+                    for name in ('DESIGN_e2_combined.json',)}
+    later = {n for n, block_id in matrix.DIAG_BLOCKS.items() if block_id in later_blocks}
+    assert len(later) == len(later_blocks)
+    assert sorted(n for n, spec in matrix.DEFINITIONS.items() if spec.get('diagnostic')) == \
+        sorted(set(DIAG_DEFINITIONS) | later)
 
 
 def test_diag_master_ports_are_disjoint_from_each_other_and_every_existing_definition():

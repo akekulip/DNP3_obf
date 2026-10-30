@@ -1,0 +1,163 @@
+{
+ "schema": "c72-strict-cycle-design-v1",
+ "registered_before_traffic": "2026-10-29",
+ "status": "registered offline; no hardware contact; prepare, freeze and dry-run precede each block",
+ "plan": "~/.claude/plans/we-were-on-tract-expressive-planet.md Step 1 (strict workload, c72 baseline)",
+ "definitions": {
+  "strict_cycle_c72_d20": "scripts/hardware/lab_strict_cycle.json strict_cycle_d20_combined",
+  "strict_cycle_c72_d5": "scripts/hardware/lab_strict_cycle.json strict_cycle_d5_combined",
+  "prepare": "scripts/hardware/matrix.py prepare --definition <name>, one campaign per D"
+ },
+ "build": "results/builds/c72",
+ "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+ "evidence_label": "c72 build evidence (not the c72_diag_mirror diagnostic build)",
+ "blocks": [
+  {
+   "definition": "strict_cycle_c72_d20",
+   "id": "strict_cycle_d20_combined",
+   "template": "scripts/hardware/lab.json 05_d20_reference_rest as plain trials (no loss preset or arguments)",
+   "d_ms": 20,
+   "d_source": "timing_params_ns.gap = d_ms x 1,000,000; every other timing parameter unchanged",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "timing_contract": "response_ready_ack_d_no_j_v3",
+   "trial_mode": "per_trial_cold (each trial is one fresh connection after a cold program load)",
+   "trials_per_arm": 4,
+   "fresh_connections": 4,
+   "reads_per_trial": 64,
+   "sbo_cycles": 32,
+   "read_schedule": "mixed_full",
+   "sbo_strict_cycle": true,
+   "guarded_points": [
+    1,
+    3
+   ],
+   "master_port_range": [
+    60170,
+    60173
+   ],
+   "request_order_per_trial": "32 x [READ mixed, SELECT points 1 and 3, OPERATE, READ integrity], graceful close"
+  },
+  {
+   "definition": "strict_cycle_c72_d5",
+   "id": "strict_cycle_d5_combined",
+   "template": "scripts/hardware/lab.json 05_d20_reference_rest as plain trials (no loss preset or arguments)",
+   "d_ms": 5,
+   "d_source": "timing_params_ns.gap = d_ms x 1,000,000; every other timing parameter unchanged",
+   "arm": "combined",
+   "T": 1,
+   "padding": 1,
+   "timing_contract": "response_ready_ack_d_no_j_v3",
+   "trial_mode": "per_trial_cold (each trial is one fresh connection after a cold program load)",
+   "trials_per_arm": 4,
+   "fresh_connections": 4,
+   "reads_per_trial": 64,
+   "sbo_cycles": 32,
+   "read_schedule": "mixed_full",
+   "sbo_strict_cycle": true,
+   "guarded_points": [
+    1,
+    3
+   ],
+   "master_port_range": [
+    60174,
+    60177
+   ],
+   "request_order_per_trial": "32 x [READ mixed, SELECT points 1 and 3, OPERATE, READ integrity], graceful close"
+  }
+ ],
+ "fixed_denominators": {
+  "trials": 8,
+  "cycles_per_trial": 32,
+  "exchanges_per_trial": 128,
+  "exchanges": 1024,
+  "note": "planned denominators; the campaign controller ends a campaign at the first failed trial (campaign_base raises StepFailed on an application, switch or standards failure), so the reported denominator is the trials actually run, with the failure reported as found"
+ },
+ "denominator_rule": "matrix.prepare: arms x trials x (reads_per_trial + SELECT + OPERATE) = 1 x 4 x 128 per D",
+ "observable": {
+  "order": [
+   "logical request transactions of the captured master stream (TCP first-arrival reassembly from the",
+   "single SYN, then DNP3 link/transport reassembly) are [READ mixed, SELECT, OPERATE, READ integrity]",
+   "x 32 per trial; the master records are the same transactions byte for byte"
+  ],
+  "responses": [
+   "one response transaction per request, bound by stream order and TCP acknowledgement (never by the",
+   "application-sequence nibble alone), complete and successful from the captured bytes: READ mixed 141",
+   "and integrity 158 octets with their class objects, SELECT and OPERATE 60 octets with CROB SUCCESS on",
+   "points 1 and 3 and the request echoed"
+  ],
+  "loss_and_retransmission": [
+   "reported separately per trial and direction: TCP retransmitted segments and bytes (relay_check",
+   "accounting), missing planned exchanges, capture drops, master transactions that are not OK"
+  ],
+  "application_failures": "CROB status other than SUCCESS, wrong READ class or size, failed decode",
+  "timing": [
+   "against the current contract (response-ready ACK, then release after the configured D); CLRT",
+   "measured at the master NIC and reported by class (relay_check.visible_clrt); no precision criterion"
+  ],
+  "switch_state_after_trial": [
+   "existing counter checks: T on, generator triggers = READ + SELECT + OPERATE = 128 per trial with",
+   "2k packets per trigger, retired app1 idle, loop-port octet gaps zero"
+  ],
+  "restoration": "per-trial teardown and the block verified production restoration (restore_verify)"
+ },
+ "mechanism": {
+  "workload": [
+   "relay_master.workload(strict_cycle=True) runs the SBO before each odd-index READ. The previous",
+   "order (SBO before READs 1..N) gave mixed,S,O,integrity,S,O,mixed,integrity in a stub run and still",
+   "passed on counts, so no retained c72 run exercised this alternation under a strict gate"
+  ],
+  "switch": [
+   "source findings at fb5ce81b1: busy_t sends READ/SELECT/OPERATE to busy_drop while N holds its single",
+   "work cell, and a late handshake ACK can take the first_event default and the abort path; the strict",
+   "cycle puts each OPERATE right after its padded SELECT response and each integrity READ right after",
+   "the OPERATE response, at D = 20 and 5 ms with timing and padding on"
+  ],
+  "relay": [
+   "IEEE 1815 select-before-operate: the OPERATE must match its SELECT within the select timeout",
+   "(manual default 1.0 s, relay setting not read)"
+  ]
+ },
+ "falsifier": [
+  "any trial whose captured request transactions are not the strict order, or whose master records differ",
+  "any request without exactly one bound, complete and successful response of the arm image size",
+  "any unexpected drop: a missing planned exchange, a capture drop, or a master transaction that is not OK",
+  "stale T/N state reported by the existing switch checks",
+  "failed restoration"
+ ],
+ "retransmission_rule": [
+  "a TCP retransmission of delivered bytes is one transaction and does not fail the order gate; it is",
+  "reported as loss evidence. A repeated application request (new stream bytes) is a transaction"
+ ],
+ "verdict_path": [
+  "campaign.CandidateCampaign.relay_verdict: relay_check.analyze(strict_cycle=True, images of the padded",
+  "arm) with planned READ 64, SELECT 32, OPERATE 32; standards.validate_standards with expected.strict_cycle;",
+  "checks.evaluate_switch with sbo_count 32"
+ ],
+ "checker_identity": [
+  "relay_master.py, checks.py, relay_check.py and standards.py are in the relay-checker hash closure, so",
+  "future runs get a new checker identity; retained verdicts replay with scripts/analysis/replay_frozen.py"
+ ],
+ "extraction": "not part of this registration; eval_rows.py and its c72-pinned 65/64/64 shape are not used",
+ "interpretation_limits": [
+  "Eight trials (1,024 exchanges) are a bounded baseline on c72, not a rate estimate and not a fix.",
+  "Master-NIC captures do not observe the relay-facing link, switch emission or departure timing.",
+  "Only the combined arm at D = 20 and 5 ms is covered.",
+  "The relay select timeout stays unverified."
+ ],
+ "stop_rules": [
+  "unsafe ownership or unverified restoration stops all writes",
+  "no rerun-until-pass, no extra trials or blocks",
+  "a failed trial stays FAIL and is reported as found",
+  "a failed trial ends its campaign; the trials not run are reported as not run, not as passed"
+ ],
+ "excluded": [
+  "P4 changes",
+  "relay settings changes",
+  "timeout, threshold or default changes",
+  "new instrumentation",
+  "the diagnostic mirror",
+  "manuscript edits"
+ ]
+}

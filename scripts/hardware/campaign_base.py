@@ -157,6 +157,9 @@ def validate_profile(cfg):
             raise ValueError('traffic.sbo_cycles is not supported with loss presets (unsupported shape)')
     # E4b: present only as true, and only with sbo_cycles (each SELECT is followed by READs); absent = today
     checks.sbo_select_only(cfg['traffic'])
+    # strict cycle: present only as true, with sbo_cycles on mixed_full and exactly two READs per SBO pair
+    if checks.sbo_strict_cycle(cfg['traffic']) and cfg['trials']['reads_per_trial'] != 2 * cfg['traffic']['sbo_cycles']:
+        raise ValueError('traffic.sbo_strict_cycle requires trials.reads_per_trial == 2 x traffic.sbo_cycles')
     validate_read_classes(cfg)
     spec = cfg.get('diagnostic_mau_snapshot')
     if spec is not None and (not (isinstance(spec, str) and MAU_SNAPSHOT_SPEC.fullmatch(spec))):
@@ -617,6 +620,8 @@ class Campaign:
             controls['sbo_cycles'] = self.cfg['traffic']['sbo_cycles']
         if 'sbo_select_only' in self.cfg['traffic']:
             controls['sbo_select_only'] = self.cfg['traffic']['sbo_select_only']
+        if 'sbo_strict_cycle' in self.cfg['traffic']:
+            controls['sbo_strict_cycle'] = self.cfg['traffic']['sbo_strict_cycle']
         for key in ('read_schedule', 'db'):
             if key in self.cfg['traffic']:
                 controls[key] = self.cfg['traffic'][key]
@@ -954,12 +959,16 @@ class Campaign:
         controls = checks.planned_controls(self.cfg['traffic'])        # OPERATE 0 only for declared select-only
         sbo, planned = controls['SELECT'], dict(READ=trial['reads'], **controls)
         select_only = {'select_only': True} if checks.sbo_select_only(self.cfg['traffic']) else {}
+        strict_cycle = checks.sbo_strict_cycle(self.cfg['traffic'])
         connections = connections or {'single': (dest, trial['master_port'])}
         reports = {}
         for name, (directory, port) in connections.items():
             try:
+                # strict cycle: the order/binding gate, with this connection's class images (padded or native)
+                strict = dict(strict_cycle=True, images=standards.SEL751_IMAGES[bool(
+                    arm['padding'] and not (name == 'c2' and self.scenario == 'reconnect'))]) if strict_cycle else {}
                 report = relay_check.analyze(directory, port, planned, self.cfg['traffic']['read_schedule'],
-                                             **select_only)
+                                             **select_only, **strict)
                 master = json.loads((Path(directory) / 'master.json').read_text())
                 for direction, packets in report['packets'].items():
                     for packet in packets:

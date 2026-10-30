@@ -1,0 +1,289 @@
+== BASELINE (HEAD f612068ba, before any change except the additive tests/checks/fixtures.py read()) 2026-10-29T22:03:34-04:00
+$ python3 -m pytest tests --ignore=tests/analysis -q -p no:cacheprovider
+474 passed in 29.03s
+
+
+== RED: new tests against unchanged scripts 2026-10-29T22:03:57-04:00
+$ python3 -m pytest tests/checks/test_strict_cycle_checks.py tests/hardware/test_strict_cycle_runtime.py tests/hardware/test_strict_cycle_definition.py tests/hardware/test_e4b_definition.py -q -p no:cacheprovider -rA
+_____________ test_a_failed_select_or_operate_response_fails[1-1] ______________
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-3553/test_a_failed_select_or_operat0')
+    def test_a_failed_select_or_operate_response_fails(tmp_path, index, status):
+root = PosixPath('/tmp/pytest-of-philip/pytest-3553/test_a_failed_select_or_operat0')
+_____________ test_a_failed_select_or_operate_response_fails[2-1] ______________
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-3553/test_a_failed_select_or_operat1')
+    def test_a_failed_select_or_operate_response_fails(tmp_path, index, status):
+root = PosixPath('/tmp/pytest-of-philip/pytest-3553/test_a_failed_select_or_operat1')
+_____________ test_a_failed_select_or_operate_response_fails[5-4] ______________
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-3553/test_a_failed_select_or_operat2')
+    def test_a_failed_select_or_operate_response_fails(tmp_path, index, status):
+root = PosixPath('/tmp/pytest-of-philip/pytest-3553/test_a_failed_select_or_operat2')
+_____________ test_a_failed_select_or_operate_response_fails[6-2] ______________
+tmp_path = PosixPath('/tmp/pytest-of-philip/pytest-3553/test_a_failed_select_or_operat3')
+    def test_a_failed_select_or_operate_response_fails(tmp_path, index, status):
+root = PosixPath('/tmp/pytest-of-philip/pytest-3553/test_a_failed_select_or_operat3')
+    self.error(msg % ' '.join(argv))
+/usr/lib/python3.8/argparse.py:2533: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+self = ArgumentParser(prog='__main__.py', usage=None, description='Physical relay evidence from one master NIC; no reflected-...or switch-residence claim.', formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+message = '__main__.py: error: unrecognized arguments: --strict-cycle --padded 1\n'
+__main__.py: error: unrecognized arguments: --strict-cycle --padded 1
+vision_run.py: error: unrecognized arguments: --sbo-strict-cycle 0
+vision_run.py: error: unrecognized arguments: --sbo-strict-cycle 1
+vision_run.py: error: unrecognized arguments: --sbo-strict-cycle 1
+vision_run.py: error: unrecognized arguments: --sbo-strict-cycle 1
+vision_run.py: error: unrecognized arguments: --sbo-strict-cycle 1
+vision_run.py: error: unrecognized arguments: --sbo-strict-cycle 1
+        code = refused.value.code                     # an authorization refusal (a message), not an argparse error
+        code = refused.value.code                     # an authorization refusal (a message), not an argparse error
+        code = refused.value.code                     # an authorization refusal (a message), not an argparse error
+        code = refused.value.code                     # an authorization refusal (a message), not an argparse error
+        code = refused.value.code                     # an authorization refusal (a message), not an argparse error
+vision_run.py: error: unrecognized arguments: --sbo-strict-cycle 1
+PASSED tests/checks/test_strict_cycle_checks.py::test_generated_read_fixture_matches_the_native_and_declared_padded_images[mixed-91-141]
+PASSED tests/checks/test_strict_cycle_checks.py::test_generated_read_fixture_matches_the_native_and_declared_padded_images[integrity-134-158]
+PASSED tests/checks/test_strict_cycle_checks.py::test_normal_analysis_of_a_plain_capture_has_no_strict_findings
+PASSED tests/checks/test_strict_cycle_checks.py::test_strict_observed_verdict_passes_a_strict_capture
+PASSED tests/hardware/test_strict_cycle_runtime.py::test_relay_connection_without_strict_cycle_is_unchanged
+PASSED tests/hardware/test_strict_cycle_runtime.py::test_campaign_accepts_the_registered_strict_shape
+PASSED tests/hardware/test_strict_cycle_runtime.py::test_absent_strict_cycle_keeps_the_endpoint_controls
+PASSED tests/hardware/test_strict_cycle_runtime.py::test_normal_verdict_keeps_todays_relay_check_call
+PASSED tests/hardware/test_e4b_definition.py::test_design_registers_observable_mechanism_falsifier_and_trial_count
+PASSED tests/hardware/test_e4b_definition.py::test_e4b_definition_is_block_10_without_loss_with_the_registered_select_only_workload
+PASSED tests/hardware/test_e4b_definition.py::test_e4b_master_ports_are_disjoint_from_every_existing_definition
+PASSED tests/hardware/test_e4b_definition.py::test_prepare_writes_one_select_only_config_the_campaign_accepts
+PASSED tests/hardware/test_e4b_definition.py::test_dry_plan_runs_six_plain_trials_with_the_select_only_endpoint
+PASSED tests/hardware/test_e4b_definition.py::test_every_existing_definition_prepares_byte_for_byte_unchanged[diag_d3_off]
+PASSED tests/hardware/test_e4b_definition.py::test_every_existing_definition_prepares_byte_for_byte_unchanged[diag_d3_on]
+PASSED tests/hardware/test_e4b_definition.py::test_every_existing_definition_prepares_byte_for_byte_unchanged[diag_e2_first]
+PASSED tests/hardware/test_e4b_definition.py::test_every_existing_definition_prepares_byte_for_byte_unchanged[evaluation]
+PASSED tests/hardware/test_e4b_definition.py::test_every_existing_definition_prepares_byte_for_byte_unchanged[qualification]
+PASSED tests/hardware/test_e4b_definition.py::test_every_existing_definition_prepares_byte_for_byte_unchanged[recovery]
+PASSED tests/hardware/test_e4b_definition.py::test_every_existing_definition_prepares_byte_for_byte_unchanged[recovery_r1]
+PASSED tests/hardware/test_e4b_definition.py::test_every_existing_definition_prepares_byte_for_byte_unchanged[recovery_r2]
+PASSED tests/hardware/test_e4b_definition.py::test_every_existing_definition_prepares_byte_for_byte_unchanged[recovery_r3]
+PASSED tests/hardware/test_e4b_definition.py::test_only_the_e4b_definition_was_added
+ERROR tests/hardware/test_strict_cycle_definition.py::test_prepare_writes_one_strict_config_the_campaign_accepts[strict_cycle_c72_d20]
+ERROR tests/hardware/test_strict_cycle_definition.py::test_prepare_writes_one_strict_config_the_campaign_accepts[strict_cycle_c72_d5]
+ERROR tests/hardware/test_strict_cycle_definition.py::test_dry_plan_runs_four_plain_strict_trials
+FAILED tests/checks/test_strict_cycle_checks.py::test_the_strict_finding_prefix_is_relay_checks
+FAILED tests/checks/test_strict_cycle_checks.py::test_strict_cycle_is_declared_only_by_an_explicit_true_with_mixed_full_sbo_cycles
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_strict_cycle_declaration_that_is_not_explicit_and_complete_is_refused[change0]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_strict_cycle_declaration_that_is_not_explicit_and_complete_is_refused[change1]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_strict_cycle_declaration_that_is_not_explicit_and_complete_is_refused[change2]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_strict_cycle_declaration_that_is_not_explicit_and_complete_is_refused[change3]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_strict_cycle_declaration_that_is_not_explicit_and_complete_is_refused[change4]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_strict_cycle_declaration_that_is_not_explicit_and_complete_is_refused[change5]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_strict_cycle_declaration_that_is_not_explicit_and_complete_is_refused[change6]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_strict_conversation_passes_the_strict_gate[2-True]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_strict_conversation_passes_the_strict_gate[2-False]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_strict_conversation_passes_the_strict_gate[5-True]
+FAILED tests/checks/test_strict_cycle_checks.py::test_philips_stub_interleave_passes_counts_but_fails_the_strict_plan
+FAILED tests/checks/test_strict_cycle_checks.py::test_reordered_transactions_fail[steps0]
+FAILED tests/checks/test_strict_cycle_checks.py::test_reordered_transactions_fail[steps1]
+FAILED tests/checks/test_strict_cycle_checks.py::test_reordered_transactions_fail[steps2]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_missing_response_fails
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_failed_select_or_operate_response_fails[1-1]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_failed_select_or_operate_response_fails[2-1]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_failed_select_or_operate_response_fails[5-4]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_failed_select_or_operate_response_fails[6-2]
+FAILED tests/checks/test_strict_cycle_checks.py::test_an_incomplete_last_response_fails
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_response_with_a_hole_in_the_stream_fails
+FAILED tests/checks/test_strict_cycle_checks.py::test_an_extra_wire_only_request_fails[extra0]
+FAILED tests/checks/test_strict_cycle_checks.py::test_an_extra_wire_only_request_fails[extra1]
+FAILED tests/checks/test_strict_cycle_checks.py::test_an_extra_wire_only_request_fails[extra2]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_genuinely_duplicated_select_or_operate_fails[False-1]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_genuinely_duplicated_select_or_operate_fails[False-2]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_genuinely_duplicated_select_or_operate_fails[True-1]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_genuinely_duplicated_select_or_operate_fails[True-2]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_tcp_retransmitted_request_segment_is_one_transaction
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_response_bound_by_nibble_alone_across_a_sequence_wrap_is_caught
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_response_whose_size_is_not_the_arm_image_fails
+FAILED tests/checks/test_strict_cycle_checks.py::test_strict_gate_without_image_sizes_fails_closed
+FAILED tests/checks/test_strict_cycle_checks.py::test_master_records_must_show_the_captured_sequence
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_normal_master_claiming_the_strict_cycle_fails
+FAILED tests/checks/test_strict_cycle_checks.py::test_the_strict_plan_needs_the_master_to_have_run_the_strict_workload
+FAILED tests/checks/test_strict_cycle_checks.py::test_the_strict_plan_itself_must_be_mixed_full_with_two_reads_per_pair[expected0-mixed_full]
+FAILED tests/checks/test_strict_cycle_checks.py::test_the_strict_plan_itself_must_be_mixed_full_with_two_reads_per_pair[expected1-mixed_full]
+FAILED tests/checks/test_strict_cycle_checks.py::test_the_strict_plan_itself_must_be_mixed_full_with_two_reads_per_pair[expected2-full]
+FAILED tests/checks/test_strict_cycle_checks.py::test_strict_cycle_is_refused_together_with_select_only
+FAILED tests/checks/test_strict_cycle_checks.py::test_relay_check_cli_derives_the_strict_plan
+FAILED tests/checks/test_strict_cycle_checks.py::test_standards_expected_carries_strict_cycle_only_when_declared
+FAILED tests/checks/test_strict_cycle_checks.py::test_strict_findings_are_application_findings
+FAILED tests/checks/test_strict_cycle_checks.py::test_public_strict_validation_binds_the_declared_plan
+FAILED tests/checks/test_strict_cycle_checks.py::test_strict_artifact_cannot_be_replayed_as_a_normal_plan
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_workload_sends_read_select_operate_read_per_cycle
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_workload_of_the_registered_size_wraps_the_sequence_in_order
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_philips_stub_reproduction_passes_counts_and_fails_the_strict_plan
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_a_failure_stops_the_strict_workload[probe0-2]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_a_failure_stops_the_strict_workload[probe1-4]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_workload_refuses_bad_arguments_before_any_session[kwargs0]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_workload_refuses_bad_arguments_before_any_session[kwargs1]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_workload_refuses_bad_arguments_before_any_session[kwargs2]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_workload_refuses_bad_arguments_before_any_session[kwargs3]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_workload_refuses_bad_arguments_before_any_session[kwargs4]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_workload_refuses_bad_arguments_before_any_session[kwargs5]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_workload_refuses_bad_arguments_before_any_session[kwargs6]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_workload_refuses_bad_arguments_before_any_session[kwargs7]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_workload_refuses_bad_arguments_before_any_session[kwargs8]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_normal_workload_with_an_explicit_false_is_byte_identical[no_sbo]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_normal_workload_with_an_explicit_false_is_byte_identical[run_sbo_end_full]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_normal_workload_with_an_explicit_false_is_byte_identical[sbo4_full]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_normal_workload_with_an_explicit_false_is_byte_identical[sbo64_mixed_full]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_relay_connection_passes_strict_cycle_to_the_workload_and_records_it
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_run_connection_passes_strict_cycle_to_the_relay_connection[True]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_run_connection_passes_strict_cycle_to_the_relay_connection[False]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_vision_main_without_the_flag_passes_exactly_todays_arguments
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_vision_main_passes_strict_cycle_only_when_set
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_vision_main_refuses_strict_cycle_outside_one_plain_run[extra0]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_vision_main_refuses_strict_cycle_outside_one_plain_run[extra1]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_vision_main_refuses_strict_cycle_outside_one_plain_run[extra2]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_vision_main_refuses_strict_cycle_outside_one_plain_run[extra3]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_authorization_refuses_strict_cycle_without_its_complete_shape[<lambda>0]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_authorization_refuses_strict_cycle_without_its_complete_shape[<lambda>1]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_authorization_refuses_strict_cycle_without_its_complete_shape[<lambda>2]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_authorization_refuses_strict_cycle_without_its_complete_shape[<lambda>3]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_authorization_refuses_strict_cycle_without_its_complete_shape[<lambda>4]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_authorization_accepts_the_registered_strict_shape
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_campaign_refuses_a_strict_declaration_that_is_not_explicit_and_complete[<lambda>0]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_campaign_refuses_a_strict_declaration_that_is_not_explicit_and_complete[<lambda>1]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_campaign_refuses_a_strict_declaration_that_is_not_explicit_and_complete[<lambda>2]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_campaign_refuses_a_strict_declaration_that_is_not_explicit_and_complete[<lambda>3]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_campaign_refuses_a_strict_declaration_that_is_not_explicit_and_complete[<lambda>4]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_campaign_refuses_a_strict_declaration_that_is_not_explicit_and_complete[<lambda>5]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_campaign_refuses_a_strict_declaration_that_is_not_explicit_and_complete[<lambda>6]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_unit_adds_only_the_endpoint_flag[Campaign]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_unit_adds_only_the_endpoint_flag[CandidateCampaign]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_verdict_passes_the_strict_plan_and_the_arm_image_to_relay_check[1]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_verdict_passes_the_strict_plan_and_the_arm_image_to_relay_check[0]
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_the_campaign_vision_command_reaches_the_workload_as_strict
+FAILED tests/hardware/test_strict_cycle_runtime.py::test_strict_endpoint_controls_reach_the_effective_record
+FAILED tests/hardware/test_strict_cycle_definition.py::test_designs_register_observable_mechanism_falsifier_and_trial_count
+FAILED tests/hardware/test_strict_cycle_definition.py::test_strict_definition_is_block_05_on_the_combined_arm_with_the_strict_workload[strict_cycle_c72_d20]
+FAILED tests/hardware/test_strict_cycle_definition.py::test_strict_definition_is_block_05_on_the_combined_arm_with_the_strict_workload[strict_cycle_c72_d5]
+FAILED tests/hardware/test_strict_cycle_definition.py::test_diag_e2_combined_is_the_e2_shape_with_the_combined_arm
+FAILED tests/hardware/test_strict_cycle_definition.py::test_new_master_ports_are_disjoint_from_each_other_and_every_other_definition
+FAILED tests/hardware/test_strict_cycle_definition.py::test_prepare_writes_the_diagnostic_contract_into_the_e2_combined_config
+FAILED tests/hardware/test_strict_cycle_definition.py::test_strict_definitions_refuse_the_c72_diag_build_contract_and_e2_combined_refuses_c72
+99 failed, 23 passed, 3 errors in 1.07s
+
+== GREEN: new tests after the change 2026-10-29T22:21:53-04:00
+$ python3 -m pytest tests/checks/test_strict_cycle_checks.py tests/hardware/test_strict_cycle_runtime.py tests/hardware/test_strict_cycle_definition.py tests/hardware/test_e4b_definition.py -q -p no:cacheprovider
+126 passed in 0.64s
+
+== MUTATION checks of the strict gate (scripts/checks/relay_check.py mutated in place, restored, sha256 verified)
+MUTANT nibble_only: 1 failed, 50 passed in 0.37s :: test_a_response_bound_by_nibble_alone_across_a_sequence_wrap_is_caught 
+MUTANT no_order: 12 failed, 39 passed in 0.44s :: test_philips_stub_interleave_passes_counts_but_fails_the_strict_plan test_reordered_transactions_fail[steps0] test_reordered_transactions_fail[steps1] test_reordered_transactions_fail[steps2] test_an_extra_wire_only_request_fails[extra0] test_an_extra_wire_only_request_fails[extra1] test_an_extra_wire_only_request_fails[extra2] test_a_genuinely_duplicated_select_or_operate_fails[False-1] test_a_genuinely_duplicated_select_or_operate_fails[False-2] test_a_genuinely_duplicated_select_or_operate_fails[True-1] test_a_genuinely_duplicated_select_or_operate_fails[True-2] test_strict_findings_are_application_findings 
+MUTANT dedupe_content: 6 failed, 45 passed in 0.40s :: test_a_strict_conversation_passes_the_strict_gate[5-True] test_a_genuinely_duplicated_select_or_operate_fails[False-1] test_a_genuinely_duplicated_select_or_operate_fails[False-2] test_a_genuinely_duplicated_select_or_operate_fails[True-1] test_a_genuinely_duplicated_select_or_operate_fails[True-2] test_a_response_bound_by_nibble_alone_across_a_sequence_wrap_is_caught 
+MUTANT raw_packets: 3 failed, 48 passed in 0.43s :: test_a_response_with_a_hole_in_the_stream_fails test_a_tcp_retransmitted_request_segment_is_one_transaction test_a_response_captured_after_the_next_request_is_not_bound_to_its_request 
+MUTANT no_success: 4 failed, 47 passed in 0.39s :: test_a_failed_select_or_operate_response_fails[1-1] test_a_failed_select_or_operate_response_fails[2-1] test_a_failed_select_or_operate_response_fails[5-4] test_a_failed_select_or_operate_response_fails[6-2] 
+MUTANT no_time: 1 failed, 50 passed in 0.37s :: test_a_response_captured_after_the_next_request_is_not_bound_to_its_request 
+MUTANT no_records (record binding block removed): 4 failed, 47 passed in 0.38s :: test_an_extra_wire_only_request_fails[extra0] test_an_extra_wire_only_request_fails[extra1] test_an_extra_wire_only_request_fails[extra2] test_master_records_must_show_the_captured_sequence 
+
+== Real retained c72 captures (read-only; results/**/in.pcap with master.json)
+application_transactions(out/in) == master records, byte for byte and in order:
+364 records == wire transactions
+1 skipped (no master.json/out.pcap or synthetic)
+default (non-strict) relay_check.analyze + master_checks, HEAD (8bac68cb4) vs working tree:
+default-path reports identical on 364 real connections, different on 0
+
+== pyflakes (changed and new Python files)
+$ python3 -m pyflakes scripts/checks/checks.py scripts/checks/relay_check.py scripts/checks/standards.py scripts/hardware/relay_master.py scripts/hardware/vision_run.py scripts/hardware/campaign_base.py scripts/hardware/matrix.py tests/checks/fixtures.py tests/checks/test_strict_cycle_checks.py tests/hardware/test_strict_cycle_runtime.py tests/hardware/test_strict_cycle_definition.py tests/hardware/test_e4b_definition.py
+pyflakes: clean
+added lines longer than 120 (scripts, tests, new JSON):
+0
+strict_cycle_wire_checks on the same 364 real connections (their order is not strict, so the order finding is
+expected; every other strict finding is listed; persistence c2 is padded, reconnect c2 native):
+connections checked: 364
+non-order strict findings: 3
+3 strict-cycle plan: transaction N OPERATE: point N status TIMEOUT; point N status TIMEOUT
+   ('lay/combined/rc01_hw_c72_20261027_02_10_d20_loss_full_physical_relay_combined_t3', 'strict-cycle plan: transaction 21 OPERATE: point 1 status TIMEOUT; point 3 status TIMEOUT')
+   ('d/rc01_hw_c72_recovery_r1_20261028_01_r1_d20_combined_physical_relay_combined_t3', 'strict-cycle plan: transaction 21 OPERATE: point 1 status TIMEOUT; point 3 status TIMEOUT')
+   ('ed/rc01_hw_c72_recovery_r3_20261028_01_r3_d5_combined_physical_relay_combined_t2', 'strict-cycle plan: transaction 21 OPERATE: point 1 status TIMEOUT; point 3 status TIMEOUT')
+
+== matrix.py prepare into a scratch directory (all three new definitions) 2026-10-29T22:24:25-04:00
+$ python3 scripts/hardware/matrix.py prepare results/builds/c72 --native-observation results/hardware/native/c72_native_20261027_01/relay_wire.json --output <scratch>/strict_cycle_c72_d20 --campaign-id offline_strict_cycle_c72_d20 --definition strict_cycle_c72_d20
+  rc=0; steps ['strict_cycle_d20_combined'] expected_exchanges 512
+$ python3 scripts/hardware/matrix.py prepare results/builds/c72 --native-observation results/hardware/native/c72_native_20261027_01/relay_wire.json --output <scratch>/strict_cycle_c72_d5 --campaign-id offline_strict_cycle_c72_d5 --definition strict_cycle_c72_d5
+  rc=0; steps ['strict_cycle_d5_combined'] expected_exchanges 512
+$ python3 scripts/hardware/matrix.py prepare results/builds/c72_diag_mirror --native-observation results/hardware/native/c72_native_20261027_01/relay_wire.json --output <scratch>/diag_e2_combined --campaign-id offline_diag_e2_combined --definition diag_e2_combined
+  rc=0; steps ['e2_combined_first_request_d20'] expected_exchanges 256
+
+== FINAL suites after the last edit 2026-10-29T22:24:33-04:00 (HEAD 8bac68cb4 + working tree)
+$ python3 -m pytest tests --ignore=tests/analysis -q -p no:cacheprovider
+FAILED tests/hardware/test_diag_definitions.py::test_every_registered_diag_block_has_exactly_one_definition
+1 failed, 593 passed in 30.55s
+$ python3 -m pytest tests/build -q -p no:cacheprovider
+48 passed in 1.58s
+$ python3 -m pyflakes <changed and new Python files>
+pyflakes: clean
+NOTE: the one failure is tests/hardware/test_diag_definitions.py:108, which pins the set of diagnostic definitions to
+the three registered in results/analysis/diag_mirror_d3/DESIGN.json; diag_e2_combined is a fourth, registered in
+DESIGN_e2_combined.json. That test file is outside the named scope and was not edited.
+Analysis tests (outside the acceptance set) under ~/.venvs/research/bin/python after the scripts change: 138 passed,
+2 skipped; under the system python3 (3.8) 36 of them fail on scapy RawPcapReader.snaplen (environment, not this change).
+
+=== coordinator edit after the builder's final run (2026-10-29 22:27) ===
+tests/hardware/test_diag_definitions.py::test_every_registered_diag_block_has_exactly_one_definition pinned the
+diagnostic definitions to the three blocks of diag_mirror_d3/DESIGN.json. The new diag_e2_combined is registered by
+its own design file (DESIGN_e2_combined.json), so the test now requires every diagnostic definition to come from a
+registered design: the three original blocks plus the blocks named in later design files, matched through
+matrix.DIAG_BLOCKS by block id (len(later) == len(later_blocks)). RED before the edit: 1 failed (the fourth
+definition was unregistered for the test); GREEN after: python3 -m pytest tests --ignore=tests/analysis -> 594 passed.
+DESIGN.json: the denominators are now stated as planned, with the controller's stop-at-first-failed-trial behaviour
+(independent review MEDIUM 2).
+
+== POST-REVIEW 2026-10-30: RED for review item 2 (malformed request fragment) against the unfixed gate 2026-10-30T01:39:12-04:00
+$ python3 -m pytest tests/checks/test_strict_cycle_checks.py -q -p no:cacheprovider -k fragment_without
+2 failed, 59 deselected in 0.10s
+E       IndexError: index out of range
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_request_fragment_without_an_application_header_is_a_finding_not_a_crash[]
+FAILED tests/checks/test_strict_cycle_checks.py::test_a_request_fragment_without_an_application_header_is_a_finding_not_a_crash[\xc1]
+
+== POST-REVIEW GREEN for review item 2 after the fix (_strict_response_problems returns 'malformed request') 2026-10-30T01:40:01-04:00
+$ python3 -m pytest tests/checks/test_strict_cycle_checks.py -q -p no:cacheprovider -k fragment_without
+2 passed, 59 deselected in 0.03s
+
+== POST-REVIEW MUTATION checks: 7 review mutants (a-f2) and the 7 first-round mutants, each written into
+   scripts/checks/relay_check.py, tests/checks/test_strict_cycle_checks.py run, original restored (sha256 verified)
+$ python3 -m pytest tests/checks/test_strict_cycle_checks.py -q -p no:cacheprovider   (per mutant)
+MUTANT a_response_before_request_end: 1 failed, 60 passed in 0.43s :: test_a_response_that_begins_before_its_request_completes_is_not_bound_to_it 
+MUTANT b_records_by_kind_only: 2 failed, 59 passed in 0.46s :: test_master_records_must_equal_the_captured_bytes_not_only_their_kinds[request_wire_hex] test_master_records_must_equal_the_captured_bytes_not_only_their_kinds[response_wire_hex] 
+MUTANT c_no_conflict_check: 1 failed, 60 passed in 0.45s :: test_a_stream_with_a_conflicting_retransmitted_copy_fails 
+MUTANT d_no_unfinished_fragment_check: 1 failed, 60 passed in 0.43s :: test_a_stream_ending_inside_a_transport_fragment_fails_with_that_reason 
+MUTANT e_ack_membership_not_exact: 1 failed, 60 passed in 0.44s :: test_a_response_split_across_segments_must_acknowledge_exactly_its_request_in_every_segment 
+MUTANT f1_no_request_crob_validation: 1 failed, 60 passed in 0.43s :: test_a_control_request_that_is_not_the_guarded_crob_fails_its_request_validation 
+MUTANT f2_no_echo_comparison: 1 failed, 60 passed in 0.43s :: test_a_response_crob_that_does_not_echo_the_request_fails_the_echo_comparison 
+MUTANT nibble_only: 2 failed, 59 passed in 0.45s :: test_a_response_bound_by_nibble_alone_across_a_sequence_wrap_is_caught test_a_response_split_across_segments_must_acknowledge_exactly_its_request_in_every_segment 
+MUTANT no_order: 14 failed, 47 passed in 0.51s :: test_philips_stub_interleave_passes_counts_but_fails_the_strict_plan test_reordered_transactions_fail[steps0] test_reordered_transactions_fail[steps1] test_reordered_transactions_fail[steps2] test_an_extra_wire_only_request_fails[extra0] test_an_extra_wire_only_request_fails[extra1] test_an_extra_wire_only_request_fails[extra2] test_a_genuinely_duplicated_select_or_operate_fails[False-1] test_a_genuinely_duplicated_select_or_operate_fails[False-2] test_a_genuinely_duplicated_select_or_operate_fails[True-1] test_a_genuinely_duplicated_select_or_operate_fails[True-2] test_a_request_fragment_without_an_application_header_is_a_finding_not_a_crash[] test_a_request_fragment_without_an_application_header_is_a_finding_not_a_crash[\xc1] test_strict_findings_are_application_findings 
+MUTANT dedupe_content: 6 failed, 55 passed in 0.47s :: test_a_strict_conversation_passes_the_strict_gate[5-True] test_a_genuinely_duplicated_select_or_operate_fails[False-1] test_a_genuinely_duplicated_select_or_operate_fails[False-2] test_a_genuinely_duplicated_select_or_operate_fails[True-1] test_a_genuinely_duplicated_select_or_operate_fails[True-2] test_a_response_bound_by_nibble_alone_across_a_sequence_wrap_is_caught 
+MUTANT raw_packets: 3 failed, 58 passed in 0.50s :: test_a_response_with_a_hole_in_the_stream_fails test_a_tcp_retransmitted_request_segment_is_one_transaction test_a_response_captured_after_the_next_request_is_not_bound_to_its_request 
+MUTANT no_success: 8 failed, 53 passed in 0.48s :: test_a_failed_select_or_operate_response_fails[1-1] test_a_failed_select_or_operate_response_fails[2-1] test_a_failed_select_or_operate_response_fails[5-4] test_a_failed_select_or_operate_response_fails[6-2] test_a_control_request_that_is_not_the_guarded_crob_fails_its_request_validation test_a_response_crob_that_does_not_echo_the_request_fails_the_echo_comparison test_a_request_fragment_without_an_application_header_is_a_finding_not_a_crash[] test_a_request_fragment_without_an_application_header_is_a_finding_not_a_crash[\xc1] 
+MUTANT no_time: 2 failed, 59 passed in 0.45s :: test_a_response_captured_after_the_next_request_is_not_bound_to_its_request test_a_response_that_begins_before_its_request_completes_is_not_bound_to_it 
+MUTANT no_records: 6 failed, 55 passed in 0.47s :: test_an_extra_wire_only_request_fails[extra0] test_an_extra_wire_only_request_fails[extra1] test_an_extra_wire_only_request_fails[extra2] test_master_records_must_equal_the_captured_bytes_not_only_their_kinds[request_wire_hex] test_master_records_must_equal_the_captured_bytes_not_only_their_kinds[response_wire_hex] test_master_records_must_show_the_captured_sequence 
+scripts/checks/relay_check.py: OK
+unmutated: 61 passed in 0.41s
+
+== POST-REVIEW FINAL suites after the last edit 2026-10-30T01:40:02-04:00 (HEAD 8bac68cb4 + working tree)
+$ python3 -m pytest tests --ignore=tests/analysis -q -p no:cacheprovider
+E                  'first failed trial (campaign_base raises StepFailed on an '
+FAILED tests/hardware/test_strict_cycle_definition.py::test_designs_register_observable_mechanism_falsifier_and_trial_count
+1 failed, 603 passed in 30.39s
+$ python3 -m pytest tests/build -q -p no:cacheprovider
+48 passed in 1.53s
+$ python3 -m pyflakes scripts/checks/checks.py scripts/checks/relay_check.py scripts/checks/standards.py scripts/hardware/relay_master.py scripts/hardware/vision_run.py scripts/hardware/campaign_base.py scripts/hardware/matrix.py tests/checks/fixtures.py tests/checks/test_strict_cycle_checks.py tests/hardware/test_strict_cycle_runtime.py tests/hardware/test_strict_cycle_definition.py tests/hardware/test_e4b_definition.py tests/hardware/test_diag_definitions.py
+pyflakes: clean
+lines longer than 120 in added script/test lines and the new files: 1
+NOTE: the one failure above came from a concurrent edit of results/analysis/strict_cycle/DESIGN.json (01:37) that
+added fixed_denominators.note; test_strict_cycle_definition.py compared the whole dict. The test now pins the four
+numeric denominators only (values unchanged). The over-120 line is that note (DESIGN.json line 75), not this change.
+
+== POST-REVIEW FINAL suites, re-run after that test edit 2026-10-30T01:41:00-04:00 (HEAD 8bac68cb4 + working tree)
+$ python3 -m pytest tests --ignore=tests/analysis -q -p no:cacheprovider
+604 passed in 31.16s
+$ python3 -m pytest tests/build -q -p no:cacheprovider
+48 passed in 1.56s
+$ python3 -m pyflakes scripts/checks/checks.py scripts/checks/relay_check.py scripts/checks/standards.py scripts/hardware/relay_master.py scripts/hardware/vision_run.py scripts/hardware/campaign_base.py scripts/hardware/matrix.py tests/checks/fixtures.py tests/checks/test_strict_cycle_checks.py tests/hardware/test_strict_cycle_runtime.py tests/hardware/test_strict_cycle_definition.py tests/hardware/test_e4b_definition.py tests/hardware/test_diag_definitions.py
+pyflakes: clean
+added script/test lines longer than 120: 0; new test files: 0
+default (non-strict) relay_check.analyze + master_checks after the post-review edit, HEAD vs working tree:
+default-path reports identical on 364 real connections, different on 0

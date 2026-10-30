@@ -26,6 +26,33 @@ def control(operation, seq=0, status=0, padded=False, points=(1, 3), on_ms=200):
     return link(b'\xc0' + app, request=True), frames, app, response
 
 
+# READ request objects (scripts/hardware/active_harness/read_requests.py) and the relay's native response objects:
+# mixed = g1v2 0..15 + g30v1 0..7 (91 octets on the wire), integrity = g1v2 0..15 + g10v2 0..31 + g30v4 0..20 (134).
+READ_REQUEST_OBJECTS = {'mixed': bytes([1, 2, 0, 0, 15, 30, 1, 0, 0, 7]),
+                        'integrity': bytes([60, 2, 6, 60, 3, 6, 60, 4, 6, 60, 1, 6])}
+READ_RESPONSE_OBJECTS = {
+    'mixed': bytes([1, 2, 0, 0, 15]) + b'\x01' * 16 + bytes([30, 1, 0, 0, 7]) + (b'\x01' + struct.pack('<i', 7)) * 8,
+    'integrity': (bytes([1, 2, 0, 0, 15]) + b'\x01' * 16 + bytes([10, 2, 0, 0, 31]) + b'\x01' * 32 +
+                  bytes([30, 4, 0, 0, 20]) + struct.pack('<h', 7) * 21)}
+# The padded image as c72 declares it (scripts/analysis/preservation_dnp3.py; p4/response_only.p4 prefix_mx/_full):
+# a new link frame (transport FIR|s, the native application header, then g1v2 q0x01 1024..1024+points-1 and the
+# leading zero points), and the native frame with transport FIN|s+1 whose first four application octets become zero.
+READ_PADDING = {'mixed': (bytes.fromhex('01020100041904'), 26), 'integrity': (bytes.fromhex('01020100040304'), 4)}
+
+
+def read(workload, seq=0, padded=False):
+    """A READ request and the relay's response (native 91/134 octets, or the padded 141/158-octet image)."""
+    app = bytes([0xc0 | seq, 1]) + READ_REQUEST_OBJECTS[workload]
+    response = bytes([0xc0 | seq, 0x81, 0, 0]) + READ_RESPONSE_OBJECTS[workload]
+    if not padded:
+        return link(b'\xc0' + app, request=True), [link(b'\xc0' + response)], app, response
+    header, points = READ_PADDING[workload]
+    prefix = link(bytes([0x40]) + response[:4] + header + bytes(points - 4))
+    native = link(bytes([0x81]) + bytes(4) + response[4:])
+    return (link(b'\xc0' + app, request=True), [prefix, native], app,
+            response[:4] + header + bytes(points) + response[4:])
+
+
 def packet(outgoing, seq, ack, flags, payload=b''):
     src, dst, sport, dport = ('192.168.10.1', '192.168.10.7', 59410, 20000) if outgoing else (
         '192.168.10.7', '192.168.10.1', 20000, 59410)

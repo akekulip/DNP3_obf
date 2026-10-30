@@ -1,0 +1,75 @@
+{
+ "schema": "c72-diag-e2-combined-design-v1",
+ "registered_before_traffic": "2026-10-29",
+ "status": "registered offline; no hardware contact; prepare, freeze and dry-run precede the block",
+ "plan": "~/.claude/plans/we-were-on-tract-expressive-planet.md Step 1 (combined-arm connection-start baseline)",
+ "definition": "scripts/hardware/lab_diag.json e2_combined_first_request_d20 (definition diag_e2_combined)",
+ "build": {
+  "label": "c72_diag_mirror",
+  "dir": "results/builds/c72_diag_mirror",
+  "source_sha256": "a46cc55a73a77dfa5691e292451d18d4ec663a04fb5f07b39c6e91915010d437",
+  "canonical_source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+  "evidence_label": "diagnostic-build evidence; establishes nothing about the exact c72 binary",
+  "qualification": "diagnostic purpose; its block never qualifies a candidate"
+ },
+ "block": {
+  "id": "e2_combined_first_request_d20",
+  "shape": "e2_first_request_d20 of DESIGN.json with the combined arm instead of off",
+  "template": "scripts/hardware/lab.json 02_d5_reference at D = 20 ms (matrix.expand_diag)",
+  "d_ms": 20,
+  "arm": "combined",
+  "T": 1,
+  "padding": 1,
+  "diag_mirror": "on",
+  "trial_mode": "per_trial_cold (each trial is one fresh connection after a cold program load)",
+  "trials_per_arm": 32,
+  "fresh_connections": 32,
+  "reads_per_trial": 8,
+  "read_schedule": "mixed_full",
+  "run_sbo": false,
+  "master_port_range": [
+   60180,
+   60211
+  ]
+ },
+ "fixed_denominators": {
+  "trials": 32,
+  "exchanges_per_trial": 8,
+  "exchanges": 256
+ },
+ "observable": [
+  "per fresh connection: each master frame of connection start (final handshake ACK, first request)",
+  "received on dev9 and not emitted toward the relay, from the master NIC capture and the egress copies",
+  "of the existing relay-leg mirror; any master retransmission of the first request"
+ ],
+ "classification": "as E2_first_request in DESIGN.json, by frame: handshake ACK or first request",
+ "mechanism": [
+  "source findings at fb5ce81b1: busy_t sends a READ to busy_drop while N holds its single work cell",
+  "(an ACK has a retry path), and a late handshake ACK with owner 0xd/0xe can take the first_event",
+  "default NoAction and then the abort path. With timing and padding on, connection start runs the timed",
+  "path; the existing E2 block ran the off arm, with T and padding off"
+ ],
+ "falsifier": [
+  "any master frame received on dev9 at connection start and not emitted toward the relay; if none is",
+  "seen, report 0 of 32 with no location, never an unconditional loss-free claim"
+ ],
+ "reporting": "k of 32 per frame kind, beside the c72 off-arm E2 result (diag_mirror_d3/SUMMARY.md)",
+ "interpretation_limits": [
+  "The mirror is used for packet presence and content only; its timing equivalence was not established.",
+  "Diagnostic-build evidence stays labelled apart from c72 candidate evidence.",
+  "32 connections are a bounded diagnostic, not a rate estimate.",
+  "The source supports both hazards; this block does not show that they caused every hardware loss."
+ ],
+ "stop_rules": [
+  "unsafe ownership or unverified restoration stops all writes",
+  "no rerun-until-pass, no extra trials or blocks",
+  "a failed trial stays FAIL and is reported as found"
+ ],
+ "excluded": [
+  "P4 changes",
+  "port-9 ingress mirroring",
+  "relay settings changes",
+  "SELECT/OPERATE traffic",
+  "manuscript edits"
+ ]
+}

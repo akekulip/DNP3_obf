@@ -36,6 +36,14 @@ DEFINITIONS.update({name: dict(file='lab_diag.json', blocks=1, exchanges=exchang
                     for name, exchanges in (('diag_d3_on', 1544), ('diag_d3_off', 1544), ('diag_e2_first', 256))})
 # E4b SELECT without OPERATE (results/analysis/e4b_select_only/DESIGN.json): 6 trials x (20 READ + 4 SELECT)
 DEFINITIONS['e4b_select_only'] = dict(file='lab_e4b.json', blocks=1, exchanges=144)
+# Strict-cycle c72 baseline (results/analysis/strict_cycle/DESIGN.json), one campaign per D: 4 trials x 32 cycles of
+# [READ mixed, SELECT, OPERATE, READ integrity] = 4 x (64 READ + 32 SELECT + 32 OPERATE)
+STRICT_BLOCKS = {'strict_cycle_c72_d20': 'strict_cycle_d20_combined', 'strict_cycle_c72_d5': 'strict_cycle_d5_combined'}
+DEFINITIONS.update({name: dict(file='lab_strict_cycle.json', blocks=1, exchanges=512) for name in STRICT_BLOCKS})
+# Combined-arm connection-start baseline on c72_diag_mirror (results/analysis/diag_mirror_d3/DESIGN_e2_combined.json):
+# the e2_first_request_d20 shape with the combined arm, 32 trials x 8 READs
+DIAG_BLOCKS['diag_e2_combined'] = 'e2_combined_first_request_d20'
+DEFINITIONS['diag_e2_combined'] = dict(file='lab_diag.json', blocks=1, exchanges=256, diagnostic=True)
 
 
 def sha(path):
@@ -125,6 +133,29 @@ def expand_select_only(spec):
     return dict(common=base['common'], blocks=blocks)
 
 
+def expand_strict_cycle(spec):
+    """The reference block as plain trials per registered strict-cycle condition: only D, the arm, the trial and READ
+    counts, the SBO cycles with sbo_strict_cycle and the master ports change."""
+    base = json.loads((HERE / spec['base']).read_text())
+    template = next(block for block in base['blocks'] if block['id'] == spec['template'])
+    blocks = []
+    for condition in spec['blocks']:
+        if condition.get('sbo_strict_cycle') is not True or condition['reads_per_trial'] != 2 * condition['sbo_cycles']:
+            raise ValueError('strict-cycle block %s needs sbo_strict_cycle true and reads_per_trial == 2 x sbo_cycles'
+                             % condition['id'])
+        block = copy.deepcopy(template)
+        block['id'] = condition['id']
+        block['config']['timing_params_ns']['gap'] = condition['d_ms'] * 1000000
+        block['config']['trials'] = dict(reads_per_trial=condition['reads_per_trial'],
+                                         trials_per_arm=condition['trials_per_arm'])
+        block['arms'] = [copy.deepcopy(condition['arm'])]
+        block['traffic'].update(sbo_cycles=condition['sbo_cycles'], sbo_strict_cycle=True,
+                                master_port_range=copy.deepcopy(condition['master_port_range']))
+        block['arguments'] = []
+        blocks.append(block)
+    return dict(common=base['common'], blocks=blocks)
+
+
 def diagnostic_contract(build, source_hash, declared):
     """The diag_mirror fields of every diagnostic block config, only from a build the freeze gate admits as the
     declared diagnostic build: its compiled copy port, the registered capture interface and label, its source."""
@@ -163,6 +194,9 @@ def load_definition(name):
                           blocks=[b for b in full['blocks'] if b['id'] == DIAG_BLOCKS[name]])
     elif name == 'e4b_select_only':
         definition = expand_select_only(definition)
+    elif name in STRICT_BLOCKS:
+        full = expand_strict_cycle(definition)
+        definition = dict(common=full['common'], blocks=[b for b in full['blocks'] if b['id'] == STRICT_BLOCKS[name]])
     return definition, spec
 
 

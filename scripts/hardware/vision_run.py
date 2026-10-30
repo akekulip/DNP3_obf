@@ -37,6 +37,11 @@ def authorize_relay_run(args):
         raise ValueError('invalid guarded SBO controls')
     if args.sbo_select_only not in (0, 1) or (args.sbo_select_only and not (args.sbo_cycles and args.run_sbo)):
         raise ValueError('invalid guarded SBO controls: --sbo-select-only needs --sbo-cycles and --run-sbo 1')
+    strict = getattr(args, 'sbo_strict_cycle', 0)
+    if strict not in (0, 1) or (strict and not (args.sbo_cycles and args.run_sbo and args.reads == 2 * args.sbo_cycles
+                                                and args.read_schedule == 'mixed_full' and not args.sbo_select_only)):
+        raise ValueError('invalid guarded SBO controls: --sbo-strict-cycle needs --run-sbo 1, --read-schedule '
+                         'mixed_full, --reads == 2 x --sbo-cycles and no --sbo-select-only')
     if args.read_schedule not in (None, 'mixed_full', 'mixed', 'full') or any((not 0 <= value <= 5000 for value in (args.gap_ms, args.read_pause_ms, args.close_grace_ms))):
         raise ValueError('unsupported physical READ schedule or bounded timing')
     if args.endpoint_binary or args.pad_expect or getattr(args, 'db', None) is not None:
@@ -94,9 +99,10 @@ def restore_mirror_offloads(run):
                 restored=not errors)
 
 def run_relay_connection(run_dir, label, master_port, reads, gap_ms=0, read_pause_ms=25, run_sbo=True, close_grace_ms=0, sbo_cycles=0, read_schedule=None, qualify_capture=False, start_delay_max=0, start_seed=0, close_mode='graceful', **unused):
-    """Capture one real master socket. Never start an outstation or alter TCP settings. select_only (E4b) reaches the
-    workload, and the endpoint record, only when set."""
+    """Capture one real master socket. Never start an outstation or alter TCP settings. select_only (E4b) and
+    strict_cycle reach the workload, and the endpoint record, only when set."""
     select_only = unused.get('select_only', False)
+    strict_cycle = unused.get('strict_cycle', False)
     from relay_master import workload
     from endpoint_profiles import MASTER_IP, RELAY_IP
     os.makedirs(run_dir)
@@ -104,6 +110,8 @@ def run_relay_connection(run_dir, label, master_port, reads, gap_ms=0, read_paus
     result = dict(label=label, endpoint_profile='sel751', master_port=master_port, reads=reads, observation_scope='single master NIC TX/RX; switch emission not observed', endpoint_controls=dict(read_pause_ms=read_pause_ms, run_sbo=bool(run_sbo), close_grace_ms=close_grace_ms), tcpdump={}, ok=False)
     if select_only is not False:
         result['endpoint_controls']['sbo_select_only'] = select_only
+    if strict_cycle is not False:
+        result['endpoint_controls']['sbo_strict_cycle'] = strict_cycle
     caps, loss_owner = ({}, [None])
     mirror = MirrorCapture(run_dir, unused['mirror_iface']) if unused.get('mirror_iface') is not None else None
 
@@ -139,7 +147,8 @@ def run_relay_connection(run_dir, label, master_port, reads, gap_ms=0, read_paus
                               run_sbo=run_sbo, gap_ms=gap_ms, read_pause_ms=read_pause_ms,
                               close_grace_ms=close_grace_ms, close_mode=close_mode,
                               loss_target=loss_owner[0] if loss_owner[0] is not None and loss_owner[0].identity
-                              else None, **({'select_only': select_only} if select_only is not False else {}))
+                              else None, **({'select_only': select_only} if select_only is not False else {}),
+                              **({'strict_cycle': strict_cycle} if strict_cycle is not False else {}))
             json.dump(master, open(os.path.join(run_dir, 'master.json'), 'w'), indent=2)
             result.update(ok=master['ok'], master_rc=0 if master['ok'] else 1)
             result['close_observation'] = wait_relay_close(run_dir, master_port, close_mode)
@@ -407,7 +416,7 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
                    connect_must_fail=False, read_pause_ms=25, run_sbo=True, close_grace_ms=0, capture_immediate=False,
                    qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None, endpoint_binary_name=None,
                    pad_expect=None, endpoint_profile='sel751', relay_close_mode='graceful', mirror_iface=None,
-                   sbo_select_only=False):
+                   sbo_select_only=False, sbo_strict_cycle=False):
     if os.environ.get('DEFENSE4_HW_AUTHORIZED') != '1':
         raise ValueError('physical run requires authorization before capture/socket creation')
     if connect_must_fail or endpoint_binary_name or pad_expect:
@@ -417,7 +426,8 @@ def run_connection(run_dir, label, master_port, reads, rng, gap_ms, start_delay_
                                 read_schedule=read_schedule, qualify_capture=qualify_capture,
                                 start_delay_max=start_delay_max, start_seed=start_seed, close_mode=relay_close_mode,
                                 drop=drop, mirror_iface=mirror_iface,
-                                **({'select_only': True} if sbo_select_only else {}))
+                                **({'select_only': True} if sbo_select_only else {}),
+                                **({'strict_cycle': True} if sbo_strict_cycle else {}))
 
 def run_reconnect(label, master_port, reconnect_port, reads, rng, gap_ms, start_delay_max, start_seed, read_pause_ms=25, run_sbo=True, close_grace_ms=0, qualify_capture=False, sbo_cycles=0, read_schedule=None, db=None, endpoint_binary_name=None, pad_expect=None, endpoint_profile='sel751'):
     """Reconnect scenario: RUNS/label/{c1,c2,c3}, each a complete connection with its own pcaps and endpoint JSON.
@@ -478,6 +488,9 @@ def main():
     ap.add_argument('--sbo-cycles', type=int, default=0, help='repeated-SBO endpoint: N cycles of SELECT->OPERATE then READ (reads counts every READ)')
     ap.add_argument('--sbo-select-only', type=int, choices=(0, 1), default=0,
                     help='E4b, physical run with --sbo-cycles only: each cycle is a guarded SELECT with no OPERATE')
+    ap.add_argument('--sbo-strict-cycle', type=int, choices=(0, 1), default=0,
+                    help='physical run only: [READ mixed, SELECT, OPERATE, READ integrity] x --sbo-cycles '
+                         '(--reads 2 x --sbo-cycles, --read-schedule mixed_full)')
     ap.add_argument('--start-delay-ms', type=int, default=0, help='maximum pre-connect delay; the applied delay is uniform in 0..N and fixed by --start-seed')
     ap.add_argument('--start-seed', type=int, default=0)
     ap.add_argument('--delay-ms', type=int, default=25)
@@ -505,6 +518,8 @@ def main():
                  + PARENT)
     if a.sbo_select_only and (a.mode != 'run' or a.scenario or a.drop or a.event_clear or a.connect_must_fail):
         sys.exit('--sbo-select-only 1 is only for one plain physical SEL-751 run with --sbo-cycles')
+    if a.sbo_strict_cycle and (a.mode != 'run' or a.scenario or a.drop or a.event_clear or a.connect_must_fail):
+        sys.exit('--sbo-strict-cycle 1 is only for one plain physical SEL-751 run with --sbo-cycles')
     if a.event_clear:
         if a.mode != 'run' or a.drop or a.scenario:
             sys.exit('--event-clear is only for one plain physical SEL-751 run')
@@ -554,7 +569,8 @@ def main():
                                 endpoint_binary_name=a.endpoint_binary, pad_expect=a.pad_expect,
                                 endpoint_profile=a.endpoint_profile, relay_close_mode=a.close_mode,
                                 mirror_iface=a.mirror_iface,
-                                **({'sbo_select_only': True} if a.sbo_select_only else {}))
+                                **({'sbo_select_only': True} if a.sbo_select_only else {}),
+                                **({'sbo_strict_cycle': True} if a.sbo_strict_cycle else {}))
     except (RuntimeError, ValueError) as e:
         sys.exit(str(e))
     print(json.dumps(result))

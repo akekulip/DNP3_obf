@@ -29,6 +29,8 @@ NATIVE = ROOT / 'results/hardware/native/c72_native_20261027_01/relay_wire.json'
 NATIVE_PROBE_PORTS = {59411, 59412}  # c72_native_20261027_01/_02 master ports (out.pcap)
 PINNED = 'ca0db02d1'                 # matrix.py before the E4b definition
 NAME = 'e4b_select_only'
+# definitions added after E4b (tests/hardware/test_strict_cycle_definition.py); not part of the E4b comparison
+LATER = {'strict_cycle_c72_d20', 'strict_cycle_c72_d5', 'diag_e2_combined'}
 LAB = json.loads((matrix.HERE / 'lab.json').read_text())
 TEMPLATE = next(block for block in LAB['blocks'] if block['id'] == '10_d20_loss_full')
 REGISTERED = DESIGN['block']
@@ -155,7 +157,7 @@ def pinned_matrix(tmp_path_factory):
     return module
 
 
-@pytest.mark.parametrize('name', sorted(n for n in matrix.DEFINITIONS if n != NAME))
+@pytest.mark.parametrize('name', sorted(n for n in matrix.DEFINITIONS if n != NAME and n not in LATER))
 def test_every_existing_definition_prepares_byte_for_byte_unchanged(pinned_matrix, tmp_path, name):
     diagnostic = matrix.DEFINITIONS[name].get('diagnostic')
     build = DIAG if diagnostic else C72
@@ -171,5 +173,5 @@ def test_every_existing_definition_prepares_byte_for_byte_unchanged(pinned_matri
 
 
 def test_only_the_e4b_definition_was_added(pinned_matrix):
-    assert sorted(matrix.DEFINITIONS) == sorted(list(pinned_matrix.DEFINITIONS) + [NAME])
+    assert sorted(n for n in matrix.DEFINITIONS if n not in LATER) == sorted(list(pinned_matrix.DEFINITIONS) + [NAME])
     assert all(matrix.DEFINITIONS[name] == spec for name, spec in pinned_matrix.DEFINITIONS.items())
