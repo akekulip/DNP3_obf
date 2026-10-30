@@ -1,0 +1,252 @@
+{
+ "case": "keepalive_idle_mixed_off",
+ "classifications": {
+  "keepalive_0": "violates the rule",
+  "keepalive_1": "violates the rule"
+ },
+ "closed": true,
+ "consequence": "keepalive_0 did not reach the relay; keepalive_1 did not reach the relay; next_transaction completed; FIN_close completed",
+ "evidence_kind": "genuine_processing",
+ "family": 5,
+ "isn": {
+  "master": 8000300,
+  "relay": 8001000
+ },
+ "next_image_len": 158,
+ "probes": [
+  {
+   "classification": "violates the rule",
+   "covered_by": [],
+   "forwarded": false,
+   "forwarded_before": [
+    "keepalive_idle_mixed_off_SYN",
+    "keepalive_idle_mixed_off_ACK",
+    "keepalive_idle_mixed_off_READ_request",
+    "keepalive_idle_mixed_off_READ_mapped_complete_ACK"
+   ],
+   "generation_consumed": 1,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 8000326,
+    "counter": 105,
+    "epoch": 98,
+    "owner": 327691,
+    "retry_epoch": 98,
+    "server": 8001092,
+    "work_generation": 105,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 8000326,
+    "counter": 104,
+    "epoch": 98,
+    "owner": 327691,
+    "retry_epoch": 98,
+    "server": 8001092,
+    "work_generation": 104,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": false,
+    "new_window": false
+   },
+   "obsolete": false,
+   "passes": {
+    "aborts": 1,
+    "busy": [],
+    "first_event": [
+     "NoAction"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 0
+   },
+   "port64": null,
+   "port64_copies": 0,
+   "port9": [],
+   "sent": {
+    "ack": 8001142,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "keepalive_0",
+    "options": [
+     "ts"
+    ],
+    "order": 72,
+    "payload_len": 0,
+    "seq": 8000325,
+    "tsecr": 1010107,
+    "tsval": 1000111,
+    "window": 4096
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "classification": "violates the rule",
+   "covered_by": [],
+   "forwarded": false,
+   "forwarded_before": [
+    "keepalive_idle_mixed_off_SYN",
+    "keepalive_idle_mixed_off_ACK",
+    "keepalive_idle_mixed_off_READ_request",
+    "keepalive_idle_mixed_off_READ_mapped_complete_ACK"
+   ],
+   "generation_consumed": 0,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 8000326,
+    "counter": 105,
+    "epoch": 98,
+    "owner": 327691,
+    "retry_epoch": 98,
+    "server": 8001092,
+    "work_generation": 105,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 8000326,
+    "counter": 105,
+    "epoch": 98,
+    "owner": 327691,
+    "retry_epoch": 98,
+    "server": 8001092,
+    "work_generation": 105,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": false,
+    "new_window": false
+   },
+   "obsolete": false,
+   "passes": {
+    "aborts": 0,
+    "busy": [],
+    "first_event": [],
+    "loss": [],
+    "passes": 2,
+    "t_ingress": 0,
+    "terminal_ack": 0
+   },
+   "port64": null,
+   "port64_copies": 0,
+   "port9": [],
+   "sent": {
+    "ack": 8001142,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "keepalive_1",
+    "options": [
+     "ts"
+    ],
+    "order": 73,
+    "payload_len": 1,
+    "seq": 8000325,
+    "tsecr": 1010107,
+    "tsval": 1000112,
+    "window": 4096
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "progress": [
+  {
+   "ok": true,
+   "step": "next_transaction"
+  },
+  {
+   "ok": true,
+   "step": "FIN_close"
+  }
+ ],
+ "progress_ok": true,
+ "read_class": "mixed",
+ "read_length": 25,
+ "scenario": "keepalive_idle",
+ "state_reached": true,
+ "timed": false
+}

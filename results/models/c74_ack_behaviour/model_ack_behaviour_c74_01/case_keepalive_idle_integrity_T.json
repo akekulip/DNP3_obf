@@ -1,0 +1,252 @@
+{
+ "case": "keepalive_idle_integrity_T",
+ "classifications": {
+  "keepalive_0": "violates the rule",
+  "keepalive_1": "violates the rule"
+ },
+ "closed": true,
+ "consequence": "keepalive_0 did not reach the relay; keepalive_1 did not reach the relay; next_transaction completed; FIN_close completed",
+ "evidence_kind": "genuine_processing",
+ "family": 5,
+ "isn": {
+  "master": 41000300,
+  "relay": 41001000
+ },
+ "next_image_len": 141,
+ "probes": [
+  {
+   "classification": "violates the rule",
+   "covered_by": [],
+   "forwarded": false,
+   "forwarded_before": [
+    "keepalive_idle_integrity_T_SYN",
+    "keepalive_idle_integrity_T_ACK",
+    "keepalive_idle_integrity_T_READ_request",
+    "keepalive_idle_integrity_T_READ_mapped_complete_ACK"
+   ],
+   "generation_consumed": 1,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      256
+     ]
+    ],
+    "client": 41000328,
+    "counter": 564,
+    "epoch": 557,
+    "owner": 327733,
+    "retry_epoch": 557,
+    "server": 41001135,
+    "work_generation": 564,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      256
+     ]
+    ],
+    "client": 41000328,
+    "counter": 563,
+    "epoch": 557,
+    "owner": 327733,
+    "retry_epoch": 557,
+    "server": 41001135,
+    "work_generation": 563,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": false,
+    "new_window": false
+   },
+   "obsolete": false,
+   "passes": {
+    "aborts": 1,
+    "busy": [],
+    "first_event": [
+     "NoAction"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 0
+   },
+   "port64": null,
+   "port64_copies": 0,
+   "port9": [],
+   "sent": {
+    "ack": 41001159,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "keepalive_0",
+    "options": [
+     "ts"
+    ],
+    "order": 387,
+    "payload_len": 0,
+    "seq": 41000327,
+    "tsecr": 1010549,
+    "tsval": 1000551,
+    "window": 4096
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "classification": "violates the rule",
+   "covered_by": [],
+   "forwarded": false,
+   "forwarded_before": [
+    "keepalive_idle_integrity_T_SYN",
+    "keepalive_idle_integrity_T_ACK",
+    "keepalive_idle_integrity_T_READ_request",
+    "keepalive_idle_integrity_T_READ_mapped_complete_ACK"
+   ],
+   "generation_consumed": 0,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      256
+     ]
+    ],
+    "client": 41000328,
+    "counter": 564,
+    "epoch": 557,
+    "owner": 327733,
+    "retry_epoch": 557,
+    "server": 41001135,
+    "work_generation": 564,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      256
+     ]
+    ],
+    "client": 41000328,
+    "counter": 564,
+    "epoch": 557,
+    "owner": 327733,
+    "retry_epoch": 557,
+    "server": 41001135,
+    "work_generation": 564,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": false,
+    "new_window": false
+   },
+   "obsolete": false,
+   "passes": {
+    "aborts": 0,
+    "busy": [],
+    "first_event": [],
+    "loss": [],
+    "passes": 2,
+    "t_ingress": 0,
+    "terminal_ack": 0
+   },
+   "port64": null,
+   "port64_copies": 0,
+   "port9": [],
+   "sent": {
+    "ack": 41001159,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "keepalive_1",
+    "options": [
+     "ts"
+    ],
+    "order": 388,
+    "payload_len": 1,
+    "seq": 41000327,
+    "tsecr": 1010549,
+    "tsval": 1000552,
+    "window": 4096
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "progress": [
+  {
+   "ok": true,
+   "step": "next_transaction"
+  },
+  {
+   "ok": true,
+   "step": "FIN_close"
+  }
+ ],
+ "progress_ok": true,
+ "read_class": "integrity",
+ "read_length": 27,
+ "scenario": "keepalive_idle",
+ "state_reached": true,
+ "timed": true
+}

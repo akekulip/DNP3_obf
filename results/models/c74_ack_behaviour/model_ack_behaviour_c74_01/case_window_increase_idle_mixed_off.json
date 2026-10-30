@@ -1,0 +1,151 @@
+{
+ "case": "window_increase_idle_mixed_off",
+ "classifications": {
+  "window_update": "meets the rule"
+ },
+ "closed": true,
+ "consequence": "window_update reached the relay; next_transaction completed; FIN_close completed",
+ "control": true,
+ "evidence_kind": "genuine_processing",
+ "family": 3,
+ "isn": {
+  "master": 6000300,
+  "relay": 6001000
+ },
+ "next_image_len": 158,
+ "probes": [
+  {
+   "classification": "meets the rule",
+   "covered_by": [],
+   "forwarded": true,
+   "forwarded_before": [
+    "window_increase_idle_mixed_off_SYN",
+    "window_increase_idle_mixed_off_ACK",
+    "window_increase_idle_mixed_off_READ_request",
+    "window_increase_idle_mixed_off_READ_mapped_complete_ACK"
+   ],
+   "generation_consumed": 1,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 6000326,
+    "counter": 81,
+    "epoch": 74,
+    "owner": 327689,
+    "retry_epoch": 74,
+    "server": 6001092,
+    "work_generation": 81,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 6000326,
+    "counter": 80,
+    "epoch": 74,
+    "owner": 327689,
+    "retry_epoch": 74,
+    "server": 6001092,
+    "work_generation": 80,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": false,
+    "new_window": true
+   },
+   "obsolete": false,
+   "passes": {
+    "aborts": 0,
+    "busy": [],
+    "first_event": [
+     "forward_original"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 1
+   },
+   "port64": {
+    "ack": 6001092,
+    "payload_len": 0,
+    "seq": 6000326,
+    "tsecr": 1010078,
+    "tsval": 1000082,
+    "window": 4608
+   },
+   "port64_copies": 1,
+   "port9": [],
+   "sent": {
+    "ack": 6001142,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "window_update",
+    "options": [
+     "ts"
+    ],
+    "order": 53,
+    "payload_len": 0,
+    "seq": 6000326,
+    "tsecr": 1010078,
+    "tsval": 1000082,
+    "window": 4608
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "progress": [
+  {
+   "ok": true,
+   "step": "next_transaction"
+  },
+  {
+   "ok": true,
+   "step": "FIN_close"
+  }
+ ],
+ "progress_ok": true,
+ "read_class": "mixed",
+ "read_length": 25,
+ "scenario": "window_increase_idle",
+ "state_reached": true,
+ "timed": false
+}

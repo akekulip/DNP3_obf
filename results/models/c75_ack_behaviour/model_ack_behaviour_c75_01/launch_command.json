@@ -1,0 +1,32 @@
+{
+  "scenario": "master-ACK behaviour against results/analysis/ack_behaviour/DESIGN.json (late handshake ACK in both orders, R1/R2, window update and zero window while a READ is outstanding, keepalives, duplicate and response ACK controls); a separate labelled scenario, not part of the 17-driver model gate",
+  "model_gate": false,
+  "command": [
+    "bash",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/scripts/model/launch_model.sh",
+    "-p",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/results/builds/c75/compile_local/out",
+    "-o",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/results/models/c75_ack_behaviour/model_ack_behaviour_c75_01",
+    "-P",
+    "9 48 64 68 180 182 196",
+    "-d",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/scripts/model/record_closure.py"
+  ],
+  "PORT_MAP": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/results/builds/c75/response_only.inputs.json",
+  "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+  "driver_sha256": "b0ea0998e938c15c9e187aee02eb670aea57913d56fdfd27317c324e5cb0013f",
+  "closure_target": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/scripts/model/model_ack_behaviour.py",
+  "compile_manifest_sha256": "55a1ccbdafeb8c9c27c768de8a470000509ab124d64a6bd76ed3b861e8ce47d3",
+  "dependency_closure_sha256": "ffb9645326acff24b4a397605dca91f18406b73bcbfcfac69ec3f51e53270d6a",
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+  "observation_source": "SDK model action log and BFRT register reads; not physical switch counters",
+  "stimulus_environment": {
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2",
+    "PAD_ENABLE": "1"
+  },
+  "model_log_retention_sha256": "ee0fde1dd7c06c6563fc48123ef355c84647a248810df1252d0eaf13705c9f64",
+  "retention_error": null,
+  "exit_code": 1
+}

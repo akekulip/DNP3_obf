@@ -1,0 +1,165 @@
+{
+ "case": "response_ack_control_mixed_off",
+ "classifications": {
+  "response_ACK": "meets the rule"
+ },
+ "closed": true,
+ "consequence": "response_ACK reached the relay; READ_response delivered ([0, 141] octets at the master); next_transaction completed; FIN_close completed",
+ "control": true,
+ "evidence_kind": "genuine_processing",
+ "family": 6,
+ "isn": {
+  "master": 11000300,
+  "relay": 11001000
+ },
+ "next_image_len": 158,
+ "probes": [
+  {
+   "classification": "meets the rule",
+   "covered_by": [],
+   "forwarded": true,
+   "forwarded_before": [
+    "response_ack_control_mixed_off_SYN",
+    "response_ack_control_mixed_off_ACK",
+    "response_ack_control_mixed_off_READ_request"
+   ],
+   "generation_consumed": 1,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 11000326,
+    "counter": 144,
+    "epoch": 138,
+    "owner": 327694,
+    "retry_epoch": 138,
+    "server": 11001092,
+    "work_generation": 144,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 11000326,
+    "counter": 143,
+    "epoch": 138,
+    "owner": 327694,
+    "retry_epoch": 138,
+    "server": 11001092,
+    "work_generation": 143,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": true,
+    "new_window": false
+   },
+   "obsolete": false,
+   "passes": {
+    "aborts": 0,
+    "busy": [],
+    "first_event": [
+     "forward_original"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 1
+   },
+   "port64": {
+    "ack": 11001092,
+    "payload_len": 0,
+    "seq": 11000326,
+    "tsecr": 1010153,
+    "tsval": 1000154,
+    "window": 4096
+   },
+   "port64_copies": 1,
+   "port9": [],
+   "sent": {
+    "ack": 11001142,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "response_ACK",
+    "options": [
+     "ts"
+    ],
+    "order": 101,
+    "payload_len": 0,
+    "seq": 11000326,
+    "tsecr": 1010153,
+    "tsval": 1000154,
+    "window": 4096
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "progress": [
+  {
+   "exact_ack_then_response": true,
+   "frames_at_master": 2,
+   "frames_at_relay_side": 0,
+   "image_len": 141,
+   "ok": true,
+   "payload_lengths_at_master": [
+    0,
+    141
+   ],
+   "pre_frames": 0,
+   "response_at_class_size": true,
+   "step": "READ_response",
+   "t_delta": null
+  },
+  {
+   "ok": true,
+   "step": "next_transaction"
+  },
+  {
+   "ok": true,
+   "step": "FIN_close"
+  }
+ ],
+ "progress_ok": true,
+ "read_class": "mixed",
+ "read_length": 25,
+ "scenario": "response_ack_control",
+ "state_reached": true,
+ "timed": false
+}

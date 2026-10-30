@@ -1,0 +1,161 @@
+{
+ "case": "window_increase_outstanding_integrity_off",
+ "classifications": {
+  "window_update": "violates the rule"
+ },
+ "closed": true,
+ "consequence": "window_update did not reach the relay; READ_response delivered ([0, 158] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+ "evidence_kind": "genuine_processing",
+ "family": 3,
+ "isn": {
+  "master": 27000300,
+  "relay": 27001000
+ },
+ "next_image_len": 141,
+ "probes": [
+  {
+   "classification": "violates the rule",
+   "covered_by": [],
+   "forwarded": false,
+   "forwarded_before": [
+    "window_increase_outstanding_integrity_off_SYN",
+    "window_increase_outstanding_integrity_off_ACK",
+    "window_increase_outstanding_integrity_off_READ_request"
+   ],
+   "generation_consumed": 1,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      256
+     ]
+    ],
+    "client": 27000328,
+    "counter": 369,
+    "epoch": 365,
+    "owner": 917540,
+    "retry_epoch": 365,
+    "server": 27001001,
+    "work_generation": 369,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      256
+     ]
+    ],
+    "client": 27000328,
+    "counter": 368,
+    "epoch": 365,
+    "owner": 917540,
+    "retry_epoch": 365,
+    "server": 27001001,
+    "work_generation": 368,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": false,
+    "new_window": true
+   },
+   "obsolete": false,
+   "passes": {
+    "aborts": 1,
+    "busy": [],
+    "first_event": [
+     "NoAction"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 0
+   },
+   "port64": null,
+   "port64_copies": 0,
+   "port9": [],
+   "sent": {
+    "ack": 27001001,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "window_update",
+    "options": [
+     "ts"
+    ],
+    "order": 253,
+    "payload_len": 0,
+    "seq": 27000328,
+    "tsecr": 1010357,
+    "tsval": 1000361,
+    "window": 4608
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "progress": [
+  {
+   "exact_ack_then_response": true,
+   "frames_at_master": 2,
+   "frames_at_relay_side": 0,
+   "image_len": 158,
+   "ok": true,
+   "payload_lengths_at_master": [
+    0,
+    158
+   ],
+   "pre_frames": 0,
+   "response_at_class_size": true,
+   "step": "READ_response",
+   "t_delta": null
+  },
+  {
+   "ok": true,
+   "step": "response_ACK"
+  },
+  {
+   "ok": true,
+   "step": "next_transaction"
+  },
+  {
+   "ok": true,
+   "step": "FIN_close"
+  }
+ ],
+ "progress_ok": true,
+ "read_class": "integrity",
+ "read_length": 27,
+ "scenario": "window_increase_outstanding",
+ "state_reached": true,
+ "timed": false
+}

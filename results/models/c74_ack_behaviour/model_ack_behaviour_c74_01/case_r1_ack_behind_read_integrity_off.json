@@ -1,0 +1,202 @@
+{
+ "READ2_port64": [
+  "READ2"
+ ],
+ "case": "r1_ack_behind_read_integrity_off",
+ "classifications": {
+  "old_ACK_of_response1": "meets the rule"
+ },
+ "closed": true,
+ "consequence": "old_ACK_of_response1 reached the relay; the relay reply reached the master 0 time(s); READ1_response delivered ([0, 158] octets at the master); READ2_response delivered ([0, 158] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+ "evidence_kind": "genuine_processing",
+ "family": 2,
+ "isn": {
+  "master": 25000300,
+  "relay": 25001000
+ },
+ "next_image_len": 141,
+ "probes": [
+  {
+   "classification": "meets the rule",
+   "covered_by": [
+    "READ2"
+   ],
+   "forwarded": true,
+   "forwarded_before": [
+    "r1_ack_behind_read_integrity_off_SYN",
+    "r1_ack_behind_read_integrity_off_ACK",
+    "r1_ack_behind_read_integrity_off_READ1_request",
+    "READ2"
+   ],
+   "generation_consumed": 1,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      257
+     ]
+    ],
+    "client": 25000355,
+    "counter": 341,
+    "epoch": 334,
+    "owner": 917538,
+    "retry_epoch": 334,
+    "server": 25001135,
+    "work_generation": 341,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      257
+     ]
+    ],
+    "client": 25000355,
+    "counter": 340,
+    "epoch": 334,
+    "owner": 917538,
+    "retry_epoch": 334,
+    "server": 25001135,
+    "work_generation": 340,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": false,
+    "new_window": false
+   },
+   "obsolete": true,
+   "passes": {
+    "aborts": 0,
+    "busy": [],
+    "first_event": [
+     "forward_original"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 1
+   },
+   "port64": {
+    "ack": 25001135,
+    "payload_len": 0,
+    "seq": 25000328,
+    "tsecr": 1010333,
+    "tsval": 1000334,
+    "window": 4096
+   },
+   "port64_copies": 1,
+   "port9": [],
+   "relay_reply": {
+    "ack": 25000355,
+    "at_master": 0,
+    "at_master_fields": [],
+    "expected_wire_seq": 25001159,
+    "seq": 25001135,
+    "t_delta": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "sent": {
+    "ack": 25001159,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "old_ACK_of_response1",
+    "options": [
+     "ts"
+    ],
+    "order": 234,
+    "payload_len": 0,
+    "seq": 25000328,
+    "tsecr": 1010333,
+    "tsval": 1000334,
+    "window": 4096
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "progress": [
+  {
+   "exact_ack_then_response": true,
+   "frames_at_master": 2,
+   "frames_at_relay_side": 0,
+   "image_len": 158,
+   "ok": true,
+   "payload_lengths_at_master": [
+    0,
+    158
+   ],
+   "pre_frames": 0,
+   "response_at_class_size": true,
+   "step": "READ1_response",
+   "t_delta": null
+  },
+  {
+   "exact_ack_then_response": true,
+   "frames_at_master": 2,
+   "frames_at_relay_side": 0,
+   "image_len": 158,
+   "ok": true,
+   "payload_lengths_at_master": [
+    0,
+    158
+   ],
+   "pre_frames": 0,
+   "response_at_class_size": true,
+   "step": "READ2_response",
+   "t_delta": null
+  },
+  {
+   "ok": true,
+   "step": "response_ACK"
+  },
+  {
+   "ok": true,
+   "step": "next_transaction"
+  },
+  {
+   "ok": true,
+   "step": "FIN_close"
+  }
+ ],
+ "progress_ok": true,
+ "read_class": "integrity",
+ "read_length": 27,
+ "scenario": "r1_ack_behind_read",
+ "state_reached": true,
+ "timed": false
+}

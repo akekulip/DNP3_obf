@@ -1,0 +1,165 @@
+{
+ "case": "r2_offset_mixed_off",
+ "classifications": {
+  "offset_ACK": "meets the rule by suppressing an obsolete ACK"
+ },
+ "closed": true,
+ "conforming": false,
+ "consequence": "offset_ACK did not reach the relay; READ_response delivered ([0, 141] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+ "evidence_kind": "genuine_processing",
+ "family": 2,
+ "isn": {
+  "master": 4000300,
+  "relay": 4001000
+ },
+ "next_image_len": 158,
+ "offset_from_isn_plus_1": -2,
+ "probes": [
+  {
+   "classification": "meets the rule by suppressing an obsolete ACK",
+   "covered_by": [
+    "r2_offset_mixed_off_READ_request"
+   ],
+   "forwarded": false,
+   "forwarded_before": [
+    "r2_offset_mixed_off_SYN",
+    "r2_offset_mixed_off_ACK",
+    "r2_offset_mixed_off_READ_request"
+   ],
+   "generation_consumed": 1,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 4000326,
+    "counter": 49,
+    "epoch": 45,
+    "owner": 917511,
+    "retry_epoch": 45,
+    "server": 4001001,
+    "work_generation": 49,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 4000326,
+    "counter": 48,
+    "epoch": 45,
+    "owner": 917511,
+    "retry_epoch": 45,
+    "server": 4001001,
+    "work_generation": 48,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": false,
+    "new_window": false
+   },
+   "obsolete": true,
+   "passes": {
+    "aborts": 1,
+    "busy": [],
+    "first_event": [
+     "NoAction"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 0
+   },
+   "port64": null,
+   "port64_copies": 0,
+   "port9": [],
+   "sent": {
+    "ack": 4001001,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "offset_ACK",
+    "options": [
+     "ts"
+    ],
+    "order": 33,
+    "payload_len": 0,
+    "seq": 4000299,
+    "tsecr": 1010049,
+    "tsval": 1000052,
+    "window": 4096
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "progress": [
+  {
+   "exact_ack_then_response": true,
+   "frames_at_master": 2,
+   "frames_at_relay_side": 0,
+   "image_len": 141,
+   "ok": true,
+   "payload_lengths_at_master": [
+    0,
+    141
+   ],
+   "pre_frames": 0,
+   "response_at_class_size": true,
+   "step": "READ_response",
+   "t_delta": null
+  },
+  {
+   "ok": true,
+   "step": "response_ACK"
+  },
+  {
+   "ok": true,
+   "step": "next_transaction"
+  },
+  {
+   "ok": true,
+   "step": "FIN_close"
+  }
+ ],
+ "progress_ok": true,
+ "read_class": "mixed",
+ "read_length": 25,
+ "scenario": "r2_offset",
+ "state_reached": true,
+ "timed": false
+}

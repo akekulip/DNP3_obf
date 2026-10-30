@@ -1,0 +1,71 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS late_ack_wire_order_mixed_off_a0_SYN expected=one exact frame observed=1
+PASS late_ack_wire_order_mixed_off_a0_SYNACK expected=one exact frame observed=1
+PASS late_ack_wire_order_mixed_off_a1_SYN expected=one exact frame observed=1
+PASS late_ack_wire_order_mixed_off_a1_SYNACK expected=one exact frame observed=1
+PASS late_ack_wire_order_mixed_off_a2_SYN expected=one exact frame observed=1
+PASS late_ack_wire_order_mixed_off_a2_SYNACK expected=one exact frame observed=1
+FAIL late_ack_wire_order_mixed_off      expected=completed with progress observed={'state_reached': False, 'progress_ok': False, 'classifications': {}}
+PASS zero_window_outstanding_mixed_off_SYN expected=one exact frame observed=1
+PASS zero_window_outstanding_mixed_off_SYNACK expected=one exact frame observed=1
+PASS zero_window_outstanding_mixed_off_ACK expected=one exact frame observed=1
+PASS zero_window_outstanding_mixed_off_READ_request expected=one exact frame observed=1
+PASS zero_window_outstanding_mixed_off_mapped_complete_ACK expected=one exact frame observed=1
+PASS zero_window_outstanding_mixed_off_NEXT_request expected=one exact frame observed=1
+PASS zero_window_outstanding_mixed_off_NEXT_ACK expected=one exact frame observed=1
+PASS zero_window_outstanding_mixed_off_NEXT_complete_response expected=one exact frame observed=1
+PASS zero_window_outstanding_mixed_off_NEXT_mapped_complete_ACK expected=one exact frame observed=1
+PASS zero_window_outstanding_mixed_off_close_fin expected=one exact frame observed=1
+PASS zero_window_outstanding_mixed_off_close_fin_ack expected=one exact frame observed=1
+PASS zero_window_outstanding_mixed_off_close_last_ack expected=one exact frame observed=1
+PASS zero_window_outstanding_mixed_off  expected=completed with progress observed={'state_reached': True, 'progress_ok': True, 'classifications': {'zero_window': 'violates the rule', 'window_reopen': 'violates the rule'}}
+PASS keepalive_idle_mixed_off_SYN       expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_SYNACK    expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_ACK       expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_READ_request expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_READ_ACK  expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_READ_complete_response expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_READ_mapped_complete_ACK expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_NEXT_request expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_NEXT_ACK  expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_NEXT_complete_response expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_NEXT_mapped_complete_ACK expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_close_fin expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_close_fin_ack expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off_close_last_ack expected=one exact frame observed=1
+PASS keepalive_idle_mixed_off           expected=completed with progress observed={'state_reached': True, 'progress_ok': True, 'classifications': {'keepalive_0': 'violates the rule', 'keepalive_1': 'violates the rule'}}
+PASS r1_ack_behind_read_mixed_T_SYN     expected=one exact frame observed=1
+PASS r1_ack_behind_read_mixed_T_SYNACK  expected=one exact frame observed=1
+PASS r1_ack_behind_read_mixed_T_ACK     expected=one exact frame observed=1
+PASS r1_ack_behind_read_mixed_T_READ1_request expected=one exact frame observed=1
+PASS r1_ack_behind_read_mixed_T_mapped_complete_ACK expected=one exact frame observed=1
+PASS r1_ack_behind_read_mixed_T_NEXT_request expected=one exact frame observed=1
+PASS r1_ack_behind_read_mixed_T_NEXT_timed_ACK_then_complete_response expected=True       observed=True
+PASS r1_ack_behind_read_mixed_T_NEXT_timed_timestamp_delivery_order expected=True       observed=True
+PASS r1_ack_behind_read_mixed_T_NEXT_committed_no_request_retry expected=[1, 1, 0, 0] observed=[1, 1, 0, 0]
+PASS r1_ack_behind_read_mixed_T_NEXT_mapped_complete_ACK expected=one exact frame observed=1
+PASS r1_ack_behind_read_mixed_T_close_fin expected=one exact frame observed=1
+PASS r1_ack_behind_read_mixed_T_close_fin_ack expected=one exact frame observed=1
+PASS r1_ack_behind_read_mixed_T_close_last_ack expected=one exact frame observed=1
+PASS r1_ack_behind_read_mixed_T         expected=completed with progress observed={'state_reached': True, 'progress_ok': True, 'classifications': {'old_ACK_of_response1': 'meets the rule by suppressing an obsolete ACK'}}
+PASS keepalive_outstanding_mixed_T_SYN  expected=one exact frame observed=1
+PASS keepalive_outstanding_mixed_T_SYNACK expected=one exact frame observed=1
+PASS keepalive_outstanding_mixed_T_ACK  expected=one exact frame observed=1
+PASS keepalive_outstanding_mixed_T_READ_request expected=one exact frame observed=1
+PASS keepalive_outstanding_mixed_T_mapped_complete_ACK expected=one exact frame observed=1
+PASS keepalive_outstanding_mixed_T_NEXT_request expected=one exact frame observed=1
+PASS keepalive_outstanding_mixed_T_NEXT_timed_ACK_then_complete_response expected=True       observed=True
+PASS keepalive_outstanding_mixed_T_NEXT_timed_timestamp_delivery_order expected=True       observed=True
+PASS keepalive_outstanding_mixed_T_NEXT_committed_no_request_retry expected=[1, 1, 0, 0] observed=[1, 1, 0, 0]
+PASS keepalive_outstanding_mixed_T_NEXT_mapped_complete_ACK expected=one exact frame observed=1
+PASS keepalive_outstanding_mixed_T_close_fin expected=one exact frame observed=1
+PASS keepalive_outstanding_mixed_T_close_fin_ack expected=one exact frame observed=1
+PASS keepalive_outstanding_mixed_T_close_last_ack expected=one exact frame observed=1
+PASS keepalive_outstanding_mixed_T      expected=completed with progress observed={'state_reached': True, 'progress_ok': True, 'classifications': {'keepalive_0': 'violates the rule', 'keepalive_1': 'violates the rule'}}
+SUMMARY {'total': 63, 'passed': 62, 'failed': ['late_ack_wire_order_mixed_off']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

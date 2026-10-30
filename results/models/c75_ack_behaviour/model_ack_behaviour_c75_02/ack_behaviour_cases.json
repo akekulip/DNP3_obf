@@ -1,0 +1,766 @@
+[
+ {
+  "case": "late_ack_wire_order_mixed_off",
+  "scenario": "late_ack_wire_order",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "forced_register",
+  "state_reached": false,
+  "progress_ok": null,
+  "classifications": {},
+  "consequence": "",
+  "forwarded": {},
+  "error": null
+ },
+ {
+  "case": "late_ack_reverse_order_mixed_off",
+  "scenario": "late_ack_reverse_order",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "final_ACK": "meets the rule by suppressing an obsolete ACK"
+  },
+  "consequence": "final_ACK did not reach the relay; READ_response delivered ([0, 141] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "final_ACK": false
+  },
+  "error": null
+ },
+ {
+  "case": "r1_ack_behind_read_mixed_off",
+  "scenario": "r1_ack_behind_read",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "old_ACK_of_response1": "meets the rule by suppressing an obsolete ACK"
+  },
+  "consequence": "old_ACK_of_response1 did not reach the relay; READ1_response delivered ([0, 141] octets at the master); READ2_response delivered ([0, 141] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "old_ACK_of_response1": false
+  },
+  "error": null
+ },
+ {
+  "case": "r2_offset_mixed_off",
+  "scenario": "r2_offset",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "offset_ACK": "meets the rule by suppressing an obsolete ACK"
+  },
+  "consequence": "offset_ACK did not reach the relay; READ_response delivered ([0, 141] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "offset_ACK": false
+  },
+  "error": null
+ },
+ {
+  "case": "window_increase_outstanding_mixed_off",
+  "scenario": "window_increase_outstanding",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "window_update": "violates the rule"
+  },
+  "consequence": "window_update did not reach the relay; READ_response delivered ([0, 141] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "window_update": false
+  },
+  "error": null
+ },
+ {
+  "case": "window_increase_idle_mixed_off",
+  "scenario": "window_increase_idle",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "window_update": "meets the rule"
+  },
+  "consequence": "window_update reached the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "window_update": true
+  },
+  "error": null
+ },
+ {
+  "case": "zero_window_outstanding_mixed_off",
+  "scenario": "zero_window_outstanding",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "zero_window": "violates the rule",
+   "window_reopen": "violates the rule"
+  },
+  "consequence": "zero_window did not reach the relay; window_reopen did not reach the relay; READ_response delivered ([0, 141] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "zero_window": false,
+   "window_reopen": false
+  },
+  "error": null
+ },
+ {
+  "case": "keepalive_idle_mixed_off",
+  "scenario": "keepalive_idle",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "keepalive_0": "violates the rule",
+   "keepalive_1": "violates the rule"
+  },
+  "consequence": "keepalive_0 did not reach the relay; keepalive_1 did not reach the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "keepalive_0": false,
+   "keepalive_1": false
+  },
+  "error": null
+ },
+ {
+  "case": "keepalive_outstanding_mixed_off",
+  "scenario": "keepalive_outstanding",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "keepalive_0": "violates the rule",
+   "keepalive_1": "violates the rule"
+  },
+  "consequence": "keepalive_0 did not reach the relay; keepalive_1 did not reach the relay; relay_ACK_of_READ completed; READ_response delivered ([141] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "keepalive_0": false,
+   "keepalive_1": false
+  },
+  "error": null
+ },
+ {
+  "case": "duplicate_ack_idle_mixed_off",
+  "scenario": "duplicate_ack_idle",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "duplicate_ACK_1": "meets the rule",
+   "duplicate_ACK_2": "meets the rule"
+  },
+  "consequence": "duplicate_ACK_1 reached the relay; duplicate_ACK_2 reached the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "duplicate_ACK_1": true,
+   "duplicate_ACK_2": true
+  },
+  "error": null
+ },
+ {
+  "case": "response_ack_control_mixed_off",
+  "scenario": "response_ack_control",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "response_ACK": "meets the rule"
+  },
+  "consequence": "response_ACK reached the relay; READ_response delivered ([0, 141] octets at the master); next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "response_ACK": true
+  },
+  "error": null
+ },
+ {
+  "case": "late_ack_wire_order_mixed_T",
+  "scenario": "late_ack_wire_order",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "forced_register",
+  "state_reached": false,
+  "progress_ok": null,
+  "classifications": {},
+  "consequence": "",
+  "forwarded": {},
+  "error": null
+ },
+ {
+  "case": "late_ack_reverse_order_mixed_T",
+  "scenario": "late_ack_reverse_order",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "final_ACK": "meets the rule by suppressing an obsolete ACK"
+  },
+  "consequence": "final_ACK did not reach the relay; READ_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "final_ACK": false
+  },
+  "error": null
+ },
+ {
+  "case": "r1_ack_behind_read_mixed_T",
+  "scenario": "r1_ack_behind_read",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "old_ACK_of_response1": "meets the rule by suppressing an obsolete ACK"
+  },
+  "consequence": "old_ACK_of_response1 did not reach the relay; READ1_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); READ2_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "old_ACK_of_response1": false
+  },
+  "error": null
+ },
+ {
+  "case": "r2_offset_mixed_T",
+  "scenario": "r2_offset",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "offset_ACK": "meets the rule by suppressing an obsolete ACK"
+  },
+  "consequence": "offset_ACK did not reach the relay; READ_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "offset_ACK": false
+  },
+  "error": null
+ },
+ {
+  "case": "window_increase_outstanding_mixed_T",
+  "scenario": "window_increase_outstanding",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "window_update": "violates the rule"
+  },
+  "consequence": "window_update did not reach the relay; READ_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "window_update": false
+  },
+  "error": null
+ },
+ {
+  "case": "window_increase_idle_mixed_T",
+  "scenario": "window_increase_idle",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "window_update": "meets the rule"
+  },
+  "consequence": "window_update reached the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "window_update": true
+  },
+  "error": null
+ },
+ {
+  "case": "zero_window_outstanding_mixed_T",
+  "scenario": "zero_window_outstanding",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "zero_window": "violates the rule",
+   "window_reopen": "violates the rule"
+  },
+  "consequence": "zero_window did not reach the relay; window_reopen did not reach the relay; READ_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "zero_window": false,
+   "window_reopen": false
+  },
+  "error": null
+ },
+ {
+  "case": "keepalive_idle_mixed_T",
+  "scenario": "keepalive_idle",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "keepalive_0": "violates the rule",
+   "keepalive_1": "violates the rule"
+  },
+  "consequence": "keepalive_0 did not reach the relay; keepalive_1 did not reach the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "keepalive_0": false,
+   "keepalive_1": false
+  },
+  "error": null
+ },
+ {
+  "case": "keepalive_outstanding_mixed_T",
+  "scenario": "keepalive_outstanding",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "keepalive_0": "violates the rule",
+   "keepalive_1": "violates the rule"
+  },
+  "consequence": "keepalive_0 did not reach the relay; keepalive_1 did not reach the relay; READ_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "keepalive_0": false,
+   "keepalive_1": false
+  },
+  "error": null
+ },
+ {
+  "case": "duplicate_ack_idle_mixed_T",
+  "scenario": "duplicate_ack_idle",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "duplicate_ACK_1": "meets the rule",
+   "duplicate_ACK_2": "meets the rule"
+  },
+  "consequence": "duplicate_ACK_1 reached the relay; duplicate_ACK_2 reached the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "duplicate_ACK_1": true,
+   "duplicate_ACK_2": true
+  },
+  "error": null
+ },
+ {
+  "case": "response_ack_control_mixed_T",
+  "scenario": "response_ack_control",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "response_ACK": "meets the rule"
+  },
+  "consequence": "response_ACK reached the relay; READ_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "response_ACK": true
+  },
+  "error": null
+ },
+ {
+  "case": "late_ack_wire_order_integrity_off",
+  "scenario": "late_ack_wire_order",
+  "read_class": "integrity",
+  "timed": false,
+  "evidence_kind": "forced_register",
+  "state_reached": false,
+  "progress_ok": null,
+  "classifications": {},
+  "consequence": "",
+  "forwarded": {},
+  "error": null
+ },
+ {
+  "case": "late_ack_reverse_order_integrity_off",
+  "scenario": "late_ack_reverse_order",
+  "read_class": "integrity",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "final_ACK": "meets the rule by suppressing an obsolete ACK"
+  },
+  "consequence": "final_ACK did not reach the relay; READ_response delivered ([0, 158] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "final_ACK": false
+  },
+  "error": null
+ },
+ {
+  "case": "r1_ack_behind_read_integrity_off",
+  "scenario": "r1_ack_behind_read",
+  "read_class": "integrity",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "old_ACK_of_response1": "meets the rule by suppressing an obsolete ACK"
+  },
+  "consequence": "old_ACK_of_response1 did not reach the relay; READ1_response delivered ([0, 158] octets at the master); READ2_response delivered ([0, 158] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "old_ACK_of_response1": false
+  },
+  "error": null
+ },
+ {
+  "case": "r2_offset_integrity_off",
+  "scenario": "r2_offset",
+  "read_class": "integrity",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "offset_ACK": "violates the rule"
+  },
+  "consequence": "offset_ACK did not reach the relay; READ_response delivered ([0, 158] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "offset_ACK": false
+  },
+  "error": null
+ },
+ {
+  "case": "window_increase_outstanding_integrity_off",
+  "scenario": "window_increase_outstanding",
+  "read_class": "integrity",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "window_update": "violates the rule"
+  },
+  "consequence": "window_update did not reach the relay; READ_response delivered ([0, 158] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "window_update": false
+  },
+  "error": null
+ },
+ {
+  "case": "window_increase_idle_integrity_off",
+  "scenario": "window_increase_idle",
+  "read_class": "integrity",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "window_update": "meets the rule"
+  },
+  "consequence": "window_update reached the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "window_update": true
+  },
+  "error": null
+ },
+ {
+  "case": "zero_window_outstanding_integrity_off",
+  "scenario": "zero_window_outstanding",
+  "read_class": "integrity",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "zero_window": "violates the rule",
+   "window_reopen": "violates the rule"
+  },
+  "consequence": "zero_window did not reach the relay; window_reopen did not reach the relay; READ_response delivered ([0, 158] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "zero_window": false,
+   "window_reopen": false
+  },
+  "error": null
+ },
+ {
+  "case": "keepalive_idle_integrity_off",
+  "scenario": "keepalive_idle",
+  "read_class": "integrity",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "keepalive_0": "violates the rule",
+   "keepalive_1": "violates the rule"
+  },
+  "consequence": "keepalive_0 did not reach the relay; keepalive_1 did not reach the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "keepalive_0": false,
+   "keepalive_1": false
+  },
+  "error": null
+ },
+ {
+  "case": "keepalive_outstanding_integrity_off",
+  "scenario": "keepalive_outstanding",
+  "read_class": "integrity",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "keepalive_0": "violates the rule",
+   "keepalive_1": "violates the rule"
+  },
+  "consequence": "keepalive_0 did not reach the relay; keepalive_1 did not reach the relay; relay_ACK_of_READ completed; READ_response delivered ([158] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "keepalive_0": false,
+   "keepalive_1": false
+  },
+  "error": null
+ },
+ {
+  "case": "duplicate_ack_idle_integrity_off",
+  "scenario": "duplicate_ack_idle",
+  "read_class": "integrity",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "duplicate_ACK_1": "meets the rule",
+   "duplicate_ACK_2": "meets the rule"
+  },
+  "consequence": "duplicate_ACK_1 reached the relay; duplicate_ACK_2 reached the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "duplicate_ACK_1": true,
+   "duplicate_ACK_2": true
+  },
+  "error": null
+ },
+ {
+  "case": "response_ack_control_integrity_off",
+  "scenario": "response_ack_control",
+  "read_class": "integrity",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "response_ACK": "meets the rule"
+  },
+  "consequence": "response_ACK reached the relay; READ_response delivered ([0, 158] octets at the master); next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "response_ACK": true
+  },
+  "error": null
+ },
+ {
+  "case": "late_ack_wire_order_integrity_T",
+  "scenario": "late_ack_wire_order",
+  "read_class": "integrity",
+  "timed": true,
+  "evidence_kind": "forced_register",
+  "state_reached": false,
+  "progress_ok": null,
+  "classifications": {},
+  "consequence": "",
+  "forwarded": {},
+  "error": null
+ },
+ {
+  "case": "late_ack_reverse_order_integrity_T",
+  "scenario": "late_ack_reverse_order",
+  "read_class": "integrity",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "final_ACK": "meets the rule by suppressing an obsolete ACK"
+  },
+  "consequence": "final_ACK did not reach the relay; READ_response delivered ([0, 158] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "final_ACK": false
+  },
+  "error": null
+ },
+ {
+  "case": "r1_ack_behind_read_integrity_T",
+  "scenario": "r1_ack_behind_read",
+  "read_class": "integrity",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "old_ACK_of_response1": "meets the rule by suppressing an obsolete ACK"
+  },
+  "consequence": "old_ACK_of_response1 did not reach the relay; READ1_response delivered ([0, 158] octets at the master, T counts [1, 1, 0, 0]); READ2_response delivered ([0, 158] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "old_ACK_of_response1": false
+  },
+  "error": null
+ },
+ {
+  "case": "r2_offset_integrity_T",
+  "scenario": "r2_offset",
+  "read_class": "integrity",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "offset_ACK": "violates the rule"
+  },
+  "consequence": "offset_ACK did not reach the relay; READ_response delivered ([0, 158] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "offset_ACK": false
+  },
+  "error": null
+ },
+ {
+  "case": "window_increase_outstanding_integrity_T",
+  "scenario": "window_increase_outstanding",
+  "read_class": "integrity",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "window_update": "violates the rule"
+  },
+  "consequence": "window_update did not reach the relay; READ_response delivered ([0, 158] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "window_update": false
+  },
+  "error": null
+ },
+ {
+  "case": "window_increase_idle_integrity_T",
+  "scenario": "window_increase_idle",
+  "read_class": "integrity",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "window_update": "meets the rule"
+  },
+  "consequence": "window_update reached the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "window_update": true
+  },
+  "error": null
+ },
+ {
+  "case": "zero_window_outstanding_integrity_T",
+  "scenario": "zero_window_outstanding",
+  "read_class": "integrity",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "zero_window": "violates the rule",
+   "window_reopen": "violates the rule"
+  },
+  "consequence": "zero_window did not reach the relay; window_reopen did not reach the relay; READ_response delivered ([0, 158] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "zero_window": false,
+   "window_reopen": false
+  },
+  "error": null
+ },
+ {
+  "case": "keepalive_idle_integrity_T",
+  "scenario": "keepalive_idle",
+  "read_class": "integrity",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "keepalive_0": "violates the rule",
+   "keepalive_1": "violates the rule"
+  },
+  "consequence": "keepalive_0 did not reach the relay; keepalive_1 did not reach the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "keepalive_0": false,
+   "keepalive_1": false
+  },
+  "error": null
+ },
+ {
+  "case": "keepalive_outstanding_integrity_T",
+  "scenario": "keepalive_outstanding",
+  "read_class": "integrity",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "keepalive_0": "violates the rule",
+   "keepalive_1": "violates the rule"
+  },
+  "consequence": "keepalive_0 did not reach the relay; keepalive_1 did not reach the relay; READ_response delivered ([0, 158] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "keepalive_0": false,
+   "keepalive_1": false
+  },
+  "error": null
+ },
+ {
+  "case": "duplicate_ack_idle_integrity_T",
+  "scenario": "duplicate_ack_idle",
+  "read_class": "integrity",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "duplicate_ACK_1": "meets the rule",
+   "duplicate_ACK_2": "meets the rule"
+  },
+  "consequence": "duplicate_ACK_1 reached the relay; duplicate_ACK_2 reached the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "duplicate_ACK_1": true,
+   "duplicate_ACK_2": true
+  },
+  "error": null
+ },
+ {
+  "case": "response_ack_control_integrity_T",
+  "scenario": "response_ack_control",
+  "read_class": "integrity",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "response_ACK": "meets the rule"
+  },
+  "consequence": "response_ACK reached the relay; READ_response delivered ([0, 158] octets at the master, T counts [1, 1, 0, 0]); next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "response_ACK": true
+  },
+  "error": null
+ }
+]

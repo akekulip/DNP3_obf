@@ -1,0 +1,204 @@
+{
+ "READ2_port64": [
+  "READ2"
+ ],
+ "case": "r1_ack_behind_read_mixed_T",
+ "classifications": {
+  "old_ACK_of_response1": "meets the rule"
+ },
+ "closed": true,
+ "consequence": "old_ACK_of_response1 reached the relay; the relay reply was sent ahead of the relay ACK and response; READ1_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); READ2_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+ "evidence_kind": "genuine_processing",
+ "family": 2,
+ "isn": {
+  "master": 14000300,
+  "relay": 14001000
+ },
+ "next_image_len": 158,
+ "probes": [
+  {
+   "classification": "meets the rule",
+   "covered_by": [
+    "READ2"
+   ],
+   "forwarded": true,
+   "forwarded_before": [
+    "r1_ack_behind_read_mixed_T_SYN",
+    "r1_ack_behind_read_mixed_T_ACK",
+    "r1_ack_behind_read_mixed_T_READ1_request",
+    "READ2"
+   ],
+   "generation_consumed": 1,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      513
+     ]
+    ],
+    "client": 14000351,
+    "counter": 189,
+    "epoch": 182,
+    "owner": 917524,
+    "retry_epoch": 182,
+    "server": 14001092,
+    "work_generation": 189,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      513
+     ]
+    ],
+    "client": 14000351,
+    "counter": 188,
+    "epoch": 182,
+    "owner": 917524,
+    "retry_epoch": 182,
+    "server": 14001092,
+    "work_generation": 188,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": false,
+    "new_window": false
+   },
+   "obsolete": true,
+   "passes": {
+    "aborts": 0,
+    "busy": [],
+    "first_event": [
+     "forward_original"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 1
+   },
+   "port64": {
+    "ack": 14001092,
+    "payload_len": 0,
+    "seq": 14000326,
+    "tsecr": 1010197,
+    "tsval": 1000198,
+    "window": 4096
+   },
+   "port64_copies": 1,
+   "port9": [],
+   "relay_reply": {
+    "ack": 14000351,
+    "reply_deferred_to_response_burst": true,
+    "seq": 14001092
+   },
+   "sent": {
+    "ack": 14001142,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "old_ACK_of_response1",
+    "options": [
+     "ts"
+    ],
+    "order": 129,
+    "payload_len": 0,
+    "seq": 14000326,
+    "tsecr": 1010197,
+    "tsval": 1000198,
+    "window": 4096
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "progress": [
+  {
+   "exact_ack_then_response": true,
+   "frames_at_master": 2,
+   "frames_at_relay_side": 0,
+   "image_len": 141,
+   "ok": true,
+   "payload_lengths_at_master": [
+    0,
+    141
+   ],
+   "pre_frames": 0,
+   "response_at_class_size": true,
+   "step": "READ1_response",
+   "t_delta": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "exact_ack_then_response": true,
+   "frames_at_master": 2,
+   "frames_at_relay_side": 0,
+   "image_len": 141,
+   "ok": true,
+   "payload_lengths_at_master": [
+    0,
+    141
+   ],
+   "pre_frames": 1,
+   "response_at_class_size": true,
+   "step": "READ2_response",
+   "t_delta": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "ok": true,
+   "step": "response_ACK"
+  },
+  {
+   "ok": true,
+   "step": "next_transaction"
+  },
+  {
+   "ok": true,
+   "step": "FIN_close"
+  }
+ ],
+ "progress_ok": true,
+ "read_class": "mixed",
+ "read_length": 25,
+ "scenario": "r1_ack_behind_read",
+ "state_reached": true,
+ "timed": true
+}

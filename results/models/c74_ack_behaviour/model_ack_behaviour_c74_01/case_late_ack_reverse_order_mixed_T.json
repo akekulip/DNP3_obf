@@ -1,0 +1,354 @@
+{
+ "attempts": [
+  {
+   "attempt": 0,
+   "hook": null,
+   "isn": [
+    13000300,
+    13001000
+   ],
+   "read_claimed_first": true,
+   "read_port64": 1,
+   "read_summary": {
+    "aborts": 0,
+    "busy": [],
+    "first_event": [
+     "first_read_request"
+    ],
+    "loss": [],
+    "passes": 8,
+    "t_ingress": 1,
+    "terminal_ack": 0
+   },
+   "state_reached": true
+  }
+ ],
+ "case": "late_ack_reverse_order_mixed_T",
+ "classifications": {
+  "final_ACK": "meets the rule"
+ },
+ "closed": true,
+ "consequence": "final_ACK reached the relay; the relay reply was sent ahead of the relay ACK and response; READ_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+ "evidence_kind": "genuine_processing",
+ "family": 1,
+ "isn": {
+  "master": 13000300,
+  "relay": 13001000
+ },
+ "next_image_len": 158,
+ "probes": [
+  {
+   "classification": "meets the rule",
+   "covered_by": [
+    "READ"
+   ],
+   "forwarded": true,
+   "forwarded_before": [
+    "late_ack_reverse_order_mixed_T_a0_SYN",
+    "READ"
+   ],
+   "generation_consumed": 1,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 13000326,
+    "counter": 172,
+    "epoch": 169,
+    "owner": 917523,
+    "retry_epoch": 169,
+    "server": 13001001,
+    "work_generation": 172,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 13000326,
+    "counter": 171,
+    "epoch": 169,
+    "owner": 917523,
+    "retry_epoch": 169,
+    "server": 13001001,
+    "work_generation": 171,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": false,
+    "new_window": false
+   },
+   "obsolete": true,
+   "passes": {
+    "aborts": 0,
+    "busy": [],
+    "first_event": [
+     "forward_original"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 1
+   },
+   "port64": {
+    "ack": 13001001,
+    "payload_len": 0,
+    "seq": 13000301,
+    "tsecr": 1010184,
+    "tsval": 1000186,
+    "window": 4096
+   },
+   "port64_copies": 1,
+   "port64_order": [
+    "READ",
+    "final_ACK"
+   ],
+   "port9": [],
+   "relay_reply": {
+    "ack": 13000326,
+    "reply_deferred_to_response_burst": true,
+    "seq": 13001001
+   },
+   "sent": {
+    "ack": 13001001,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "final_ACK",
+    "options": [
+     "ts"
+    ],
+    "order": 119,
+    "payload_len": 0,
+    "seq": 13000301,
+    "tsecr": 1010184,
+    "tsval": 1000186,
+    "window": 4096
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "progress": [
+  {
+   "exact_ack_then_response": true,
+   "frames_at_master": 2,
+   "frames_at_relay_side": 0,
+   "image_len": 141,
+   "ok": true,
+   "payload_lengths_at_master": [
+    0,
+    141
+   ],
+   "pre_frames": 1,
+   "response_at_class_size": true,
+   "step": "READ_response",
+   "t_delta": [
+    1,
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "ok": true,
+   "step": "response_ACK"
+  },
+  {
+   "ok": true,
+   "step": "next_transaction"
+  },
+  {
+   "ok": true,
+   "step": "FIN_close"
+  }
+ ],
+ "progress_ok": true,
+ "read_class": "mixed",
+ "read_length": 25,
+ "scenario": "late_ack_reverse_order",
+ "state_evidence": {
+  "claim_cell_before": {
+   "generation": 171,
+   "phase": 4
+  },
+  "client": 13000326,
+  "expected_client": 13000326,
+  "first_event": {
+   "action": "n_Ingress.forward_original",
+   "default": false,
+   "salu": null,
+   "status": "hit",
+   "table": "n_Ingress.first_event"
+  },
+  "laps": [
+   {
+    "actions": [
+     "NoAction",
+     "forward_flow",
+     "route",
+     "response_only531_0",
+     "response_only531",
+     "NoAction",
+     "NoAction",
+     "network_accept",
+     "go_ret_work",
+     "next_seq",
+     "return_work",
+     "NoAction",
+     "ack_native",
+     "diff_epoch",
+     "NoAction",
+     "NoAction",
+     "load_server",
+     "load_client",
+     "owner_check",
+     "diff_forward",
+     "next_stage"
+    ],
+    "event": [
+     1,
+     8
+    ],
+    "id": "0x459",
+    "port": 68
+   },
+   {
+    "actions": [
+     "NoAction",
+     "forward_flow",
+     "route",
+     "response_only531_0",
+     "response_only531",
+     "NoAction",
+     "NoAction",
+     "network_accept",
+     "go_ret_work",
+     "next_seq",
+     "return_work",
+     "NoAction",
+     "ack_native",
+     "diff_epoch",
+     "NoAction",
+     "NoAction",
+     "load_server",
+     "load_client",
+     "owner_check",
+     "diff_forward",
+     "next_stage"
+    ],
+    "event": [
+     2,
+     8
+    ],
+    "id": "0x45a",
+    "port": 68
+   },
+   {
+    "actions": [
+     "NoAction",
+     "forward_flow",
+     "route",
+     "response_only531_0",
+     "response_only531",
+     "NoAction",
+     "NoAction",
+     "network_accept",
+     "go_ret_work",
+     "next_seq",
+     "return_work",
+     "NoAction",
+     "ack_native",
+     "diff_epoch",
+     "NoAction",
+     "NoAction",
+     "load_server",
+     "load_client",
+     "owner_check",
+     "diff_forward",
+     "terminal_ack"
+    ],
+    "event": [
+     3,
+     8
+    ],
+    "id": "0x45b",
+    "port": 68
+   }
+  ],
+  "owner": 917523,
+  "owner_state": 14,
+  "reached": true,
+  "retries_before_claim": [],
+  "stage0_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "NoAction",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_seq",
+    "claim_work",
+    "NoAction",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "snapshot_lap",
+    "owner_read",
+    "diff_forward",
+    "response_only566",
+    "forward_original"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0x458",
+   "port": 48
+  }
+ },
+ "state_reached": true,
+ "timed": true
+}

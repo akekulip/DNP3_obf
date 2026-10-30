@@ -1,0 +1,89 @@
+[
+ {
+  "case": "late_ack_wire_order_mixed_off",
+  "scenario": "late_ack_wire_order",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "forced_register",
+  "state_reached": false,
+  "progress_ok": false,
+  "classifications": {},
+  "consequence": "",
+  "forwarded": {},
+  "error": null
+ },
+ {
+  "case": "zero_window_outstanding_mixed_off",
+  "scenario": "zero_window_outstanding",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "zero_window": "violates the rule",
+   "window_reopen": "violates the rule"
+  },
+  "consequence": "zero_window did not reach the relay; window_reopen did not reach the relay; READ_response delivered ([0, 141] octets at the master); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "zero_window": false,
+   "window_reopen": false
+  },
+  "error": null
+ },
+ {
+  "case": "keepalive_idle_mixed_off",
+  "scenario": "keepalive_idle",
+  "read_class": "mixed",
+  "timed": false,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "keepalive_0": "violates the rule",
+   "keepalive_1": "violates the rule"
+  },
+  "consequence": "keepalive_0 did not reach the relay; keepalive_1 did not reach the relay; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "keepalive_0": false,
+   "keepalive_1": false
+  },
+  "error": null
+ },
+ {
+  "case": "r1_ack_behind_read_mixed_T",
+  "scenario": "r1_ack_behind_read",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "old_ACK_of_response1": "meets the rule by suppressing an obsolete ACK"
+  },
+  "consequence": "old_ACK_of_response1 did not reach the relay; READ1_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); READ2_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "old_ACK_of_response1": false
+  },
+  "error": null
+ },
+ {
+  "case": "keepalive_outstanding_mixed_T",
+  "scenario": "keepalive_outstanding",
+  "read_class": "mixed",
+  "timed": true,
+  "evidence_kind": "genuine_processing",
+  "state_reached": true,
+  "progress_ok": true,
+  "classifications": {
+   "keepalive_0": "violates the rule",
+   "keepalive_1": "violates the rule"
+  },
+  "consequence": "keepalive_0 did not reach the relay; keepalive_1 did not reach the relay; READ_response delivered ([0, 141] octets at the master, T counts [1, 1, 0, 0]); response_ACK completed; next_transaction completed; FIN_close completed",
+  "forwarded": {
+   "keepalive_0": false,
+   "keepalive_1": false
+  },
+  "error": null
+ }
+]

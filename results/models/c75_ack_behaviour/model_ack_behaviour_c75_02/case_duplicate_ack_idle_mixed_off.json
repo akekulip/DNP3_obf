@@ -1,0 +1,270 @@
+{
+ "case": "duplicate_ack_idle_mixed_off",
+ "classifications": {
+  "duplicate_ACK_1": "meets the rule",
+  "duplicate_ACK_2": "meets the rule"
+ },
+ "closed": true,
+ "consequence": "duplicate_ACK_1 reached the relay; duplicate_ACK_2 reached the relay; next_transaction completed; FIN_close completed",
+ "control": true,
+ "evidence_kind": "genuine_processing",
+ "family": 6,
+ "isn": {
+  "master": 10000300,
+  "relay": 10001000
+ },
+ "next_image_len": 158,
+ "probes": [
+  {
+   "classification": "meets the rule",
+   "covered_by": [],
+   "forwarded": true,
+   "forwarded_before": [
+    "duplicate_ack_idle_mixed_off_SYN",
+    "duplicate_ack_idle_mixed_off_ACK",
+    "duplicate_ack_idle_mixed_off_READ_request",
+    "duplicate_ack_idle_mixed_off_READ_mapped_complete_ACK"
+   ],
+   "generation_consumed": 1,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 10000326,
+    "counter": 131,
+    "epoch": 124,
+    "owner": 327693,
+    "retry_epoch": 124,
+    "server": 10001092,
+    "work_generation": 131,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 10000326,
+    "counter": 130,
+    "epoch": 124,
+    "owner": 327693,
+    "retry_epoch": 124,
+    "server": 10001092,
+    "work_generation": 130,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": false,
+    "new_window": false
+   },
+   "obsolete": false,
+   "passes": {
+    "aborts": 0,
+    "busy": [],
+    "first_event": [
+     "forward_original"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 1
+   },
+   "port64": {
+    "ack": 10001092,
+    "payload_len": 0,
+    "seq": 10000326,
+    "tsecr": 1010138,
+    "tsval": 1000142,
+    "window": 4096
+   },
+   "port64_copies": 1,
+   "port9": [],
+   "sent": {
+    "ack": 10001142,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "duplicate_ACK_1",
+    "options": [
+     "ts"
+    ],
+    "order": 92,
+    "payload_len": 0,
+    "seq": 10000326,
+    "tsecr": 1010138,
+    "tsval": 1000142,
+    "window": 4096
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "classification": "meets the rule",
+   "covered_by": [],
+   "forwarded": true,
+   "forwarded_before": [
+    "duplicate_ack_idle_mixed_off_SYN",
+    "duplicate_ack_idle_mixed_off_ACK",
+    "duplicate_ack_idle_mixed_off_READ_request",
+    "duplicate_ack_idle_mixed_off_READ_mapped_complete_ACK",
+    "duplicate_ACK_1"
+   ],
+   "generation_consumed": 1,
+   "n_after": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 10000326,
+    "counter": 132,
+    "epoch": 124,
+    "owner": 327693,
+    "retry_epoch": 124,
+    "server": 10001092,
+    "work_generation": 132,
+    "work_phase": 4
+   },
+   "n_before": {
+    "application_state": [
+     [
+      "action_name",
+      null
+     ],
+     [
+      "crob",
+      0
+     ],
+     [
+      "is_default_entry",
+      false
+     ],
+     [
+      "read_identity",
+      512
+     ]
+    ],
+    "client": 10000326,
+    "counter": 131,
+    "epoch": 124,
+    "owner": 327693,
+    "retry_epoch": 124,
+    "server": 10001092,
+    "work_generation": 131,
+    "work_phase": 4
+   },
+   "n_state_unchanged": true,
+   "new_information": {
+    "new_ack": false,
+    "new_window": false
+   },
+   "obsolete": false,
+   "passes": {
+    "aborts": 0,
+    "busy": [],
+    "first_event": [
+     "forward_original"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 1
+   },
+   "port64": {
+    "ack": 10001092,
+    "payload_len": 0,
+    "seq": 10000326,
+    "tsecr": 1010138,
+    "tsval": 1000142,
+    "window": 4096
+   },
+   "port64_copies": 1,
+   "port9": [],
+   "sent": {
+    "ack": 10001142,
+    "direction": "m2r",
+    "flags": 16,
+    "name": "duplicate_ACK_2",
+    "options": [
+     "ts"
+    ],
+    "order": 93,
+    "payload_len": 0,
+    "seq": 10000326,
+    "tsecr": 1010138,
+    "tsval": 1000142,
+    "window": 4096
+   },
+   "state_reference": null,
+   "t_delta": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "progress": [
+  {
+   "ok": true,
+   "step": "next_transaction"
+  },
+  {
+   "ok": true,
+   "step": "FIN_close"
+  }
+ ],
+ "progress_ok": true,
+ "read_class": "mixed",
+ "read_length": 25,
+ "scenario": "duplicate_ack_idle",
+ "state_reached": true,
+ "timed": false
+}
