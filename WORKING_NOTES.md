@@ -198,3 +198,9 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   first response; c72 1/1 in 64/64 starts; late forward flag; first CLRT), and report any change as an H2-row defect.
   An H1-only variant is the fallback. The integration agent has the README and DESIGN corrections; the tool update is
   in 070440efc.
+- 2026-10-30 c74 merged to main as bffcf6339 (cherry-pick of the worktree commit): c74 canonical (source c7e37eff…),
+  c74_diag_mirror admitted as diagnostic against its own base, confirmation definitions and DESIGN
+  (results/analysis/c74_confirmation/DESIGN.json, with the late-ACK observable and frame-named falsifier). Ignored
+  compile outputs and model logs copied from the worktree. Agent-reported suites in the worktree: repository 646 + 2
+  path-bound failures, build 53, model 137, analysis 138; fidelity and gate compare pass. Running on main: suites,
+  then prepare/freeze/dry-run of 8 blocks (scratchpad c74_prepare.sh), then campaigns (c74_run.sh).
