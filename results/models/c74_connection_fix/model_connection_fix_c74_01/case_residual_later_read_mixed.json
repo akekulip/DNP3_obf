@@ -1,0 +1,91 @@
+{
+ "case": "residual_later_read_mixed",
+ "checks": [
+  {
+   "actual": [
+    "READ2"
+   ],
+   "expect": [
+    "READ2"
+   ],
+   "name": "READ2_delivered",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "expect": true,
+   "name": "residual_recorded",
+   "ok": true
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 17000151,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 207,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554450,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 17001083,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 217,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 17000151
+ },
+ "evidence_kind": "genuine_processing",
+ "expect": "old ACK of response 1 delayed behind READ 2: accepted by the H2 rows (residual)",
+ "expectation": "residual",
+ "isn": {
+  "master": 17000100,
+  "relay": 17000900
+ },
+ "probe": {
+  "port64": [
+   "old_ACK"
+  ],
+  "summary": {
+   "aborts": 0,
+   "busy": [],
+   "first_event": [
+    "forward_original"
+   ],
+   "loss": [],
+   "passes": 5,
+   "t_ingress": 0,
+   "terminal_ack": 1
+  }
+ },
+ "progress_wire": 17001183,
+ "read_class": "mixed",
+ "read_length": 25,
+ "registers_before": {
+  "client": 16000126,
+  "epoch": 200,
+  "owner": 33554449,
+  "server": 16000992,
+  "work_phase": 4
+ },
+ "residual_accepted": true,
+ "scenario": "residual_later_read",
+ "state_reached": null,
+ "timed": false,
+ "verdict": "pass"
+}

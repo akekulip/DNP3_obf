@@ -1,0 +1,231 @@
+{
+ "case": "H1_mixed",
+ "checks": [
+  {
+   "actual": "busy_retry_ack",
+   "expect": "busy_retry_ack",
+   "name": "READ_first_claim_busy_retry_ack",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "busy": [
+    "busy_retry_ack",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next"
+   ],
+   "expect": true,
+   "name": "READ_only_retry_busy_actions",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "expect": true,
+   "name": "READ_retries_within_budget",
+   "ok": true,
+   "retries": 3
+  },
+  {
+   "actual": [],
+   "expect": [],
+   "name": "READ_no_loss_action",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "READ_no_abort",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "first_event": [
+    "first_read_request"
+   ],
+   "name": "READ_admitted_once_by_first_read_request",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "name": "READ_T_ingress_once",
+   "ok": true
+  },
+  {
+   "actual": [
+    "final_ACK",
+    "READ"
+   ],
+   "expect": [
+    "final_ACK",
+    "READ"
+   ],
+   "name": "port64_order",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "expect": true,
+   "name": "timed_cycle_completed",
+   "ok": true
+  }
+ ],
+ "closed": true,
+ "evidence_kind": "genuine_processing",
+ "expect": "final ACK and first READ back to back: the READ retries while the ACK holds the cell, then is admitted; port 64 gets ACK then READ once each; T sees the READ once; full timed cycle follows",
+ "expectation": "fix",
+ "image_len": {
+  "READ": 141
+ },
+ "isn": {
+  "master": 1000100,
+  "relay": 1000900
+ },
+ "observations": [
+  {
+   "decisive_line": ":10-30 01:36:08.185973:        :0x14:0x13:<0,0,9>:Execute Action: n_Ingress.first_read_request",
+   "decisive_wait_s": 0.1040431703440845,
+   "hook": null,
+   "offset": 789660,
+   "port64": [
+    "final_ACK",
+    "READ"
+   ],
+   "port9": []
+  }
+ ],
+ "read_class": "mixed",
+ "read_length": 25,
+ "read_summary": {
+  "aborts": 0,
+  "busy": [
+   "busy_retry_ack",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next"
+  ],
+  "first_event": [
+   "first_read_request"
+  ],
+  "loss": [],
+  "passes": 11,
+  "t_ingress": 1,
+  "terminal_ack": 0
+ },
+ "registers_before": {
+  "client": 0,
+  "epoch": 0,
+  "owner": 0,
+  "server": 0,
+  "work_phase": 4
+ },
+ "scenario": "H1",
+ "state_evidence": {
+  "holder_cell_after": {
+   "generation": 3,
+   "phase": 1
+  },
+  "holder_generation": 3,
+  "holder_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "NoAction",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_seq",
+    "claim_work",
+    "NoAction",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "snapshot_lap",
+    "owner_read",
+    "diff_forward",
+    "response_only566",
+    "first_ack"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0xd",
+   "port": 48
+  },
+  "reached": true,
+  "victim_actions": [
+   "NoAction",
+   "forward_flow",
+   "route",
+   "response_only531_0",
+   "response_only531",
+   "crc_head",
+   "read_configure",
+   "rd_request_mx_crc",
+   "eligible",
+   "NoAction",
+   "network_accept",
+   "go_new",
+   "next_read_len",
+   "claim_work",
+   "read_request_mx_input",
+   "ack_native",
+   "load_epoch",
+   "NoAction",
+   "NoAction",
+   "load_server",
+   "load_client",
+   "owner_read",
+   "diff_forward",
+   "busy_retry_ack"
+  ],
+  "victim_cell_before": {
+   "generation": 3,
+   "phase": 1
+  },
+  "victim_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head",
+    "read_configure",
+    "rd_request_mx_crc",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_read_len",
+    "claim_work",
+    "read_request_mx_input",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "owner_read",
+    "diff_forward",
+    "busy_retry_ack"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0xe",
+   "port": 48
+  }
+ },
+ "state_reached": true,
+ "timed": true,
+ "verdict": "pass"
+}

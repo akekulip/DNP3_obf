@@ -1,0 +1,51 @@
+{
+ "case": "rst_read_outstanding_integrity",
+ "checks": [
+  {
+   "actual": 1,
+   "expect": 1,
+   "name": "RST_on_port64_once",
+   "ok": true
+  }
+ ],
+ "closed": true,
+ "evidence_kind": "genuine_processing",
+ "expect": "master RST while the first READ is outstanding: RST on port 64 once",
+ "expectation": "as_before",
+ "isn": {
+  "master": 31000100,
+  "relay": 31000900
+ },
+ "observations": [
+  {
+   "decisive_line": null,
+   "decisive_wait_s": null,
+   "hook": null,
+   "offset": 237467501,
+   "port64": [
+    "RST"
+   ],
+   "port9": []
+  }
+ ],
+ "read_class": "integrity",
+ "read_length": 27,
+ "registers_after": {
+  "client": 31000128,
+  "epoch": 405,
+  "owner": 33554465,
+  "server": 31000901,
+  "work_phase": 4
+ },
+ "registers_before": {
+  "client": 30500128,
+  "epoch": 398,
+  "owner": 33554464,
+  "server": 30501035,
+  "work_phase": 4
+ },
+ "scenario": "rst_read_outstanding",
+ "state_reached": null,
+ "timed": false,
+ "verdict": "pass"
+}

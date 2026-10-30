@@ -1,0 +1,511 @@
+{
+ "schema": "c74-confirmation-design-v1",
+ "registered_before_traffic": "2026-10-30",
+ "status": "registered; not run. Philip approved focused guarded hardware confirmation of the fix candidate once it passes the model (2026-10-29, plan Step 4). Hardware waits for the coordinator's merge of c74 to main and a fresh freeze.",
+ "plan": "/home/philip/.claude/plans/we-were-on-tract-expressive-planet.md Step 4",
+ "build": {
+  "path": "results/builds/c74",
+  "source_sha256": "c7e37eff347f09c30af3a46f566cf41069df2d9c099e0227a102c16733116efd",
+  "model_summary": "results/builds/c74/model_summary_v3.json",
+  "qualification": "model_gate_passed"
+ },
+ "diag_build": {
+  "path": "results/builds/c74_diag_mirror",
+  "source_sha256": "e46391d81e569a19a527604d3f2d3d454589f4261149ce697c79af952cbca7f4",
+  "identity": "results/builds/c74_diag_mirror/diag_mirror.json",
+  "sessions": "the existing two relay-leg sessions only (101 ingress, 102 egress, copy port 10); no port-9 session",
+  "evidence": [
+   "results/models/c74_diag_mirror/diag_mirror_fidelity_01.json",
+   "results/models/c74_diag_mirror/gate_vs_c74_01.json"
+  ]
+ },
+ "evidence_label": "c74 hardware confirmation; diagnostic-build blocks never qualify and stay labelled apart",
+ "blocks": [
+  {
+   "definition": "strict_cycle_c74_d20",
+   "id": "strict_cycle_d20_combined_c74",
+   "lab_file": "scripts/hardware/lab_strict_cycle_c74.json",
+   "arms": [
+    "combined"
+   ],
+   "T": [
+    1
+   ],
+   "padding": [
+    1
+   ],
+   "d_ms": 20,
+   "trials_per_arm": 4,
+   "reads_per_trial": 64,
+   "master_port_range": [
+    60300,
+    60303
+   ],
+   "arguments": [],
+   "planned_exchanges": 512,
+   "diagnostic": false,
+   "guarded_points": [
+    1,
+    3
+   ],
+   "build": "results/builds/c74",
+   "same_shape_as": "strict_cycle_c72_d20 (results/analysis/strict_cycle/DESIGN.json)",
+   "fresh_connections": 4,
+   "sbo_cycles": 32,
+   "planned_denominators": {
+    "trials": 4,
+    "cycles_per_trial": 32,
+    "exchanges": 512
+   },
+   "compare_with": "rc01_hw_c72_sc20_20261030_01 (c72 strict baseline, combined arm, D = 20 ms)",
+   "observable": [
+    "logical request transactions after TCP first-arrival reassembly and DNP3 link/transport reassembly are [READ mixed, SELECT, OPERATE, READ integrity] x 32 per trial, and the master records match them",
+    "each request has exactly one bound, complete and successful response of the arm image size (READ 141/158 octets, SELECT/OPERATE 60, CROB SUCCESS from the captured bytes)",
+    "losses, retransmissions and application failures counted separately; CLRT by class against the response-ready-ACK-then-D contract (no precision criterion)"
+   ],
+   "falsifier": [
+    "any trial whose captured request transactions are not the strict order, or whose master records differ",
+    "any request without exactly one bound, complete and successful response",
+    "any master request received on dev9 and not forwarded (busy drop) or any unexpected drop or capture drop",
+    "stale T/N state reported by the existing switch checks",
+    "failed restoration",
+    "a relay reply to a forwarded late ACK that changes what the master receives is a c74 defect of the H2 rows and is reported as such: (b) > 1, a first-exchange CLRT outside the arm's c72 spread, or a trial failure"
+   ],
+   "mechanism": "c74 = c72 + const-entry rows (results/builds/c74/README.md): a READ/SELECT/OPERATE that finds N's single work cell held retries through n_RETRY_BUDGET (busy_retry_ack, busy_retry_rst_next, busy_exhausted) instead of busy_drop; a pure master ACK at owner 0xd/0xe with client_diff exactly -25/-27 and server_diff 0 (the late handshake ACK) is forwarded unchanged (forward_original) instead of aborted. Residuals: R1 (an old ACK delayed behind the next 25/27-octet READ) and R2 (a pure ACK at ISN-1/ISN+3) are also forwarded. The block tests the H1 request retry and the H2 late-ACK forward under the workload of the c72 block it repeats.",
+   "late_ack_reply_observable": {
+    "purpose": "review H-1: c74 forwards the late handshake ACK (sequence = master ISN+1) after the first request; the relay may answer that out-of-window segment with an ACK (RFC 9293), which N admits as first_read_ack and T receives as an extra response-ready ACK (untested in the model)",
+    "per_fresh_connection": [
+     "(b) pure ACKs delivered to the master before the first response, from in.pcap",
+     "(c) the first exchange's CLRT",
+     "(a) and (d) need the relay-leg mirror and are not observable on this non-diagnostic block"
+    ],
+    "c72_baseline": "(a) = 1 and (b) = 1 in 64 of 64 connection starts (rc01_hw_c72diag_e2c_20261030_01 and rc01_hw_c72diag_e2_20261028_01)",
+    "falsifier": "a relay reply to a forwarded late ACK that changes what the master receives is a c74 defect of the H2 rows and is reported as such: (b) > 1, a first-exchange CLRT outside the arm's c72 spread, or a trial failure",
+    "not_usable_on_hardware": "T outcome counters read null on hardware (snapshots: layout no_switch_telemetry), so ACK_COMMIT / RESP_FALLBACK cannot be used there"
+   }
+  },
+  {
+   "definition": "strict_cycle_c74_d5",
+   "id": "strict_cycle_d5_combined_c74",
+   "lab_file": "scripts/hardware/lab_strict_cycle_c74.json",
+   "arms": [
+    "combined"
+   ],
+   "T": [
+    1
+   ],
+   "padding": [
+    1
+   ],
+   "d_ms": 5,
+   "trials_per_arm": 4,
+   "reads_per_trial": 64,
+   "master_port_range": [
+    60304,
+    60307
+   ],
+   "arguments": [],
+   "planned_exchanges": 512,
+   "diagnostic": false,
+   "guarded_points": [
+    1,
+    3
+   ],
+   "build": "results/builds/c74",
+   "same_shape_as": "strict_cycle_c72_d5 (results/analysis/strict_cycle/DESIGN.json)",
+   "fresh_connections": 4,
+   "sbo_cycles": 32,
+   "planned_denominators": {
+    "trials": 4,
+    "cycles_per_trial": 32,
+    "exchanges": 512
+   },
+   "compare_with": "rc01_hw_c72_sc5_20261030_01 (c72 strict baseline, combined arm, D = 5 ms)",
+   "observable": [
+    "logical request transactions after TCP first-arrival reassembly and DNP3 link/transport reassembly are [READ mixed, SELECT, OPERATE, READ integrity] x 32 per trial, and the master records match them",
+    "each request has exactly one bound, complete and successful response of the arm image size (READ 141/158 octets, SELECT/OPERATE 60, CROB SUCCESS from the captured bytes)",
+    "losses, retransmissions and application failures counted separately; CLRT by class against the response-ready-ACK-then-D contract (no precision criterion)"
+   ],
+   "falsifier": [
+    "any trial whose captured request transactions are not the strict order, or whose master records differ",
+    "any request without exactly one bound, complete and successful response",
+    "any master request received on dev9 and not forwarded (busy drop) or any unexpected drop or capture drop",
+    "stale T/N state reported by the existing switch checks",
+    "failed restoration",
+    "a relay reply to a forwarded late ACK that changes what the master receives is a c74 defect of the H2 rows and is reported as such: (b) > 1, a first-exchange CLRT outside the arm's c72 spread, or a trial failure"
+   ],
+   "mechanism": "c74 = c72 + const-entry rows (results/builds/c74/README.md): a READ/SELECT/OPERATE that finds N's single work cell held retries through n_RETRY_BUDGET (busy_retry_ack, busy_retry_rst_next, busy_exhausted) instead of busy_drop; a pure master ACK at owner 0xd/0xe with client_diff exactly -25/-27 and server_diff 0 (the late handshake ACK) is forwarded unchanged (forward_original) instead of aborted. Residuals: R1 (an old ACK delayed behind the next 25/27-octet READ) and R2 (a pure ACK at ISN-1/ISN+3) are also forwarded. The block tests the H1 request retry and the H2 late-ACK forward under the workload of the c72 block it repeats.",
+   "late_ack_reply_observable": {
+    "purpose": "review H-1: c74 forwards the late handshake ACK (sequence = master ISN+1) after the first request; the relay may answer that out-of-window segment with an ACK (RFC 9293), which N admits as first_read_ack and T receives as an extra response-ready ACK (untested in the model)",
+    "per_fresh_connection": [
+     "(b) pure ACKs delivered to the master before the first response, from in.pcap",
+     "(c) the first exchange's CLRT",
+     "(a) and (d) need the relay-leg mirror and are not observable on this non-diagnostic block"
+    ],
+    "c72_baseline": "(a) = 1 and (b) = 1 in 64 of 64 connection starts (rc01_hw_c72diag_e2c_20261030_01 and rc01_hw_c72diag_e2_20261028_01)",
+    "falsifier": "a relay reply to a forwarded late ACK that changes what the master receives is a c74 defect of the H2 rows and is reported as such: (b) > 1, a first-exchange CLRT outside the arm's c72 spread, or a trial failure",
+    "not_usable_on_hardware": "T outcome counters read null on hardware (snapshots: layout no_switch_telemetry), so ACK_COMMIT / RESP_FALLBACK cannot be used there"
+   }
+  },
+  {
+   "definition": "diag_e2_combined_c74",
+   "id": "e2_combined_first_request_d20_c74",
+   "lab_file": "scripts/hardware/lab_diag_c74.json",
+   "arms": [
+    "combined"
+   ],
+   "T": [
+    1
+   ],
+   "padding": [
+    1
+   ],
+   "d_ms": 20,
+   "trials_per_arm": 32,
+   "reads_per_trial": 8,
+   "master_port_range": [
+    60310,
+    60341
+   ],
+   "arguments": [],
+   "planned_exchanges": 256,
+   "diagnostic": true,
+   "guarded_points": [
+    1,
+    3
+   ],
+   "build": "results/builds/c74_diag_mirror",
+   "diag_mirror": "on",
+   "fresh_connections": 32,
+   "same_shape_as": "diag_e2_combined (results/analysis/diag_mirror_d3/DESIGN_e2_combined.json)",
+   "planned_denominators": {
+    "trials": 32,
+    "exchanges_per_trial": 8,
+    "exchanges": 256
+   },
+   "compare_with": "rc01_hw_c72diag_e2c_20261030_01 (c72_diag_mirror combined arm, 32 fresh connections)",
+   "observable": [
+    "per fresh connection: each master frame of connection start (SYN, final handshake ACK, first request) received on dev9 and not emitted toward the relay, from the master NIC capture and the relay-leg egress mirror copies (packet presence and content only; mirror timing is not used)",
+    "any master retransmission of the first request"
+   ],
+   "falsifier": [
+    "a relay reply to a forwarded late ACK that changes what the master receives is a c74 defect of the H2 rows and is reported as such: (b) > 1, a first-exchange CLRT outside the arm's c72 spread, or a trial failure",
+    "a SYN, handshake ACK or first request received on dev9 at connection start and not emitted toward the relay; report k of 32 per frame (SYN, handshake ACK, first request), never an unconditional loss-free claim. A dropped SYN is reported separately: SYN stays busy_drop in c74 by design"
+   ],
+   "mechanism": "c74 = c72 + const-entry rows (results/builds/c74/README.md): a READ/SELECT/OPERATE that finds N's single work cell held retries through n_RETRY_BUDGET (busy_retry_ack, busy_retry_rst_next, busy_exhausted) instead of busy_drop; a pure master ACK at owner 0xd/0xe with client_diff exactly -25/-27 and server_diff 0 (the late handshake ACK) is forwarded unchanged (forward_original) instead of aborted. Residuals: R1 (an old ACK delayed behind the next 25/27-octet READ) and R2 (a pure ACK at ISN-1/ISN+3) are also forwarded. The block tests the H1 request retry and the H2 late-ACK forward under the workload of the c72 block it repeats.",
+   "late_ack_reply_observable": {
+    "purpose": "review H-1: c74 forwards the late handshake ACK (sequence = master ISN+1) after the first request; the relay may answer that out-of-window segment with an ACK (RFC 9293), which N admits as first_read_ack and T receives as an extra response-ready ACK (untested in the model)",
+    "per_fresh_connection": [
+     "(a) relay pure ACKs acknowledging the first request before the first response, from the mirror ingress copies (diagnostic blocks) or the relay-facing evidence available to the block",
+     "(b) pure ACKs delivered to the master before the first response, from in.pcap",
+     "(c) the first exchange's CLRT",
+     "(d) whether the handshake ACK's egress copy left after the first request's egress copy (a late forward, the H2 path; mirror blocks only, packet order of copies, never mirror timing)"
+    ],
+    "c72_baseline": "(a) = 1 and (b) = 1 in 64 of 64 connection starts (rc01_hw_c72diag_e2c_20261030_01 and rc01_hw_c72diag_e2_20261028_01)",
+    "falsifier": "a relay reply to a forwarded late ACK that changes what the master receives is a c74 defect of the H2 rows and is reported as such: (b) > 1, a first-exchange CLRT outside the arm's c72 spread, or a trial failure",
+    "not_usable_on_hardware": "T outcome counters read null on hardware (snapshots: layout no_switch_telemetry), so ACK_COMMIT / RESP_FALLBACK cannot be used there"
+   }
+  },
+  {
+   "definition": "diag_e2_off_c74",
+   "id": "e2_off_first_request_d20_c74",
+   "lab_file": "scripts/hardware/lab_diag_c74.json",
+   "arms": [
+    "off"
+   ],
+   "T": [
+    0
+   ],
+   "padding": [
+    0
+   ],
+   "d_ms": 20,
+   "trials_per_arm": 32,
+   "reads_per_trial": 8,
+   "master_port_range": [
+    60350,
+    60381
+   ],
+   "arguments": [],
+   "planned_exchanges": 256,
+   "diagnostic": true,
+   "guarded_points": [
+    1,
+    3
+   ],
+   "build": "results/builds/c74_diag_mirror",
+   "diag_mirror": "on",
+   "fresh_connections": 32,
+   "same_shape_as": "diag_e2_first (results/analysis/diag_mirror_d3/DESIGN.json e2_first_request_d20)",
+   "planned_denominators": {
+    "trials": 32,
+    "exchanges_per_trial": 8,
+    "exchanges": 256
+   },
+   "compare_with": "the c72 E2 off-arm result, 5 of 32 (results/analysis/diag_mirror_d3/SUMMARY.md)",
+   "observable": [
+    "per fresh connection: each master frame of connection start (SYN, final handshake ACK, first request) received on dev9 and not emitted toward the relay, from the master NIC capture and the relay-leg egress mirror copies (packet presence and content only; mirror timing is not used)",
+    "any master retransmission of the first request"
+   ],
+   "falsifier": [
+    "a relay reply to a forwarded late ACK that changes what the master receives is a c74 defect of the H2 rows and is reported as such: (b) > 1, a first-exchange CLRT outside the arm's c72 spread, or a trial failure",
+    "a SYN, handshake ACK or first request received on dev9 at connection start and not emitted toward the relay; report k of 32 per frame (SYN, handshake ACK, first request), never an unconditional loss-free claim. A dropped SYN is reported separately: SYN stays busy_drop in c74 by design"
+   ],
+   "mechanism": "c74 = c72 + const-entry rows (results/builds/c74/README.md): a READ/SELECT/OPERATE that finds N's single work cell held retries through n_RETRY_BUDGET (busy_retry_ack, busy_retry_rst_next, busy_exhausted) instead of busy_drop; a pure master ACK at owner 0xd/0xe with client_diff exactly -25/-27 and server_diff 0 (the late handshake ACK) is forwarded unchanged (forward_original) instead of aborted. Residuals: R1 (an old ACK delayed behind the next 25/27-octet READ) and R2 (a pure ACK at ISN-1/ISN+3) are also forwarded. The block tests the H1 request retry and the H2 late-ACK forward under the workload of the c72 block it repeats.",
+   "late_ack_reply_observable": {
+    "purpose": "review H-1: c74 forwards the late handshake ACK (sequence = master ISN+1) after the first request; the relay may answer that out-of-window segment with an ACK (RFC 9293), which N admits as first_read_ack and T receives as an extra response-ready ACK (untested in the model)",
+    "per_fresh_connection": [
+     "(a) relay pure ACKs acknowledging the first request before the first response, from the mirror ingress copies (diagnostic blocks) or the relay-facing evidence available to the block",
+     "(b) pure ACKs delivered to the master before the first response, from in.pcap",
+     "(c) the first exchange's CLRT",
+     "(d) whether the handshake ACK's egress copy left after the first request's egress copy (a late forward, the H2 path; mirror blocks only, packet order of copies, never mirror timing)"
+    ],
+    "c72_baseline": "(a) = 1 and (b) = 1 in 64 of 64 connection starts (rc01_hw_c72diag_e2c_20261030_01 and rc01_hw_c72diag_e2_20261028_01)",
+    "falsifier": "a relay reply to a forwarded late ACK that changes what the master receives is a c74 defect of the H2 rows and is reported as such: (b) > 1, a first-exchange CLRT outside the arm's c72 spread, or a trial failure",
+    "not_usable_on_hardware": "T outcome counters read null on hardware (snapshots: layout no_switch_telemetry), so ACK_COMMIT / RESP_FALLBACK cannot be used there"
+   }
+  },
+  {
+   "definition": "recovery_c74_r1",
+   "id": "r1_d20_combined_c74",
+   "lab_file": "scripts/hardware/lab_recovery_c74.json",
+   "arms": [
+    "combined"
+   ],
+   "T": [
+    1
+   ],
+   "padding": [
+    1
+   ],
+   "d_ms": 20,
+   "trials_per_arm": 1,
+   "reads_per_trial": 20,
+   "master_port_range": [
+    60390,
+    60395
+   ],
+   "arguments": [
+    "--loss",
+    "select_resp_padded_x6"
+   ],
+   "planned_exchanges": 132,
+   "diagnostic": false,
+   "guarded_points": [
+    1,
+    3
+   ],
+   "build": "results/builds/c74",
+   "loss_preset": "select_resp_padded_x6",
+   "fresh_connections": 6,
+   "same_shape_as": "recovery_r1 (results/analysis/recovery_e3/DESIGN.json)",
+   "planned_denominators": {
+    "trials": 6,
+    "exchanges_per_trial": 22,
+    "exchanges": 132
+   },
+   "compare_with": "recovery_r1 on c72",
+   "observable": [
+    "per trial, as recovery_e3 (checks C1-C5): loss validity of the identity-targeted padded SELECT-response drop, retx_from_request, master_turnaround, and the OPERATE CROB status (SUCCESS or TIMEOUT) on points 1 and 3 decoded from the captured bytes"
+   ],
+   "falsifier": [
+    "a trial whose CROB outcome or recovery path differs from the c72 result of the same condition is reported as a c74 difference (the fix must not change SELECT-loss recovery)",
+    "a C1-invalid loss trial is reported and not used for the mechanism",
+    "failed restoration"
+   ],
+   "mechanism": "c74 = c72 + const-entry rows (results/builds/c74/README.md): a READ/SELECT/OPERATE that finds N's single work cell held retries through n_RETRY_BUDGET (busy_retry_ack, busy_retry_rst_next, busy_exhausted) instead of busy_drop; a pure master ACK at owner 0xd/0xe with client_diff exactly -25/-27 and server_diff 0 (the late handshake ACK) is forwarded unchanged (forward_original) instead of aborted. Residuals: R1 (an old ACK delayed behind the next 25/27-octet READ) and R2 (a pure ACK at ISN-1/ISN+3) are also forwarded. The block checks that the change leaves the recovery/select-only behaviour of the c72 block unchanged.",
+   "stop_rule_note": "within a loss block all six trials run (verdict_loss records soft failures); a block whose terminal status is failed stops its campaign (evaluation_campaign advance())"
+  },
+  {
+   "definition": "recovery_c74_r2",
+   "id": "r2_d20_size_only_c74",
+   "lab_file": "scripts/hardware/lab_recovery_c74.json",
+   "arms": [
+    "size_only"
+   ],
+   "T": [
+    0
+   ],
+   "padding": [
+    1
+   ],
+   "d_ms": 20,
+   "trials_per_arm": 1,
+   "reads_per_trial": 20,
+   "master_port_range": [
+    60396,
+    60401
+   ],
+   "arguments": [
+    "--loss",
+    "select_resp_padded_x6"
+   ],
+   "planned_exchanges": 132,
+   "diagnostic": false,
+   "guarded_points": [
+    1,
+    3
+   ],
+   "build": "results/builds/c74",
+   "loss_preset": "select_resp_padded_x6",
+   "fresh_connections": 6,
+   "same_shape_as": "recovery_r2 (results/analysis/recovery_e3/DESIGN.json)",
+   "planned_denominators": {
+    "trials": 6,
+    "exchanges_per_trial": 22,
+    "exchanges": 132
+   },
+   "compare_with": "recovery_r2 on c72",
+   "observable": [
+    "per trial, as recovery_e3 (checks C1-C5): loss validity of the identity-targeted padded SELECT-response drop, retx_from_request, master_turnaround, and the OPERATE CROB status (SUCCESS or TIMEOUT) on points 1 and 3 decoded from the captured bytes"
+   ],
+   "falsifier": [
+    "a trial whose CROB outcome or recovery path differs from the c72 result of the same condition is reported as a c74 difference (the fix must not change SELECT-loss recovery)",
+    "a C1-invalid loss trial is reported and not used for the mechanism",
+    "failed restoration"
+   ],
+   "mechanism": "c74 = c72 + const-entry rows (results/builds/c74/README.md): a READ/SELECT/OPERATE that finds N's single work cell held retries through n_RETRY_BUDGET (busy_retry_ack, busy_retry_rst_next, busy_exhausted) instead of busy_drop; a pure master ACK at owner 0xd/0xe with client_diff exactly -25/-27 and server_diff 0 (the late handshake ACK) is forwarded unchanged (forward_original) instead of aborted. Residuals: R1 (an old ACK delayed behind the next 25/27-octet READ) and R2 (a pure ACK at ISN-1/ISN+3) are also forwarded. The block checks that the change leaves the recovery/select-only behaviour of the c72 block unchanged.",
+   "stop_rule_note": "within a loss block all six trials run (verdict_loss records soft failures); a block whose terminal status is failed stops its campaign (evaluation_campaign advance())"
+  },
+  {
+   "definition": "recovery_c74_r3",
+   "id": "r3_d5_combined_c74",
+   "lab_file": "scripts/hardware/lab_recovery_c74.json",
+   "arms": [
+    "combined"
+   ],
+   "T": [
+    1
+   ],
+   "padding": [
+    1
+   ],
+   "d_ms": 5,
+   "trials_per_arm": 1,
+   "reads_per_trial": 20,
+   "master_port_range": [
+    60402,
+    60407
+   ],
+   "arguments": [
+    "--loss",
+    "select_resp_padded_x6"
+   ],
+   "planned_exchanges": 132,
+   "diagnostic": false,
+   "guarded_points": [
+    1,
+    3
+   ],
+   "build": "results/builds/c74",
+   "loss_preset": "select_resp_padded_x6",
+   "fresh_connections": 6,
+   "same_shape_as": "recovery_r3 (results/analysis/recovery_e3/DESIGN.json)",
+   "planned_denominators": {
+    "trials": 6,
+    "exchanges_per_trial": 22,
+    "exchanges": 132
+   },
+   "compare_with": "recovery_r3 on c72",
+   "observable": [
+    "per trial, as recovery_e3 (checks C1-C5): loss validity of the identity-targeted padded SELECT-response drop, retx_from_request, master_turnaround, and the OPERATE CROB status (SUCCESS or TIMEOUT) on points 1 and 3 decoded from the captured bytes"
+   ],
+   "falsifier": [
+    "a trial whose CROB outcome or recovery path differs from the c72 result of the same condition is reported as a c74 difference (the fix must not change SELECT-loss recovery)",
+    "a C1-invalid loss trial is reported and not used for the mechanism",
+    "failed restoration"
+   ],
+   "mechanism": "c74 = c72 + const-entry rows (results/builds/c74/README.md): a READ/SELECT/OPERATE that finds N's single work cell held retries through n_RETRY_BUDGET (busy_retry_ack, busy_retry_rst_next, busy_exhausted) instead of busy_drop; a pure master ACK at owner 0xd/0xe with client_diff exactly -25/-27 and server_diff 0 (the late handshake ACK) is forwarded unchanged (forward_original) instead of aborted. Residuals: R1 (an old ACK delayed behind the next 25/27-octet READ) and R2 (a pure ACK at ISN-1/ISN+3) are also forwarded. The block checks that the change leaves the recovery/select-only behaviour of the c72 block unchanged.",
+   "stop_rule_note": "within a loss block all six trials run (verdict_loss records soft failures); a block whose terminal status is failed stops its campaign (evaluation_campaign advance())"
+  },
+  {
+   "definition": "e4b_select_only_c74",
+   "id": "e4b_select_only_d20_combined_c74",
+   "lab_file": "scripts/hardware/lab_e4b_c74.json",
+   "arms": [
+    "combined"
+   ],
+   "T": [
+    1
+   ],
+   "padding": [
+    1
+   ],
+   "d_ms": 20,
+   "trials_per_arm": 6,
+   "reads_per_trial": 20,
+   "master_port_range": [
+    60410,
+    60415
+   ],
+   "arguments": [],
+   "planned_exchanges": 144,
+   "diagnostic": false,
+   "guarded_points": [
+    1,
+    3
+   ],
+   "build": "results/builds/c74",
+   "fresh_connections": 6,
+   "sbo_cycles": 4,
+   "sbo_select_only": true,
+   "same_shape_as": "e4b_select_only (results/analysis/e4b_select_only/DESIGN.json)",
+   "planned_denominators": {
+    "trials": 6,
+    "exchanges_per_trial": 24,
+    "exchanges": 144,
+    "abandoned_selects": 24
+   },
+   "compare_with": "the c72 E4b result (results/analysis/e4b_select_only/)",
+   "observable": [
+    "per abandoned SELECT, as e4b_select_only: CROB status SUCCESS on points 1 and 3; the READ after it forwarded, answered, of normal size and class; no OPERATE issued"
+   ],
+   "falsifier": [
+    "any READ after an abandoned SELECT that is not forwarded, not answered or of the wrong size or class",
+    "a SELECT whose captured CROB status is not SUCCESS",
+    "failed restoration"
+   ],
+   "mechanism": "c74 = c72 + const-entry rows (results/builds/c74/README.md): a READ/SELECT/OPERATE that finds N's single work cell held retries through n_RETRY_BUDGET (busy_retry_ack, busy_retry_rst_next, busy_exhausted) instead of busy_drop; a pure master ACK at owner 0xd/0xe with client_diff exactly -25/-27 and server_diff 0 (the late handshake ACK) is forwarded unchanged (forward_original) instead of aborted. Residuals: R1 (an old ACK delayed behind the next 25/27-octet READ) and R2 (a pure ACK at ISN-1/ISN+3) are also forwarded. The block checks that the change leaves the recovery/select-only behaviour of the c72 block unchanged."
+  }
+ ],
+ "fixed_denominators": {
+  "blocks": 8,
+  "exchanges": 2076,
+  "fresh_connections": 96,
+  "note": "planned denominators; each campaign stops at its first failed trial, so the reported denominator is the trials actually run, with the failure reported as found"
+ },
+ "observable_summary": "per definition below; every block inherits the observable and checks of the c72 design it repeats",
+ "stop_rules": [
+  "unsafe ownership or unverified restoration stops all writes",
+  "no rerun-until-pass, no extra trials or blocks",
+  "a failed trial stays FAIL and is reported as found",
+  "stop at the first failure: a failed trial ends its campaign (campaign_base StepFailed); the trials not run are reported as not run, not as passed, against the planned denominator",
+  "guarded points stay {1,3}; one block per campaign; registration, freeze, exact-argv dry run and restoration for every block"
+ ],
+ "reporting": [
+  "every loss, retransmission and application failure separately, with denominators, beside the c72 result named in compare_with",
+  "zero losses observed in N trials, or the count; never an unconditional loss-free claim",
+  "mirror evidence for packet presence and content only"
+ ],
+ "interpretation_limits": [
+  "bounded confirmation trials, not rate estimates",
+  "master-NIC captures do not observe the relay-facing link or switch departure timing",
+  "the model qualification of c74 is SDK tofino-model functional output only",
+  "the relay select timeout stays unverified"
+ ],
+ "excluded": [
+  "P4 changes",
+  "relay settings changes",
+  "timeout, threshold or default changes",
+  "a port-9 ingress mirror session",
+  "manuscript edits"
+ ],
+ "inherits": {
+  "results/analysis/strict_cycle/DESIGN.json": "7a453b7d7e58d551a3e7618e0356de6585d5b20023b10cc78c17d3e92886fd8f",
+  "results/analysis/diag_mirror_d3/DESIGN_e2_combined.json": "be04d03817e7402593911cfdf89c644acf34ceb7523e5db1e9e0b0b57ab2ca89",
+  "results/analysis/diag_mirror_d3/DESIGN.json": "85781945140b88f0ad6e40ef58aabac4e420765e1158386f593a56789f8e823b",
+  "results/analysis/recovery_e3/DESIGN.json": "0af8fbffe0be5f2d1bd16e8c7738687448f5697d36adec9db8a7e6ba7050da8a",
+  "results/analysis/e4b_select_only/DESIGN.json": "af8b12f9c58b62aa3832fb6569c5c07ab371c882169bbee1538a69629d508d6b"
+ },
+ "review": "folded in from the independent c74 P4 review (coordinator, 2026-10-30): H-1 late-ACK reply observable and falsifier, L-6 falsifier wording, status wording"
+}

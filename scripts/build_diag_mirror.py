@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-"""Derive and package the c72_diag_mirror diagnostic candidate from the canonical P4.
+"""Derive and package the diagnostic-mirror candidate BASE_diag_mirror from the canonical P4.
 
-  python3 scripts/build_diag_mirror.py results/builds/c72_diag_mirror [--compile]
+  python3 scripts/build_diag_mirror.py results/builds/BASE_diag_mirror [--compile]
+
+BASE is the canonical candidate: results/builds/BASE/response_only.p4 must be byte-identical to p4/response_only.p4
+(c72_diag_mirror was derived while c72 was canonical; c74_diag_mirror while c74 is).
 
 The derived source is p4/response_only.p4 plus the INSERTIONS listed in HUNKS, nothing else:
   * pipe-0 ingress (N): every frame received on dev64 is copied AS RECEIVED to session SESSION_RX;
@@ -11,8 +14,8 @@ packet, the egress deparser copies the constructed output packet. Both sessions 
 r_EgParser does not parse (default: accept), so a copy crosses pipe-0 egress untouched and leaves.
 T (pipe 1), its clone session 7 and scripts/hardware/t_config.py are not touched.
 
-The canonical source and results/builds/c72 are only read. The derived source exists only inside the new
-build directory (packaged with scripts/profile.py, compiled with scripts/build.py, SDK 9.13.2, c72's flags).
+The canonical source and results/builds/BASE are only read. The derived source exists only inside the new
+build directory (packaged with scripts/profile.py, compiled with scripts/build.py, SDK 9.13.2, the canonical flags).
 """
 import argparse
 import difflib
@@ -26,8 +29,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CANONICAL = ROOT / 'p4/response_only.p4'
-BUILD_NAME = 'c72_diag_mirror'
-SCHEMA = 'c72-diag-mirror-v1'
+SUFFIX = '_diag_mirror'
+BUILD_NAME_RE = re.compile(r'^(?P<base>c\d+)_diag_mirror$')
+SCHEMA = 'c72-diag-mirror-v1'   # identity format name, unchanged since c72_diag_mirror; the build is in 'build'
 MIRROR_TYPE = 1
 RELAY_PORT = 64
 COPY_PORT = 10
@@ -39,8 +43,8 @@ TAG = 'DIAG MIRROR'
 # (name, anchor in the canonical source, 'before'|'after', inserted text). Each anchor occurs exactly once.
 HUNKS = (
     ('n_constants', "const PortId_t n_READ_HANDOFF_PORT=9w180; /* N-to-T handoff at dev180; matches t_T_IN. */\n", 'after',
-     "/* %s (c72_diag_mirror only; scripts/build_diag_mirror.py, never in p4/response_only.p4): every frame received on\n"
-     "   n_DIAG_RELAY_PORT is copied as received (TNA ingress mirror) to session n_DIAG_SESSION_RX. */\n"
+     "/* %s (diagnostic mirror build only; scripts/build_diag_mirror.py, never in p4/response_only.p4): every frame\n"
+     "   received on n_DIAG_RELAY_PORT is copied as received (TNA ingress mirror) to session n_DIAG_SESSION_RX. */\n"
      "const MirrorType_t n_DIAG_MIRROR_TYPE=%d;\n"
      "const PortId_t n_DIAG_RELAY_PORT=9w%d;\n"
      "const MirrorId_t n_DIAG_SESSION_RX=10w%d;\n"
@@ -57,9 +61,10 @@ HUNKS = (
     ('n_deparser_emit', "pkt.emit(hdr);}}\nparser n_EgParser(", 'before',
      "if(md.mirror_type==n_DIAG_MIRROR_TYPE){n_diag_mirror.emit(m.diag_ses);}"),
     ('r_constants', "const bit<32> r_IMAGE_LEN = 61;\n", 'after',
-     "/* %s (c72_diag_mirror only): every frame that leaves on r_DIAG_RELAY_PORT and is not dropped is copied as\n"
-     "   emitted (TNA egress mirror) to session r_DIAG_SESSION_TX. Both diagnostic sessions send their copies to\n"
-     "   r_DIAG_COPY_PORT, which r_EgParser does not parse (default: accept): no header, register or mirror there. */\n"
+     "/* %s (diagnostic mirror build only): every frame that leaves on r_DIAG_RELAY_PORT and is not dropped is\n"
+     "   copied as emitted (TNA egress mirror) to session r_DIAG_SESSION_TX. Both diagnostic sessions send their\n"
+     "   copies to r_DIAG_COPY_PORT, which r_EgParser does not parse (default: accept): no header, register or mirror\n"
+     "   there. */\n"
      "const MirrorType_t r_DIAG_MIRROR_TYPE = %d;\n"
      "const PortId_t r_DIAG_RELAY_PORT = 9w%d;\n"
      "const PortId_t r_DIAG_COPY_PORT = 9w%d;\n"
@@ -122,9 +127,9 @@ def insertions(canonical, derived):
     return found
 
 
-def unified_diff(canonical, derived):
+def unified_diff(canonical, derived, name):
     return ''.join(difflib.unified_diff(canonical.splitlines(keepends=True), derived.splitlines(keepends=True),
-                                        'a/p4/response_only.p4', 'b/results/builds/%s/response_only.p4' % BUILD_NAME))
+                                        'a/p4/response_only.p4', 'b/results/builds/%s/response_only.p4' % name))
 
 
 def constants(text):
@@ -146,9 +151,19 @@ def module(name, path):
     return result
 
 
-def identity(canonical, derived):
+def base_of(name):
+    """The canonical candidate a diagnostic build name derives from: 'c74_diag_mirror' -> 'c74'."""
+    match = BUILD_NAME_RE.match(name)
+    if not match:
+        raise ValueError('the diagnostic build directory must be named BASE%s (BASE = the canonical candidate)' % SUFFIX)
+    return match.group('base')
+
+
+def identity(canonical, derived, name):
     found = insertions(canonical, derived)
-    return dict(schema=SCHEMA, build=BUILD_NAME, purpose='diagnostic relay-leg mirror; not the c72 binary',
+    base = base_of(name)
+    return dict(schema=SCHEMA, build=name, purpose='diagnostic relay-leg mirror; not the %s binary' % base,
+                base_build='results/builds/' + base,
                 canonical_source='p4/response_only.p4', canonical_sha256=sha(canonical), source_sha256=sha(derived),
                 generator='scripts/build_diag_mirror.py', generator_sha256=sha(Path(__file__).read_bytes()),
                 hunks=[name for name, _a, _w, _t in HUNKS], inserted_fragments=len(found),
@@ -160,11 +175,12 @@ def identity(canonical, derived):
 
 def generate(output, compile_=False):
     output = Path(output).resolve()
-    if output.name != BUILD_NAME:
-        raise ValueError('the diagnostic build directory must be named ' + BUILD_NAME)
+    base = ROOT / 'results/builds' / base_of(output.name)
     canonical = CANONICAL.read_text()
+    if not (base / 'response_only.p4').is_file() or (base / 'response_only.p4').read_bytes() != canonical.encode():
+        raise ValueError('%s is not the canonical candidate: its response_only.p4 is not p4/response_only.p4' % base)
     derived, _points = derive(canonical)
-    meta = identity(canonical, derived)
+    meta = identity(canonical, derived, output.name)
     profile = module('current_profile', ROOT / 'scripts/profile.py')
     with tempfile.TemporaryDirectory() as tmp:
         source = Path(tmp) / 'response_only.p4'
@@ -173,7 +189,7 @@ def generate(output, compile_=False):
     if sha((output / 'response_only.p4').read_bytes()) != meta['source_sha256']:
         raise ValueError('packaged source differs from the derived source')
     (output / 'diag_mirror.json').write_text(json.dumps(meta, indent=2) + '\n')
-    (output / 'diag_mirror.diff').write_text(unified_diff(canonical, derived))
+    (output / 'diag_mirror.diff').write_text(unified_diff(canonical, derived, output.name))
     if compile_:
         result = profile.compiler_module().compile_candidate(output / 'response_only.p4', output / 'compile_local')
         if result['exit_code'] != 0:

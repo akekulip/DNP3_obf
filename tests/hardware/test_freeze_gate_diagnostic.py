@@ -1,4 +1,7 @@
-"""Freeze-gate admission of the declared c72_diag_mirror diagnostic build (offline; committed evidence is only read).
+"""Freeze-gate admission of the canonical candidate's declared diagnostic build (offline; committed evidence is only
+read). The canonical candidate is results/analysis/stage_cut/current_build.json (c74 since c74 became canonical); its
+diagnostic build is BASE_diag_mirror (c74_diag_mirror). c72_diag_mirror is historical: its retained evidence stays
+valid and readable, but it is no longer admitted, because its canonical base is no longer the canonical P4.
 
 A build with diag_mirror.json is admitted only when that identity binds the current canonical P4, the current generator
 and the generator's own in-process derivation of the build's source. Its blocks are bound to the diagnostic model
@@ -19,14 +22,17 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / 'scripts/hardware'), str(ROOT / 'scripts/checks')]
 import freeze_gate
 
-DIAG = ROOT / 'results/builds/c72_diag_mirror'
-C72 = ROOT / 'results/builds/c72'
-DIAG_MODELS = ROOT / 'results/models/c72_diag_mirror'
+CURRENT = json.loads((ROOT / 'results/analysis/stage_cut/current_build.json').read_text())
+CANON = ROOT / CURRENT['build']                                  # the canonical candidate
+DIAG = CANON.parent / (CANON.name + '_diag_mirror')               # its declared diagnostic build
+DIAG_MODELS = ROOT / 'results/models' / DIAG.name
+C72_DIAG = ROOT / 'results/builds/c72_diag_mirror'                # historical diagnostic build (c72 was canonical)
+# a retained c72 block config; tests rebind its build identity to the canonical or diagnostic build
 C72_CONFIG = ROOT / 'results/hardware/campaigns/rc01_hw_c72_20261027_02/configs/02_d5_reference.json'
-EVIDENCE = ('diag_mirror_fidelity_01.json', 'gate_vs_c72_01.json')
+EVIDENCE = ('diag_mirror_fidelity_01.json', 'gate_vs_%s_01.json' % CANON.name)
 COMPILED = 'compile_local/out/response_only.p4pp'
-needs_diag = pytest.mark.skipif(not (DIAG / COMPILED).is_file(), reason='compiled c72_diag_mirror outputs not restored')
-needs_c72 = pytest.mark.skipif(not (C72 / COMPILED).is_file(), reason='compiled c72 outputs not restored')
+needs_diag = pytest.mark.skipif(not (DIAG / COMPILED).is_file(), reason='compiled diagnostic build outputs not restored')
+needs_canon = pytest.mark.skipif(not (CANON / COMPILED).is_file(), reason='compiled canonical outputs not restored')
 
 
 def sha(path):
@@ -34,7 +40,7 @@ def sha(path):
 
 
 DIAG_SOURCE = sha(DIAG / 'response_only.p4')
-C72_SOURCE = sha(C72 / 'response_only.p4')
+CANON_SOURCE = sha(CANON / 'response_only.p4')
 
 
 def one_byte(path):
@@ -100,18 +106,30 @@ def copy_models(root, mp):
     return models
 
 
+def rebind(cfg, build, source):
+    """Rebind a block config's build identity (source, manifest, out_dir, artifact hashes) to BUILD."""
+    manifest = json.loads((build / 'compile_local/manifest.json').read_text())
+    out_dir = str((build / 'compile_local/out').relative_to(ROOT))
+    for entry in cfg['builds'].values():
+        entry.update(source_sha256=source, manifest=str((build / 'compile_local/manifest.json').relative_to(ROOT)),
+                     out_dir=out_dir, hashes={f: manifest['artifact_sha256'][f] for f in entry['hashes']})
+    cfg['ctl_timing_identity'] = dict(source_sha256=source, switch_compile=dict(out_dir=out_dir))
+    return cfg
+
+
+def canonical_config(root):
+    """The retained c72 block config rebound to the canonical candidate."""
+    path = root / 'canonical_config.json'
+    path.write_text(json.dumps(rebind(json.loads(C72_CONFIG.read_text()), CANON, CANON_SOURCE), indent=2) + '\n')
+    return path
+
+
 def diag_config(root, name, change=None):
-    """A c72 block config rebound to the diagnostic build, with the diagnostic contract fields."""
-    cfg = json.loads(C72_CONFIG.read_text())
-    manifest = json.loads((DIAG / 'compile_local/manifest.json').read_text())
-    out_dir = 'results/builds/c72_diag_mirror/compile_local/out'
-    for build in cfg['builds'].values():
-        build.update(source_sha256=DIAG_SOURCE, manifest='results/builds/c72_diag_mirror/compile_local/manifest.json',
-                     out_dir=out_dir, hashes={f: manifest['artifact_sha256'][f] for f in build['hashes']})
-    cfg['ctl_timing_identity'] = dict(source_sha256=DIAG_SOURCE, switch_compile=dict(out_dir=out_dir))
+    """A retained c72 block config rebound to the diagnostic build, with the diagnostic contract fields."""
+    cfg = rebind(json.loads(C72_CONFIG.read_text()), DIAG, DIAG_SOURCE)
     cfg['purpose'] = 'diagnostic'
     cfg['diag_mirror'] = dict(state='on', copy_port=10, capture_interface='enp59s0f1np1',
-                              build_label='c72_diag_mirror', source_sha256=DIAG_SOURCE)
+                              build_label=DIAG.name, source_sha256=DIAG_SOURCE)
     cfg['ports_map']['stat_ports'] = '9,64,10'
     if change:
         change(cfg)
@@ -138,7 +156,7 @@ def inputs(tmp_path, monkeypatch):
 @pytest.fixture
 def small_build(tmp_path):
     """A temporary build: copies of the identity and the derived source; compile_local links the committed compile."""
-    build = tmp_path / 'builds/c72_diag_mirror'
+    build = tmp_path / 'builds' / DIAG.name
     build.mkdir(parents=True)
     for name in ('response_only.p4', 'diag_mirror.json'):
         shutil.copyfile(DIAG / name, build / name)
@@ -153,11 +171,11 @@ def models(tmp_path, monkeypatch):
 
 # --- item 1/2: admission and compile_problems -------------------------------------------------------------------
 
-@needs_c72
-def test_canonical_c72_compile_check_never_consults_the_diagnostic_rules(monkeypatch):
+@needs_canon
+def test_canonical_compile_check_never_consults_the_diagnostic_rules(monkeypatch):
     monkeypatch.setattr(freeze_gate, 'diagnostic_problems', refuse)
-    assert not freeze_gate.declared_diagnostic(C72)
-    assert freeze_gate.compile_problems(C72, C72_SOURCE) == []
+    assert not freeze_gate.declared_diagnostic(CANON)
+    assert freeze_gate.compile_problems(CANON, CANON_SOURCE) == []
 
 
 def test_undeclared_build_keeps_exactly_the_canonical_source_problem(tmp_path, monkeypatch):
@@ -231,7 +249,7 @@ def test_changed_generator_is_never_executed(inputs, small_build):
 
 
 def test_candidate_source_must_be_the_regenerated_derived_source():
-    problems = freeze_gate.diagnostic_problems(DIAG, C72_SOURCE)
+    problems = freeze_gate.diagnostic_problems(DIAG, CANON_SOURCE)
     assert len(problems) == 1 and 'candidate source' in problems[0], problems
 
 
@@ -245,9 +263,30 @@ def test_build_without_identity_is_not_diagnostic_and_fails_the_canonical_check(
 # --- item 3: model evidence, write, binding, check ----------------------------------------------------------------
 
 def test_committed_diagnostic_model_evidence_passes():
+    assert freeze_gate.diag_evidence_names(DIAG) == EVIDENCE
     assert freeze_gate.diagnostic_evidence_problems(DIAG) == []
     assert freeze_gate.diagnostic_evidence(DIAG) == {
-        'results/models/c72_diag_mirror/' + name: sha(DIAG_MODELS / name) for name in EVIDENCE}
+        'results/models/%s/%s' % (DIAG.name, name): sha(DIAG_MODELS / name) for name in EVIDENCE}
+
+
+def test_historical_c72_diag_mirror_evidence_stays_valid_but_the_build_is_no_longer_admitted():
+    """c72_diag_mirror is compared against its own base c72 (gate_vs_c72_01.json); its retained evidence still passes,
+    but the build is refused because results/builds/c72 is no longer the canonical candidate."""
+    assert freeze_gate.diag_base(C72_DIAG) == 'c72' and freeze_gate.diag_base(DIAG) == CANON.name
+    assert freeze_gate.diag_evidence_names(C72_DIAG) == ('diag_mirror_fidelity_01.json', 'gate_vs_c72_01.json')
+    assert freeze_gate.diagnostic_evidence_problems(C72_DIAG) == []
+    problems = freeze_gate.diagnostic_problems(C72_DIAG, sha(C72_DIAG / 'response_only.p4'))
+    assert any('canonical_sha256' in p for p in problems) and any('not the canonical candidate' in p for p in problems)
+
+
+@pytest.mark.parametrize('name', ['c74', 'c74_diag', 'x74_diag_mirror', '_diag_mirror'])
+def test_a_build_not_named_base_diag_mirror_has_no_base_and_is_refused(name, tmp_path):
+    build = tmp_path / name
+    build.mkdir()
+    shutil.copyfile(DIAG / 'diag_mirror.json', build / 'diag_mirror.json')
+    shutil.copyfile(DIAG / 'response_only.p4', build / 'response_only.p4')
+    assert freeze_gate.diag_base(build) is None
+    assert any('is not BASE_diag_mirror' in p for p in freeze_gate.diagnostic_problems(build, DIAG_SOURCE))
 
 
 def drop_driver(value, name):
@@ -258,16 +297,17 @@ EVIDENCE_DEFECTS = {
     'fidelity_not_passed': ('diag_mirror_fidelity_01.json', lambda v: v.update(passed=False)),
     'fidelity_passed_absent': ('diag_mirror_fidelity_01.json', lambda v: v.pop('passed')),
     'fidelity_passed_not_boolean': ('diag_mirror_fidelity_01.json', lambda v: v.update(passed='true')),
-    'fidelity_other_source': ('diag_mirror_fidelity_01.json', lambda v: v.update(source_sha256=C72_SOURCE)),
-    'driver_verdicts_differ': ('gate_vs_c72_01.json',
+    'fidelity_other_source': ('diag_mirror_fidelity_01.json', lambda v: v.update(source_sha256=CANON_SOURCE)),
+    'driver_verdicts_differ': (EVIDENCE[1],
                                lambda v: v['drivers']['abandon'].update(verdicts_identical=False)),
-    'driver_verdicts_absent': ('gate_vs_c72_01.json', lambda v: v['drivers']['smoke'].pop('verdicts_identical')),
-    'driver_exit_nonzero': ('gate_vs_c72_01.json', lambda v: v['drivers']['relay_sbo'].update(diag_exit_code=1)),
-    'driver_exit_false': ('gate_vs_c72_01.json', lambda v: v['drivers']['relay_sbo'].update(diag_exit_code=False)),
-    'driver_exit_absent': ('gate_vs_c72_01.json', lambda v: v['drivers']['policy'].pop('diag_exit_code')),
-    'required_driver_missing': ('gate_vs_c72_01.json', lambda v: drop_driver(v, 'response_ready')),
-    'no_drivers': ('gate_vs_c72_01.json', lambda v: v.update(drivers={})),
-    'gate_other_build': ('gate_vs_c72_01.json', lambda v: v.update(build='c72')),
+    'driver_verdicts_absent': (EVIDENCE[1], lambda v: v['drivers']['smoke'].pop('verdicts_identical')),
+    'driver_exit_nonzero': (EVIDENCE[1], lambda v: v['drivers']['relay_sbo'].update(diag_exit_code=1)),
+    'driver_exit_false': (EVIDENCE[1], lambda v: v['drivers']['relay_sbo'].update(diag_exit_code=False)),
+    'driver_exit_absent': (EVIDENCE[1], lambda v: v['drivers']['policy'].pop('diag_exit_code')),
+    'required_driver_missing': (EVIDENCE[1], lambda v: drop_driver(v, 'response_ready')),
+    'no_drivers': (EVIDENCE[1], lambda v: v.update(drivers={})),
+    'gate_other_build': (EVIDENCE[1], lambda v: v.update(build=CANON.name)),
+    'gate_other_baseline': (EVIDENCE[1], lambda v: v.update(baseline='c72')),
 }
 
 
@@ -300,9 +340,9 @@ def test_diagnostic_candidate_records_hashed_model_evidence_and_never_qualifies(
     record = freeze_gate.candidate_record(DIAG, DIAG_SOURCE, [], None)
     assert record['diagnostic'] is True and record['qualifies'] is False
     assert record['model']['qualification'] == 'diagnostic_model_evidence'
-    assert record['model']['evidence'] == {'results/models/c72_diag_mirror/' + name: sha(DIAG_MODELS / name)
+    assert record['model']['evidence'] == {'results/models/%s/%s' % (DIAG.name, name): sha(DIAG_MODELS / name)
                                            for name in EVIDENCE}
-    assert record['source_sha256'] == DIAG_SOURCE and record['build'] == 'results/builds/c72_diag_mirror'
+    assert record['source_sha256'] == DIAG_SOURCE and record['build'] == str(DIAG.relative_to(ROOT))
 
 
 @needs_diag
@@ -323,7 +363,7 @@ CONFIG_VARIANTS = {
     'purpose_qualification': lambda c: c.update(purpose='qualification'),
     'mirror_absent': lambda c: c.pop('diag_mirror'),
     'mirror_not_an_object': lambda c: c.update(diag_mirror='on'),
-    'mirror_source_c72': lambda c: c['diag_mirror'].update(source_sha256=C72_SOURCE),
+    'mirror_source_canonical': lambda c: c['diag_mirror'].update(source_sha256=CANON_SOURCE),
 }
 
 
@@ -356,7 +396,7 @@ def test_freeze_of_an_admitted_diagnostic_build_records_a_non_qualifying_candida
     assert cand['model']['qualification'] == 'diagnostic_model_evidence'
     evidence = {str(bound.models / name): sha(bound.models / name) for name in EVIDENCE}
     assert cand['model']['evidence'] == evidence
-    assert set(evidence) | {'results/builds/c72_diag_mirror/diag_mirror.json'} <= set(bound.frozen['files'])
+    assert set(evidence) | {str((DIAG / 'diag_mirror.json').relative_to(ROOT))} <= set(bound.frozen['files'])
 
 
 @needs_diag
@@ -372,7 +412,7 @@ def test_bound_diagnostic_block_is_admitted_but_never_qualifies(bound):
 @pytest.mark.parametrize('variant,text', [('purpose_absent', 'purpose'), ('purpose_qualification', 'purpose'),
                                           ('mirror_absent', 'diag_mirror.source_sha256'),
                                           ('mirror_not_an_object', 'diag_mirror.source_sha256'),
-                                          ('mirror_source_c72', 'diag_mirror.source_sha256')])
+                                          ('mirror_source_canonical', 'diag_mirror.source_sha256')])
 def test_diagnostic_binding_requires_the_diagnostic_config_contract(bound, variant, text):
     problems = freeze_gate.candidate_binding(bound.frozen, bound.configs[variant])
     assert len(problems) == 1 and text in problems[0], problems
@@ -425,7 +465,7 @@ def test_check_never_reports_a_diagnostic_candidate_as_qualifying(tmp_path, monk
     monkeypatch.setattr(freeze_gate, 'candidate_binding', lambda frozen, config: [])
     results = {}
     for name, extra in (('canonical', {}), ('diagnostic', dict(diagnostic=True, qualifies=False))):
-        frozen = dict(freeze_version=freeze_gate.FREEZE_V3, build='results/builds/c72', source_sha256=C72_SOURCE,
+        frozen = dict(freeze_version=freeze_gate.FREEZE_V3, build=str(CANON.relative_to(ROOT)), source_sha256=CANON_SOURCE,
                       files={}, candidate=dict(model=dict(qualification='model_gate_passed'), diagnostic_exception=None,
                                                **extra))
         (tmp_path / (name + '.json')).write_text(json.dumps(frozen))
@@ -434,9 +474,10 @@ def test_check_never_reports_a_diagnostic_candidate_as_qualifying(tmp_path, monk
     assert results['diagnostic']['qualifies'] is False and results['diagnostic']['diagnostic'] is True
 
 
-@needs_c72
-def test_canonical_c72_freeze_keeps_the_model_gate_rules_and_qualifies(tmp_path, monkeypatch):
-    stored = json.loads((C72 / 'model_summary_v3.json').read_text())
+@needs_canon
+def test_canonical_freeze_keeps_the_model_gate_rules_and_qualifies(tmp_path, monkeypatch):
+    config = canonical_config(tmp_path)
+    stored = json.loads((CANON / 'model_summary_v3.json').read_text())
     real = freeze_gate.model_summary_module
 
     def stored_gate():
@@ -446,24 +487,25 @@ def test_canonical_c72_freeze_keeps_the_model_gate_rules_and_qualifies(tmp_path,
         return module
     monkeypatch.setattr(freeze_gate, 'model_summary_module', stored_gate)
     controlled_files(monkeypatch)
+    patch_outside_paths(monkeypatch)
     for name in ('diagnostic_problems', 'diagnostic_evidence', 'diagnostic_evidence_problems'):
         monkeypatch.setattr(freeze_gate, name, refuse)
-    write(C72, [C72_CONFIG], tmp_path / 'freeze.json')
+    write(CANON, [config], tmp_path / 'freeze.json')
     frozen = json.loads((tmp_path / 'freeze.json').read_text())
     cand = frozen['candidate']
     assert sorted(cand) == ['artifacts', 'build', 'configs', 'diagnostic_exception', 'loaded_compile', 'model',
                             'source_sha256']
     assert cand['model']['qualification'] == 'model_gate_passed' and cand['model']['summary'] is not None
-    assert freeze_gate.candidate_binding(frozen, C72_CONFIG) == []
-    code, record = check(tmp_path / 'freeze.json', C72_CONFIG, tmp_path / 'check.json')
+    assert freeze_gate.candidate_binding(frozen, config) == []
+    code, record = check(tmp_path / 'freeze.json', config, tmp_path / 'check.json')
     assert code == 0 and record['qualifies'] is True and 'diagnostic' not in record
     assert record['candidate_binding'] == [] and record['changed'] == [] and record['missing'] == []
-    assert set(frozen['files']) == {'results/builds/c72/response_only.p4', str(C72_CONFIG.relative_to(ROOT)),
-                                    'results/builds/c72/compile_local/manifest.json',
-                                    'results/builds/c72/model_summary_v3.json'}
+    rel = str(CANON.relative_to(ROOT))
+    assert set(frozen['files']) == {rel + '/response_only.p4', str(config.resolve()),
+                                    rel + '/compile_local/manifest.json', rel + '/model_summary_v3.json'}
     # the canonical rules still recheck the live model verdict before every block
     module = stored_gate()
     monkeypatch.setattr(freeze_gate, 'model_summary_module', lambda: SimpleNamespace(
         summarize_v3=lambda build: dict(module.summarize_v3(build), qualification='blocked')))
-    moved = freeze_gate.candidate_binding(frozen, C72_CONFIG)
+    moved = freeze_gate.candidate_binding(frozen, config)
     assert any('model evidence changed since the freeze' in p for p in moved), moved

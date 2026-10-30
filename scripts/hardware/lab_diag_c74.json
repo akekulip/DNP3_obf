@@ -1,0 +1,38 @@
+{
+  "_note": "c74_diag_mirror E2 connection-start confirmation: the e2_first_request_d20 shape (lab_diag.json), combined and off arms, on the c74 diagnostic build; design in results/analysis/c74_confirmation/DESIGN.json.",
+  "base": "lab.json",
+  "template": "02_d5_reference",
+  "d_ms": 20,
+  "capture_interface": "enp59s0f1np1",
+  "build_label": "c74_diag_mirror",
+  "blocks": [
+    {
+      "id": "e2_combined_first_request_d20_c74",
+      "diag_mirror": "on",
+      "arms": [
+        "combined"
+      ],
+      "trials_per_arm": 32,
+      "reads_per_trial": 8,
+      "run_sbo": false,
+      "master_port_range": {
+        "first": 60310,
+        "last": 60341
+      }
+    },
+    {
+      "id": "e2_off_first_request_d20_c74",
+      "diag_mirror": "on",
+      "arms": [
+        "off"
+      ],
+      "trials_per_arm": 32,
+      "reads_per_trial": 8,
+      "run_sbo": false,
+      "master_port_range": {
+        "first": 60350,
+        "last": 60381
+      }
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+ "case": "operate_without_select",
+ "checks": [
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "OPERATE_not_on_port64",
+   "ok": true
+  },
+  {
+   "actual": [
+    "count_refused"
+   ],
+   "expect": [
+    "count_refused"
+   ],
+   "name": "OPERATE_refused_by_first_event",
+   "ok": true
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 37000126,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 351,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554471,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 37000992,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 358,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 37000126
+ },
+ "evidence_kind": "genuine_processing",
+ "expect": "OPERATE after a READ exchange, no SELECT: refused, not on port 64",
+ "expectation": "as_before",
+ "isn": {
+  "master": 37000100,
+  "relay": 37000900
+ },
+ "observations": [
+  {
+   "decisive_line": null,
+   "decisive_wait_s": null,
+   "hook": null,
+   "offset": 176092149,
+   "port64": [],
+   "port9": []
+  }
+ ],
+ "operate_summary": {
+  "aborts": 1,
+  "busy": [],
+  "first_event": [
+   "count_refused"
+  ],
+  "loss": [],
+  "passes": 5,
+  "t_ingress": 0,
+  "terminal_ack": 0
+ },
+ "progress_wire": 37001042,
+ "read_class": null,
+ "read_length": null,
+ "registers_before": {
+  "client": 36000101,
+  "epoch": 347,
+  "owner": 17760294,
+  "server": 36000901,
+  "work_phase": 4
+ },
+ "scenario": "operate_without_select",
+ "state_reached": null,
+ "timed": false,
+ "verdict": "pass"
+}

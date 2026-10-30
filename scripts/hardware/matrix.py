@@ -29,7 +29,8 @@ DEFINITIONS = {'qualification': dict(file='lab.json', blocks=10, exchanges=2440)
 RECOVERY_BLOCKS = {'recovery_r1': 'r1_d20_combined', 'recovery_r2': 'r2_d20_size_only', 'recovery_r3': 'r3_d5_combined'}
 DEFINITIONS.update({name: dict(file='lab_recovery.json', blocks=1, exchanges=132) for name in RECOVERY_BLOCKS})
 # One campaign per registered D3/E2 diagnostic-mirror block (results/analysis/diag_mirror_d3/DESIGN.json), for the same
-# reason; only the declared c72_diag_mirror build may prepare them (diagnostic_contract).
+# reason; only the declared diagnostic build named by the definition file's build_label may prepare them
+# (diagnostic_contract): c72_diag_mirror for lab_diag.json (historical), c74_diag_mirror for lab_diag_c74.json.
 DIAG_BLOCKS = {'diag_d3_on': 'd3_mirror_on_d20', 'diag_d3_off': 'd3_mirror_off_d20',
                'diag_e2_first': 'e2_first_request_d20'}
 DEFINITIONS.update({name: dict(file='lab_diag.json', blocks=1, exchanges=exchanges, diagnostic=True)
@@ -44,6 +45,24 @@ DEFINITIONS.update({name: dict(file='lab_strict_cycle.json', blocks=1, exchanges
 # the e2_first_request_d20 shape with the combined arm, 32 trials x 8 READs
 DIAG_BLOCKS['diag_e2_combined'] = 'e2_combined_first_request_d20'
 DEFINITIONS['diag_e2_combined'] = dict(file='lab_diag.json', blocks=1, exchanges=256, diagnostic=True)
+# c74 focused confirmation (results/analysis/c74_confirmation/DESIGN.json): the c72 shapes above, unchanged except the
+# block ids and master ports, one campaign per block. The non-diagnostic ones are prepared with the canonical build
+# (c74; the freeze admits only the canonical source); the diagnostic ones only with c74_diag_mirror.
+STRICT_BLOCKS.update({'strict_cycle_c74_d20': 'strict_cycle_d20_combined_c74',
+                      'strict_cycle_c74_d5': 'strict_cycle_d5_combined_c74'})
+DEFINITIONS.update({name: dict(file='lab_strict_cycle_c74.json', blocks=1, exchanges=512)
+                    for name in ('strict_cycle_c74_d20', 'strict_cycle_c74_d5')})
+C74_DIAG_BLOCKS = {'diag_e2_combined_c74': 'e2_combined_first_request_d20_c74',
+                   'diag_e2_off_c74': 'e2_off_first_request_d20_c74'}
+DIAG_BLOCKS.update(C74_DIAG_BLOCKS)
+DEFINITIONS.update({name: dict(file='lab_diag_c74.json', blocks=1, exchanges=256, diagnostic=True)
+                    for name in C74_DIAG_BLOCKS})
+C74_RECOVERY_BLOCKS = {'recovery_c74_r1': 'r1_d20_combined_c74', 'recovery_c74_r2': 'r2_d20_size_only_c74',
+                       'recovery_c74_r3': 'r3_d5_combined_c74'}
+RECOVERY_BLOCKS.update(C74_RECOVERY_BLOCKS)
+DEFINITIONS.update({name: dict(file='lab_recovery_c74.json', blocks=1, exchanges=132) for name in C74_RECOVERY_BLOCKS})
+SELECT_ONLY = ('e4b_select_only', 'e4b_select_only_c74')
+DEFINITIONS['e4b_select_only_c74'] = dict(file='lab_e4b_c74.json', blocks=1, exchanges=144)
 
 
 def sha(path):
@@ -192,7 +211,7 @@ def load_definition(name):
         full = expand_diag(definition)
         definition = dict(common=full['common'], diag=full['diag'],
                           blocks=[b for b in full['blocks'] if b['id'] == DIAG_BLOCKS[name]])
-    elif name == 'e4b_select_only':
+    elif name in SELECT_ONLY:
         definition = expand_select_only(definition)
     elif name in STRICT_BLOCKS:
         full = expand_strict_cycle(definition)

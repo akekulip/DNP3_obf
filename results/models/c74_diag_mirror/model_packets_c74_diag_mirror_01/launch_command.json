@@ -1,0 +1,47 @@
+{
+  "command": [
+    "bash",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/launch_model.sh",
+    "-p",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/results/builds/c74_diag_mirror/compile_local/out",
+    "-o",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/results/models/c74_diag_mirror/model_packets_c74_diag_mirror_01",
+    "-P",
+    "9 48 64 68 180 182 196",
+    "-d",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/record_closure.py"
+  ],
+  "PORT_MAP": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/results/builds/c74_diag_mirror/response_only.inputs.json",
+  "PAD_ENABLE": "1",
+  "MILESTONE": "current",
+  "pb_injected": null,
+  "timeline": false,
+  "hardware": false,
+  "source_sha256": "e46391d81e569a19a527604d3f2d3d454589f4261149ce697c79af952cbca7f4",
+  "driver_sha256": "e076aa2ab0307085c512e8d4a826feefbf631f754abd93f1fb5ad923df8ced01",
+  "compile_manifest_sha256": "1de9ba0ab13b0deb60105784475add22d84da15f7a7377f117f26f1ecb057239",
+  "library_sha256": {
+    "scripts/model/model_driver.py": "8c6eed38df6c3470adc79d8b0d5499f4bf4c19b44b86f74c8587da253a9cf115",
+    "scripts/hardware/t_config.py": "2236a208856a3f27b8d29c0669da7aecb13e43eb40ac9990d5c128036f2fc358",
+    "scripts/model/action_observations.json": "f1dad70785454fa7ceb97f424081f851a5e2f4a5a55eeb49f055cf3660a54f10"
+  },
+  "dependency_sha256": {
+    "scripts/model/model_repeat.py": "a5b21576299213d0ef9373688a03e388ce8b797a1e54b0f4c4fd365d445698ca",
+    "scripts/model/model_drive_composite.py": "9447f5edfe1714e2da156cc44a4dc64e98e53cf7c7d5b2ba58e213e995dcd3ab"
+  },
+  "closure_target": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_packets.py",
+  "dependency_closure_sha256": "766077d402b45ef1d245ab6f21ee91e6e51ee5f889b76c71526444613a6c8df0",
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "reset_restart_required": true,
+  "supported_profile_sha256": "9000c4100e9ec807ecce5c2b6e289f419b4379a36fef5bd4cd1c30c5cace29a2",
+  "observation_source": "SDK model action log; not physical switch counters",
+  "stimulus_environment": {
+    "REPEAT_CYCLES": "64",
+    "REPEAT_TIMED_CYCLES": "3",
+    "ABANDON_T": "0",
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "model_log_retention_sha256": "5a0492691c7ada3150d3f458e539f469ef5f4176daf47e1eb0d5cc9638c64daa",
+  "retention_error": null,
+  "exit_code": 0
+}

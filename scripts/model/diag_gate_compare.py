@@ -1,8 +1,11 @@
-"""Compare the c72 model drivers run on c72_diag_mirror (sessions absent) with c72's own runs, case by case.
+"""Compare the model drivers run on a diagnostic build BASE_diag_mirror (sessions absent) with BASE's own runs.
 
-  python3 scripts/model/diag_gate_compare.py --repo REPO [--overlay OVERLAY] --out results/models/c72_diag_mirror/gate_vs_c72_NN.json
+  python3 scripts/model/diag_gate_compare.py --repo REPO [--build BASE_diag_mirror] [--overlay OVERLAY]
+      --out results/models/BASE_diag_mirror/gate_vs_BASE_NN.json
 
-For each of run_model.REQUIRED: the latest diag attempt and c72's model_summary_v3.json latest_by_driver run; every
+--build defaults to the canonical candidate's diagnostic build (results/analysis/stage_cut/current_build.json) and
+the baseline is always the base the build name derives from (c72_diag_mirror -> c72, c74_diag_mirror -> c74).
+For each of run_model.REQUIRED: the latest diag attempt and BASE's model_summary_v3.json latest_by_driver run; every
 *_results.json case is compared by (name, ok, observed). Observed values that carry model wall-clock measurements can
 differ between any two runs, so differences are listed, not hidden. With --overlay, the report also records how the
 tree the runs used differs from the commit it was archived from (--base-commit, git show), file by file.
@@ -50,11 +53,16 @@ def main():
     parser.add_argument('--repo', type=Path, required=True)
     parser.add_argument('--overlay', type=Path)
     parser.add_argument('--base-commit', default='HEAD', help='commit the overlay was archived from')
-    parser.add_argument('--build', default='c72_diag_mirror')
-    parser.add_argument('--baseline', default='c72')
+    parser.add_argument('--build', help='BASE_diag_mirror (default: the canonical candidate\'s diagnostic build)')
     parser.add_argument('--out', type=Path, required=True)
     args = parser.parse_args()
     repo = args.repo.resolve()
+    if args.build is None:
+        current = json.loads((repo / 'results/analysis/stage_cut/current_build.json').read_text())
+        args.build = current['candidate'] + '_diag_mirror'
+    if not args.build.endswith('_diag_mirror') or not args.build[:-len('_diag_mirror')]:
+        parser.error('--build must be BASE_diag_mirror')
+    args.baseline = args.build[:-len('_diag_mirror')]
     import sys
     sys.path.insert(0, str(HERE))
     import run_model
@@ -74,16 +82,16 @@ def main():
             x, y = (a.get(rname) or {}).get('cases', []), (b.get(rname) or {}).get('cases', [])
             if [c[:2] for c in x] != [c[:2] for c in y]:
                 diffs.append(dict(file=rname, kind='case names or verdicts differ'))
-            diffs += [dict(file=rname, case=cx[0], c72=cx[2][:200], diag=cy[2][:200])
+            diffs += [dict(file=rname, case=cx[0], base=cx[2][:200], diag=cy[2][:200])
                       for cx, cy in zip(x, y) if cx[:2] == cy[:2] and cx[2] != cy[2]]
         summaries = {r: (b.get(r) or {}).get('summary') for r in b}
-        drivers[name] = dict(c72_run=base.name, diag_run=diag.name, diag_exit_code=launch.get('exit_code'),
-                             diag_summary=summaries, c72_summary={r: (a.get(r) or {}).get('summary') for r in a},
+        drivers[name] = dict(base_run=base.name, diag_run=diag.name, diag_exit_code=launch.get('exit_code'),
+                             diag_summary=summaries, base_summary={r: (a.get(r) or {}).get('summary') for r in a},
                              verdicts_identical=not any(d.get('kind') for d in diffs),
                              observed_differences=[d for d in diffs if not d.get('kind')][:30],
                              observed_difference_count=sum(1 for d in diffs if not d.get('kind')))
-    report = dict(schema='c72-diag-mirror-gate-vs-c72-v1', build=args.build, baseline=args.baseline,
-                  sessions='absent (the c72 drivers do not configure the diagnostic sessions)',
+    report = dict(schema='diag-mirror-gate-vs-base-v1', build=args.build, baseline=args.baseline,
+                  sessions='absent (the gate drivers do not configure the diagnostic sessions)',
                   observation='SDK tofino-model functional output; not hardware, not timing', drivers=drivers,
                   all_diag_runs_exit_0=all(d.get('diag_exit_code') == 0 for d in drivers.values()),
                   all_verdicts_identical=all(d.get('verdicts_identical') for d in drivers.values()),

@@ -61,7 +61,7 @@ def parse(argv):
                     help='E padding policy on the fwd_conn row: 1 pads (default), 0 = policy-off control '
                          '(mapper armed and translating, no growth)')
     ap.add_argument('--diag-mirror', choices=DIAG_MIRROR_STATES, default='absent',
-                    help='c72_diag_mirror build only: absent (default) plans no diagnostic session; off/on also write '
+                    help='BASE_diag_mirror build only: absent (default) plans no diagnostic session; off/on also write '
                          'its two relay-leg copy sessions (diag_mirror_sessions.py) right after the clone session')
     ap.add_argument('--k', type=int, default=2, help='2*k generator tokens per trigger (queue_sim default k=2)')
     for role in ('ack', 'resp'):
@@ -162,7 +162,7 @@ def dataplane_params_op(a):
 
 
 def diag_mirror_plan(a, ports):
-    """(ops, errors) for --diag-mirror. absent: no ops, nothing read. off/on: the c72_diag_mirror build's two
+    """(ops, errors) for --diag-mirror. absent: no ops, nothing read. off/on: the BASE_diag_mirror build's two
     $mirror.cfg sessions from its compiled constants (diag_mirror_sessions.load/validate/ops); a build without those
     constants, or any validation error, is an error and plans nothing."""
     state = getattr(a, 'diag_mirror', 'absent')

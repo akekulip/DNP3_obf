@@ -1,4 +1,4 @@
-"""c72_diag_mirror model driver: relay-leg mirror fidelity on the copy port for one session state.
+"""Diagnostic-mirror (BASE_diag_mirror) model driver: relay-leg mirror fidelity on the copy port for one session state.
 
 DIAG_MIRROR_STATE = on | off | absent is written through scripts/hardware/diag_mirror_sessions.apply, the code the
 switch would run, over the model's BF Runtime connection. The stimulus is model_smoke's exchange set (handshake,
@@ -126,7 +126,7 @@ def main():
     build = Path(os.environ['PORT_MAP']).parent
     c = diag_mirror_sessions.load(build)
     copy = c['copy_port']
-    report = h.Report(os.environ['PROG'], physical=False, scope='c72_diag_mirror relay-leg mirror fidelity',
+    report = h.Report(os.environ['PROG'], physical=False, scope='diagnostic mirror (%s) relay-leg mirror fidelity' % Path(os.environ['PORT_MAP']).parent.name,
                       state=state, constants=c, build=build.name,
                       source_sha256=hashlib.sha256((build / 'response_only.p4').read_bytes()).hexdigest(),
                       driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())

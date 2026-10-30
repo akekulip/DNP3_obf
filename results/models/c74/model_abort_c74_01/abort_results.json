@@ -1,0 +1,1947 @@
+{
+ "cases": [
+  {
+   "expected": 4,
+   "name": "abort_held_READ_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200000753000000000a0021000b4f40000020405b40402080a000f42400000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e812000088b800007531b0121000b0cb0000020405b401030300010104020101080a000f6951000f4240"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e2000007531000088b980101000f19400000101080a000f4242000f6951"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_READ_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 1,
+   "expected": true,
+   "expected_flushed": 35001,
+   "expected_released": 35142,
+   "expected_rst_ack": 30026,
+   "frames_to_master": 1,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.03059833124279976
+   },
+   "kind": "READ",
+   "name": "abort_held_READ_master_reset_at_rcv_nxt",
+   "observed": true,
+   "offset": null,
+   "ok": true,
+   "order_before_send": "held",
+   "request_relayed": true,
+   "resets_seq": [
+    35001
+   ],
+   "responses": 0,
+   "rst_ack": [
+    30026
+   ],
+   "rst_checksums_ok": [
+    true
+   ],
+   "t_deltas": {
+    "HELD_REWAIT": 15,
+    "OLD_EPOCH_DROP": 1
+   },
+   "tag": "abort_held_READ"
+  },
+  {
+   "expected": 4,
+   "name": "abort_released_READ_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_READ_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e2000009c4000000000a00210008de10000020405b40402080a000f42430000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_READ_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e8120000afc800009c41b012100062a50000020405b401030300010104020101080a000f6954000f4243"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_READ_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e2000009c410000afc980101000a36e00000101080a000f4245000f6954"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_released_READ_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "released",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 45001,
+   "expected_released": 45142,
+   "expected_rst_ack": 40026,
+   "frames_to_master": 3,
+   "held_before_rst": null,
+   "held_wait": null,
+   "kind": "READ",
+   "name": "abort_released_READ_master_reset_at_rcv_nxt",
+   "observed": true,
+   "offset": null,
+   "ok": true,
+   "order_before_send": "released",
+   "request_relayed": true,
+   "resets_seq": [
+    45142
+   ],
+   "responses": 1,
+   "rst_ack": [
+    40026
+   ],
+   "rst_checksums_ok": [
+    true
+   ],
+   "t_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 8,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_released_READ"
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_SELECT_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200000c35000000000a002100066ce0000020405b40402080a000f42460000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e8120000d6d80000c351b0121000147f0000020405b401030300010104020101080a000f6957000f4246"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200000c3510000d6d980101000554800000101080a000f4248000f6957"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_SELECT_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 1,
+   "expected": true,
+   "expected_flushed": 55001,
+   "expected_released": 55061,
+   "expected_rst_ack": 50046,
+   "frames_to_master": 1,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.03569854469969869
+   },
+   "kind": "SELECT",
+   "name": "abort_held_SELECT_master_reset_at_rcv_nxt",
+   "observed": true,
+   "offset": null,
+   "ok": true,
+   "order_before_send": "held",
+   "request_relayed": true,
+   "resets_seq": [
+    55001
+   ],
+   "responses": 0,
+   "rst_ack": [
+    50046
+   ],
+   "rst_checksums_ok": [
+    true
+   ],
+   "t_deltas": {
+    "HELD_REWAIT": 15,
+    "OLD_EPOCH_DROP": 1
+   },
+   "tag": "abort_held_SELECT"
+  },
+  {
+   "expected": 4,
+   "name": "abort_released_SELECT_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_SELECT_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200000ea6000000000a00210003fbb0000020405b40402080a000f42490000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_SELECT_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e8120000fde80000ea61b0121000c6580000020405b401030300010104020101080a000f695a000f4249"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_SELECT_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200000ea610000fde980101000072200000101080a000f424b000f695a"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_released_SELECT_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "released",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 65001,
+   "expected_released": 65061,
+   "expected_rst_ack": 60046,
+   "frames_to_master": 3,
+   "held_before_rst": null,
+   "held_wait": null,
+   "kind": "SELECT",
+   "name": "abort_released_SELECT_master_reset_at_rcv_nxt",
+   "observed": true,
+   "offset": null,
+   "ok": true,
+   "order_before_send": "released",
+   "request_relayed": true,
+   "resets_seq": [
+    65061
+   ],
+   "responses": 1,
+   "rst_ack": [
+    60046
+   ],
+   "rst_checksums_ok": [
+    true
+   ],
+   "t_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 9,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_released_SELECT"
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_OPERATE_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_OPERATE_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200001117000000000a002100018a80000020405b40402080a000f424c0000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_OPERATE_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e812000124f800011171b012100078320000020405b401030300010104020101080a000f695d000f424c"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_OPERATE_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e2000011171000124f980101000b8fb00000101080a000f424e000f695d"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_OPERATE_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "abort_held_OPERATE_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 1,
+   "expected": true,
+   "expected_flushed": 75061,
+   "expected_released": 75121,
+   "expected_rst_ack": 70091,
+   "frames_to_master": 1,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.032677392940968275
+   },
+   "kind": "OPERATE",
+   "name": "abort_held_OPERATE_master_reset_at_rcv_nxt",
+   "observed": true,
+   "offset": null,
+   "ok": true,
+   "order_before_send": "held",
+   "request_relayed": true,
+   "resets_seq": [
+    75061
+   ],
+   "responses": 0,
+   "rst_ack": [
+    70091
+   ],
+   "rst_checksums_ok": [
+    true
+   ],
+   "t_deltas": {
+    "HELD_REWAIT": 15,
+    "OLD_EPOCH_DROP": 1
+   },
+   "tag": "abort_held_OPERATE"
+  },
+  {
+   "expected": 4,
+   "name": "abort_released_OPERATE_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_OPERATE_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200001388000000000a0021000f1930000020405b40402080a000f42500000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_OPERATE_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e81200014c0800013881b01210002a0a0000020405b401030300010104020101080a000f6961000f4250"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_OPERATE_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001388100014c09801010006ad300000101080a000f4252000f6961"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_released_OPERATE_setup_SELECT_completed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "abort_released_OPERATE_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "released",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 85061,
+   "expected_released": 85121,
+   "expected_rst_ack": 80091,
+   "frames_to_master": 3,
+   "held_before_rst": null,
+   "held_wait": null,
+   "kind": "OPERATE",
+   "name": "abort_released_OPERATE_master_reset_at_rcv_nxt",
+   "observed": true,
+   "offset": null,
+   "ok": true,
+   "order_before_send": "released",
+   "request_relayed": true,
+   "resets_seq": [
+    85121
+   ],
+   "responses": 1,
+   "rst_ack": [
+    80091
+   ],
+   "rst_checksums_ok": [
+    true
+   ],
+   "t_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 8,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_released_OPERATE"
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_READ_plus90_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_plus90_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e2000015f9000000000a0021000ca7f0000020405b40402080a000f42540000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_plus90_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e8120001731800015f91b0121000dbe10000020405b401030300010104020101080a000f6965000f4254"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_plus90_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e2000015f9100017319801010001cab00000101080a000f4256000f6965"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_READ_plus90_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 95001,
+   "expected_released": 95142,
+   "expected_rst_ack": 90026,
+   "frames_to_master": 0,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.031744932290166616
+   },
+   "kind": "READ",
+   "name": "abort_held_READ_plus90_no_master_reset",
+   "observed": true,
+   "offset": 90,
+   "ok": true,
+   "request_relayed": true,
+   "resets_seq": [],
+   "responses": 0,
+   "rst_ack": [],
+   "rst_checksums_ok": [],
+   "t_deltas": {
+    "HELD_REWAIT": 1580
+   },
+   "tag": "abort_held_READ_plus90"
+  },
+  {
+   "after_ack_frame_log": [
+    [
+     66,
+     "ack"
+    ],
+    [
+     207,
+     "response"
+    ]
+   ],
+   "before_ack": {
+    "e_reset_front_delta": 0,
+    "frames_to_master": 0,
+    "resets_seq": [],
+    "responses": 0,
+    "t_deltas": {
+     "HELD_REWAIT": 1580
+    }
+   },
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 95001,
+   "expected_released": 95142,
+   "expected_rst_ack": 90026,
+   "frames_to_master": 2,
+   "genuine_ack_sent": true,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.031744932290166616
+   },
+   "kind": "READ",
+   "name": "abort_held_READ_plus90_held_original_survives_once",
+   "observed": true,
+   "offset": 90,
+   "ok": true,
+   "request_relayed": true,
+   "resets_seq": [],
+   "response_ready_clock_proof": {
+    "ack_release_units": 408510742,
+    "gap_units": 195315,
+    "held_ack_units": 408457030,
+    "passed": true,
+    "response_arrival_units": 351875000,
+    "response_release_units": 408730468
+   },
+   "responses": 1,
+   "rst_ack": [],
+   "rst_checksums_ok": [],
+   "t_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 1702,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_held_READ_plus90"
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_READ_plus92_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_plus92_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e20000186a000000000a0021000a36c0000020405b40402080a000f42570000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_plus92_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e81200019a28000186a1b01210008dbb0000020405b401030300010104020101080a000f6968000f4257"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_READ_plus92_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e20000186a100019a2980101000ce8400000101080a000f4259000f6968"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_READ_plus92_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 105001,
+   "expected_released": 105142,
+   "expected_rst_ack": 100026,
+   "frames_to_master": 0,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.08219681307673454
+   },
+   "kind": "READ",
+   "name": "abort_held_READ_plus92_no_master_reset",
+   "observed": true,
+   "offset": 92,
+   "ok": true,
+   "request_relayed": true,
+   "resets_seq": [],
+   "responses": 0,
+   "rst_ack": [],
+   "rst_checksums_ok": [],
+   "t_deltas": {
+    "HELD_REWAIT": 1576
+   },
+   "tag": "abort_held_READ_plus92"
+  },
+  {
+   "after_ack_frame_log": [
+    [
+     66,
+     "ack"
+    ],
+    [
+     207,
+     "response"
+    ]
+   ],
+   "before_ack": {
+    "e_reset_front_delta": 0,
+    "frames_to_master": 0,
+    "resets_seq": [],
+    "responses": 0,
+    "t_deltas": {
+     "HELD_REWAIT": 1576
+    }
+   },
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 105001,
+   "expected_released": 105142,
+   "expected_rst_ack": 100026,
+   "frames_to_master": 2,
+   "genuine_ack_sent": true,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.08219681307673454
+   },
+   "kind": "READ",
+   "name": "abort_held_READ_plus92_held_original_survives_once",
+   "observed": true,
+   "offset": 92,
+   "ok": true,
+   "request_relayed": true,
+   "resets_seq": [],
+   "response_ready_clock_proof": {
+    "ack_release_units": 496860350,
+    "gap_units": 195315,
+    "held_ack_units": 496801756,
+    "passed": true,
+    "response_arrival_units": 440244140,
+    "response_release_units": 497084960
+   },
+   "responses": 1,
+   "rst_ack": [],
+   "rst_checksums_ok": [],
+   "t_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 1699,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_held_READ_plus92"
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_SELECT_plus48_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_plus48_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200001adb000000000a00210007c590000020405b40402080a000f425a0000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_plus48_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e8120001c1380001adb1b01210003f950000020405b401030300010104020101080a000f696b000f425a"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_plus48_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001adb10001c13980101000805e00000101080a000f425c000f696b"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_SELECT_plus48_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 115001,
+   "expected_released": 115061,
+   "expected_rst_ack": 110046,
+   "frames_to_master": 0,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.04707937873899937
+   },
+   "kind": "SELECT",
+   "name": "abort_held_SELECT_plus48_no_master_reset",
+   "observed": true,
+   "offset": 48,
+   "ok": true,
+   "request_relayed": true,
+   "resets_seq": [],
+   "responses": 0,
+   "rst_ack": [],
+   "rst_checksums_ok": [],
+   "t_deltas": {
+    "HELD_REWAIT": 1625
+   },
+   "tag": "abort_held_SELECT_plus48"
+  },
+  {
+   "after_ack_frame_log": [
+    [
+     66,
+     "ack"
+    ],
+    [
+     126,
+     "response"
+    ]
+   ],
+   "before_ack": {
+    "e_reset_front_delta": 0,
+    "frames_to_master": 0,
+    "resets_seq": [],
+    "responses": 0,
+    "t_deltas": {
+     "HELD_REWAIT": 1625
+    }
+   },
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 115001,
+   "expected_released": 115061,
+   "expected_rst_ack": 110046,
+   "frames_to_master": 2,
+   "genuine_ack_sent": true,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.04707937873899937
+   },
+   "kind": "SELECT",
+   "name": "abort_held_SELECT_plus48_held_original_survives_once",
+   "observed": true,
+   "offset": 48,
+   "ok": true,
+   "request_relayed": true,
+   "resets_seq": [],
+   "response_ready_clock_proof": {
+    "ack_release_units": 584897460,
+    "gap_units": 195315,
+    "held_ack_units": 584843750,
+    "passed": true,
+    "response_arrival_units": 528237304,
+    "response_release_units": 585117186
+   },
+   "responses": 1,
+   "rst_ack": [],
+   "rst_checksums_ok": [],
+   "t_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 1748,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_held_SELECT_plus48"
+  },
+  {
+   "expected": 4,
+   "name": "abort_held_SELECT_plus50_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_plus50_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200001d4c000000000a002100055460000020405b40402080a000f425d0000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_plus50_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e8120001e8480001d4c1b0121000f16e0000020405b401030300010104020101080a000f696e000f425d"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_held_SELECT_plus50_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001d4c10001e84980101000323800000101080a000f425f000f696e"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_held_SELECT_plus50_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 125001,
+   "expected_released": 125061,
+   "expected_rst_ack": 120046,
+   "frames_to_master": 0,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.031551463063806295
+   },
+   "kind": "SELECT",
+   "name": "abort_held_SELECT_plus50_no_master_reset",
+   "observed": true,
+   "offset": 50,
+   "ok": true,
+   "request_relayed": true,
+   "resets_seq": [],
+   "responses": 0,
+   "rst_ack": [],
+   "rst_checksums_ok": [],
+   "t_deltas": {
+    "HELD_REWAIT": 1592
+   },
+   "tag": "abort_held_SELECT_plus50"
+  },
+  {
+   "after_ack_frame_log": [
+    [
+     66,
+     "ack"
+    ],
+    [
+     126,
+     "response"
+    ]
+   ],
+   "before_ack": {
+    "e_reset_front_delta": 0,
+    "frames_to_master": 0,
+    "resets_seq": [],
+    "responses": 0,
+    "t_deltas": {
+     "HELD_REWAIT": 1592
+    }
+   },
+   "branch": "held",
+   "e_reset_front_delta": 0,
+   "expected": true,
+   "expected_flushed": 125001,
+   "expected_released": 125061,
+   "expected_rst_ack": 120046,
+   "frames_to_master": 2,
+   "genuine_ack_sent": true,
+   "held_before_rst": true,
+   "held_wait": {
+    "admit_seen": true,
+    "waited_s": 0.031551463063806295
+   },
+   "kind": "SELECT",
+   "name": "abort_held_SELECT_plus50_held_original_survives_once",
+   "observed": true,
+   "offset": 50,
+   "ok": true,
+   "request_relayed": true,
+   "resets_seq": [],
+   "response_ready_clock_proof": {
+    "ack_release_units": 672617186,
+    "gap_units": 195315,
+    "held_ack_units": 672558592,
+    "passed": true,
+    "response_arrival_units": 616049804,
+    "response_release_units": 672836914
+   },
+   "responses": 1,
+   "rst_ack": [],
+   "rst_checksums_ok": [],
+   "t_deltas": {
+    "ACK_COMMIT": 1,
+    "HELD_REWAIT": 1713,
+    "RESP_RELEASE": 1
+   },
+   "tag": "abort_held_SELECT_plus50"
+  },
+  {
+   "expected": 4,
+   "name": "abort_released_READ_plus91_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_READ_plus91_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e200001fbd000000000a00210002e330000020405b40402080a000f42600000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_READ_plus91_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e81200020f580001fbd1b0121000a3480000020405b401030300010104020101080a000f6971000f4260"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_READ_plus91_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e200001fbd100020f5980101000e41100000101080a000f4262000f6971"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_released_READ_plus91_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "abort_released_SELECT_plus49_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_SELECT_plus49_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e20000222e000000000a002100007200000020405b40402080a000f42630000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_SELECT_plus49_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e81200023668000222e1b012100055220000020405b401030300010104020101080a000f6974000f4263"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_released_SELECT_plus49_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e20000222e1000236698010100095eb00000101080a000f4265000f6974"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_released_SELECT_plus49_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": 4,
+   "name": "abort_followed_by_READ_work_cell_idle_at_start",
+   "observed": 4,
+   "ok": true
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_followed_by_READ_SYN",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc008004500003c000140004006a562c0a80a01c0a80a07e8124e20000249f000000000a0021000e00c0000020405b40402080a000f42660000000001030307"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_followed_by_READ_SYNACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [],
+    "9": [
+     "3cfdfecc5dc00030a7024ca2080045000040000140004006a55ec0a80a07c0a80a014e20e81200025d78000249f1b012100006fc0000020405b401030300010104020101080a000f6977000f4266"
+    ]
+   }
+  },
+  {
+   "expected": "one exact frame",
+   "name": "abort_followed_by_READ_final_ACK",
+   "observed": "1 frames",
+   "ok": true,
+   "received": {
+    "64": [
+     "0030a7024ca23cfdfecc5dc0080045000034000140004006a56ac0a80a01c0a80a07e8124e20000249f100025d798010100047c500000101080a000f4268000f6977"
+    ],
+    "9": []
+   }
+  },
+  {
+   "expected": true,
+   "name": "abort_followed_by_READ_request_relayed",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "expected": true,
+   "name": "abort_followed_by_READ_timestamp_options_delivery_order",
+   "observed": true,
+   "ok": true
+  },
+  {
+   "clrt_wall_s": 0.040708224289119244,
+   "copy_after_release": false,
+   "count_busy_delta": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "d_ms": 0,
+   "delivered_without_resend": true,
+   "expected": true,
+   "extended_capture_used": false,
+   "frame_log": [
+    [
+     0.0,
+     66,
+     "ack"
+    ],
+    [
+     0.0407,
+     207,
+     "response"
+    ]
+   ],
+   "frames_to_master": 2,
+   "kind": "READ",
+   "lane": {
+    "ACK_COMMIT": 1,
+    "RESP_RELEASE": 1
+   },
+   "name": "abort_followed_by_READ_delivered_once_committed",
+   "observed": true,
+   "ok": true,
+   "readiness_evidence": null,
+   "readiness_reached_before_release": false,
+   "request_to_ack_wall_s": 0.4265,
+   "resp_dup_drop": 0,
+   "response_ready_clock_proof": {
+    "ack_release_units": 761699218,
+    "gap_units": 195315,
+    "held_ack_units": 761411132,
+    "passed": true,
+    "response_arrival_units": 761674804,
+    "response_release_units": 761899414
+   },
+   "tag": "abort_followed_by_READ"
+  },
+  {
+   "expected": true,
+   "name": "abort_followed_by_READ_RST_relayed",
+   "observed": true,
+   "ok": true
+  }
+ ],
+ "meta": {
+  "abort_negative_characterization": [
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 135001,
+    "expected_released": 135142,
+    "expected_rst_ack": 130026,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "READ",
+    "offset": 91,
+    "request_relayed": true,
+    "resets_seq": [
+     135142
+    ],
+    "responses": 1,
+    "rst_ack": [
+     130026
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 9,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_READ_plus91"
+   },
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 145001,
+    "expected_released": 145061,
+    "expected_rst_ack": 140046,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "SELECT",
+    "offset": 49,
+    "request_relayed": true,
+    "resets_seq": [
+     145061
+    ],
+    "responses": 1,
+    "rst_ack": [
+     140046
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 8,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_SELECT_plus49"
+   }
+  ],
+  "driver_sha256": "2b8c4564d2c3ff0daf91646d01594d99f65d2b21520c45a5a3e0cf8a7a59afdc",
+  "endpoint_profile": {
+   "alternate_tcp_port_fixture": "Unconfigured-connection probes use master source port 59411",
+   "dnp_master": 1,
+   "dnp_relay": 0,
+   "master_dev": 9,
+   "master_ip": "192.168.10.1",
+   "master_mac": "3c:fd:fe:cc:5d:c0",
+   "master_tcp_port": 59410,
+   "master_window_scale": 7,
+   "name": "sel751",
+   "relay_dev": 64,
+   "relay_ip": "192.168.10.7",
+   "relay_mac": "00:30:a7:02:4c:a2",
+   "relay_tcp_port": 20000,
+   "relay_window_scale": 0,
+   "syn_tcp_header_octets": 40,
+   "synack_tcp_header_octets": 44,
+   "tcp_header_octets": 32,
+   "tcp_profile": "sel751_ts",
+   "timestamp_policy": "monotonic logical steps; exact options retained across seq/ack mapping"
+  },
+  "final_count_busy": [
+   0,
+   0,
+   5,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "final_outcomes": {
+   "ACK_COMMIT": 12,
+   "GEN_EXHAUSTED": 0,
+   "HELD_OFF_FLUSH": 0,
+   "HELD_REWAIT": 7005,
+   "HELD_STALE_FLUSH": 0,
+   "OLD_EPOCH_DROP": 3,
+   "REQ_BYPASS": 0,
+   "REQ_DUP_DROP": 0,
+   "REQ_DUP_FORWARD": 0,
+   "RESP_DUP_DROP": 0,
+   "RESP_RELEASE": 12,
+   "TOKEN_OFF": 0,
+   "TOKEN_STALE": 0,
+   "TOKEN_TMO": 0,
+   "UNMATCHED": 0
+  },
+  "measurement_source": "SDK model action log plus functional BFRT state; no physical switch timing",
+  "n_generation_counter": 81,
+  "ordinary_restart_by_kind": {},
+  "physical": false,
+  "points": [
+   {
+    "branch": "held",
+    "e_reset_front_delta": 1,
+    "expected_flushed": 35001,
+    "expected_released": 35142,
+    "expected_rst_ack": 30026,
+    "frames_to_master": 1,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.03059833124279976
+    },
+    "kind": "READ",
+    "offset": null,
+    "order_before_send": "held",
+    "request_relayed": true,
+    "resets_seq": [
+     35001
+    ],
+    "responses": 0,
+    "rst_ack": [
+     30026
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "HELD_REWAIT": 15,
+     "OLD_EPOCH_DROP": 1
+    },
+    "tag": "abort_held_READ"
+   },
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 45001,
+    "expected_released": 45142,
+    "expected_rst_ack": 40026,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "READ",
+    "offset": null,
+    "order_before_send": "released",
+    "request_relayed": true,
+    "resets_seq": [
+     45142
+    ],
+    "responses": 1,
+    "rst_ack": [
+     40026
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 8,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_READ"
+   },
+   {
+    "branch": "held",
+    "e_reset_front_delta": 1,
+    "expected_flushed": 55001,
+    "expected_released": 55061,
+    "expected_rst_ack": 50046,
+    "frames_to_master": 1,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.03569854469969869
+    },
+    "kind": "SELECT",
+    "offset": null,
+    "order_before_send": "held",
+    "request_relayed": true,
+    "resets_seq": [
+     55001
+    ],
+    "responses": 0,
+    "rst_ack": [
+     50046
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "HELD_REWAIT": 15,
+     "OLD_EPOCH_DROP": 1
+    },
+    "tag": "abort_held_SELECT"
+   },
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 65001,
+    "expected_released": 65061,
+    "expected_rst_ack": 60046,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "SELECT",
+    "offset": null,
+    "order_before_send": "released",
+    "request_relayed": true,
+    "resets_seq": [
+     65061
+    ],
+    "responses": 1,
+    "rst_ack": [
+     60046
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 9,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_SELECT"
+   },
+   {
+    "branch": "held",
+    "e_reset_front_delta": 1,
+    "expected_flushed": 75061,
+    "expected_released": 75121,
+    "expected_rst_ack": 70091,
+    "frames_to_master": 1,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.032677392940968275
+    },
+    "kind": "OPERATE",
+    "offset": null,
+    "order_before_send": "held",
+    "request_relayed": true,
+    "resets_seq": [
+     75061
+    ],
+    "responses": 0,
+    "rst_ack": [
+     70091
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "HELD_REWAIT": 15,
+     "OLD_EPOCH_DROP": 1
+    },
+    "tag": "abort_held_OPERATE"
+   },
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 85061,
+    "expected_released": 85121,
+    "expected_rst_ack": 80091,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "OPERATE",
+    "offset": null,
+    "order_before_send": "released",
+    "request_relayed": true,
+    "resets_seq": [
+     85121
+    ],
+    "responses": 1,
+    "rst_ack": [
+     80091
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 8,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_OPERATE"
+   },
+   {
+    "after_ack_frame_log": [
+     [
+      66,
+      "ack"
+     ],
+     [
+      207,
+      "response"
+     ]
+    ],
+    "before_ack": {
+     "e_reset_front_delta": 0,
+     "frames_to_master": 0,
+     "resets_seq": [],
+     "responses": 0,
+     "t_deltas": {
+      "HELD_REWAIT": 1580
+     }
+    },
+    "branch": "held",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 95001,
+    "expected_released": 95142,
+    "expected_rst_ack": 90026,
+    "frames_to_master": 2,
+    "genuine_ack_sent": true,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.031744932290166616
+    },
+    "kind": "READ",
+    "offset": 90,
+    "request_relayed": true,
+    "resets_seq": [],
+    "response_ready_clock_proof": {
+     "ack_release_units": 408510742,
+     "gap_units": 195315,
+     "held_ack_units": 408457030,
+     "passed": true,
+     "response_arrival_units": 351875000,
+     "response_release_units": 408730468
+    },
+    "responses": 1,
+    "rst_ack": [],
+    "rst_checksums_ok": [],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 1702,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_held_READ_plus90"
+   },
+   {
+    "after_ack_frame_log": [
+     [
+      66,
+      "ack"
+     ],
+     [
+      207,
+      "response"
+     ]
+    ],
+    "before_ack": {
+     "e_reset_front_delta": 0,
+     "frames_to_master": 0,
+     "resets_seq": [],
+     "responses": 0,
+     "t_deltas": {
+      "HELD_REWAIT": 1576
+     }
+    },
+    "branch": "held",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 105001,
+    "expected_released": 105142,
+    "expected_rst_ack": 100026,
+    "frames_to_master": 2,
+    "genuine_ack_sent": true,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.08219681307673454
+    },
+    "kind": "READ",
+    "offset": 92,
+    "request_relayed": true,
+    "resets_seq": [],
+    "response_ready_clock_proof": {
+     "ack_release_units": 496860350,
+     "gap_units": 195315,
+     "held_ack_units": 496801756,
+     "passed": true,
+     "response_arrival_units": 440244140,
+     "response_release_units": 497084960
+    },
+    "responses": 1,
+    "rst_ack": [],
+    "rst_checksums_ok": [],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 1699,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_held_READ_plus92"
+   },
+   {
+    "after_ack_frame_log": [
+     [
+      66,
+      "ack"
+     ],
+     [
+      126,
+      "response"
+     ]
+    ],
+    "before_ack": {
+     "e_reset_front_delta": 0,
+     "frames_to_master": 0,
+     "resets_seq": [],
+     "responses": 0,
+     "t_deltas": {
+      "HELD_REWAIT": 1625
+     }
+    },
+    "branch": "held",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 115001,
+    "expected_released": 115061,
+    "expected_rst_ack": 110046,
+    "frames_to_master": 2,
+    "genuine_ack_sent": true,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.04707937873899937
+    },
+    "kind": "SELECT",
+    "offset": 48,
+    "request_relayed": true,
+    "resets_seq": [],
+    "response_ready_clock_proof": {
+     "ack_release_units": 584897460,
+     "gap_units": 195315,
+     "held_ack_units": 584843750,
+     "passed": true,
+     "response_arrival_units": 528237304,
+     "response_release_units": 585117186
+    },
+    "responses": 1,
+    "rst_ack": [],
+    "rst_checksums_ok": [],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 1748,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_held_SELECT_plus48"
+   },
+   {
+    "after_ack_frame_log": [
+     [
+      66,
+      "ack"
+     ],
+     [
+      126,
+      "response"
+     ]
+    ],
+    "before_ack": {
+     "e_reset_front_delta": 0,
+     "frames_to_master": 0,
+     "resets_seq": [],
+     "responses": 0,
+     "t_deltas": {
+      "HELD_REWAIT": 1592
+     }
+    },
+    "branch": "held",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 125001,
+    "expected_released": 125061,
+    "expected_rst_ack": 120046,
+    "frames_to_master": 2,
+    "genuine_ack_sent": true,
+    "held_before_rst": true,
+    "held_wait": {
+     "admit_seen": true,
+     "waited_s": 0.031551463063806295
+    },
+    "kind": "SELECT",
+    "offset": 50,
+    "request_relayed": true,
+    "resets_seq": [],
+    "response_ready_clock_proof": {
+     "ack_release_units": 672617186,
+     "gap_units": 195315,
+     "held_ack_units": 672558592,
+     "passed": true,
+     "response_arrival_units": 616049804,
+     "response_release_units": 672836914
+    },
+    "responses": 1,
+    "rst_ack": [],
+    "rst_checksums_ok": [],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 1713,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_held_SELECT_plus50"
+   },
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 135001,
+    "expected_released": 135142,
+    "expected_rst_ack": 130026,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "READ",
+    "offset": 91,
+    "request_relayed": true,
+    "resets_seq": [
+     135142
+    ],
+    "responses": 1,
+    "rst_ack": [
+     130026
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 9,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_READ_plus91"
+   },
+   {
+    "branch": "released",
+    "e_reset_front_delta": 0,
+    "expected_flushed": 145001,
+    "expected_released": 145061,
+    "expected_rst_ack": 140046,
+    "frames_to_master": 3,
+    "held_before_rst": null,
+    "held_wait": null,
+    "kind": "SELECT",
+    "offset": 49,
+    "request_relayed": true,
+    "resets_seq": [
+     145061
+    ],
+    "responses": 1,
+    "rst_ack": [
+     140046
+    ],
+    "rst_checksums_ok": [
+     true
+    ],
+    "t_deltas": {
+     "ACK_COMMIT": 1,
+     "HELD_REWAIT": 8,
+     "RESP_RELEASE": 1
+    },
+    "tag": "abort_released_SELECT_plus49"
+   },
+   {
+    "clrt_wall_s": 0.040708224289119244,
+    "copy_after_release": false,
+    "count_busy_delta": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "d_ms": 0,
+    "delivered_without_resend": true,
+    "extended_capture_used": false,
+    "frame_log": [
+     [
+      0.0,
+      66,
+      "ack"
+     ],
+     [
+      0.0407,
+      207,
+      "response"
+     ]
+    ],
+    "frames_to_master": 2,
+    "kind": "READ",
+    "lane": {
+     "ACK_COMMIT": 1,
+     "RESP_RELEASE": 1
+    },
+    "readiness_evidence": null,
+    "readiness_reached_before_release": false,
+    "request_to_ack_wall_s": 0.4265,
+    "resp_dup_drop": 0,
+    "response_ready_clock_proof": {
+     "ack_release_units": 761699218,
+     "gap_units": 195315,
+     "held_ack_units": 761411132,
+     "passed": true,
+     "response_arrival_units": 761674804,
+     "response_release_units": 761899414
+    },
+    "tag": "abort_followed_by_READ"
+   }
+  ],
+  "reflections": {
+   "48": {
+    "bytes_12_13_seen": {
+     "0xe100": "000000000000000000000000e1000000",
+     "0xe609": "00000001000088b900000000e6090000",
+     "0xe60c": "000000170001253500000000e60c0000"
+    },
+    "first_16_bytes_by_length": {
+     "107": "00000001000088b900000000e1000000",
+     "127": "0000000c0000d6d900000000e1000000",
+     "82": "00000001000088b900000000e1000000",
+     "90": "000000000000000000000000e1000000"
+    },
+    "frames": 69,
+    "longest": 127,
+    "shortest": 82
+   },
+   "180": {
+    "bytes_12_13_seen": {
+     "0x0900": "00000001000088b90000000009000000",
+     "0x0a00": "0000000600000000000000000a000000",
+     "0x0b00": "0000000100000000000000000b000000",
+     "0x0c00": "0000001700012535000000000c000000",
+     "0x0d01": "0000002800017319000000000d010000",
+     "0x0d02": "0000000100000000000000000d020000",
+     "0x0e00": "0000000100000000000000000e000000"
+    },
+    "first_16_bytes_by_length": {
+     "107": "00000001000088b90000000009000000",
+     "127": "0000000c0000d6d90000000009000000",
+     "131": "0000000c00000000000000000b000000",
+     "223": "0000000100000000000000000b000000",
+     "82": "0000000100000000000000000d020000",
+     "90": "0000000100000000000000000e000000"
+    },
+    "frames": 68,
+    "longest": 223,
+    "shortest": 82
+   },
+   "182": {
+    "bytes_12_13_seen": {
+     "0x5dc0": "0f000002000000013cfdfecc5dc00030"
+    },
+    "first_16_bytes_by_length": {
+     "123": "0f0000080000000c3cfdfecc5dc00030",
+     "215": "0f000002000000013cfdfecc5dc00030",
+     "74": "0e000005000000063cfdfecc5dc00030"
+    },
+    "frames": 7032,
+    "longest": 215,
+    "shortest": 74
+   }
+  },
+  "scope": "ctl_timing_01 m10: ACK/response contention for N's work cell (spacing sweep, edges)",
+  "sections": [
+   "abort"
+  ],
+  "timing_contract": "response_ready_ack_d_no_j_v3"
+ },
+ "program": "response_only",
+ "summary": {
+  "failed": [],
+  "passed": 84,
+  "total": 84
+ }
+}

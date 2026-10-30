@@ -1,0 +1,39 @@
+{
+ "case": "fin_after_exchange_integrity",
+ "checks": [
+  {
+   "actual": true,
+   "expect": true,
+   "name": "exchange_and_FIN_close_completed",
+   "ok": true
+  }
+ ],
+ "closed": true,
+ "evidence_kind": "genuine_processing",
+ "expect": "READ exchange then FIN close",
+ "expectation": "as_before",
+ "isn": {
+  "master": 32000100,
+  "relay": 32000900
+ },
+ "read_class": "integrity",
+ "read_length": 27,
+ "registers_after": {
+  "client": 32000128,
+  "epoch": 409,
+  "owner": 17760290,
+  "server": 32001035,
+  "work_phase": 4
+ },
+ "registers_before": {
+  "client": 31000128,
+  "epoch": 405,
+  "owner": 33554465,
+  "server": 31000901,
+  "work_phase": 4
+ },
+ "scenario": "fin_after_exchange",
+ "state_reached": null,
+ "timed": false,
+ "verdict": "pass"
+}

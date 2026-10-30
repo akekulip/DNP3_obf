@@ -1,0 +1,64 @@
+{
+ "case": "stale_retry_integrity",
+ "checks": [
+  {
+   "actual": "AssertionError: stale_retry_integrity_SYN",
+   "expect": null,
+   "name": "no_exception",
+   "ok": false
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 13500101,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 138,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 327694,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 13500901,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 155,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 0,
+  "rst_seq": 13500101
+ },
+ "error": "Traceback (most recent call last):\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_connection_fix.py\", line 937, in run_case\n    reached = CASE_FUNCTIONS[case['scenario']](ctx, case, ck, rec, isn)\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_connection_fix.py\", line 574, in case_stale_retry\n    c, s, wire, request, native, image, sent = forced_read_setup(ctx, case, isn)\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_connection_fix.py\", line 534, in forced_read_setup\n    c, s, wire = ctx.handshake(isn[0], isn[1], tag)\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_connection_fix.py\", line 214, in handshake\n    state = self.gate.handshake(c, s, tag + '_')\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_relay_sbo.py\", line 88, in handshake\n    return super().handshake(cseq, sseq, tag)\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_packets.py\", line 322, in handshake\n    self.exchange(tag + 'SYN', self.v.packet(2, cseq, mss=1460), self.v.packet(2, cseq, mss=1460))\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_packets.py\", line 317, in exchange\n    self.add(name, 'one exact frame', len(flat), ok=exact, sent=sent, received=got, expected_frame=expected)\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_packets.py\", line 302, in add\n    raise AssertionError(name)\nAssertionError: stale_retry_integrity_SYN\n",
+ "evidence_kind": "forced_register",
+ "expect": "a retrying READ whose epoch no longer matches retry_epoch is dropped by retry_stale once",
+ "expectation": "fix",
+ "isn": {
+  "master": 26000100,
+  "relay": 26000900
+ },
+ "read_class": "integrity",
+ "read_length": 27,
+ "registers_before": {
+  "client": 13500101,
+  "epoch": 138,
+  "owner": 327694,
+  "server": 13500901,
+  "work_phase": 4
+ },
+ "scenario": "stale_retry",
+ "state_reached": null,
+ "timed": false,
+ "verdict": "fail"
+}

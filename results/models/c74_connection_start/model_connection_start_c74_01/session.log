@@ -1,0 +1,54 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS H1_mixed_SYN                       expected=one exact frame observed=1
+PASS H1_mixed_SYNACK                    expected=one exact frame observed=1
+PASS H1_mixed                           expected=state evidence and verdict recorded observed=falsified_for_this_path
+PASS H2_mixed_SYN                       expected=one exact frame observed=1
+PASS H2_mixed_SYNACK                    expected=one exact frame observed=1
+PASS H2_mixed                           expected=state evidence and verdict recorded observed=falsified_for_this_path
+PASS H2r_mixed_SYN                      expected=one exact frame observed=1
+PASS H2r_mixed_SYNACK                   expected=one exact frame observed=1
+PASS H2r_mixed                          expected=state evidence and verdict recorded observed=falsified_for_this_path
+PASS collision_mixed_SYN                expected=one exact frame observed=1
+PASS collision_mixed_SYNACK             expected=one exact frame observed=1
+PASS collision_mixed_ACK                expected=one exact frame observed=1
+PASS collision_mixed_READ_request       expected=one exact frame observed=1
+PASS collision_mixed_READ_ACK           expected=one exact frame observed=1
+PASS collision_mixed_READ_complete_response expected=one exact frame observed=1
+PASS collision_mixed_READ_mapped_complete_ACK expected=one exact frame observed=1
+PASS collision_mixed_SELECT_request     expected=one exact frame observed=1
+PASS collision_mixed_SELECT_relay_ACK   expected=one exact frame observed=1
+PASS collision_mixed                    expected=state evidence and verdict recorded observed=falsified_for_this_path
+PASS H1prime_mixed_SYN                  expected=one exact frame observed=1
+PASS H1prime_mixed_SYNACK               expected=one exact frame observed=1
+PASS H1prime_mixed_ACK                  expected=one exact frame observed=1
+PASS H1prime_mixed                      expected=state evidence and verdict recorded observed=falsified_for_this_path
+PASS H1_integrity_SYN                   expected=one exact frame observed=1
+PASS H1_integrity_SYNACK                expected=one exact frame observed=1
+PASS H1_integrity                       expected=state evidence and verdict recorded observed=falsified_for_this_path
+PASS H2_integrity_SYN                   expected=one exact frame observed=1
+PASS H2_integrity_SYNACK                expected=one exact frame observed=1
+PASS H2_integrity                       expected=state evidence and verdict recorded observed=falsified_for_this_path
+PASS H2r_integrity_SYN                  expected=one exact frame observed=1
+PASS H2r_integrity_SYNACK               expected=one exact frame observed=1
+PASS H2r_integrity                      expected=state evidence and verdict recorded observed=falsified_for_this_path
+PASS collision_integrity_SYN            expected=one exact frame observed=1
+PASS collision_integrity_SYNACK         expected=one exact frame observed=1
+PASS collision_integrity_ACK            expected=one exact frame observed=1
+PASS collision_integrity_READ_request   expected=one exact frame observed=1
+PASS collision_integrity_READ_ACK       expected=one exact frame observed=1
+PASS collision_integrity_READ_complete_response expected=one exact frame observed=1
+PASS collision_integrity_READ_mapped_complete_ACK expected=one exact frame observed=1
+PASS collision_integrity_SELECT_request expected=one exact frame observed=1
+PASS collision_integrity_SELECT_relay_ACK expected=one exact frame observed=1
+PASS collision_integrity                expected=state evidence and verdict recorded observed=falsified_for_this_path
+PASS H1prime_integrity_SYN              expected=one exact frame observed=1
+PASS H1prime_integrity_SYNACK           expected=one exact frame observed=1
+PASS H1prime_integrity_ACK              expected=one exact frame observed=1
+PASS H1prime_integrity                  expected=state evidence and verdict recorded observed=falsified_for_this_path
+SUMMARY {'total': 46, 'passed': 46, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

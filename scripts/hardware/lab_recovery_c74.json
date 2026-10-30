@@ -1,0 +1,79 @@
+{
+  "_note": "c74 E3 SELECT-loss recovery confirmation: the c72 recovery conditions (lab_recovery.json) unchanged except the block ids and master ports; design in results/analysis/c74_confirmation/DESIGN.json.",
+  "base": "lab.json",
+  "template": "10_d20_loss_full",
+  "preset": "select_resp_padded_x6",
+  "entries": [
+    {
+      "class": "select_resp_padded",
+      "n": 1,
+      "target": "identity"
+    },
+    {
+      "class": "select_resp_padded",
+      "n": 1,
+      "target": "identity"
+    },
+    {
+      "class": "select_resp_padded",
+      "n": 1,
+      "target": "identity"
+    },
+    {
+      "class": "select_resp_padded",
+      "n": 1,
+      "target": "identity"
+    },
+    {
+      "class": "select_resp_padded",
+      "n": 1,
+      "target": "identity"
+    },
+    {
+      "class": "select_resp_padded",
+      "n": 1,
+      "target": "identity"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "r1_d20_combined_c74",
+      "d_ms": 20,
+      "arm": {
+        "name": "combined",
+        "T": 1,
+        "padding": 1
+      },
+      "master_port_range": {
+        "first": 60390,
+        "last": 60395
+      }
+    },
+    {
+      "id": "r2_d20_size_only_c74",
+      "d_ms": 20,
+      "arm": {
+        "name": "size_only",
+        "T": 0,
+        "padding": 1
+      },
+      "master_port_range": {
+        "first": 60396,
+        "last": 60401
+      }
+    },
+    {
+      "id": "r3_d5_combined_c74",
+      "d_ms": 5,
+      "arm": {
+        "name": "combined",
+        "T": 1,
+        "padding": 1
+      },
+      "master_port_range": {
+        "first": 60402,
+        "last": 60407
+      }
+    }
+  ]
+}

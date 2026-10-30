@@ -1,0 +1,223 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS H1_mixed_SYN                       expected=one exact frame observed=1
+PASS H1_mixed_SYNACK                    expected=one exact frame observed=1
+FAIL H1_mixed_READ_timed_ACK_then_complete_response expected=True       observed=False
+FAIL H1_mixed                           expected=pass       observed=fail
+PASS H2_mixed_SYN                       expected=one exact frame observed=1
+PASS H2_mixed_SYNACK                    expected=one exact frame observed=1
+PASS H2_mixed_READ_ACK                  expected=one exact frame observed=1
+PASS H2_mixed_READ_complete_response    expected=one exact frame observed=1
+PASS H2_mixed_READ_image_len            expected=141        observed=141
+PASS H2_mixed_READ_mapped_complete_ACK  expected=one exact frame observed=1
+PASS H2_mixed_SELECT_request            expected=one exact frame observed=1
+PASS H2_mixed_SELECT_ACK                expected=one exact frame observed=1
+PASS H2_mixed_SELECT_complete_response  expected=one exact frame observed=1
+PASS H2_mixed_SELECT_captured_all32_application_octets expected=c18180000c011702010101c80000000000000000030101c80000000000000000 observed=c18180000c011702010101c80000000000000000030101c80000000000000000
+PASS H2_mixed_SELECT_captured_wire_partition expected=[28, 32]   observed=[28, 32]
+PASS H2_mixed_SELECT_one_commit_and_11_growth expected={'commit': 1, 'replay': 0, 'growth': 11} observed={'commit': 1, 'replay': 0, 'growth': 11}
+PASS H2_mixed_SELECT_mapped_complete_ACK expected=one exact frame observed=1
+PASS H2_mixed_SELECT_logical_response_single_commit_and_11_growth expected={'commit': 1, 'replay': 0, 'growth': 11} observed={'commit': 1, 'replay': 0, 'growth': 11}
+PASS H2_mixed_OPERATE_request           expected=one exact frame observed=1
+PASS H2_mixed_OPERATE_ACK               expected=one exact frame observed=1
+PASS H2_mixed_OPERATE_complete_response expected=one exact frame observed=1
+PASS H2_mixed_OPERATE_captured_all32_application_octets expected=c28180000c011702010101c80000000000000000030101c80000000000000000 observed=c28180000c011702010101c80000000000000000030101c80000000000000000
+PASS H2_mixed_OPERATE_captured_wire_partition expected=[28, 32]   observed=[28, 32]
+PASS H2_mixed_OPERATE_one_commit_and_11_growth expected={'commit': 1, 'replay': 0, 'growth': 11} observed={'commit': 1, 'replay': 0, 'growth': 11}
+PASS H2_mixed_OPERATE_mapped_complete_ACK expected=one exact frame observed=1
+PASS H2_mixed_OPERATE_logical_response_single_commit_and_11_growth expected={'commit': 1, 'replay': 0, 'growth': 11} observed={'commit': 1, 'replay': 0, 'growth': 11}
+PASS H2_mixed_READ2_request             expected=one exact frame observed=1
+PASS H2_mixed_READ2_ACK                 expected=one exact frame observed=1
+PASS H2_mixed_READ2_complete_response   expected=one exact frame observed=1
+PASS H2_mixed_READ2_mapped_complete_ACK expected=one exact frame observed=1
+PASS H2_mixed_close_fin                 expected=one exact frame observed=1
+PASS H2_mixed_close_fin_ack             expected=one exact frame observed=1
+PASS H2_mixed_close_last_ack            expected=one exact frame observed=1
+FAIL H2_mixed                           expected=pass       observed=fail
+PASS H2r_mixed_SYN                      expected=one exact frame observed=1
+PASS H2r_mixed_SYNACK                   expected=one exact frame observed=1
+PASS H2r_mixed_READ_timed_ACK_then_complete_response expected=True       observed=True
+PASS H2r_mixed_READ_committed_no_request_retry expected=[1, 1, 0, 0] observed=[1, 1, 0, 0]
+PASS H2r_mixed_READ_image_len           expected=141        observed=141
+PASS H2r_mixed_READ_mapped_complete_ACK expected=one exact frame observed=1
+PASS H2r_mixed_SELECT_request           expected=one exact frame observed=1
+PASS H2r_mixed_SELECT_timed_ACK_then_complete_response expected=True       observed=True
+PASS H2r_mixed_SELECT_timed_timestamp_delivery_order expected=True       observed=True
+PASS H2r_mixed_SELECT_committed_no_request_retry expected=[1, 1, 0, 0] observed=[1, 1, 0, 0]
+PASS H2r_mixed_SELECT_captured_all32_application_octets expected=c18180000c011702010101c80000000000000000030101c80000000000000000 observed=c18180000c011702010101c80000000000000000030101c80000000000000000
+PASS H2r_mixed_SELECT_captured_wire_partition expected=[28, 32]   observed=[28, 32]
+PASS H2r_mixed_SELECT_one_commit_and_11_growth expected={'commit': 1, 'replay': 0, 'growth': 11} observed={'commit': 1, 'replay': 0, 'growth': 11}
+PASS H2r_mixed_SELECT_mapped_complete_ACK expected=one exact frame observed=1
+PASS H2r_mixed_SELECT_logical_response_single_commit_and_11_growth expected={'commit': 1, 'replay': 0, 'growth': 11} observed={'commit': 1, 'replay': 0, 'growth': 11}
+PASS H2r_mixed_OPERATE_request          expected=one exact frame observed=1
+PASS H2r_mixed_OPERATE_timed_ACK_then_complete_response expected=True       observed=True
+PASS H2r_mixed_OPERATE_timed_timestamp_delivery_order expected=True       observed=True
+PASS H2r_mixed_OPERATE_committed_no_request_retry expected=[1, 1, 0, 0] observed=[1, 1, 0, 0]
+PASS H2r_mixed_OPERATE_captured_all32_application_octets expected=c28180000c011702010101c80000000000000000030101c80000000000000000 observed=c28180000c011702010101c80000000000000000030101c80000000000000000
+PASS H2r_mixed_OPERATE_captured_wire_partition expected=[28, 32]   observed=[28, 32]
+PASS H2r_mixed_OPERATE_one_commit_and_11_growth expected={'commit': 1, 'replay': 0, 'growth': 11} observed={'commit': 1, 'replay': 0, 'growth': 11}
+PASS H2r_mixed_OPERATE_mapped_complete_ACK expected=one exact frame observed=1
+PASS H2r_mixed_OPERATE_logical_response_single_commit_and_11_growth expected={'commit': 1, 'replay': 0, 'growth': 11} observed={'commit': 1, 'replay': 0, 'growth': 11}
+PASS H2r_mixed_READ2_request            expected=one exact frame observed=1
+PASS H2r_mixed_READ2_timed_ACK_then_complete_response expected=True       observed=True
+PASS H2r_mixed_READ2_timed_timestamp_delivery_order expected=True       observed=True
+PASS H2r_mixed_READ2_committed_no_request_retry expected=[1, 1, 0, 0] observed=[1, 1, 0, 0]
+PASS H2r_mixed_READ2_mapped_complete_ACK expected=one exact frame observed=1
+PASS H2r_mixed_close_fin                expected=one exact frame observed=1
+PASS H2r_mixed_close_fin_ack            expected=one exact frame observed=1
+PASS H2r_mixed_close_last_ack           expected=one exact frame observed=1
+FAIL H2r_mixed                          expected=pass       observed=fail
+PASS collision_mixed_SYN                expected=one exact frame observed=1
+PASS collision_mixed_SYNACK             expected=one exact frame observed=1
+PASS collision_mixed_ACK                expected=one exact frame observed=1
+PASS collision_mixed_READ_request       expected=one exact frame observed=1
+PASS collision_mixed_READ_ACK           expected=one exact frame observed=1
+PASS collision_mixed_READ_complete_response expected=one exact frame observed=1
+PASS collision_mixed_READ_mapped_complete_ACK expected=one exact frame observed=1
+PASS collision_mixed_SELECT_request     expected=one exact frame observed=1
+PASS collision_mixed_SELECT_relay_ACK   expected=one exact frame observed=1
+FAIL collision_mixed                    expected=pass       observed=fail
+PASS collision_causal_mixed_SYN         expected=one exact frame observed=1
+PASS collision_causal_mixed_SYNACK      expected=one exact frame observed=1
+PASS collision_causal_mixed_ACK         expected=one exact frame observed=1
+PASS collision_causal_mixed_READ_request expected=one exact frame observed=1
+PASS collision_causal_mixed_READ_ACK    expected=one exact frame observed=1
+PASS collision_causal_mixed_READ_complete_response expected=one exact frame observed=1
+PASS collision_causal_mixed_READ_mapped_complete_ACK expected=one exact frame observed=1
+PASS collision_causal_mixed_SELECT_request expected=one exact frame observed=1
+PASS collision_causal_mixed_SELECT_ACK  expected=one exact frame observed=1
+PASS collision_causal_mixed_SELECT_complete_response expected=one exact frame observed=1
+PASS collision_causal_mixed_SELECT_image_len expected=60         observed=60
+FAIL collision_causal_mixed_OPERATE_ACK expected=one exact frame observed=0
+FAIL collision_causal_mixed             expected=pass       observed=fail
+PASS H1prime_mixed_SYN                  expected=one exact frame observed=1
+PASS H1prime_mixed_SYNACK               expected=one exact frame observed=1
+PASS H1prime_mixed_ACK                  expected=one exact frame observed=1
+FAIL H1prime_mixed_READ_timed_ACK_then_complete_response expected=True       observed=False
+FAIL H1prime_mixed                      expected=pass       observed=fail
+PASS H1_sbo_mixed_SYN                   expected=one exact frame observed=1
+PASS H1_sbo_mixed_SYNACK                expected=one exact frame observed=1
+PASS H1_sbo_mixed_ACK                   expected=one exact frame observed=1
+PASS H1_sbo_mixed_READ_request          expected=one exact frame observed=1
+PASS H1_sbo_mixed_READ_timed_ACK_then_complete_response expected=True       observed=True
+PASS H1_sbo_mixed_READ_committed_no_request_retry expected=[1, 1, 0, 0] observed=[1, 1, 0, 0]
+PASS H1_sbo_mixed_READ_image_len        expected=141        observed=141
+FAIL H1_sbo_mixed_SELECT_timed_ACK_then_complete_response expected=True       observed=False
+FAIL H1_sbo_mixed                       expected=pass       observed=fail
+PASS exhaust_mixed_SYN                  expected=one exact frame observed=1
+PASS exhaust_mixed_SYNACK               expected=one exact frame observed=1
+PASS exhaust_mixed_ACK                  expected=one exact frame observed=1
+PASS exhaust_mixed_READ_ACK             expected=one exact frame observed=1
+PASS exhaust_mixed_READ_complete_response expected=one exact frame observed=1
+PASS exhaust_mixed_READ_image_len       expected=141        observed=141
+PASS exhaust_mixed_READ_mapped_complete_ACK expected=one exact frame observed=1
+PASS exhaust_mixed_close_fin            expected=one exact frame observed=1
+PASS exhaust_mixed_close_fin_ack        expected=one exact frame observed=1
+PASS exhaust_mixed_close_last_ack       expected=one exact frame observed=1
+FAIL exhaust_mixed                      expected=pass       observed=fail
+PASS stale_retry_mixed_SYN              expected=one exact frame observed=1
+PASS stale_retry_mixed_SYNACK           expected=one exact frame observed=1
+PASS stale_retry_mixed_ACK              expected=one exact frame observed=1
+PASS stale_retry_mixed_READ_ACK         expected=one exact frame observed=1
+PASS stale_retry_mixed_READ_complete_response expected=one exact frame observed=1
+PASS stale_retry_mixed_READ_image_len   expected=141        observed=141
+PASS stale_retry_mixed_READ_mapped_complete_ACK expected=one exact frame observed=1
+PASS stale_retry_mixed_close_fin        expected=one exact frame observed=1
+PASS stale_retry_mixed_close_fin_ack    expected=one exact frame observed=1
+PASS stale_retry_mixed_close_last_ack   expected=one exact frame observed=1
+FAIL stale_retry_mixed                  expected=pass       observed=fail
+PASS dup_during_retry_mixed_SYN         expected=one exact frame observed=1
+PASS dup_during_retry_mixed_SYNACK      expected=one exact frame observed=1
+PASS dup_during_retry_mixed_ACK         expected=one exact frame observed=1
+FAIL dup_during_retry_mixed_READ_ACK    expected=one exact frame observed=0
+FAIL dup_during_retry_mixed             expected=pass       observed=fail
+PASS dup_after_admit_mixed_SYN          expected=one exact frame observed=1
+PASS dup_after_admit_mixed_SYNACK       expected=one exact frame observed=1
+PASS dup_after_admit_mixed_ACK          expected=one exact frame observed=1
+PASS dup_after_admit_mixed_READ_request expected=one exact frame observed=1
+PASS dup_after_admit_mixed_READ_ACK     expected=one exact frame observed=1
+PASS dup_after_admit_mixed_READ_complete_response expected=one exact frame observed=1
+PASS dup_after_admit_mixed_READ_image_len expected=141        observed=141
+PASS dup_after_admit_mixed_READ_mapped_complete_ACK expected=one exact frame observed=1
+PASS dup_after_admit_mixed              expected=pass       observed=pass
+PASS stale_ack_mixed_SYN                expected=one exact frame observed=1
+PASS stale_ack_mixed_SYNACK             expected=one exact frame observed=1
+PASS stale_ack_mixed_READ_ACK           expected=one exact frame observed=1
+PASS stale_ack_mixed_READ_complete_response expected=one exact frame observed=1
+PASS stale_ack_mixed_READ_image_len     expected=141        observed=141
+PASS stale_ack_mixed_READ_mapped_complete_ACK expected=one exact frame observed=1
+FAIL stale_ack_mixed                    expected=pass       observed=fail
+PASS reconnect_mixed_A_SYN              expected=one exact frame observed=1
+PASS reconnect_mixed_A_SYNACK           expected=one exact frame observed=1
+PASS reconnect_mixed_A_ACK              expected=one exact frame observed=1
+PASS reconnect_mixed_A_READ_request     expected=one exact frame observed=1
+PASS reconnect_mixed_A_READ_ACK         expected=one exact frame observed=1
+PASS reconnect_mixed_A_READ_complete_response expected=one exact frame observed=1
+PASS reconnect_mixed_A_READ_mapped_complete_ACK expected=one exact frame observed=1
+PASS reconnect_mixed_A_close_fin        expected=one exact frame observed=1
+PASS reconnect_mixed_A_close_fin_ack    expected=one exact frame observed=1
+PASS reconnect_mixed_A_close_last_ack   expected=one exact frame observed=1
+PASS reconnect_mixed_B_SYN              expected=one exact frame observed=1
+PASS reconnect_mixed_B_SYNACK           expected=one exact frame observed=1
+FAIL reconnect_mixed_B_READ_ACK         expected=one exact frame observed=0
+FAIL reconnect_mixed                    expected=pass       observed=fail
+FAIL rst_read_outstanding_mixed_SYN     expected=one exact frame observed=0
+FAIL rst_read_outstanding_mixed         expected=pass       observed=fail
+FAIL fin_after_exchange_mixed_SYN       expected=one exact frame observed=0
+FAIL fin_after_exchange_mixed           expected=pass       observed=fail
+FAIL residual_class_mismatch_mixed_SYN  expected=one exact frame observed=0
+FAIL residual_class_mismatch_mixed      expected=pass       observed=fail
+FAIL residual_later_read_mixed_SYN      expected=one exact frame observed=0
+FAIL residual_later_read_mixed          expected=pass       observed=fail
+FAIL H1_integrity_SYN                   expected=one exact frame observed=0
+FAIL H1_integrity                       expected=pass       observed=fail
+FAIL H2_integrity_SYN                   expected=one exact frame observed=0
+FAIL H2_integrity                       expected=pass       observed=fail
+FAIL H2r_integrity_SYN                  expected=one exact frame observed=0
+FAIL H2r_integrity                      expected=pass       observed=fail
+FAIL collision_integrity_SYN            expected=one exact frame observed=0
+FAIL collision_integrity                expected=pass       observed=fail
+FAIL collision_causal_integrity_SYN     expected=one exact frame observed=0
+FAIL collision_causal_integrity         expected=pass       observed=fail
+FAIL H1prime_integrity_SYN              expected=one exact frame observed=0
+FAIL H1prime_integrity                  expected=pass       observed=fail
+FAIL H1_sbo_integrity_SYN               expected=one exact frame observed=0
+FAIL H1_sbo_integrity                   expected=pass       observed=fail
+FAIL exhaust_integrity_SYN              expected=one exact frame observed=0
+FAIL exhaust_integrity                  expected=pass       observed=fail
+FAIL stale_retry_integrity_SYN          expected=one exact frame observed=0
+FAIL stale_retry_integrity              expected=pass       observed=fail
+FAIL dup_during_retry_integrity_SYN     expected=one exact frame observed=0
+FAIL dup_during_retry_integrity         expected=pass       observed=fail
+FAIL dup_after_admit_integrity_SYN      expected=one exact frame observed=0
+FAIL dup_after_admit_integrity          expected=pass       observed=fail
+FAIL stale_ack_integrity_SYN            expected=one exact frame observed=0
+FAIL stale_ack_integrity                expected=pass       observed=fail
+FAIL reconnect_integrity_A_SYN          expected=one exact frame observed=0
+FAIL reconnect_integrity                expected=pass       observed=fail
+FAIL rst_read_outstanding_integrity_SYN expected=one exact frame observed=0
+FAIL rst_read_outstanding_integrity     expected=pass       observed=fail
+FAIL fin_after_exchange_integrity_SYN   expected=one exact frame observed=0
+FAIL fin_after_exchange_integrity       expected=pass       observed=fail
+FAIL residual_class_mismatch_integrity_SYN expected=one exact frame observed=0
+FAIL residual_class_mismatch_integrity  expected=pass       observed=fail
+FAIL residual_later_read_integrity_SYN  expected=one exact frame observed=0
+FAIL residual_later_read_integrity      expected=pass       observed=fail
+FAIL rst_at_start_SYN                   expected=one exact frame observed=0
+FAIL rst_at_start                       expected=pass       observed=fail
+FAIL fin_at_start_SYN                   expected=one exact frame observed=0
+FAIL fin_at_start                       expected=pass       observed=fail
+FAIL operate_without_select_SYN         expected=one exact frame observed=0
+FAIL operate_without_select             expected=pass       observed=fail
+FAIL operate_retry_before_select_response_SYN expected=one exact frame observed=0
+FAIL operate_retry_before_select_response expected=pass       observed=fail
+FAIL operate_mismatched_crob_SYN        expected=one exact frame observed=0
+FAIL operate_mismatched_crob            expected=pass       observed=fail
+FAIL syn_busy_retransmitted_SYN         expected=one exact frame observed=0
+FAIL syn_busy                           expected=pass       observed=fail
+SUMMARY {'total': 215, 'passed': 143, 'failed': ['H1_mixed_READ_timed_ACK_then_complete_response', 'H1_mixed', 'H2_mixed', 'H2r_mixed', 'collision_mixed', 'collision_causal_mixed_OPERATE_ACK', 'collision_causal_mixed', 'H1prime_mixed_READ_timed_ACK_then_complete_response', 'H1prime_mixed', 'H1_sbo_mixed_SELECT_timed_ACK_then_complete_response', 'H1_sbo_mixed', 'exhaust_mixed', 'stale_retry_mixed', 'dup_during_retry_mixed_READ_ACK', 'dup_during_retry_mixed', 'stale_ack_mixed', 'reconnect_mixed_B_READ_ACK', 'reconnect_mixed', 'rst_read_outstanding_mixed_SYN', 'rst_read_outstanding_mixed', 'fin_after_exchange_mixed_SYN', 'fin_after_exchange_mixed', 'residual_class_mismatch_mixed_SYN', 'residual_class_mismatch_mixed', 'residual_later_read_mixed_SYN', 'residual_later_read_mixed', 'H1_integrity_SYN', 'H1_integrity', 'H2_integrity_SYN', 'H2_integrity', 'H2r_integrity_SYN', 'H2r_integrity', 'collision_integrity_SYN', 'collision_integrity', 'collision_causal_integrity_SYN', 'collision_causal_integrity', 'H1prime_integrity_SYN', 'H1prime_integrity', 'H1_sbo_integrity_SYN', 'H1_sbo_integrity', 'exhaust_integrity_SYN', 'exhaust_integrity', 'stale_retry_integrity_SYN', 'stale_retry_integrity', 'dup_during_retry_integrity_SYN', 'dup_during_retry_integrity', 'dup_after_admit_integrity_SYN', 'dup_after_admit_integrity', 'stale_ack_integrity_SYN', 'stale_ack_integrity', 'reconnect_integrity_A_SYN', 'reconnect_integrity', 'rst_read_outstanding_integrity_SYN', 'rst_read_outstanding_integrity', 'fin_after_exchange_integrity_SYN', 'fin_after_exchange_integrity', 'residual_class_mismatch_integrity_SYN', 'residual_class_mismatch_integrity', 'residual_later_read_integrity_SYN', 'residual_later_read_integrity', 'rst_at_start_SYN', 'rst_at_start', 'fin_at_start_SYN', 'fin_at_start', 'operate_without_select_SYN', 'operate_without_select', 'operate_retry_before_select_response_SYN', 'operate_retry_before_select_response', 'operate_mismatched_crob_SYN', 'operate_mismatched_crob', 'syn_busy_retransmitted_SYN', 'syn_busy']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

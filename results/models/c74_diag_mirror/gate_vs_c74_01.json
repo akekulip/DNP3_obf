@@ -1,0 +1,731 @@
+{
+ "schema": "diag-mirror-gate-vs-base-v1",
+ "build": "c74_diag_mirror",
+ "baseline": "c74",
+ "sessions": "absent (the gate drivers do not configure the diagnostic sessions)",
+ "observation": "SDK tofino-model functional output; not hardware, not timing",
+ "drivers": {
+  "abandon": {
+   "base_run": "model_abandon_c74_01",
+   "diag_run": "model_abandon_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "abandon_results.json": {
+     "failed": [],
+     "passed": 12,
+     "total": 12
+    }
+   },
+   "base_summary": {
+    "abandon_results.json": {
+     "failed": [],
+     "passed": 12,
+     "total": 12
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "abort": {
+   "base_run": "model_abort_c74_01",
+   "diag_run": "model_abort_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "abort_results.json": {
+     "failed": [],
+     "passed": 84,
+     "total": 84
+    }
+   },
+   "base_summary": {
+    "abort_results.json": {
+     "failed": [],
+     "passed": 84,
+     "total": 84
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "contention": {
+   "base_run": "model_contention_c74_01",
+   "diag_run": "model_contention_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "contention_results.json": {
+     "failed": [],
+     "passed": 457,
+     "total": 457
+    }
+   },
+   "base_summary": {
+    "contention_results.json": {
+     "failed": [],
+     "passed": 457,
+     "total": 457
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "control_timing": {
+   "base_run": "model_control_timing_c74_01",
+   "diag_run": "model_control_timing_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "control_timing_results.json": {
+     "failed": [],
+     "passed": 417,
+     "total": 417
+    }
+   },
+   "base_summary": {
+    "control_timing_results.json": {
+     "failed": [],
+     "passed": 417,
+     "total": 417
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [
+    {
+     "file": "control_timing_results.json",
+     "case": "removed_operate_role13_port182_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "removed_operate_role13_port181_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "removed_operate_role16_port182_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "removed_operate_role16_port181_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "removed_operate_app1_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "removed_operate_E101_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_response_roleNone_child1_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role14_child1_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role15_child1_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_response_roleNone_child2_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role14_child2_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role15_child2_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_response_roleNone_child255_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role14_child255_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role15_child255_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child0_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child1_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child2_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child255_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child0_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child1_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child2_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child255_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    }
+   ],
+   "observed_difference_count": 23
+  },
+  "dup": {
+   "base_run": "model_dup_c74_01",
+   "diag_run": "model_dup_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "dup_results.json": {
+     "failed": [],
+     "passed": 308,
+     "total": 308
+    }
+   },
+   "base_summary": {
+    "dup_results.json": {
+     "failed": [],
+     "passed": 308,
+     "total": 308
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "fin_busy": {
+   "base_run": "model_fin_busy_c74_01",
+   "diag_run": "model_fin_busy_c74_diag_mirror_02",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "fin_busy_results.json": {
+     "failed": [],
+     "passed": 193,
+     "total": 193
+    }
+   },
+   "base_summary": {
+    "fin_busy_results.json": {
+     "failed": [],
+     "passed": 193,
+     "total": 193
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "packets": {
+   "base_run": "model_packets_c74_01",
+   "diag_run": "model_packets_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "packet_results.json": {
+     "failed": [],
+     "passed": 763,
+     "total": 763
+    }
+   },
+   "base_summary": {
+    "packet_results.json": {
+     "failed": [],
+     "passed": 763,
+     "total": 763
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "policy": {
+   "base_run": "model_policy_c74_01",
+   "diag_run": "model_policy_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "packet_results.json": {
+     "failed": [],
+     "passed": 281,
+     "total": 281
+    }
+   },
+   "base_summary": {
+    "packet_results.json": {
+     "failed": [],
+     "passed": 281,
+     "total": 281
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "policy_boundary": {
+   "base_run": "model_policy_boundary_c74_01",
+   "diag_run": "model_policy_boundary_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "packet_results.json": {
+     "failed": [],
+     "passed": 206,
+     "total": 206
+    }
+   },
+   "base_summary": {
+    "packet_results.json": {
+     "failed": [],
+     "passed": 206,
+     "total": 206
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "rearm": {
+   "base_run": "model_rearm_c74_01",
+   "diag_run": "model_rearm_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "rearm_results.json": {
+     "failed": [],
+     "passed": 798,
+     "total": 798
+    }
+   },
+   "base_summary": {
+    "rearm_results.json": {
+     "failed": [],
+     "passed": 798,
+     "total": 798
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [
+    {
+     "file": "rearm_results.json",
+     "case": "pending_SYN_retry_authority_9000",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [7262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": [72",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [7262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": [72"
+    },
+    {
+     "file": "rearm_results.json",
+     "case": "pending_SYNACK_retry_authority_11000",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [11001]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": [2",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [11001]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": [2"
+    }
+   ],
+   "observed_difference_count": 2
+  },
+  "relay_sbo": {
+   "base_run": "model_relay_sbo_c74_01",
+   "diag_run": "model_relay_sbo_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "relay_sbo_results.json": {
+     "failed": [],
+     "passed": 1069,
+     "total": 1069
+    }
+   },
+   "base_summary": {
+    "relay_sbo_results.json": {
+     "failed": [],
+     "passed": 1069,
+     "total": 1069
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "repeat": {
+   "base_run": "model_repeat_c74_01",
+   "diag_run": "model_repeat_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "repeat_results.json": {
+     "failed": [],
+     "passed": 526,
+     "total": 526
+    }
+   },
+   "base_summary": {
+    "repeat_results.json": {
+     "failed": [],
+     "passed": 526,
+     "total": 526
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "response_ready": {
+   "base_run": "model_response_ready_c74_01",
+   "diag_run": "model_response_ready_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "response_ready_results.json": {
+     "failed": [],
+     "passed": 838,
+     "total": 838
+    }
+   },
+   "base_summary": {
+    "response_ready_results.json": {
+     "failed": [],
+     "passed": 838,
+     "total": 838
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [
+    {
+     "file": "response_ready_results.json",
+     "case": "removed_operate_role13_port182_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "removed_operate_role13_port181_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "removed_operate_role16_port182_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "removed_operate_role16_port181_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "removed_operate_app1_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "removed_operate_E101_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1250121]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_response_roleNone_child1_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role14_child1_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role15_child1_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_response_roleNone_child2_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role14_child2_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role15_child2_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_response_roleNone_child255_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role14_child255_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role15_child255_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role11_child0_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role11_child1_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role11_child2_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role11_child255_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role12_child0_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role12_child1_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role12_child2_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role12_child255_state_unchanged",
+     "base": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": ",
+     "diag": "{\"E\": {\"acct\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.acct.hi\": [0], \"r_Egress.acct.lo\": [1350262]}, \"epoch\": {\"action_name\": null, \"is_default_entry\": false, \"r_Egress.epoch.f1\": "
+    }
+   ],
+   "observed_difference_count": 23
+  },
+  "select_lifecycle": {
+   "base_run": "model_select_lifecycle_c74_01",
+   "diag_run": "model_select_lifecycle_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "select_lifecycle_results.json": {
+     "failed": [],
+     "passed": 146,
+     "total": 146
+    }
+   },
+   "base_summary": {
+    "select_lifecycle_results.json": {
+     "failed": [],
+     "passed": 146,
+     "total": 146
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "smoke": {
+   "base_run": "model_smoke_c74_01",
+   "diag_run": "model_smoke_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "smoke_results.json": {
+     "failed": [],
+     "passed": 30,
+     "total": 30
+    }
+   },
+   "base_summary": {
+    "smoke_results.json": {
+     "failed": [],
+     "passed": 30,
+     "total": 30
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "smoke_sizeoff": {
+   "base_run": "model_smoke_sizeoff_c74_01",
+   "diag_run": "model_smoke_sizeoff_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "smoke_results.json": {
+     "failed": [],
+     "passed": 30,
+     "total": 30
+    }
+   },
+   "base_summary": {
+    "smoke_results.json": {
+     "failed": [],
+     "passed": 30,
+     "total": 30
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  },
+  "two_read_robust": {
+   "base_run": "model_two_read_robust_c74_01",
+   "diag_run": "model_two_read_robust_c74_diag_mirror_01",
+   "diag_exit_code": 0,
+   "diag_summary": {
+    "robust_results.json": {
+     "failed": [],
+     "passed": 181,
+     "total": 181
+    }
+   },
+   "base_summary": {
+    "robust_results.json": {
+     "failed": [],
+     "passed": 181,
+     "total": 181
+    }
+   },
+   "verdicts_identical": true,
+   "observed_differences": [],
+   "observed_difference_count": 0
+  }
+ },
+ "all_diag_runs_exit_0": true,
+ "all_verdicts_identical": true,
+ "comparator_sha256": "2c759b824dbbe9568a99b65d95f31349d423d6cc35701625cd94d0074439f77a",
+ "tree": {
+  "base_commit": "e4a876dfaa02c83abf255308c837a11235f32554",
+  "overlay": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay",
+  "differs_from_base": {
+   "scripts/build_diag_mirror.py": {
+    "head": "af389606813fd26ed86c01701ea8f3c070e8a22dc7350857a19fce9a7a256ecf",
+    "overlay": "ca40dc834a770ab333064f44d24482919fb0fb99dbe17b5e580e9b913f0f997c"
+   },
+   "scripts/diag_mirror_checks.py": {
+    "head": "7dd2e7cfc934ceb7e869ca303017e884440aff522a4a546972c454e295ebf9cc",
+    "overlay": "db52ab0e0bb34b7025873fb2c8ca9f8238a75c43cca1bc77f5b57fff906ec28d"
+   },
+   "scripts/hardware/diag_mirror_sessions.py": {
+    "head": "3bd5feb26b4b946dc37fd6ea72cd64d207ea10dd7d84b65da413e20c965cbe80",
+    "overlay": "05329ed7e6a4a14f40903b6d3ff879b9aabe34c6b4dcdc920a95b326717e071c"
+   },
+   "scripts/hardware/freeze_gate.py": {
+    "head": "c1cbc4a0344959e58b442d6228f2d9c1de2d8f34429b0b9c71c241c79bd0ba9a",
+    "overlay": "4aafc68d4ebe662c79e58efc979df40b789c28735374ec04e8a48673cb2cab3e"
+   },
+   "scripts/hardware/installer_base.py": {
+    "head": "9252112b95cf13de23659fdb8a4e957ab428c3989478fb031103db8dd03f06e3",
+    "overlay": "50d19654c908817a5391bf385f6f1959113865064e87328c7ee5b45683bf256b"
+   },
+   "scripts/hardware/vision_run.py": {
+    "head": "030157898754560c9e8f131eaf37305a23ecc32ea3482b1b17f68c2a8225d2b1",
+    "overlay": "8787dbbb7eaddf7bd195a4d2c9295adf309343f81b0eea3dbc19b9e8549db3da"
+   },
+   "scripts/model/action_observations.json": {
+    "head": "0f04b0e921cfcf945c86a296dfb87698670fddfcad404fe3a7b5fbabe8cca233",
+    "overlay": "f1dad70785454fa7ceb97f424081f851a5e2f4a5a55eeb49f055cf3660a54f10"
+   },
+   "scripts/model/diag_gate_compare.py": {
+    "head": "c339d79466e79a222571620dda485b8f7f289b5455739961c98962e06cececd4",
+    "overlay": "2c759b824dbbe9568a99b65d95f31349d423d6cc35701625cd94d0074439f77a"
+   },
+   "scripts/model/model_diag_mirror.py": {
+    "head": "6863dadca7c210821854d3ceb548b45dbf1677713243c1299caf8e6be7b1d740",
+    "overlay": "a4779643569a227f2e4781eb865eda91c84016902d2937b98a8bf840a2847c86"
+   },
+   "scripts/model/model_diag_mirror_companion.py": {
+    "head": "1f7ada95d3b6b6d87baf12ed595632b6da84d6a8a7b5857c92970391bb051fd1",
+    "overlay": "c7882d1966ca775f39be8f9a2d08447f3e3a3ba7fd6bd71693830f513fa25e54"
+   },
+   "scripts/model/run_diag_mirror.py": {
+    "head": "70fc34d332ad92d044c465b6ed5b71f4b6dfbb1608b6e42e75423114128a2fc7",
+    "overlay": "22c3ba583fecc7f986bab8d7dfa7952de954288a6a9f8574f19c01d2139bfdae"
+   }
+  },
+  "added": {
+   "scripts/model/model_connection_fix.py": "5715abf97ca49fc39625d2ba519a888f6136cc906d6118aab7463f4e554def0b",
+   "scripts/model/run_connection_fix.py": "0a75dce0cc7fab65de3d5c1a7e4deb7f9183fa72fd0f65b6e007a4e4e5c8733c"
+  }
+ }
+}

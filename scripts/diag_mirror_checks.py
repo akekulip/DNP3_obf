@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Static checks of the compiled c72_diag_mirror build against c72 (reads only; writes one JSON report).
+"""Static checks of a compiled diagnostic build BASE_diag_mirror against its base (reads only; writes one JSON report).
 
-  python3 scripts/diag_mirror_checks.py results/builds/c72_diag_mirror --baseline results/builds/c72
+  python3 scripts/diag_mirror_checks.py results/builds/BASE_diag_mirror [--baseline results/builds/BASE]
+
+The baseline defaults to the base the build name derives from (c72_diag_mirror -> c72, c74_diag_mirror -> c74).
 
 1. Pipe-0 mirror guard, both deparsers (the bf-p4c type-0 trap, scripts/hardware/check_mirror_select.py):
    entry 1 takes its session from m.diag_ses; the select and session containers each hold one field; the session
@@ -153,16 +155,21 @@ def pipe1_equivalence(base_out, cand_out):
         lines=[len(a), len(b)], differing_lines=len(differing), exact_match_hash_seed_lines=len(seeds),
         other_differing_lines=other[:20],
         note='Exact-match hash-group seeds choose the RAM way an entry is stored in, not the match result. Recompiling '
-             'the unmodified canonical source reproduces c72 p0 and p1 .bfa byte for byte (except run_id), so these '
+             'the unmodified canonical source reproduces its p0 and p1 .bfa byte for byte (except run_id), so these '
              'seeds follow from the pipe-0 additions compiled earlier in the same program, not run-to-run noise.')
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('build', type=Path)
-    parser.add_argument('--baseline', type=Path, default=ROOT / 'results/builds/c72')
+    parser.add_argument('--baseline', type=Path, help='default: results/builds/BASE for BUILD = BASE_diag_mirror')
     args = parser.parse_args()
-    build, base = args.build.resolve(), args.baseline.resolve()
+    build = args.build.resolve()
+    if args.baseline is None:
+        if not build.name.endswith('_diag_mirror'):
+            parser.error('BUILD must be BASE_diag_mirror, or give --baseline')
+        args.baseline = build.parent / build.name[:-len('_diag_mirror')]
+    base = args.baseline.resolve()
     sys.path.insert(0, str(ROOT / 'scripts/hardware'))
     import check_mirror_select
     import diag_mirror_sessions

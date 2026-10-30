@@ -15,10 +15,14 @@ BUILD_FILES=('response_only.p4','response_only.inputs.json','supported_profile.j
 CANONICAL_P4='p4/response_only.p4'
 # A declared diagnostic build (scripts/build_diag_mirror.py) carries DIAG_IDENTITY; its model evidence lives in
 # DIAG_MODELS/<build name>/ and replaces the model gate for its own, never-qualifying, diagnostic blocks.
+# A diagnostic build is named BASE_diag_mirror and is compared against its own canonical base BASE: the gate
+# evidence is gate_vs_BASE_01.json (c72_diag_mirror: gate_vs_c72_01.json; c74_diag_mirror: gate_vs_c74_01.json).
 DIAG_IDENTITY='diag_mirror.json'
 DIAG_GENERATOR='scripts/build_diag_mirror.py'
 DIAG_MODELS='results/models'
-DIAG_EVIDENCE=('diag_mirror_fidelity_01.json','gate_vs_c72_01.json')
+DIAG_SUFFIX='_diag_mirror'
+DIAG_FIDELITY='diag_mirror_fidelity_01.json'
+DIAG_GATE='gate_vs_%s_01.json'
 DIAG_QUALIFICATION='diagnostic_model_evidence'
 
 def sha(path):
@@ -328,8 +332,22 @@ def declared_diagnostic(build):
     return path.exists() or path.is_symlink()
 
 
+def diag_base(build):
+    """The canonical base a diagnostic build derives from and is compared against: 'c74' for c74_diag_mirror; None
+    for a name without the BASE_diag_mirror form."""
+    name = Path(build).name
+    base = name[:-len(DIAG_SUFFIX)] if name.endswith(DIAG_SUFFIX) else ''
+    return base if re.fullmatch(r'c\d+', base) else None
+
+
+def diag_evidence_names(build):
+    """(fidelity file, gate comparison file) of a diagnostic build, the gate one named after its base."""
+    return (DIAG_FIDELITY, DIAG_GATE % (diag_base(build) or 'UNKNOWN_BASE'))
+
+
 def diagnostic_problems(build, source):
     """Problems admitting BUILD as a declared diagnostic build ([] = admitted). All must hold:
+    - the build is named BASE_diag_mirror and results/builds/BASE/response_only.p4 is the canonical source;
     - build/diag_mirror.json is a readable JSON object;
     - its canonical_sha256 is the sha256 of p4/response_only.p4 now;
     - its generator_sha256 is the sha256 of scripts/build_diag_mirror.py now;
@@ -349,6 +367,12 @@ def diagnostic_problems(build, source):
     except OSError as error:
         return ['diagnostic admission inputs unreadable: ' + str(error)]
     problems = []
+    base = diag_base(build)
+    if base is None:
+        problems.append('diagnostic build name %s is not BASE%s' % (build.name, DIAG_SUFFIX))
+    elif not (REPO / 'results/builds' / base / 'response_only.p4').is_file() or \
+            sha('results/builds/%s/response_only.p4' % base) != canonical:
+        problems.append('diagnostic base results/builds/%s is not the canonical candidate (%s)' % (base, CANONICAL_P4))
     if meta.get('canonical_sha256') != canonical:
         problems.append('%s canonical_sha256 %s is not the current %s %s'
                         % (DIAG_IDENTITY, meta.get('canonical_sha256'), CANONICAL_P4, canonical))
@@ -382,7 +406,7 @@ def diag_generator():
 
 
 def diagnostic_evidence_paths(build):
-    return [str(Path(DIAG_MODELS) / Path(build).name / name) for name in DIAG_EVIDENCE]
+    return [str(Path(DIAG_MODELS) / Path(build).name / name) for name in diag_evidence_names(build)]
 
 
 def diagnostic_evidence(build):
@@ -392,18 +416,18 @@ def diagnostic_evidence(build):
 
 def diagnostic_evidence_problems(build):
     """Problems with the diagnostic model evidence a freeze binds ([] = usable): the fidelity record passed (true)
-    for this build's source; gate_vs_c72 names this build and lists every required model driver, each with
-    verdicts_identical true and diag_exit_code 0."""
+    for this build's source; gate_vs_BASE names this build and its base BASE and lists every required model driver,
+    each with verdicts_identical true and diag_exit_code 0."""
     build = Path(build)
-    values, problems = {}, []
-    for name, path in zip(DIAG_EVIDENCE, diagnostic_evidence_paths(build)):
+    names, values, problems = diag_evidence_names(build), {}, []
+    for name, path in zip(names, diagnostic_evidence_paths(build)):
         try:
             values[name] = json.loads((REPO / path).read_text())
         except (OSError, ValueError) as error:
             problems.append('diagnostic evidence %s unreadable: %s' % (path, error))
     if problems:
         return problems
-    fidelity, gate = values[DIAG_EVIDENCE[0]], values[DIAG_EVIDENCE[1]]
+    fidelity, gate = values[names[0]], values[names[1]]
     if not isinstance(fidelity, dict) or not isinstance(gate, dict):
         return ['diagnostic evidence is not a JSON object']
     try:
@@ -412,21 +436,24 @@ def diagnostic_evidence_problems(build):
     except (OSError, ValueError, KeyError, TypeError) as error:
         return ['diagnostic evidence cannot be checked: %s' % error]
     if fidelity.get('passed') is not True:
-        problems.append('%s: fidelity passed is %r, not true' % (DIAG_EVIDENCE[0], fidelity.get('passed')))
+        problems.append('%s: fidelity passed is %r, not true' % (names[0], fidelity.get('passed')))
     if fidelity.get('source_sha256') != source:
         problems.append('%s: source_sha256 %s is not the build source %s'
-                        % (DIAG_EVIDENCE[0], fidelity.get('source_sha256'), source))
+                        % (names[0], fidelity.get('source_sha256'), source))
     if gate.get('build') != build.name:
-        problems.append('%s: build %r is not %s' % (DIAG_EVIDENCE[1], gate.get('build'), build.name))
+        problems.append('%s: build %r is not %s' % (names[1], gate.get('build'), build.name))
+    if gate.get('baseline') != diag_base(build):
+        problems.append('%s: baseline %r is not the canonical base %s' % (names[1], gate.get('baseline'),
+                                                                           diag_base(build)))
     drivers = gate.get('drivers') if isinstance(gate.get('drivers'), dict) else {}
     if required - set(drivers):
-        problems.append('%s: required drivers missing: %s' % (DIAG_EVIDENCE[1], sorted(required - set(drivers))))
+        problems.append('%s: required drivers missing: %s' % (names[1], sorted(required - set(drivers))))
     for driver, verdict in sorted(drivers.items()):
         verdict = verdict if isinstance(verdict, dict) else {}
         code = verdict.get('diag_exit_code')
         if verdict.get('verdicts_identical') is not True or type(code) is not int or code != 0:
             problems.append('%s: driver %s verdicts_identical %r, diag_exit_code %r (need true, 0)'
-                            % (DIAG_EVIDENCE[1], driver, verdict.get('verdicts_identical'), code))
+                            % (names[1], driver, verdict.get('verdicts_identical'), code))
     return problems
 
 

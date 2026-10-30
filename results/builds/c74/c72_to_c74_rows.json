@@ -1,0 +1,112 @@
+{
+ "busy_t": {
+  "size": [
+   22,
+   28
+  ],
+  "entries": [
+   22,
+   28
+  ],
+  "removed": [
+   "(8w5,_,_):busy_drop()",
+   "(8w7,_,_):busy_drop()",
+   "(8w9,_,_):busy_drop()"
+  ],
+  "added": [
+   {
+    "row": "(8w5,2w0,_):busy_retry_ack()",
+    "position": 18
+   },
+   {
+    "row": "(8w5,2w1,6w1):busy_exhausted()",
+    "position": 19
+   },
+   {
+    "row": "(8w5,2w1,_):busy_retry_rst_next()",
+    "position": 20
+   },
+   {
+    "row": "(8w7,2w0,_):busy_retry_ack()",
+    "position": 21
+   },
+   {
+    "row": "(8w7,2w1,6w1):busy_exhausted()",
+    "position": 22
+   },
+   {
+    "row": "(8w7,2w1,_):busy_retry_rst_next()",
+    "position": 23
+   },
+   {
+    "row": "(8w9,2w0,_):busy_retry_ack()",
+    "position": 24
+   },
+   {
+    "row": "(8w9,2w1,6w1):busy_exhausted()",
+    "position": 25
+   },
+   {
+    "row": "(8w9,2w1,_):busy_retry_rst_next()",
+    "position": 26
+   }
+  ]
+ },
+ "guard": {
+  "size": [
+   54,
+   57
+  ],
+  "entries": [
+   54,
+   57
+  ],
+  "removed": [],
+  "added": [
+   {
+    "row": "(2w0,8w9,8w0,2w1,1w1,1w1,8w1,1w0,16w0x993a,16w0x993a,_,_,_,2w1):go_retry(8w9)",
+    "position": 4
+   },
+   {
+    "row": "(2w0,8w5,8w0,2w1,1w1,1w1,8w1,1w0,16w0x993a,16w0x993a,_,16w0x993a,_,2w1):go_retry(8w5)",
+    "position": 5
+   },
+   {
+    "row": "(2w0,8w7,8w0,2w1,1w1,1w1,8w1,1w0,16w0x993a,16w0x993a,_,16w0x993a,_,2w1):go_retry(8w7)",
+    "position": 6
+   }
+  ]
+ },
+ "first_event": {
+  "size": [
+   401,
+   405
+  ],
+  "entries": [
+   401,
+   405
+  ],
+  "removed": [],
+  "added": [
+   {
+    "row": "(8w3,1w0,32w0xd0000&&&32w0xffff0000,32w0xffffffe7,32w0x00000000,2w1,8w0x10,_,1w0,_,_,_,_,_,_,_):forward_original()",
+    "position": 333
+   },
+   {
+    "row": "(8w3,1w0,32w0xe0000&&&32w0xffff0000,32w0xffffffe7,32w0x00000000,2w1,8w0x10,_,1w0,_,_,_,_,_,_,_):forward_original()",
+    "position": 334
+   },
+   {
+    "row": "(8w3,1w0,32w0xd0000&&&32w0xffff0000,32w0xffffffe5,32w0x00000000,2w1,8w0x10,_,1w0,_,_,_,_,_,_,_):forward_original()",
+    "position": 335
+   },
+   {
+    "row": "(8w3,1w0,32w0xe0000&&&32w0xffff0000,32w0xffffffe5,32w0x00000000,2w1,8w0x10,_,1w0,_,_,_,_,_,_,_):forward_original()",
+    "position": 336
+   }
+  ]
+ },
+ "c72_source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+ "c74_source_sha256": "c7e37eff347f09c30af3a46f566cf41069df2d9c099e0227a102c16733116efd",
+ "note": "Row-level difference of the only three tables c74 changes (const entries; positions are 0-based in c74). Everything outside const entries and the three size= values is byte-identical apart from one trailing comment on the busy_t line (tests/p4/test_c74_derivation.py)."
+}

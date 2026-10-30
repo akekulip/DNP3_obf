@@ -18,6 +18,8 @@ MODEL = ROOT / 'scripts/model'
 DRIVER = MODEL / 'model_abandon.py'
 TIMED_DRIVER = MODEL / 'model_abandon_t1.py'
 BUILD = ROOT / 'results/builds/c72'
+# the canonical candidate whose live model gate must stay unblocked (c74 since c74 became canonical)
+CANON = ROOT / json.loads((ROOT / 'results/analysis/stage_cut/current_build.json').read_text())['build']
 GATE_RUN = ROOT / 'results/models/c72/model_abandon_c72_02'
 EXPECTATIONS = ROOT / 'results/models/c72_e4_abandon_t1/EXPECTATIONS.json'
 MASTER, RELAY = 9, 64
@@ -183,10 +185,10 @@ def test_gate_driver_is_byte_identical_to_the_passing_gate_run():
         '00059dce369af4017eaf5a657f4476a86323765e1e23eb142419102da8ef919a'
 
 
-def test_c72_gate_summary_has_no_blocked_abandon_closure():
+def test_canonical_gate_summary_has_no_blocked_abandon_closure():
     sys.path.insert(0, str(ROOT / 'scripts/hardware'))
     import freeze_gate
-    summary = freeze_gate.model_summary_module().summarize_v3(BUILD)
+    summary = freeze_gate.model_summary_module().summarize_v3(CANON)
     assert not [reason for reason in summary['blocked_reasons'] if reason.startswith('abandon')], summary
 
 

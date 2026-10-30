@@ -1,0 +1,72 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS SYN_forwarded                      expected=one exact frame on 64 observed=1
+PASS SYN_checksums                      expected=True       observed=True
+PASS SYN_copy_equals_frame_emitted_on_relay_port expected=True       observed=True
+PASS SYN_copy_port_never_ingresses      expected=0          observed=0
+PASS SYNACK_forwarded                   expected=one exact frame on 9 observed=1
+PASS SYNACK_checksums                   expected=True       observed=True
+PASS SYNACK_copy_equals_frame_received_on_relay_port expected=True       observed=True
+PASS SYNACK_copy_port_never_ingresses   expected=0          observed=0
+PASS ACK_forwarded                      expected=one exact frame on 64 observed=1
+PASS ACK_checksums                      expected=True       observed=True
+PASS ACK_copy_equals_frame_emitted_on_relay_port expected=True       observed=True
+PASS ACK_copy_port_never_ingresses      expected=0          observed=0
+PASS READ_request_forwarded             expected=one exact frame on 64 observed=1
+PASS READ_request_checksums             expected=True       observed=True
+PASS READ_request_copy_equals_frame_emitted_on_relay_port expected=True       observed=True
+PASS READ_request_copy_port_never_ingresses expected=0          observed=0
+PASS READ_ack_forwarded                 expected=one exact frame on 9 observed=1
+PASS READ_ack_checksums                 expected=True       observed=True
+PASS READ_ack_copy_equals_frame_received_on_relay_port expected=True       observed=True
+PASS READ_ack_copy_port_never_ingresses expected=0          observed=0
+PASS READ_response_forwarded            expected=one exact frame on 9 observed=1
+PASS READ_response_checksums            expected=True       observed=True
+PASS READ_response_copy_equals_frame_received_on_relay_port expected=True       observed=True
+PASS READ_response_copy_port_never_ingresses expected=0          observed=0
+PASS READ_mapped_ACK_forwarded          expected=one exact frame on 64 observed=1
+PASS READ_mapped_ACK_checksums          expected=True       observed=True
+PASS READ_mapped_ACK_copy_equals_frame_emitted_on_relay_port expected=True       observed=True
+PASS READ_mapped_ACK_copy_port_never_ingresses expected=0          observed=0
+PASS SELECT_request_forwarded           expected=one exact frame on 64 observed=1
+PASS SELECT_request_checksums           expected=True       observed=True
+PASS SELECT_request_copy_equals_frame_emitted_on_relay_port expected=True       observed=True
+PASS SELECT_request_copy_port_never_ingresses expected=0          observed=0
+PASS SELECT_response_forwarded          expected=one exact frame on 9 observed=1
+PASS SELECT_response_checksums          expected=True       observed=True
+PASS SELECT_response_copy_equals_frame_received_on_relay_port expected=True       observed=True
+PASS SELECT_response_copy_port_never_ingresses expected=0          observed=0
+PASS SELECT_mapped_ACK_forwarded        expected=one exact frame on 64 observed=1
+PASS SELECT_mapped_ACK_checksums        expected=True       observed=True
+PASS SELECT_mapped_ACK_copy_equals_frame_emitted_on_relay_port expected=True       observed=True
+PASS SELECT_mapped_ACK_copy_port_never_ingresses expected=0          observed=0
+PASS OPERATE_request_forwarded          expected=one exact frame on 64 observed=1
+PASS OPERATE_request_checksums          expected=True       observed=True
+PASS OPERATE_request_copy_equals_frame_emitted_on_relay_port expected=True       observed=True
+PASS OPERATE_request_copy_port_never_ingresses expected=0          observed=0
+PASS OPERATE_response_forwarded         expected=one exact frame on 9 observed=1
+PASS OPERATE_response_checksums         expected=True       observed=True
+PASS OPERATE_response_copy_equals_frame_received_on_relay_port expected=True       observed=True
+PASS OPERATE_response_copy_port_never_ingresses expected=0          observed=0
+PASS OPERATE_mapped_ACK_forwarded       expected=one exact frame on 64 observed=1
+PASS OPERATE_mapped_ACK_checksums       expected=True       observed=True
+PASS OPERATE_mapped_ACK_copy_equals_frame_emitted_on_relay_port expected=True       observed=True
+PASS OPERATE_mapped_ACK_copy_port_never_ingresses expected=0          observed=0
+PASS PROBE_ip_options_classified        expected=observed   observed=not_at_relay_egress
+PASS PROBE_ip_options_no_copy           expected=0          observed=0
+PASS PROBE_ip_options_copy_port_never_ingresses expected=0          observed=0
+PASS PROBE_ack_without_timestamps_classified expected=observed   observed=not_at_relay_egress
+PASS PROBE_ack_without_timestamps_no_copy expected=0          observed=0
+PASS PROBE_ack_without_timestamps_copy_port_never_ingresses expected=0          observed=0
+PASS PROBE_ack_far_ahead_classified     expected=observed   observed=not_at_relay_egress
+PASS PROBE_ack_far_ahead_no_copy        expected=0          observed=0
+PASS PROBE_ack_far_ahead_copy_port_never_ingresses expected=0          observed=0
+PASS LLDP_into_copy_port_nothing_forwarded expected=0          observed=0
+PASS LLDP_into_copy_port_no_copy        expected=0          observed=0
+PASS LLDP_into_copy_port_copy_port_never_ingresses expected=0          observed=0
+SUMMARY {'total': 64, 'passed': 64, 'failed': []}
+driver exit code 0
+hugepages free after run: HugePages_Free: 196

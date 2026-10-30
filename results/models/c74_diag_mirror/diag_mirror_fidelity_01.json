@@ -1,0 +1,163 @@
+{
+ "schema": "c72-diag-mirror-model-fidelity-v1",
+ "build": "c74_diag_mirror",
+ "source_sha256": "e46391d81e569a19a527604d3f2d3d454589f4261149ce697c79af952cbca7f4",
+ "observation": "SDK tofino-model functional output; not hardware, not timing",
+ "constants": {
+  "session_rx": 101,
+  "session_tx": 102,
+  "copy_port": 10,
+  "relay_in": 64,
+  "relay_out": 64,
+  "t_clone": 7,
+  "internal_ports": {
+   "n_RETURN_PORT": 68,
+   "n_N_ACK_RETURN": 48,
+   "n_READ_HANDOFF_PORT": 180,
+   "t_PKTGEN_RETURN": 196,
+   "t_T_IN": 180,
+   "t_HELD_RETURN": 182,
+   "t_N_RETURN": 68,
+   "t_FORWARD_PORT": 9,
+   "t_RELAY_PORT": 64
+  },
+  "egress_parsed_ports": [
+   9,
+   48,
+   64
+  ]
+ },
+ "launches": {
+  "on": {
+   "command": [
+    "bash",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/launch_model.sh",
+    "-p",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/results/builds/c74_diag_mirror/compile_local/out",
+    "-o",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/results/models/c74_diag_mirror/model_diag_mirror_on_c74_diag_mirror_01",
+    "-P",
+    "9 48 64 68 180 182 196 10",
+    "-d",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/record_closure.py"
+   ],
+   "exit_code": 0,
+   "PORT_MAP": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/results/builds/c74_diag_mirror/response_only.inputs.json",
+   "DIAG_MIRROR_STATE": "on",
+   "stimulus_environment": {
+    "PAD_ENABLE": "1",
+    "MILESTONE": "current",
+    "ABANDON_T": "0",
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2",
+    "REPEAT_CYCLES": "64",
+    "REPEAT_TIMED_CYCLES": "3"
+   },
+   "dependency_closure_sha256": "b935b243542b92cdee2d273d448932a17df9f97ebf84aceeb8b434dd7c8e410f"
+  },
+  "off": {
+   "command": [
+    "bash",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/launch_model.sh",
+    "-p",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/results/builds/c74_diag_mirror/compile_local/out",
+    "-o",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/results/models/c74_diag_mirror/model_diag_mirror_off_c74_diag_mirror_01",
+    "-P",
+    "9 48 64 68 180 182 196 10",
+    "-d",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/record_closure.py"
+   ],
+   "exit_code": 0,
+   "PORT_MAP": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/results/builds/c74_diag_mirror/response_only.inputs.json",
+   "DIAG_MIRROR_STATE": "off",
+   "stimulus_environment": {
+    "PAD_ENABLE": "1",
+    "MILESTONE": "current",
+    "ABANDON_T": "0",
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2",
+    "REPEAT_CYCLES": "64",
+    "REPEAT_TIMED_CYCLES": "3"
+   },
+   "dependency_closure_sha256": "b935b243542b92cdee2d273d448932a17df9f97ebf84aceeb8b434dd7c8e410f"
+  },
+  "absent": {
+   "command": [
+    "bash",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/launch_model.sh",
+    "-p",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/results/builds/c74_diag_mirror/compile_local/out",
+    "-o",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/results/models/c74_diag_mirror/model_diag_mirror_absent_c74_diag_mirror_01",
+    "-P",
+    "9 48 64 68 180 182 196 10",
+    "-d",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/record_closure.py"
+   ],
+   "exit_code": 0,
+   "PORT_MAP": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/results/builds/c74_diag_mirror/response_only.inputs.json",
+   "DIAG_MIRROR_STATE": "absent",
+   "stimulus_environment": {
+    "PAD_ENABLE": "1",
+    "MILESTONE": "current",
+    "ABANDON_T": "0",
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2",
+    "REPEAT_CYCLES": "64",
+    "REPEAT_TIMED_CYCLES": "3"
+   },
+   "dependency_closure_sha256": "b935b243542b92cdee2d273d448932a17df9f97ebf84aceeb8b434dd7c8e410f"
+  }
+ },
+ "criteria": {
+  "driver_checks": [],
+  "forwarding_identical": [],
+  "pass_counts_identical": [],
+  "extra_passes_only_copies": [],
+  "copies_only_when_on": [],
+  "reflections_identical": []
+ },
+ "passed": true,
+ "copy_matches": {
+  "SYN": "exact",
+  "SYNACK": "exact",
+  "ACK": "exact",
+  "READ_request": "exact",
+  "READ_ack": "exact",
+  "READ_response": "exact",
+  "READ_mapped_ACK": "exact",
+  "SELECT_request": "exact",
+  "SELECT_response": "exact",
+  "SELECT_mapped_ACK": "exact",
+  "OPERATE_request": "exact",
+  "OPERATE_response": "exact",
+  "OPERATE_mapped_ACK": "exact",
+  "PROBE_ip_options": null,
+  "PROBE_ack_without_timestamps": null,
+  "PROBE_ack_far_ahead": null,
+  "LLDP_into_copy_port": null
+ },
+ "copies_per_step": {
+  "SYN": 1,
+  "SYNACK": 1,
+  "ACK": 1,
+  "READ_request": 1,
+  "READ_ack": 1,
+  "READ_response": 1,
+  "READ_mapped_ACK": 1,
+  "SELECT_request": 1,
+  "SELECT_response": 1,
+  "SELECT_mapped_ACK": 1,
+  "OPERATE_request": 1,
+  "OPERATE_response": 1,
+  "OPERATE_mapped_ACK": 1,
+  "PROBE_ip_options": 0,
+  "PROBE_ack_without_timestamps": 0,
+  "PROBE_ack_far_ahead": 0,
+  "LLDP_into_copy_port": 0
+ },
+ "driver_sha256": "a4779643569a227f2e4781eb865eda91c84016902d2937b98a8bf840a2847c86",
+ "runner_sha256": "22c3ba583fecc7f986bab8d7dfa7952de954288a6a9f8574f19c01d2139bfdae",
+ "sessions_script_sha256": "05329ed7e6a4a14f40903b6d3ff879b9aabe34c6b4dcdc920a95b326717e071c",
+ "observations_file": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/action_observations.json",
+ "observations_sha256": "f1dad70785454fa7ceb97f424081f851a5e2f4a5a55eeb49f055cf3660a54f10",
+ "repository_root": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay"
+}

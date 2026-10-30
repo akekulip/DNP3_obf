@@ -1,0 +1,345 @@
+{
+ "ack_summary": {
+  "aborts": 0,
+  "busy": [],
+  "first_event": [
+   "forward_original"
+  ],
+  "loss": [],
+  "passes": 5,
+  "t_ingress": 0,
+  "terminal_ack": 1
+ },
+ "case": "H2_integrity",
+ "checks": [
+  {
+   "actual": {
+    "action": "forward_original",
+    "default": false
+   },
+   "expect": {
+    "action": "forward_original",
+    "default": false
+   },
+   "name": "late_ACK_first_event",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "late_ACK_no_abort",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "name": "late_ACK_terminal_ack_once",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "busy": [],
+   "expect": true,
+   "name": "READ_only_retry_busy_actions",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "expect": true,
+   "name": "READ_retries_within_budget",
+   "ok": true,
+   "retries": 0
+  },
+  {
+   "actual": [],
+   "expect": [],
+   "name": "READ_no_loss_action",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "READ_no_abort",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "first_event": [
+    "first_read_request"
+   ],
+   "name": "READ_admitted_once_by_first_read_request",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "name": "READ_T_ingress_once",
+   "ok": true
+  },
+  {
+   "actual": [
+    "READ",
+    "final_ACK"
+   ],
+   "expect": [
+    "READ",
+    "final_ACK"
+   ],
+   "name": "port64_order",
+   "ok": true
+  },
+  {
+   "actual": {
+    "client": 19000128,
+    "owner_state": 14,
+    "server": 19000901,
+    "work_phase": 4
+   },
+   "expect": {
+    "client": 19000128,
+    "owner_state": 14,
+    "server": 19000901,
+    "work_phase": 4
+   },
+   "name": "N_state_after",
+   "ok": true
+  },
+  {
+   "actual": {
+    "client": 19000128,
+    "epoch": 238,
+    "owner": 917524,
+    "server": 19000901,
+    "work_phase": 4
+   },
+   "expect": {
+    "client": 19000128,
+    "epoch": 238,
+    "owner": 917524,
+    "server": 19000901,
+    "work_phase": 4
+   },
+   "name": "late_ACK_changed_no_N_state",
+   "ok": true
+  }
+ ],
+ "closed": true,
+ "evidence_kind": "genuine_processing",
+ "expect": "READ admitted at owner 4, then the final ACK: first_event forward_original, no abort, no N state change; port 64 gets READ then ACK once each",
+ "expectation": "fix",
+ "image_len": {
+  "READ": 158
+ },
+ "isn": {
+  "master": 19000100,
+  "relay": 19000900
+ },
+ "observations": [
+  {
+   "decisive_line": null,
+   "decisive_wait_s": null,
+   "hook": null,
+   "offset": 139103514,
+   "port64": [
+    "READ"
+   ],
+   "port9": []
+  },
+  {
+   "decisive_line": ":10-30 10:09:19.140307:        :0x6d8:-:<0,0,9>:Execute Action: n_Ingress.forward_original",
+   "decisive_wait_s": 0.024269047658890486,
+   "hook": null,
+   "offset": 139736118,
+   "port64": [
+    "final_ACK"
+   ],
+   "port9": []
+  }
+ ],
+ "read_class": "integrity",
+ "read_length": 27,
+ "read_summary": {
+  "aborts": 0,
+  "busy": [],
+  "first_event": [
+   "first_read_request"
+  ],
+  "loss": [],
+  "passes": 7,
+  "t_ingress": 1,
+  "terminal_ack": 0
+ },
+ "registers_after": {
+  "client": 19000128,
+  "epoch": 238,
+  "owner": 917524,
+  "server": 19000901,
+  "work_phase": 4
+ },
+ "registers_before": {
+  "client": 18000243,
+  "epoch": 218,
+  "owner": 17760275,
+  "server": 18001224,
+  "work_phase": 4
+ },
+ "registers_mid": {
+  "client": 19000128,
+  "epoch": 238,
+  "owner": 917524,
+  "server": 19000901,
+  "work_phase": 4
+ },
+ "scenario": "H2",
+ "state_evidence": {
+  "claim_cell_before": {
+   "generation": 240,
+   "phase": 4
+  },
+  "client": 19000128,
+  "expected_client": 19000128,
+  "first_event": {
+   "action": "n_Ingress.forward_original",
+   "default": false,
+   "salu": null,
+   "status": "hit",
+   "table": "n_Ingress.first_event"
+  },
+  "laps": [
+   {
+    "actions": [
+     "NoAction",
+     "forward_flow",
+     "route",
+     "response_only531_0",
+     "response_only531",
+     "NoAction",
+     "NoAction",
+     "network_accept",
+     "go_ret_work",
+     "next_seq",
+     "return_work",
+     "NoAction",
+     "ack_native",
+     "diff_epoch",
+     "NoAction",
+     "NoAction",
+     "load_server",
+     "load_client",
+     "owner_check",
+     "diff_forward",
+     "next_stage"
+    ],
+    "event": [
+     1,
+     8
+    ],
+    "id": "0x6d9",
+    "port": 68
+   },
+   {
+    "actions": [
+     "NoAction",
+     "forward_flow",
+     "route",
+     "response_only531_0",
+     "response_only531",
+     "NoAction",
+     "NoAction",
+     "network_accept",
+     "go_ret_work",
+     "next_seq",
+     "return_work",
+     "NoAction",
+     "ack_native",
+     "diff_epoch",
+     "NoAction",
+     "NoAction",
+     "load_server",
+     "load_client",
+     "owner_check",
+     "diff_forward",
+     "next_stage"
+    ],
+    "event": [
+     2,
+     8
+    ],
+    "id": "0x6da",
+    "port": 68
+   },
+   {
+    "actions": [
+     "NoAction",
+     "forward_flow",
+     "route",
+     "response_only531_0",
+     "response_only531",
+     "NoAction",
+     "NoAction",
+     "network_accept",
+     "go_ret_work",
+     "next_seq",
+     "return_work",
+     "NoAction",
+     "ack_native",
+     "diff_epoch",
+     "NoAction",
+     "NoAction",
+     "load_server",
+     "load_client",
+     "owner_check",
+     "diff_forward",
+     "terminal_ack"
+    ],
+    "event": [
+     3,
+     8
+    ],
+    "id": "0x6db",
+    "port": 68
+   }
+  ],
+  "owner": 917524,
+  "owner_state": 14,
+  "reached": true,
+  "retries_before_claim": [],
+  "stage0_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "NoAction",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_seq",
+    "claim_work",
+    "NoAction",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "snapshot_lap",
+    "owner_read",
+    "diff_forward",
+    "response_only566",
+    "forward_original"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0x6d8",
+   "port": 48
+  }
+ },
+ "state_reached": true,
+ "timed": false,
+ "verdict": "pass"
+}

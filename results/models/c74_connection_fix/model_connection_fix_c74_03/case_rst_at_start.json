@@ -1,0 +1,51 @@
+{
+ "case": "rst_at_start",
+ "checks": [
+  {
+   "actual": 1,
+   "expect": 1,
+   "name": "RST_on_port64_once",
+   "ok": true
+  }
+ ],
+ "closed": true,
+ "evidence_kind": "genuine_processing",
+ "expect": "RST after the SYN-ACK: RST on port 64 once",
+ "expectation": "as_before",
+ "isn": {
+  "master": 35000100,
+  "relay": 35000900
+ },
+ "observations": [
+  {
+   "decisive_line": null,
+   "decisive_wait_s": null,
+   "hook": null,
+   "offset": 251403364,
+   "port64": [
+    "RST"
+   ],
+   "port9": []
+  }
+ ],
+ "read_class": null,
+ "read_length": null,
+ "registers_after": {
+  "client": 35000101,
+  "epoch": 435,
+  "owner": 33554469,
+  "server": 35000901,
+  "work_phase": 4
+ },
+ "registers_before": {
+  "client": 34000155,
+  "epoch": 424,
+  "owner": 33554468,
+  "server": 34001169,
+  "work_phase": 4
+ },
+ "scenario": "rst_at_start",
+ "state_reached": null,
+ "timed": false,
+ "verdict": "pass"
+}

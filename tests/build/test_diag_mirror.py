@@ -1,4 +1,5 @@
-"""c72_diag_mirror: generator, session script and static compile checks (offline; no switch, no model)."""
+"""The canonical candidate's diagnostic build (BASE_diag_mirror; c74_diag_mirror since c74 became canonical):
+generator, session script and static compile checks (offline; no switch, no model). c72_diag_mirror is historical."""
 import hashlib
 import importlib.util
 import json
@@ -7,10 +8,13 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-BUILD = ROOT / 'results/builds/c72_diag_mirror'
+CURRENT = json.loads((ROOT / 'results/analysis/stage_cut/current_build.json').read_text())
+CANON = ROOT / CURRENT['build']                                   # the canonical candidate
+BUILD = CANON.parent / (CANON.name + '_diag_mirror')               # its diagnostic build
+C72_DIAG = ROOT / 'results/builds/c72_diag_mirror'                 # historical (derived while c72 was canonical)
 C72_SOURCE_SHA256 = '97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e'
 needs_build = pytest.mark.skipif(not (BUILD / 'compile_local/out/response_only.p4pp').is_file(),
-                                 reason='compiled c72_diag_mirror build not present')
+                                 reason='compiled diagnostic build not present')
 
 
 def load(name, path):
@@ -41,10 +45,24 @@ def sha(text):
     return hashlib.sha256(text.encode()).hexdigest()
 
 
-def test_canonical_source_is_still_c72(texts):
+def test_canonical_source_is_the_current_candidate(texts):
     canonical, _derived, _points = texts
-    assert sha(canonical) == C72_SOURCE_SHA256
+    assert sha(canonical) == CURRENT['source_sha256']
+    assert hashlib.sha256((CANON / 'response_only.p4').read_bytes()).hexdigest() == CURRENT['source_sha256']
+
+
+def test_historical_c72_diag_mirror_identity_is_retained():
+    meta = json.loads((C72_DIAG / 'diag_mirror.json').read_text())
+    assert meta['build'] == 'c72_diag_mirror' and meta['canonical_sha256'] == C72_SOURCE_SHA256
+    assert meta['source_sha256'] == hashlib.sha256((C72_DIAG / 'response_only.p4').read_bytes()).hexdigest()
     assert hashlib.sha256((ROOT / 'results/builds/c72/response_only.p4').read_bytes()).hexdigest() == C72_SOURCE_SHA256
+
+
+@pytest.mark.parametrize('name', ['c72_diag_mirror', 'c74', 'diag_mirror', 'c74_diag'])
+def test_generator_refuses_a_build_that_is_not_the_canonical_candidates_diagnostic_build(gen, tmp_path, name):
+    with pytest.raises(ValueError):
+        gen.generate(tmp_path / name)
+    assert not (tmp_path / name).exists()
 
 
 def test_derived_source_is_canonical_plus_declared_insertions_only(gen, texts):
@@ -115,14 +133,16 @@ def test_copy_port_is_never_a_loop_recirculation_or_parsed_port(gen, texts):
 def test_packaged_build_matches_generator(gen, texts):
     _canonical, derived, _points = texts
     if not BUILD.is_dir():
-        pytest.skip('c72_diag_mirror build not present')
+        pytest.skip('diagnostic build not present')
     assert (BUILD / 'response_only.p4').read_text() == derived
     meta = json.loads((BUILD / 'diag_mirror.json').read_text())
-    assert meta['source_sha256'] == sha(derived) and meta['canonical_sha256'] == C72_SOURCE_SHA256
+    assert meta['source_sha256'] == sha(derived) and meta['canonical_sha256'] == CURRENT['source_sha256']
+    assert meta['build'] == BUILD.name and meta['base_build'] == CURRENT['build']
     assert meta['deleted_or_replaced'] == 0 and meta['hunks'] == [h[0] for h in gen.HUNKS]
-    assert (BUILD / 'diag_mirror.diff').read_text() == gen.unified_diff((ROOT / 'p4/response_only.p4').read_text(), derived)
+    assert (BUILD / 'diag_mirror.diff').read_text() == gen.unified_diff((ROOT / 'p4/response_only.p4').read_text(),
+                                                                         derived, BUILD.name)
     inputs = json.loads((BUILD / 'response_only.inputs.json').read_text())
-    assert inputs['supported_profile']['candidate']['build'] == 'c72_diag_mirror'
+    assert inputs['supported_profile']['candidate']['build'] == BUILD.name
     assert inputs['source_sha256'] == sha(derived)
 
 
@@ -223,7 +243,7 @@ def test_compiled_mirror_guard_and_pipe1_equivalence():
     ok, report = checks.guard_pipe0(BUILD / 'compile_local/out', dict(ingress=101, egress=102))
     assert ok, report
     assert report['gress']['ingress']['unconditional_mirror_type_setters']
-    ok, eq = checks.pipe1_equivalence(ROOT / 'results/builds/c72/compile_local/out', BUILD / 'compile_local/out')
+    ok, eq = checks.pipe1_equivalence(CANON / 'compile_local/out', BUILD / 'compile_local/out')
     assert ok and not eq['other_differing_lines'], eq
 
 

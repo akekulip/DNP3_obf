@@ -260,7 +260,7 @@ MIRROR_FILES = ('mirror.pcap', 'mirror_iface_before.json', 'mirror_iface_after.j
                 'mirror_capture.json')
 
 class MirrorCapture:
-    """--mirror-iface (c72_diag_mirror only): relay-leg copies arriving on a separate capture interface. Identity
+    """--mirror-iface (diagnostic BASE_diag_mirror builds only): relay-leg copies arriving on a separate capture interface. Identity
     before and after, receive aggregation off for the run (offload_capture_context, restored on every exit path) and
     an unfiltered tcpdump -Q in verified as started before traffic. start() raises before traffic on any failure;
     stop() never raises and records every failure in mirror_capture.json, which then fails the run."""
@@ -510,7 +510,7 @@ def main():
     ap.add_argument('--endpoint-binary', help='retired software-outstation option; refused on the physical relay')
     ap.add_argument('--pad-expect', help='read-schedule endpoint, padded arm: CASE4_PAD_EXPECT for the master only (<class>=<n>[,...]; needs --read-schedule)')
     ap.add_argument('--mirror-iface', metavar='IFACE',
-                    help='c72_diag_mirror only: capture the relay-leg copies arriving on IFACE (mirror.pcap)')
+                    help='diagnostic BASE_diag_mirror builds only: capture the relay-leg copies arriving on IFACE (mirror.pcap)')
     a = ap.parse_args()
     if a.mirror_iface is not None and (a.mode != 'run' or a.scenario or a.drop or a.event_clear or a.connect_must_fail
                                        or not MIRROR_IFACE.fullmatch(a.mirror_iface) or a.mirror_iface == PARENT):

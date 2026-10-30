@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mirror sessions for the c72_diag_mirror diagnostic build only: both relay-leg copies to one port, untruncated.
+"""Mirror sessions for a BASE_diag_mirror diagnostic build only: both relay-leg copies to one port, untruncated.
 
   python3 diag_mirror_sessions.py OUT --plan on|off            print the validated $mirror.cfg operations (offline)
   python3 diag_mirror_sessions.py OUT --apply on|off|absent    write them through switch.Switch (switch host only)
@@ -11,8 +11,8 @@ relay), the egress session (frames leaving toward the relay) and the copy port. 
 States of the same binary:
   on      both sessions present and enabled: each relay-leg frame is copied to the copy port;
   off     both sessions present with $session_enable False: the dataplane still names them, no copy is made;
-  absent  both sessions deleted (the state in which the c72 model drivers run on this build).
-T's clone session (t_CLONE_SESSION_ID, 7 in c72) is never written and t_config.py is not used.
+  absent  both sessions deleted (the state in which the gate model drivers run on this build).
+T's clone session (t_CLONE_SESSION_ID, 7 since c72) is never written and t_config.py is not used.
 Applying is a switch write: it needs the existing ownership controls and is not part of any offline check.
 """
 import argparse

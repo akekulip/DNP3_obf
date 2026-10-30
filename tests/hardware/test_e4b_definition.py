@@ -21,6 +21,8 @@ import campaign  # noqa: E402
 import campaign_base  # noqa: E402
 import checks  # noqa: E402
 import matrix  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import historical_c72  # noqa: E402
 
 DESIGN = json.loads((ROOT / 'results/analysis/e4b_select_only/DESIGN.json').read_text())
 C72 = ROOT / 'results/builds/c72'
@@ -30,7 +32,10 @@ NATIVE_PROBE_PORTS = {59411, 59412}  # c72_native_20261027_01/_02 master ports (
 PINNED = 'ca0db02d1'                 # matrix.py before the E4b definition
 NAME = 'e4b_select_only'
 # definitions added after E4b (tests/hardware/test_strict_cycle_definition.py); not part of the E4b comparison
-LATER = {'strict_cycle_c72_d20', 'strict_cycle_c72_d5', 'diag_e2_combined'}
+LATER = {'strict_cycle_c72_d20', 'strict_cycle_c72_d5', 'diag_e2_combined',
+         # c74 confirmation (tests/hardware/test_c74_confirmation_definition.py)
+         'strict_cycle_c74_d20', 'strict_cycle_c74_d5', 'diag_e2_combined_c74', 'diag_e2_off_c74',
+         'recovery_c74_r1', 'recovery_c74_r2', 'recovery_c74_r3', 'e4b_select_only_c74'}
 LAB = json.loads((matrix.HERE / 'lab.json').read_text())
 TEMPLATE = next(block for block in LAB['blocks'] if block['id'] == '10_d20_loss_full')
 REGISTERED = DESIGN['block']
@@ -158,11 +163,13 @@ def pinned_matrix(tmp_path_factory):
 
 
 @pytest.mark.parametrize('name', sorted(n for n in matrix.DEFINITIONS if n != NAME and n not in LATER))
-def test_every_existing_definition_prepares_byte_for_byte_unchanged(pinned_matrix, tmp_path, name):
+def test_every_existing_definition_prepares_byte_for_byte_unchanged(pinned_matrix, tmp_path, name, monkeypatch):
     diagnostic = matrix.DEFINITIONS[name].get('diagnostic')
     build = DIAG if diagnostic else C72
     if diagnostic and not (DIAG / 'compile_local/out/response_only.p4pp').is_file():
         pytest.skip('compiled c72_diag_mirror outputs not restored')
+    if diagnostic:      # the c72 diagnostic definitions are admitted only in the c72-canonical context they bind
+        historical_c72.use_c72_context(monkeypatch, tmp_path)
     assert name in pinned_matrix.DEFINITIONS and pinned_matrix.DEFINITIONS[name] == matrix.DEFINITIONS[name]
     output = tmp_path / 'matrix'
     pinned_matrix.prepare(build, NATIVE, output, 'offline_' + name, definition=name)

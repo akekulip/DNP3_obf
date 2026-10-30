@@ -1,0 +1,38 @@
+{
+  "schema": "c72-diag-mirror-v1",
+  "build": "c74_diag_mirror",
+  "purpose": "diagnostic relay-leg mirror; not the c74 binary",
+  "base_build": "results/builds/c74",
+  "canonical_source": "p4/response_only.p4",
+  "canonical_sha256": "c7e37eff347f09c30af3a46f566cf41069df2d9c099e0227a102c16733116efd",
+  "source_sha256": "e46391d81e569a19a527604d3f2d3d454589f4261149ce697c79af952cbca7f4",
+  "generator": "scripts/build_diag_mirror.py",
+  "generator_sha256": "ca40dc834a770ab333064f44d24482919fb0fb99dbe17b5e580e9b913f0f997c",
+  "hunks": [
+    "n_constants",
+    "n_meta_field",
+    "n_pragmas",
+    "n_ingress_select",
+    "n_deparser_mirror",
+    "n_deparser_emit",
+    "r_constants",
+    "r_meta_field",
+    "r_pragmas",
+    "r_egress_select",
+    "r_egress_session",
+    "r_deparser_mirror",
+    "r_deparser_emit"
+  ],
+  "inserted_fragments": 13,
+  "inserted_lines": 31,
+  "deleted_or_replaced": 0,
+  "mirror": {
+    "type": 1,
+    "relay_port": 64,
+    "copy_port": 10,
+    "session_rx": 101,
+    "session_tx": 102,
+    "max_pkt_len": 16384,
+    "t_clone_session_untouched": 7
+  }
+}

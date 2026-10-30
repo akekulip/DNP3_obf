@@ -1,0 +1,58 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name response_only
+Binding with p4_name response_only successful!!
+Received response_only on GetForwarding on client 1, device 0
+PASS race_0_SYN                         expected=one exact frame observed=1
+PASS race_0_SYNACK                      expected=one exact frame observed=1
+PASS race_0_ACK                         expected=one exact frame observed=1
+PASS c0_mixed_request                   expected=one exact frame observed=1
+PASS c0_mixed_ACK                       expected=one exact frame observed=1
+PASS c0_mixed_complete_response         expected=one exact frame observed=1
+PASS c0_mixed_mapped_complete_ACK       expected=one exact frame observed=1
+PASS c0_SELECT_mixed_request            expected=one exact frame observed=1
+PASS c0_SELECT_mixed_ACK                expected=one exact frame observed=1
+FAIL c0_SELECT_mixed_complete_response  expected=one exact frame observed=0
+FAIL c0_exception                       expected=none       observed=Traceback (most recent call last):
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_fin_busy.py", line 84, in main
+    c, s, w = gate.actual_exchange('c%d_SELECT_%s' % (connection, cls), 'CONTROL', c, s, w, fc=3)
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_relay_sbo.py", line 181, in actual_exchange
+    received_response = self.exchange(tag + '_complete_response', response, expected, reverse=True)
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_packets.py", line 317, in exchange
+    self.add(name, 'one exact frame', len(flat), ok=exact, sent=sent, received=got, expected_frame=expected)
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_packets.py", line 302, in add
+    raise AssertionError(name)
+AssertionError: c0_SELECT_mixed_complete_response
+
+FAIL race_1_SYN                         expected=one exact frame observed=0
+FAIL c1_exception                       expected=none       observed=Traceback (most recent call last):
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_fin_busy.py", line 80, in main
+    c, s, w = gate.handshake(70000 + connection * 100000, 90000 + connection * 100000, 'race_%d_' % connection)
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_relay_sbo.py", line 88, in handshake
+    return super().handshake(cseq, sseq, tag)
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_packets.py", line 322, in handshake
+    self.exchange(tag + 'SYN', self.v.packet(2, cseq, mss=1460), self.v.packet(2, cseq, mss=1460))
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_packets.py", line 317, in exchange
+    self.add(name, 'one exact frame', len(flat), ok=exact, sent=sent, received=got, expected_frame=expected)
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_packets.py", line 302, in add
+    raise AssertionError(name)
+AssertionError: race_1_SYN
+
+FAIL race_2_SYN                         expected=one exact frame observed=0
+FAIL c2_exception                       expected=none       observed=Traceback (most recent call last):
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_fin_busy.py", line 80, in main
+    c, s, w = gate.handshake(70000 + connection * 100000, 90000 + connection * 100000, 'race_%d_' % connection)
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_relay_sbo.py", line 88, in handshake
+    return super().handshake(cseq, sseq, tag)
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_packets.py", line 322, in handshake
+    self.exchange(tag + 'SYN', self.v.packet(2, cseq, mss=1460), self.v.packet(2, cseq, mss=1460))
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_packets.py", line 317, in exchange
+    self.add(name, 'one exact frame', len(flat), ok=exact, sent=sent, received=got, expected_frame=expected)
+  File "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74/diag_overlay/scripts/model/model_packets.py", line 302, in add
+    raise AssertionError(name)
+AssertionError: race_2_SYN
+
+FAIL all_three_planned_connections_completed expected=3          observed=0
+SUMMARY {'total': 16, 'passed': 9, 'failed': ['c0_SELECT_mixed_complete_response', 'c0_exception', 'race_1_SYN', 'c1_exception', 'race_2_SYN', 'c2_exception', 'all_three_planned_connections_completed']}
+driver exit code 1
+hugepages free after run: HugePages_Free: 196

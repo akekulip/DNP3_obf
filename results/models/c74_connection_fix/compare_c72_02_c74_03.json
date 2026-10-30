@@ -1,0 +1,2119 @@
+{
+ "schema": "c74-connection-fix-vs-c72-v1",
+ "c72_run": "model_connection_fix_c72_02",
+ "c74_run": "model_connection_fix_c74_03",
+ "observation": "SDK tofino-model functional output; not hardware, not timing",
+ "rule": "as_before: identical outcome digest and pass on both; fix: pass on c74 (c72 = RED baseline); residual: recorded, pass = case completed",
+ "cases": {
+  "H1_integrity": {
+   "scenario": "H1",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "READ_first_claim_busy_retry_ack",
+    "READ_only_retry_busy_actions",
+    "READ_no_loss_action",
+    "READ_admitted_once_by_first_read_request",
+    "READ_T_ingress_once",
+    "port64_order",
+    "no_exception"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     [
+      "final_ACK"
+     ]
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "final_ACK",
+      "READ"
+     ]
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "image_len": {
+     "READ": 158
+    }
+   },
+   "acceptable": true
+  },
+  "H1_mixed": {
+   "scenario": "H1",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "READ_first_claim_busy_retry_ack",
+    "READ_only_retry_busy_actions",
+    "READ_no_loss_action",
+    "READ_admitted_once_by_first_read_request",
+    "READ_T_ingress_once",
+    "port64_order",
+    "no_exception"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     [
+      "final_ACK"
+     ]
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "final_ACK",
+      "READ"
+     ]
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "image_len": {
+     "READ": 141
+    }
+   },
+   "acceptable": true
+  },
+  "H1_sbo_integrity": {
+   "scenario": "H1_sbo",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "SELECT_first_claim_busy_retry_ack",
+    "SELECT_only_retry_busy_actions",
+    "SELECT_no_loss_action",
+    "SELECT_admitted_once_by_first_select",
+    "SELECT_T_ingress_once",
+    "SELECT_port64_order",
+    "no_exception"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [],
+    "command_summary": {
+     "SELECT": {
+      "busy": [
+       "busy_drop"
+      ],
+      "first_event": []
+     }
+    },
+    "image_len": {
+     "READ": 158
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "ACK",
+      "SELECT"
+     ],
+     [
+      "ACK",
+      "OPERATE"
+     ]
+    ],
+    "command_summary": {
+     "OPERATE": {
+      "busy": [
+       "busy_retry_ack",
+       "busy_retry_rst_next",
+       "busy_retry_rst_next"
+      ],
+      "first_event": [
+       "first_operate"
+      ]
+     },
+     "SELECT": {
+      "busy": [
+       "busy_retry_ack",
+       "busy_retry_rst_next",
+       "busy_retry_rst_next"
+      ],
+      "first_event": [
+       "first_select"
+      ]
+     }
+    },
+    "image_len": {
+     "OPERATE": 60,
+     "READ": 158,
+     "SELECT": 60
+    }
+   },
+   "acceptable": true
+  },
+  "H1_sbo_mixed": {
+   "scenario": "H1_sbo",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "SELECT_first_claim_busy_retry_ack",
+    "SELECT_only_retry_busy_actions",
+    "SELECT_no_loss_action",
+    "SELECT_admitted_once_by_first_select",
+    "SELECT_T_ingress_once",
+    "SELECT_port64_order",
+    "no_exception"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [],
+    "command_summary": {
+     "SELECT": {
+      "busy": [
+       "busy_drop"
+      ],
+      "first_event": []
+     }
+    },
+    "image_len": {
+     "READ": 141
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "ACK",
+      "SELECT"
+     ],
+     [
+      "ACK",
+      "OPERATE"
+     ]
+    ],
+    "command_summary": {
+     "OPERATE": {
+      "busy": [
+       "busy_retry_ack",
+       "busy_retry_rst_next",
+       "busy_retry_rst_next"
+      ],
+      "first_event": [
+       "first_operate"
+      ]
+     },
+     "SELECT": {
+      "busy": [
+       "busy_retry_ack",
+       "busy_retry_rst_next",
+       "busy_retry_rst_next"
+      ],
+      "first_event": [
+       "first_select"
+      ]
+     }
+    },
+    "image_len": {
+     "OPERATE": 60,
+     "READ": 141,
+     "SELECT": 60
+    }
+   },
+   "acceptable": true
+  },
+  "H1prime_integrity": {
+   "scenario": "H1prime",
+   "read_class": "integrity",
+   "evidence_kind": "forced_register",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "first_retry_seen_before_release",
+    "READ_first_claim_busy_retry_ack",
+    "READ_only_retry_busy_actions",
+    "READ_no_loss_action",
+    "READ_admitted_once_by_first_read_request",
+    "READ_T_ingress_once",
+    "port64",
+    "no_exception"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "READ"
+     ]
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_retry_ack"
+     ],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "image_len": {
+     "READ": 158
+    }
+   },
+   "acceptable": true
+  },
+  "H1prime_mixed": {
+   "scenario": "H1prime",
+   "read_class": "mixed",
+   "evidence_kind": "forced_register",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "first_retry_seen_before_release",
+    "READ_first_claim_busy_retry_ack",
+    "READ_only_retry_busy_actions",
+    "READ_no_loss_action",
+    "READ_admitted_once_by_first_read_request",
+    "READ_T_ingress_once",
+    "port64",
+    "no_exception"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "READ"
+     ]
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_retry_ack"
+     ],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "image_len": {
+     "READ": 141
+    }
+   },
+   "acceptable": true
+  },
+  "H2_integrity": {
+   "scenario": "H2",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "late_ACK_first_event",
+    "late_ACK_no_abort",
+    "late_ACK_terminal_ack_once",
+    "port64_order"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     [
+      "READ"
+     ],
+     []
+    ],
+    "read_summary": {
+     "busy": [],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "ack_summary": {
+     "busy": [],
+     "first_event": [
+      "NoAction"
+     ],
+     "t_ingress": 0
+    },
+    "image_len": {
+     "READ": 158
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "READ"
+     ],
+     [
+      "final_ACK"
+     ]
+    ],
+    "read_summary": {
+     "busy": [],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "ack_summary": {
+     "busy": [],
+     "first_event": [
+      "forward_original"
+     ],
+     "t_ingress": 0
+    },
+    "image_len": {
+     "READ": 158
+    }
+   },
+   "acceptable": true
+  },
+  "H2_mixed": {
+   "scenario": "H2",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "late_ACK_first_event",
+    "late_ACK_no_abort",
+    "late_ACK_terminal_ack_once",
+    "port64_order"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     [
+      "READ"
+     ],
+     []
+    ],
+    "read_summary": {
+     "busy": [],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "ack_summary": {
+     "busy": [],
+     "first_event": [
+      "NoAction"
+     ],
+     "t_ingress": 0
+    },
+    "image_len": {
+     "READ": 141
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "READ"
+     ],
+     [
+      "final_ACK"
+     ]
+    ],
+    "read_summary": {
+     "busy": [],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "ack_summary": {
+     "busy": [],
+     "first_event": [
+      "forward_original"
+     ],
+     "t_ingress": 0
+    },
+    "image_len": {
+     "READ": 141
+    }
+   },
+   "acceptable": true
+  },
+  "H2r_integrity": {
+   "scenario": "H2r",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "late_ACK_first_event",
+    "late_ACK_no_abort",
+    "late_ACK_terminal_ack_once",
+    "port64_order"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     [
+      "READ"
+     ]
+    ],
+    "read_summary": {
+     "busy": [],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "ack_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "NoAction"
+     ],
+     "t_ingress": 0
+    },
+    "image_len": {
+     "READ": 158
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "READ",
+      "final_ACK"
+     ]
+    ],
+    "read_summary": {
+     "busy": [],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "ack_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "forward_original"
+     ],
+     "t_ingress": 0
+    },
+    "image_len": {
+     "READ": 158
+    }
+   },
+   "acceptable": true
+  },
+  "H2r_mixed": {
+   "scenario": "H2r",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "late_ACK_first_event",
+    "late_ACK_no_abort",
+    "late_ACK_terminal_ack_once",
+    "port64_order"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     [
+      "READ"
+     ]
+    ],
+    "read_summary": {
+     "busy": [],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "ack_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "NoAction"
+     ],
+     "t_ingress": 0
+    },
+    "image_len": {
+     "READ": 141
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "READ",
+      "final_ACK"
+     ]
+    ],
+    "read_summary": {
+     "busy": [],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "ack_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "forward_original"
+     ],
+     "t_ingress": 0
+    },
+    "image_len": {
+     "READ": 141
+    }
+   },
+   "acceptable": true
+  },
+  "collision_causal_integrity": {
+   "scenario": "collision_causal",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "OPERATE_first_claim_busy_retry_ack",
+    "OPERATE_only_retry_busy_actions",
+    "OPERATE_no_loss_action",
+    "OPERATE_admitted_once_by_first_operate",
+    "OPERATE_T_ingress_once",
+    "OPERATE_on_port64_once",
+    "no_exception"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "operate_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "image_len": {
+     "SELECT": 60
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "OPERATE"
+     ]
+    ],
+    "operate_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "first_operate"
+     ],
+     "t_ingress": 1
+    },
+    "image_len": {
+     "OPERATE": 60,
+     "SELECT": 60
+    }
+   },
+   "acceptable": true
+  },
+  "collision_causal_mixed": {
+   "scenario": "collision_causal",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "OPERATE_first_claim_busy_retry_ack",
+    "OPERATE_only_retry_busy_actions",
+    "OPERATE_no_loss_action",
+    "OPERATE_admitted_once_by_first_operate",
+    "OPERATE_T_ingress_once",
+    "OPERATE_on_port64_once",
+    "no_exception"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "operate_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "image_len": {
+     "SELECT": 60
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "OPERATE"
+     ]
+    ],
+    "operate_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "first_operate"
+     ],
+     "t_ingress": 1
+    },
+    "image_len": {
+     "OPERATE": 60,
+     "SELECT": 60
+    }
+   },
+   "acceptable": true
+  },
+  "collision_integrity": {
+   "scenario": "collision",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "OPERATE_first_claim_busy_retry_ack",
+    "OPERATE_only_retry_busy_actions",
+    "OPERATE_no_loss_action",
+    "OPERATE_refused_by_first_event",
+    "OPERATE_ack_ahead_by_image_minus_native"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "operate_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    }
+   },
+   "c74": {
+    "port64": [
+     []
+    ],
+    "operate_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "count_refused"
+     ],
+     "t_ingress": 0
+    }
+   },
+   "acceptable": true
+  },
+  "collision_mixed": {
+   "scenario": "collision",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "OPERATE_first_claim_busy_retry_ack",
+    "OPERATE_only_retry_busy_actions",
+    "OPERATE_no_loss_action",
+    "OPERATE_refused_by_first_event",
+    "OPERATE_ack_ahead_by_image_minus_native"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "operate_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    }
+   },
+   "c74": {
+    "port64": [
+     []
+    ],
+    "operate_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "count_refused"
+     ],
+     "t_ingress": 0
+    }
+   },
+   "acceptable": true
+  },
+  "dup_after_admit_integrity": {
+   "scenario": "dup_after_admit",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "as_before",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": true,
+   "c72": {
+    "port64": [
+     [
+      "READ"
+     ]
+    ],
+    "read_summary": {
+     "busy": [],
+     "first_event": [
+      "first_request_dup"
+     ],
+     "t_ingress": 1
+    },
+    "port64_READ_copies": 1,
+    "t_ingress": 1
+   },
+   "c74": {
+    "port64": [
+     [
+      "READ"
+     ]
+    ],
+    "read_summary": {
+     "busy": [],
+     "first_event": [
+      "first_request_dup"
+     ],
+     "t_ingress": 1
+    },
+    "port64_READ_copies": 1,
+    "t_ingress": 1
+   },
+   "acceptable": true
+  },
+  "dup_after_admit_mixed": {
+   "scenario": "dup_after_admit",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "as_before",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": true,
+   "c72": {
+    "port64": [
+     [
+      "READ"
+     ]
+    ],
+    "read_summary": {
+     "busy": [],
+     "first_event": [
+      "first_request_dup"
+     ],
+     "t_ingress": 1
+    },
+    "port64_READ_copies": 1,
+    "t_ingress": 1
+   },
+   "c74": {
+    "port64": [
+     [
+      "READ"
+     ]
+    ],
+    "read_summary": {
+     "busy": [],
+     "first_event": [
+      "first_request_dup"
+     ],
+     "t_ingress": 1
+    },
+    "port64_READ_copies": 1,
+    "t_ingress": 1
+   },
+   "acceptable": true
+  },
+  "dup_during_retry_integrity": {
+   "scenario": "dup_during_retry",
+   "read_class": "integrity",
+   "evidence_kind": "forced_register",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "both_copies_retried",
+    "no_loss_action",
+    "one_admission",
+    "one_duplicate",
+    "no_exception"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_drop",
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "port64_READ_copies": 0,
+    "t_ingress": 0
+   },
+   "c74": {
+    "port64": [
+     [
+      "READ",
+      "READ"
+     ]
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "first_read_request",
+      "first_request_dup"
+     ],
+     "t_ingress": 2
+    },
+    "port64_READ_copies": 2,
+    "t_ingress": 2
+   },
+   "acceptable": true
+  },
+  "dup_during_retry_mixed": {
+   "scenario": "dup_during_retry",
+   "read_class": "mixed",
+   "evidence_kind": "forced_register",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "both_copies_retried",
+    "no_loss_action",
+    "one_admission",
+    "one_duplicate",
+    "no_exception"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_drop",
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "port64_READ_copies": 0,
+    "t_ingress": 0
+   },
+   "c74": {
+    "port64": [
+     [
+      "READ",
+      "READ"
+     ]
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "first_read_request",
+      "first_request_dup"
+     ],
+     "t_ingress": 2
+    },
+    "port64_READ_copies": 2,
+    "t_ingress": 2
+   },
+   "acceptable": true
+  },
+  "exhaust_integrity": {
+   "scenario": "exhaust",
+   "read_class": "integrity",
+   "evidence_kind": "forced_register",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "busy_sequence_exactly_the_budget",
+    "no_pass_after_exhaustion"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "recovery": {
+     "port64": [
+      "READ"
+     ],
+     "first_event": null
+    }
+   },
+   "c74": {
+    "port64": [
+     []
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_exhausted"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "recovery": {
+     "port64": [
+      "READ"
+     ],
+     "first_event": null
+    }
+   },
+   "acceptable": true
+  },
+  "exhaust_mixed": {
+   "scenario": "exhaust",
+   "read_class": "mixed",
+   "evidence_kind": "forced_register",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "busy_sequence_exactly_the_budget",
+    "no_pass_after_exhaustion"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "recovery": {
+     "port64": [
+      "READ"
+     ],
+     "first_event": null
+    }
+   },
+   "c74": {
+    "port64": [
+     []
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next",
+      "busy_exhausted"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "recovery": {
+     "port64": [
+      "READ"
+     ],
+     "first_event": null
+    }
+   },
+   "acceptable": true
+  },
+  "fin_after_exchange_integrity": {
+   "scenario": "fin_after_exchange",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "as_before",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": true,
+   "c72": {
+    "port64": []
+   },
+   "c74": {
+    "port64": []
+   },
+   "acceptable": true
+  },
+  "fin_after_exchange_mixed": {
+   "scenario": "fin_after_exchange",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "as_before",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": true,
+   "c72": {
+    "port64": []
+   },
+   "c74": {
+    "port64": []
+   },
+   "acceptable": true
+  },
+  "fin_at_start": {
+   "scenario": "fin_at_start",
+   "read_class": null,
+   "evidence_kind": "genuine_processing",
+   "expectation": "as_before",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": true,
+   "c72": {
+    "port64": []
+   },
+   "c74": {
+    "port64": []
+   },
+   "acceptable": true
+  },
+  "operate_mismatched_crob": {
+   "scenario": "operate_mismatched_crob",
+   "read_class": null,
+   "evidence_kind": "genuine_processing",
+   "expectation": "as_before",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": true,
+   "c72": {
+    "port64": [
+     [],
+     [
+      "OPERATE"
+     ]
+    ],
+    "mismatched_summary": {
+     "busy": [],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "matching_summary": {
+     "busy": [],
+     "first_event": [
+      "first_operate"
+     ],
+     "t_ingress": 1
+    }
+   },
+   "c74": {
+    "port64": [
+     [],
+     [
+      "OPERATE"
+     ]
+    ],
+    "mismatched_summary": {
+     "busy": [],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "matching_summary": {
+     "busy": [],
+     "first_event": [
+      "first_operate"
+     ],
+     "t_ingress": 1
+    }
+   },
+   "acceptable": true
+  },
+  "operate_retry_before_select_response": {
+   "scenario": "operate_retry_before_select_response",
+   "read_class": null,
+   "evidence_kind": "forced_register",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "OPERATE_retried",
+    "OPERATE_refused_after_claim"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "operate_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    }
+   },
+   "c74": {
+    "port64": [
+     []
+    ],
+    "operate_summary": {
+     "busy": [
+      "busy_retry_ack"
+     ],
+     "first_event": [
+      "count_refused"
+     ],
+     "t_ingress": 0
+    }
+   },
+   "acceptable": true
+  },
+  "operate_without_select": {
+   "scenario": "operate_without_select",
+   "read_class": null,
+   "evidence_kind": "genuine_processing",
+   "expectation": "as_before",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": true,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "operate_summary": {
+     "busy": [],
+     "first_event": [
+      "count_refused"
+     ],
+     "t_ingress": 0
+    }
+   },
+   "c74": {
+    "port64": [
+     []
+    ],
+    "operate_summary": {
+     "busy": [],
+     "first_event": [
+      "count_refused"
+     ],
+     "t_ingress": 0
+    }
+   },
+   "acceptable": true
+  },
+  "reconnect_integrity": {
+   "scenario": "reconnect",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "B_port64_order",
+    "B_READ_no_loss_action",
+    "no_exception"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     [
+      "final_ACK"
+     ],
+     []
+    ],
+    "B_read_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "old_incarnation_probe": {
+     "port64": [],
+     "first_event": []
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "final_ACK",
+      "READ"
+     ],
+     []
+    ],
+    "B_read_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "old_incarnation_probe": {
+     "port64": [],
+     "first_event": []
+    }
+   },
+   "acceptable": true
+  },
+  "reconnect_mixed": {
+   "scenario": "reconnect",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "B_port64_order",
+    "B_READ_no_loss_action",
+    "no_exception"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     [
+      "final_ACK"
+     ],
+     []
+    ],
+    "B_read_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "old_incarnation_probe": {
+     "port64": [],
+     "first_event": []
+    }
+   },
+   "c74": {
+    "port64": [
+     [
+      "final_ACK",
+      "READ"
+     ],
+     []
+    ],
+    "B_read_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "busy_retry_rst_next"
+     ],
+     "first_event": [
+      "first_read_request"
+     ],
+     "t_ingress": 1
+    },
+    "old_incarnation_probe": {
+     "port64": [],
+     "first_event": []
+    }
+   },
+   "acceptable": true
+  },
+  "residual_class_mismatch_integrity": {
+   "scenario": "residual_class_mismatch",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "residual",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [],
+    "probe": {
+     "port64": [],
+     "first_event": [
+      "NoAction"
+     ]
+    },
+    "residual_accepted": false
+   },
+   "c74": {
+    "port64": [],
+    "probe": {
+     "port64": [
+      "mismatched_seq_ACK"
+     ],
+     "first_event": [
+      "forward_original"
+     ]
+    },
+    "residual_accepted": true
+   },
+   "acceptable": true
+  },
+  "residual_class_mismatch_mixed": {
+   "scenario": "residual_class_mismatch",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "residual",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [],
+    "probe": {
+     "port64": [],
+     "first_event": [
+      "NoAction"
+     ]
+    },
+    "residual_accepted": false
+   },
+   "c74": {
+    "port64": [],
+    "probe": {
+     "port64": [
+      "mismatched_seq_ACK"
+     ],
+     "first_event": [
+      "forward_original"
+     ]
+    },
+    "residual_accepted": true
+   },
+   "acceptable": true
+  },
+  "residual_later_read_integrity": {
+   "scenario": "residual_later_read",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "residual",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [],
+    "probe": {
+     "port64": [],
+     "first_event": [
+      "NoAction"
+     ]
+    },
+    "residual_accepted": false
+   },
+   "c74": {
+    "port64": [],
+    "probe": {
+     "port64": [
+      "old_ACK"
+     ],
+     "first_event": [
+      "forward_original"
+     ]
+    },
+    "residual_accepted": true
+   },
+   "acceptable": true
+  },
+  "residual_later_read_mixed": {
+   "scenario": "residual_later_read",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "residual",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [],
+    "probe": {
+     "port64": [],
+     "first_event": [
+      "NoAction"
+     ]
+    },
+    "residual_accepted": false
+   },
+   "c74": {
+    "port64": [],
+    "probe": {
+     "port64": [
+      "old_ACK"
+     ],
+     "first_event": [
+      "forward_original"
+     ]
+    },
+    "residual_accepted": true
+   },
+   "acceptable": true
+  },
+  "rst_at_start": {
+   "scenario": "rst_at_start",
+   "read_class": null,
+   "evidence_kind": "genuine_processing",
+   "expectation": "as_before",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": true,
+   "c72": {
+    "port64": [
+     [
+      "RST"
+     ]
+    ]
+   },
+   "c74": {
+    "port64": [
+     [
+      "RST"
+     ]
+    ]
+   },
+   "acceptable": true
+  },
+  "rst_read_outstanding_integrity": {
+   "scenario": "rst_read_outstanding",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "as_before",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": true,
+   "c72": {
+    "port64": [
+     [
+      "RST"
+     ]
+    ]
+   },
+   "c74": {
+    "port64": [
+     [
+      "RST"
+     ]
+    ]
+   },
+   "acceptable": true
+  },
+  "rst_read_outstanding_mixed": {
+   "scenario": "rst_read_outstanding",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "as_before",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": true,
+   "c72": {
+    "port64": [
+     [
+      "RST"
+     ]
+    ]
+   },
+   "c74": {
+    "port64": [
+     [
+      "RST"
+     ]
+    ]
+   },
+   "acceptable": true
+  },
+  "stale_ack_integrity": {
+   "scenario": "stale_ack",
+   "read_class": "integrity",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "late_handshake_ACK_on_port64",
+    "late_handshake_ACK_forward_original",
+    "duplicate_late_ACK_on_port64",
+    "duplicate_late_ACK_forward_original"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [],
+    "probes": {
+     "duplicate_late_ACK": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     },
+     "late_handshake_ACK": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     },
+     "wrong_ack_high": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     },
+     "wrong_ack_low": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     },
+     "wrong_seq": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     }
+    }
+   },
+   "c74": {
+    "port64": [],
+    "probes": {
+     "duplicate_late_ACK": {
+      "port64": [
+       "duplicate_late_ACK"
+      ],
+      "first_event": [
+       "forward_original"
+      ]
+     },
+     "late_handshake_ACK": {
+      "port64": [
+       "late_handshake_ACK"
+      ],
+      "first_event": [
+       "forward_original"
+      ]
+     },
+     "wrong_ack_high": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     },
+     "wrong_ack_low": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     },
+     "wrong_seq": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     }
+    }
+   },
+   "acceptable": true
+  },
+  "stale_ack_mixed": {
+   "scenario": "stale_ack",
+   "read_class": "mixed",
+   "evidence_kind": "genuine_processing",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "late_handshake_ACK_on_port64",
+    "late_handshake_ACK_forward_original",
+    "duplicate_late_ACK_on_port64",
+    "duplicate_late_ACK_forward_original"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [],
+    "probes": {
+     "duplicate_late_ACK": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     },
+     "late_handshake_ACK": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     },
+     "wrong_ack_high": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     },
+     "wrong_ack_low": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     },
+     "wrong_seq": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     }
+    }
+   },
+   "c74": {
+    "port64": [],
+    "probes": {
+     "duplicate_late_ACK": {
+      "port64": [
+       "duplicate_late_ACK"
+      ],
+      "first_event": [
+       "forward_original"
+      ]
+     },
+     "late_handshake_ACK": {
+      "port64": [
+       "late_handshake_ACK"
+      ],
+      "first_event": [
+       "forward_original"
+      ]
+     },
+     "wrong_ack_high": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     },
+     "wrong_ack_low": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     },
+     "wrong_seq": {
+      "port64": [],
+      "first_event": [
+       "NoAction"
+      ]
+     }
+    }
+   },
+   "acceptable": true
+  },
+  "stale_retry_integrity": {
+   "scenario": "stale_retry",
+   "read_class": "integrity",
+   "evidence_kind": "forced_register",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "first_busy_retry_ack",
+    "retry_stale_once_and_last"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "recovery": {
+     "port64": [
+      "READ"
+     ],
+     "first_event": null
+    }
+   },
+   "c74": {
+    "port64": [
+     []
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "busy_retry_rst_next",
+      "retry_stale"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "recovery": {
+     "port64": [
+      "READ"
+     ],
+     "first_event": null
+    }
+   },
+   "acceptable": true
+  },
+  "stale_retry_mixed": {
+   "scenario": "stale_retry",
+   "read_class": "mixed",
+   "evidence_kind": "forced_register",
+   "expectation": "fix",
+   "c72_verdict": "fail",
+   "c74_verdict": "pass",
+   "c72_failed": [
+    "first_busy_retry_ack",
+    "retry_stale_once_and_last"
+   ],
+   "c74_failed": [],
+   "digest_identical": false,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "recovery": {
+     "port64": [
+      "READ"
+     ],
+     "first_event": null
+    }
+   },
+   "c74": {
+    "port64": [
+     []
+    ],
+    "read_summary": {
+     "busy": [
+      "busy_retry_ack",
+      "retry_stale"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    },
+    "recovery": {
+     "port64": [
+      "READ"
+     ],
+     "first_event": null
+    }
+   },
+   "acceptable": true
+  },
+  "syn_busy": {
+   "scenario": "syn_busy",
+   "read_class": null,
+   "evidence_kind": "forced_register",
+   "expectation": "as_before",
+   "c72_verdict": "pass",
+   "c74_verdict": "pass",
+   "c72_failed": [],
+   "c74_failed": [],
+   "digest_identical": true,
+   "c72": {
+    "port64": [
+     []
+    ],
+    "syn_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    }
+   },
+   "c74": {
+    "port64": [
+     []
+    ],
+    "syn_summary": {
+     "busy": [
+      "busy_drop"
+     ],
+     "first_event": [],
+     "t_ingress": 0
+    }
+   },
+   "acceptable": true
+  }
+ },
+ "problems": [],
+ "all_acceptable": true,
+ "counts": {
+  "fix": 25,
+  "as_before": 11,
+  "residual": 4
+ },
+ "comparator": {
+  "sha256": "d3ecd25762350eea32370c35bb889034ceff61fc8a5f13d8bcd42b7c3d395059",
+  "source": "#!/usr/bin/env python3\n\"\"\"Compare the c74 connection-fix regression run with the same driver's run on c72, case by case.\n\n  python3 compare_connection_fix.py C72_RUN_DIR C74_RUN_DIR OUT_JSON\n\nPer case: both verdicts, the failed check names, and a build-independent outcome digest (port-64 labels of every\nobservation, the request/ACK summaries' busy and first_event lists, probe outcomes). 'as_before' cases must have an\nidentical digest on both builds; 'fix' cases must pass on c74 (their c72 result is the RED baseline); 'residual'\ncases record what each build accepted.\n\"\"\"\nimport hashlib\nimport json\nimport sys\nfrom pathlib import Path\n\nSUMMARY_KEYS = ('read_summary', 'ack_summary', 'operate_summary', 'syn_summary', 'B_read_summary', 'command_summary',\n                'mismatched_summary', 'matching_summary')\n\n\ndef digest(record):\n    out = dict(port64=[o.get('port64') for o in record.get('observations') or []])\n    for key in SUMMARY_KEYS:\n        value = record.get(key)\n        if isinstance(value, dict) and 'busy' in value:\n            out[key] = dict(busy=value['busy'], first_event=value['first_event'], t_ingress=value['t_ingress'])\n        elif isinstance(value, dict):\n            out[key] = {k: dict(busy=v['busy'], first_event=v['first_event']) for k, v in value.items()}\n    for key in ('probes', 'probe', 'old_incarnation_probe', 'recovery'):\n        value = record.get(key)\n        if isinstance(value, dict):\n            if key == 'probes':\n                out[key] = {k: dict(port64=v['port64'], first_event=v['summary']['first_event']) for k, v in value.items()}\n            else:\n                out[key] = dict(port64=value.get('port64'),\n                                first_event=(value.get('summary') or {}).get('first_event'))\n    for key in ('port64_READ_copies', 't_ingress', 'residual_accepted', 'image_len'):\n        if key in record:\n            out[key] = record[key]\n    return out\n\n\ndef load(run):\n    return {path.name[5:-5]: json.loads(path.read_text()) for path in sorted(Path(run).glob('case_*.json'))}\n\n\ndef main():\n    base, cand, out = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])\n    a, b = load(base), load(cand)\n    cases, problems = {}, []\n    for name in sorted(set(a) | set(b)):\n        x, y = a.get(name), b.get(name)\n        if x is None or y is None:\n            problems.append('%s missing on %s' % (name, 'c72' if x is None else 'c74'))\n            continue\n        expectation = y['expectation']\n        dx, dy = digest(x), digest(y)\n        row = dict(scenario=y['scenario'], read_class=y['read_class'], evidence_kind=y['evidence_kind'],\n                   expectation=expectation, c72_verdict=x['verdict'], c74_verdict=y['verdict'],\n                   c72_failed=[c['name'] for c in x['checks'] if not c['ok']],\n                   c74_failed=[c['name'] for c in y['checks'] if not c['ok']],\n                   digest_identical=dx == dy, c72=dx, c74=dy)\n        if expectation == 'as_before':\n            row['acceptable'] = dx == dy and x['verdict'] == y['verdict'] == 'pass'\n        elif expectation == 'fix':\n            row['acceptable'] = y['verdict'] == 'pass'\n        else:\n            row['acceptable'] = y['verdict'] == 'pass'\n        if not row['acceptable']:\n            problems.append(name)\n        cases[name] = row\n    report = dict(schema='c74-connection-fix-vs-c72-v1', c72_run=str(base.name), c74_run=str(cand.name),\n                  observation='SDK tofino-model functional output; not hardware, not timing',\n                  rule=\"as_before: identical outcome digest and pass on both; fix: pass on c74 (c72 = RED baseline); \"\n                       \"residual: recorded, pass = case completed\",\n                  cases=cases, problems=problems, all_acceptable=not problems,\n                  counts={k: sum(1 for r in cases.values() if r['expectation'] == k) for k in ('fix', 'as_before', 'residual')},\n                  comparator=dict(sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),\n                                  source=Path(__file__).read_text()))\n    out.write_text(json.dumps(report, indent=1, default=str) + '\\n')\n    print(json.dumps(dict(all_acceptable=report['all_acceptable'], problems=problems,\n                          verdicts={k: (v['c72_verdict'], v['c74_verdict'], v['digest_identical']) for k, v in cases.items()}),\n                     indent=0))\n    return 0 if not problems else 1\n\n\nif __name__ == '__main__':\n    raise SystemExit(main())\n"
+ }
+}

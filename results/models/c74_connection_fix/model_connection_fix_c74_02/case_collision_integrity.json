@@ -1,0 +1,259 @@
+{
+ "case": "collision_integrity",
+ "checks": [
+  {
+   "actual": "busy_retry_ack",
+   "expect": "busy_retry_ack",
+   "name": "OPERATE_first_claim_busy_retry_ack",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "busy": [
+    "busy_retry_ack",
+    "busy_retry_rst_next"
+   ],
+   "expect": true,
+   "name": "OPERATE_only_retry_busy_actions",
+   "ok": true
+  },
+  {
+   "actual": [],
+   "expect": [],
+   "name": "OPERATE_no_loss_action",
+   "ok": true
+  },
+  {
+   "actual": [
+    "count_refused"
+   ],
+   "expect": [
+    "count_refused"
+   ],
+   "name": "OPERATE_refused_by_first_event",
+   "ok": true
+  },
+  {
+   "actual": 11,
+   "expect": 11,
+   "name": "OPERATE_ack_ahead_by_image_minus_native",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "OPERATE_not_on_port64",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "name": "SELECT_image_to_master_once",
+   "ok": true
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 21000173,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 278,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554454,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 21001084,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 288,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 21000173
+ },
+ "evidence_kind": "genuine_processing",
+ "expect": "the c72 reproduction construction (OPERATE injected while the SELECT response holds the cell, its ACK covering image octets the master has not received): the OPERATE retries instead of busy_drop, then first_event refuses it (count_refused) because its normalized ACK is 11 octets (image 60 - native 49) ahead of the relay sequence; not on port 64",
+ "expectation": "fix",
+ "isn": {
+  "master": 21000100,
+  "relay": 21000900
+ },
+ "noncausal_ack": {
+  "ahead": 11,
+  "image_minus_native": 11,
+  "normalized_ack": 21001095,
+  "server_register": 21001084
+ },
+ "observations": [
+  {
+   "decisive_line": ":10-30 01:57:07.369261:        :0x825:-:<0,0,9>:Execute Action: n_Ingress.terminal_abort",
+   "decisive_wait_s": 0.1480111349374056,
+   "hook": null,
+   "offset": 165681698,
+   "port64": [],
+   "port9": [
+    null
+   ]
+  }
+ ],
+ "operate_summary": {
+  "aborts": 1,
+  "busy": [
+   "busy_retry_ack",
+   "busy_retry_rst_next"
+  ],
+  "first_event": [
+   "count_refused"
+  ],
+  "loss": [],
+  "passes": 7,
+  "t_ingress": 0,
+  "terminal_ack": 0
+ },
+ "progress_wire": 21001119,
+ "read_class": "integrity",
+ "read_length": 27,
+ "registers_before": {
+  "client": 20000243,
+  "epoch": 258,
+  "owner": 17760277,
+  "server": 20001224,
+  "work_phase": 4
+ },
+ "scenario": "collision",
+ "state_evidence": {
+  "holder_cell_after": {
+   "generation": 287,
+   "phase": 1
+  },
+  "holder_generation": 287,
+  "holder_pass": {
+   "actions": [
+    "NoAction",
+    "reverse_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head_first",
+    "configure",
+    "response_crct",
+    "response_status_good",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_response",
+    "claim_work",
+    "NoAction",
+    "compare_response_inputs",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "compare_control_state",
+    "load_server",
+    "load_client",
+    "snapshot",
+    "compare_native_end",
+    "compare_real_tcp_dst",
+    "compare_real_links",
+    "owner_read",
+    "diff_response",
+    "control_state_delta",
+    "response_only566",
+    "first_response"
+   ],
+   "event": null,
+   "id": "0x81a",
+   "port": 64
+  },
+  "reached": true,
+  "victim_actions": [
+   "NoAction",
+   "forward_flow",
+   "route",
+   "response_only531_0",
+   "response_only531",
+   "crc_head_first",
+   "configure",
+   "input_tail",
+   "eligible",
+   "NoAction",
+   "network_accept",
+   "go_new",
+   "next_control",
+   "claim_work",
+   "NoAction",
+   "compare_operate_inputs",
+   "ack_native",
+   "load_epoch",
+   "NoAction",
+   "NoAction",
+   "load_server",
+   "load_client",
+   "NoAction",
+   "NoAction",
+   "NoAction",
+   "owner_read",
+   "diff_forward",
+   "busy_retry_ack"
+  ],
+  "victim_cell_before": {
+   "generation": 287,
+   "phase": 2
+  },
+  "victim_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head_first",
+    "configure",
+    "input_tail",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_control",
+    "claim_work",
+    "NoAction",
+    "compare_operate_inputs",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "NoAction",
+    "NoAction",
+    "NoAction",
+    "owner_read",
+    "diff_forward",
+    "busy_retry_ack"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0x81d",
+   "port": 48
+  }
+ },
+ "state_reached": true,
+ "timed": false,
+ "verdict": "pass"
+}

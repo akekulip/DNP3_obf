@@ -1,0 +1,131 @@
+{
+ "schema": "c72-diag-mirror-checks-v1",
+ "build": "c74_diag_mirror",
+ "source_sha256": "e46391d81e569a19a527604d3f2d3d454589f4261149ce697c79af952cbca7f4",
+ "baseline": "c74",
+ "session_config_errors": [],
+ "pipe0_mirror_guard": {
+  "passed": true,
+  "bfa": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/results/builds/c74_diag_mirror/compile_local/out/p0/response_only.bfa",
+  "bfa_sha256": "0f3c302e9e2f96b2a294cb3dbf5e3b7d1726652cc108b35ebcb5a692e31675cb",
+  "gress": {
+   "ingress": {
+    "checks": {
+     "select_is_mirror_type": true,
+     "entry1_session_is_diag_ses": true,
+     "select_container_solitary": true,
+     "session_container_solitary": true,
+     "session_zeroed_by_parser": true,
+     "mirror_type_written_every_pass": true,
+     "other_entries_unreachable": true,
+     "session_constants": true
+    },
+    "select": [
+     "B3",
+     "ig_intr_md_for_dprsr.mirror_type"
+    ],
+    "select_zeroed_by_parser": true,
+    "entries": {
+     "0": [
+      [
+       "H8",
+       "$tmp3"
+      ]
+     ],
+     "1": [
+      [
+       "H7",
+       "m.diag_ses"
+      ]
+     ]
+    },
+    "unconditional_mirror_type_setters": [
+     "tbl_response_only540"
+    ],
+    "session_constants": [
+     101
+    ],
+    "containers": {
+     "B3": [
+      "ig_intr_md_for_dprsr.mirror_type"
+     ],
+     "H7": [
+      "m.diag_ses"
+     ],
+     "H8": [
+      "$tmp3"
+     ]
+    }
+   },
+   "egress": {
+    "checks": {
+     "select_is_mirror_type": true,
+     "entry1_session_is_diag_ses": true,
+     "select_container_solitary": true,
+     "session_container_solitary": true,
+     "session_zeroed_by_parser": true,
+     "mirror_type_written_every_pass": true,
+     "other_entries_unreachable": true,
+     "session_constants": true
+    },
+    "select": [
+     "B16",
+     "eg_intr_md_for_dprsr.mirror_type"
+    ],
+    "select_zeroed_by_parser": false,
+    "entries": {
+     "1": [
+      [
+       "H21",
+       "m.diag_ses"
+      ]
+     ]
+    },
+    "unconditional_mirror_type_setters": [
+     "tbl_response_only1259"
+    ],
+    "session_constants": [
+     102
+    ],
+    "containers": {
+     "B16": [
+      "eg_intr_md_for_dprsr.mirror_type"
+     ],
+     "H21": [
+      "m.diag_ses"
+     ]
+    }
+   }
+  }
+ },
+ "pipe1_mirror_guard": {
+  "candidate": {
+   "passed": true,
+   "notes": [
+    "select 0: session $tmp4 from H2",
+    "select 1: session md.clone_ses from H1",
+    "unconditional mirror_type=1: tbl_response_only2056"
+   ]
+  },
+  "baseline": {
+   "passed": true,
+   "notes": [
+    "select 0: session $tmp4 from H2",
+    "select 1: session md.clone_ses from H1",
+    "unconditional mirror_type=1: tbl_response_only2025"
+   ]
+  }
+ },
+ "pipe1_equivalence": {
+  "passed": true,
+  "lines": [
+   6684,
+   6684
+  ],
+  "differing_lines": 1,
+  "exact_match_hash_seed_lines": 1,
+  "other_differing_lines": [],
+  "note": "Exact-match hash-group seeds choose the RAM way an entry is stored in, not the match result. Recompiling the unmodified canonical source reproduces its p0 and p1 .bfa byte for byte (except run_id), so these seeds follow from the pipe-0 additions compiled earlier in the same program, not run-to-run noise."
+ },
+ "passed": true
+}

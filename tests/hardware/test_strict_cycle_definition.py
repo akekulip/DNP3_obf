@@ -19,6 +19,8 @@ import campaign  # noqa: E402
 import campaign_base  # noqa: E402
 import checks  # noqa: E402
 import matrix  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import historical_c72  # noqa: E402
 
 
 def load(relative):
@@ -165,7 +167,8 @@ def test_dry_plan_runs_four_plain_strict_trials(prepared):
 
 
 @needs_diag
-def test_prepare_writes_the_diagnostic_contract_into_the_e2_combined_config(tmp_path):
+def test_prepare_writes_the_diagnostic_contract_into_the_e2_combined_config(tmp_path, monkeypatch):
+    historical_c72.use_c72_context(monkeypatch, tmp_path)   # c72_diag_mirror is admitted only in the c72 context
     manifest = json.loads(matrix.prepare(DIAG, NATIVE, tmp_path / 'm', 'offline_e2c', definition='diag_e2_combined')
                           .read_text())
     assert manifest['expected_exchanges'] == 256

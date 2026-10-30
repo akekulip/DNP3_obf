@@ -1,9 +1,10 @@
-"""Run the c72_diag_mirror fidelity driver with mirror sessions on, off and absent, then compare the three runs.
+"""Run the diagnostic-mirror fidelity driver on a BASE_diag_mirror build with mirror sessions on, off and absent,
+then compare the three runs.
 
 Usage: python3 scripts/model/run_diag_mirror.py BUILD ATTEMPT [--companion DRIVER[,DRIVER...]]
 Evidence: results/models/BUILD_NAME/model_diag_mirror_{on,off,absent}_BUILD_NAME_NN/ and diag_mirror_fidelity_NN.json;
 with --companion, model_diag_companion_DRIVER_{absent,on}_BUILD_NAME_NN/ and diag_mirror_companion_NN.json instead
-(each named c72 driver, unmodified, with sessions absent and on; see model_diag_mirror_companion.py).
+(each named gate driver, unmodified, with sessions absent and on; see model_diag_mirror_companion.py).
 
 Pass criteria (all from model output, no physical claim):
   on:  each frame received on the relay port appears once on the copy port, byte-identical to the injected frame;
@@ -17,7 +18,6 @@ Pass criteria (all from model output, no physical claim):
 import argparse
 import hashlib
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -160,7 +160,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('build', type=Path)
     parser.add_argument('attempt', type=int)
-    parser.add_argument('--companion', help='comma-separated c72 driver names (run_model.REQUIRED)')
+    parser.add_argument('--companion', help='comma-separated gate driver names (run_model.REQUIRED)')
     args = parser.parse_args()
     build = args.build.resolve()
     inputs_path = build / 'response_only.inputs.json'
@@ -171,7 +171,7 @@ def main():
     from telemetry_from_log import verified_observations, OBSERVATIONS
     import diag_mirror_sessions
     import run_model
-    profile = resolve(inputs, build / 'response_only.p4')
+    resolve(inputs, build / 'response_only.p4')            # precondition: the build's profile resolves
     if not compiler_evidence.verify_evidence(build / 'compile_local', source_root=build)['compiled_artifacts_verified']:
         raise SystemExit('model requires a verified compile of the selected source')
     verified_observations(build / 'response_only.p4')

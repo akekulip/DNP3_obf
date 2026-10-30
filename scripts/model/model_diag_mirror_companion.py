@@ -1,7 +1,7 @@
-"""Run one unmodified c72 model driver on the c72_diag_mirror build with the diagnostic sessions in a chosen state,
+"""Run one unmodified gate model driver on a BASE_diag_mirror build with the diagnostic sessions in a chosen state,
 while passively recording dev64 (both directions), dev9 (both directions) and the copy port.
 
-Env: DIAG_COMPANION_DRIVER = the c72 driver file; DIAG_MIRROR_STATE = on | absent; run_model's gate environment.
+Env: DIAG_COMPANION_DRIVER = the gate driver file; DIAG_MIRROR_STATE = on | absent; run_model's gate environment.
 Before the driver starts, a separate BF Runtime client (client_id 2) enables the copy port and writes the session
 state through diag_mirror_sessions.apply, then disconnects; the driver then binds as usual (client_id 1).
 Writes OUT/diag_companion.json and five pcaps; the driver writes its own results file. Model evidence only.

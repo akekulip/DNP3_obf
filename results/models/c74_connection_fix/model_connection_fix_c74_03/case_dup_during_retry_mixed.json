@@ -1,0 +1,207 @@
+{
+ "case": "dup_during_retry_mixed",
+ "checks": [
+  {
+   "actual": 2,
+   "expect": 2,
+   "name": "both_copies_retried",
+   "ok": true
+  },
+  {
+   "actual": [],
+   "expect": [],
+   "name": "no_loss_action",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "name": "one_admission",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "name": "one_duplicate",
+   "ok": true
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 10000126,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 146,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554442,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 10000992,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 153,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 10000126
+ },
+ "evidence_kind": "forced_register",
+ "expect": "a TCP retransmission of the READ arrives while the first copy retries: one admission, one duplicate (first_request_dup), no loss action, no internal clone",
+ "expectation": "fix",
+ "isn": {
+  "master": 10000100,
+  "relay": 10000900
+ },
+ "observations": [
+  {
+   "decisive_line": ":10-30 10:07:46.588079:        :0x45f:-:<0,0,7>:Execute Action: n_Ingress.busy_retry_ack",
+   "decisive_wait_s": 0.02471390413120389,
+   "hook": {
+    "loop_line": ":10-30 10:07:46.602881:    :0x461:-:<0,0,0>:========== Ingress Pkt from port 68 (119 bytes)  ==========",
+    "second_copy_sent": true
+   },
+   "offset": 88625337,
+   "port64": [
+    "READ",
+    "READ"
+   ],
+   "port9": []
+  }
+ ],
+ "port64_READ_copies": 2,
+ "progress_wire": 10000901,
+ "read_class": "mixed",
+ "read_length": 25,
+ "read_summary": {
+  "aborts": 0,
+  "busy": [
+   "busy_retry_ack",
+   "busy_retry_rst_next",
+   "busy_retry_ack",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next"
+  ],
+  "first_event": [
+   "first_read_request",
+   "first_request_dup"
+  ],
+  "loss": [],
+  "passes": 39,
+  "t_ingress": 2,
+  "terminal_ack": 0
+ },
+ "registers_before": {
+  "client": 9000126,
+  "epoch": 137,
+  "owner": 17760265,
+  "server": 9000992,
+  "work_phase": 4
+ },
+ "scenario": "dup_during_retry",
+ "state_evidence": {
+  "reached": true,
+  "seeded_generation": 2147483646,
+  "victim_actions": [
+   "NoAction",
+   "forward_flow",
+   "route",
+   "response_only531_0",
+   "response_only531",
+   "crc_head",
+   "read_configure",
+   "rd_request_mx_crc",
+   "eligible",
+   "NoAction",
+   "network_accept",
+   "go_new",
+   "next_read_len",
+   "claim_work",
+   "read_request_mx_input",
+   "ack_native",
+   "load_epoch",
+   "NoAction",
+   "NoAction",
+   "load_server",
+   "load_client",
+   "owner_read",
+   "diff_forward",
+   "busy_retry_ack"
+  ],
+  "victim_cell_before": {
+   "generation": 2147483646,
+   "phase": 1
+  },
+  "victim_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head",
+    "read_configure",
+    "rd_request_mx_crc",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_read_len",
+    "claim_work",
+    "read_request_mx_input",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "owner_read",
+    "diff_forward",
+    "busy_retry_ack"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0x45f",
+   "port": 48
+  }
+ },
+ "state_reached": true,
+ "t_ingress": 2,
+ "timed": false,
+ "verdict": "pass"
+}

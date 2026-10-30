@@ -1,0 +1,24 @@
+{
+  "_note": "c74 E4b SELECT without OPERATE confirmation: the c72 E4b block (lab_e4b.json) unchanged except the block id and master ports; design in results/analysis/c74_confirmation/DESIGN.json.",
+  "base": "lab.json",
+  "template": "10_d20_loss_full",
+  "blocks": [
+    {
+      "id": "e4b_select_only_d20_combined_c74",
+      "d_ms": 20,
+      "arm": {
+        "name": "combined",
+        "T": 1,
+        "padding": 1
+      },
+      "trials_per_arm": 6,
+      "reads_per_trial": 20,
+      "sbo_cycles": 4,
+      "sbo_select_only": true,
+      "master_port_range": {
+        "first": 60410,
+        "last": 60415
+      }
+    }
+  ]
+}

@@ -1,0 +1,1637 @@
+{
+ "schema": "c74-gate-vs-c72-v1",
+ "build": "c74",
+ "baseline": "c72",
+ "observation": "SDK tofino-model functional output; not hardware, not timing",
+ "rule": "case names and verdicts identical; differing observed leaves only T timestamp registers or T hold re-wait counts (results/builds/c72_diag_mirror/README.md: run-to-run variation)",
+ "drivers": {
+  "abandon": {
+   "c72_run": "model_abandon_c72_02",
+   "c74_run": "model_abandon_c74_01",
+   "c74_attempts": [
+    "model_abandon_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "abandon_results.json": {
+     "failed": [],
+     "passed": 12,
+     "total": 12
+    }
+   },
+   "c74_summary": {
+    "abandon_results.json": {
+     "failed": [],
+     "passed": 12,
+     "total": 12
+    }
+   },
+   "case_count": 12,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "abort": {
+   "c72_run": "model_abort_c72_01",
+   "c74_run": "model_abort_c74_01",
+   "c74_attempts": [
+    "model_abort_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "abort_results.json": {
+     "failed": [],
+     "passed": 84,
+     "total": 84
+    }
+   },
+   "c74_summary": {
+    "abort_results.json": {
+     "failed": [],
+     "passed": 84,
+     "total": 84
+    }
+   },
+   "case_count": 84,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "contention": {
+   "c72_run": "model_contention_c72_01",
+   "c74_run": "model_contention_c74_01",
+   "c74_attempts": [
+    "model_contention_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "contention_results.json": {
+     "failed": [],
+     "passed": 457,
+     "total": 457
+    }
+   },
+   "c74_summary": {
+    "contention_results.json": {
+     "failed": [],
+     "passed": 457,
+     "total": 457
+    }
+   },
+   "case_count": 457,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "control_timing": {
+   "c72_run": "model_control_timing_c72_01",
+   "c74_run": "model_control_timing_c74_01",
+   "c74_attempts": [
+    "model_control_timing_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "control_timing_results.json": {
+     "failed": [],
+     "passed": 417,
+     "total": 417
+    }
+   },
+   "c74_summary": {
+    "control_timing_results.json": {
+     "failed": [],
+     "passed": 417,
+     "total": 417
+    }
+   },
+   "case_count": 417,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [
+    {
+     "file": "control_timing_results.json",
+     "case": "removed_operate_role13_port182_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      81113280
+     ],
+     "c74": [
+      82856444
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "removed_operate_role13_port181_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      81113280
+     ],
+     "c74": [
+      82856444
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "removed_operate_role16_port182_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      81113280
+     ],
+     "c74": [
+      82856444
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "removed_operate_role16_port181_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      81113280
+     ],
+     "c74": [
+      82856444
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "removed_operate_app1_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      81113280
+     ],
+     "c74": [
+      82856444
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "removed_operate_E101_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      81113280
+     ],
+     "c74": [
+      82856444
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_response_roleNone_child1_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_response_roleNone_child1_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_response_roleNone_child1_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role14_child1_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role14_child1_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role14_child1_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role15_child1_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role15_child1_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role15_child1_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_response_roleNone_child2_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_response_roleNone_child2_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_response_roleNone_child2_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role14_child2_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role14_child2_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role14_child2_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role15_child2_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role15_child2_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role15_child2_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_response_roleNone_child255_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_response_roleNone_child255_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_response_roleNone_child255_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role14_child255_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role14_child255_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role14_child255_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role15_child255_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role15_child255_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_held_role15_child255_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child0_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child0_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child0_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child1_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child1_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child1_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child2_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child2_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child2_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child255_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child255_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role11_child255_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child0_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child0_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child0_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child1_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child1_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child1_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child2_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child2_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child2_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child255_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      156997070
+     ],
+     "c74": [
+      158623046
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child255_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 24,
+     "c74": 26,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "control_timing_results.json",
+     "case": "single_child_blocker_role12_child255_state_unchanged",
+     "leaf": "/T/outcomes[14]",
+     "c72": 3,
+     "c74": 2,
+     "kind": "t_old_epoch"
+    }
+   ],
+   "observed_leaf_difference_count": 57,
+   "kinds": {
+    "t_timestamp": 23,
+    "t_rewait": 17,
+    "t_old_epoch": 17,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "dup": {
+   "c72_run": "model_dup_c72_01",
+   "c74_run": "model_dup_c74_01",
+   "c74_attempts": [
+    "model_dup_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "dup_results.json": {
+     "failed": [],
+     "passed": 308,
+     "total": 308
+    }
+   },
+   "c74_summary": {
+    "dup_results.json": {
+     "failed": [],
+     "passed": 308,
+     "total": 308
+    }
+   },
+   "case_count": 308,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "fin_busy": {
+   "c72_run": "model_fin_busy_c72_01",
+   "c74_run": "model_fin_busy_c74_01",
+   "c74_attempts": [
+    "model_fin_busy_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "fin_busy_results.json": {
+     "failed": [],
+     "passed": 193,
+     "total": 193
+    }
+   },
+   "c74_summary": {
+    "fin_busy_results.json": {
+     "failed": [],
+     "passed": 193,
+     "total": 193
+    }
+   },
+   "case_count": 193,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "packets": {
+   "c72_run": "model_packets_c72_01",
+   "c74_run": "model_packets_c74_01",
+   "c74_attempts": [
+    "model_packets_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "packet_results.json": {
+     "failed": [],
+     "passed": 763,
+     "total": 763
+    }
+   },
+   "c74_summary": {
+    "packet_results.json": {
+     "failed": [],
+     "passed": 763,
+     "total": 763
+    }
+   },
+   "case_count": 763,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "policy": {
+   "c72_run": "model_policy_c72_01",
+   "c74_run": "model_policy_c74_01",
+   "c74_attempts": [
+    "model_policy_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "packet_results.json": {
+     "failed": [],
+     "passed": 281,
+     "total": 281
+    }
+   },
+   "c74_summary": {
+    "packet_results.json": {
+     "failed": [],
+     "passed": 281,
+     "total": 281
+    }
+   },
+   "case_count": 281,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "policy_boundary": {
+   "c72_run": "model_policy_boundary_c72_01",
+   "c74_run": "model_policy_boundary_c74_01",
+   "c74_attempts": [
+    "model_policy_boundary_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "packet_results.json": {
+     "failed": [],
+     "passed": 206,
+     "total": 206
+    }
+   },
+   "c74_summary": {
+    "packet_results.json": {
+     "failed": [],
+     "passed": 206,
+     "total": 206
+    }
+   },
+   "case_count": 206,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "rearm": {
+   "c72_run": "model_rearm_c72_01",
+   "c74_run": "model_rearm_c74_01",
+   "c74_attempts": [
+    "model_rearm_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "rearm_results.json": {
+     "failed": [],
+     "passed": 798,
+     "total": 798
+    }
+   },
+   "c74_summary": {
+    "rearm_results.json": {
+     "failed": [],
+     "passed": 798,
+     "total": 798
+    }
+   },
+   "case_count": 798,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [
+    {
+     "file": "rearm_results.json",
+     "case": "pending_SYN_retry_authority_9000",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      459345702
+     ],
+     "c74": [
+      462158202
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "rearm_results.json",
+     "case": "pending_SYNACK_retry_authority_11000",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      459345702
+     ],
+     "c74": [
+      462158202
+     ],
+     "kind": "t_timestamp"
+    }
+   ],
+   "observed_leaf_difference_count": 2,
+   "kinds": {
+    "t_timestamp": 2,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "relay_sbo": {
+   "c72_run": "model_relay_sbo_c72_01",
+   "c74_run": "model_relay_sbo_c74_01",
+   "c74_attempts": [
+    "model_relay_sbo_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "relay_sbo_results.json": {
+     "failed": [],
+     "passed": 1069,
+     "total": 1069
+    }
+   },
+   "c74_summary": {
+    "relay_sbo_results.json": {
+     "failed": [],
+     "passed": 1069,
+     "total": 1069
+    }
+   },
+   "case_count": 1069,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "repeat": {
+   "c72_run": "model_repeat_c72_01",
+   "c74_run": "model_repeat_c74_01",
+   "c74_attempts": [
+    "model_repeat_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "repeat_results.json": {
+     "failed": [],
+     "passed": 526,
+     "total": 526
+    }
+   },
+   "c74_summary": {
+    "repeat_results.json": {
+     "failed": [],
+     "passed": 526,
+     "total": 526
+    }
+   },
+   "case_count": 526,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "response_ready": {
+   "c72_run": "model_response_ready_c72_01",
+   "c74_run": "model_response_ready_c74_01",
+   "c74_attempts": [
+    "model_response_ready_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "response_ready_results.json": {
+     "failed": [],
+     "passed": 838,
+     "total": 838
+    }
+   },
+   "c74_summary": {
+    "response_ready_results.json": {
+     "failed": [],
+     "passed": 838,
+     "total": 838
+    }
+   },
+   "case_count": 838,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [
+    {
+     "file": "response_ready_results.json",
+     "case": "removed_operate_role13_port182_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      84282226
+     ],
+     "c74": [
+      80932616
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "removed_operate_role13_port181_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      84282226
+     ],
+     "c74": [
+      80932616
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "removed_operate_role16_port182_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      84282226
+     ],
+     "c74": [
+      80932616
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "removed_operate_role16_port181_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      84282226
+     ],
+     "c74": [
+      80932616
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "removed_operate_app1_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      84282226
+     ],
+     "c74": [
+      80932616
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "removed_operate_E101_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      84282226
+     ],
+     "c74": [
+      80932616
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_response_roleNone_child1_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_response_roleNone_child1_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role14_child1_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role14_child1_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role15_child1_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role15_child1_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_response_roleNone_child2_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_response_roleNone_child2_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role14_child2_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role14_child2_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role15_child2_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role15_child2_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_response_roleNone_child255_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_response_roleNone_child255_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role14_child255_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role14_child255_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role15_child255_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_held_role15_child255_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role11_child0_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role11_child0_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role11_child1_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role11_child1_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role11_child2_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role11_child2_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role11_child255_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role11_child255_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role12_child0_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role12_child0_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role12_child1_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role12_child1_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role12_child2_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role12_child2_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role12_child255_state_unchanged",
+     "leaf": "/T/ack_commit_at_reg/t_Ingress.ack_commit_at_reg.f1",
+     "c72": [
+      160131834
+     ],
+     "c74": [
+      156147460
+     ],
+     "kind": "t_timestamp"
+    },
+    {
+     "file": "response_ready_results.json",
+     "case": "single_child_blocker_role12_child255_state_unchanged",
+     "leaf": "/T/outcomes[1]",
+     "c72": 25,
+     "c74": 23,
+     "kind": "t_rewait"
+    }
+   ],
+   "observed_leaf_difference_count": 40,
+   "kinds": {
+    "t_timestamp": 23,
+    "t_rewait": 17,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "select_lifecycle": {
+   "c72_run": "model_select_lifecycle_c72_01",
+   "c74_run": "model_select_lifecycle_c74_01",
+   "c74_attempts": [
+    "model_select_lifecycle_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "select_lifecycle_results.json": {
+     "failed": [],
+     "passed": 146,
+     "total": 146
+    }
+   },
+   "c74_summary": {
+    "select_lifecycle_results.json": {
+     "failed": [],
+     "passed": 146,
+     "total": 146
+    }
+   },
+   "case_count": 146,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "smoke": {
+   "c72_run": "model_smoke_c72_03",
+   "c74_run": "model_smoke_c74_01",
+   "c74_attempts": [
+    "model_smoke_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "smoke_results.json": {
+     "failed": [],
+     "passed": 30,
+     "total": 30
+    }
+   },
+   "c74_summary": {
+    "smoke_results.json": {
+     "failed": [],
+     "passed": 30,
+     "total": 30
+    }
+   },
+   "case_count": 30,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "smoke_sizeoff": {
+   "c72_run": "model_smoke_sizeoff_c72_01",
+   "c74_run": "model_smoke_sizeoff_c74_01",
+   "c74_attempts": [
+    "model_smoke_sizeoff_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "smoke_results.json": {
+     "failed": [],
+     "passed": 30,
+     "total": 30
+    }
+   },
+   "c74_summary": {
+    "smoke_results.json": {
+     "failed": [],
+     "passed": 30,
+     "total": 30
+    }
+   },
+   "case_count": 30,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  },
+  "two_read_robust": {
+   "c72_run": "model_two_read_robust_c72_01",
+   "c74_run": "model_two_read_robust_c74_01",
+   "c74_attempts": [
+    "model_two_read_robust_c74_01"
+   ],
+   "c74_exit_code": 0,
+   "c72_summary": {
+    "robust_results.json": {
+     "failed": [],
+     "passed": 181,
+     "total": 181
+    }
+   },
+   "c74_summary": {
+    "robust_results.json": {
+     "failed": [],
+     "passed": 181,
+     "total": 181
+    }
+   },
+   "case_count": 181,
+   "case_names_and_verdicts_identical": true,
+   "observed_leaf_differences": [],
+   "observed_leaf_difference_count": 0,
+   "kinds": {
+    "t_timestamp": 0,
+    "t_rewait": 0,
+    "t_old_epoch": 0,
+    "other": 0
+   },
+   "acceptable": true
+  }
+ },
+ "all_c74_runs_exit_0": true,
+ "all_verdicts_identical": true,
+ "only_stated_allowed_differences": false,
+ "only_run_to_run_variation": true,
+ "t_outcome_cells_across_identical_t_binary_runs": {
+  "control_timing": {
+   "runs": {
+    "c72": "model_control_timing_c72_01",
+    "c72_diag_mirror": "model_control_timing_c72_diag_mirror_01",
+    "c74": "model_control_timing_c74_01"
+   },
+   "distinct_cell1_cell14_per_run": {
+    "c72": [
+     [
+      24,
+      3
+     ]
+    ],
+    "c72_diag_mirror": [
+     [
+      25,
+      2
+     ]
+    ],
+    "c74": [
+     [
+      26,
+      2
+     ]
+    ]
+   }
+  },
+  "response_ready": {
+   "runs": {
+    "c72": "model_response_ready_c72_01",
+    "c72_diag_mirror": "model_response_ready_c72_diag_mirror_01",
+    "c74": "model_response_ready_c74_01"
+   },
+   "distinct_cell1_cell14_per_run": {
+    "c72": [
+     [
+      25,
+      2
+     ]
+    ],
+    "c72_diag_mirror": [
+     [
+      24,
+      2
+     ]
+    ],
+    "c74": [
+     [
+      23,
+      2
+     ]
+    ]
+   }
+  },
+  "rearm": {
+   "runs": {
+    "c72": "model_rearm_c72_01",
+    "c72_diag_mirror": "model_rearm_c72_diag_mirror_01",
+    "c74": "model_rearm_c74_01"
+   },
+   "distinct_cell1_cell14_per_run": {
+    "c72": [],
+    "c72_diag_mirror": [],
+    "c74": []
+   }
+  }
+ },
+ "t_binary_note": "pipe 1 (T and x) of c74 equals c72 byte for byte in response_only.bfa except the compiler run_id line; c72_diag_mirror pipe 1 equals c72 after generated-name normalisation (scripts/diag_mirror_checks.py pipe1_equivalence)",
+ "comparator": {
+  "path": "this script (source embedded)",
+  "sha256": "e7d2a6a063ae7f54732c279d6a6ae97aee704b34cac227266e00667a01734f7d",
+  "source": "#!/usr/bin/env python3\n\"\"\"Compare the 17 model drivers run on c74 with c72's gate runs, case by case and leaf by leaf.\n\n  python3 gate_compare_c74.py REPO OUT_JSON\n\nFor each run_model.REQUIRED driver: the latest results/models/c74 attempt against c72's model_summary_v3.json\nlatest_by_driver run. Cases come from scripts/model/diag_gate_compare.cases() (name, ok, observed). Case names and\nverdicts must be identical. Every differing observed leaf is listed and classified:\n  t_timestamp  - a T register whose value is a model timestamp (t_Ingress.*_at_reg)\n  t_rewait     - a T hold re-wait count: cell 1 (rewait_ack/rewait_response) of the T outcome counts\n  t_old_epoch  - cell 14 (drop_old_epoch) of the T outcome counts: held packets still looping when the epoch moves.\n                 Not in the stated allowed list; the report shows it varying between c72 and c72_diag_mirror runs of\n                 the identical T binary, i.e. run-to-run hold-loop timing.\n  other        - anything else (not allowed)\nT outcome counts are the action-execution counts telemetry_from_log.py derives from the model log\n(action_observations.json: cell 1 rewait_*, cell 14 drop_old_epoch); the list is compared element by element.\n\"\"\"\nimport hashlib, json, re, sys\nfrom pathlib import Path\n\nrepo, out = Path(sys.argv[1]).resolve(), Path(sys.argv[2])\nsys.path.insert(0, str(repo / 'scripts/model'))\nimport diag_gate_compare as dgc\nimport run_model\n\nTS = re.compile(r't_Ingress\\.\\w*_at_reg\\b|/\\w*_at_reg/')\nREWAIT = re.compile(r'rewait|re_wait|re-wait', re.I)\n\n\ndef leaves(v, p=''):\n    if isinstance(v, dict):\n        for k, x in v.items():\n            yield from leaves(x, p + '/' + str(k))\n    elif isinstance(v, list) and any(isinstance(x, (dict, list)) for x in v):\n        for i, x in enumerate(v):\n            yield from leaves(x, p + '/' + str(i))\n    else:\n        yield p, v\n\n\ndef classify(path, case):\n    if TS.search(path):\n        return 't_timestamp'\n    if REWAIT.search(path):\n        return 't_rewait'\n    return 'other'\n\n\ndef sha(p):\n    return hashlib.sha256(Path(p).read_bytes()).hexdigest()\n\n\nmodels = repo / 'results/models'\nbase_runs = json.loads((repo / 'results/builds/c72/model_summary_v3.json').read_text())['latest_by_driver']\ndrivers, allowed, strict = {}, True, True\nfor name in run_model.REQUIRED:\n    runs = sorted(models.glob('c74/model_%s_c74_[0-9][0-9]' % name))\n    if not runs:\n        drivers[name] = dict(error='no c74 run'); allowed = strict = False\n        continue\n    new, base = runs[-1], models / 'c72' / base_runs[name]\n    if not (new / 'launch_command.json').is_file():\n        drivers[name] = dict(error='latest c74 attempt has no launch record (incomplete)', c74_run=new.name); allowed = strict = False\n        continue\n    a, b = dgc.cases(base), dgc.cases(new)\n    launch = json.loads((new / 'launch_command.json').read_text())\n    same_files = sorted(a) == sorted(b)\n    verdicts = same_files and all([c[:2] for c in a[f]['cases']] == [c[:2] for c in b[f]['cases']] for f in a)\n    diffs = []\n    for f in sorted(set(a) & set(b)):\n        for x, y in zip(a[f]['cases'], b[f]['cases']):\n            if x[:2] != y[:2] or x[2] == y[2]:\n                continue\n            ox, oy = json.loads(x[2]), json.loads(y[2])\n            lx, ly = dict(leaves(ox)), dict(leaves(oy))\n            for path in sorted(set(lx) | set(ly)):\n                vx, vy = lx.get(path, '<absent>'), ly.get(path, '<absent>')\n                if vx == vy:\n                    continue\n                if path.endswith('/T/outcomes') and isinstance(vx, list) and isinstance(vy, list) and len(vx) == len(vy):\n                    for i, (p, q) in enumerate(zip(vx, vy)):\n                        if p != q:\n                            diffs.append(dict(file=f, case=x[0], leaf='%s[%d]' % (path, i), c72=p, c74=q,\n                                              kind={1: 't_rewait', 14: 't_old_epoch'}.get(i, 'other')))\n                    continue\n                diffs.append(dict(file=f, case=x[0], leaf=path, c72=vx, c74=vy, kind=classify(path, x[0])))\n    other = [d for d in diffs if d['kind'] == 'other']\n    stated = [d for d in diffs if d['kind'] not in ('t_timestamp', 't_rewait')]\n    ok = launch.get('exit_code') == 0 and verdicts and not other\n    strict &= launch.get('exit_code') == 0 and verdicts and not stated\n    allowed &= ok\n    drivers[name] = dict(c72_run=base.name, c74_run=new.name, c74_attempts=[r.name for r in runs],\n                         c74_exit_code=launch.get('exit_code'),\n                         c72_summary={f: a[f]['summary'] for f in a}, c74_summary={f: b[f]['summary'] for f in b},\n                         case_count=sum(len(a[f]['cases']) for f in a),\n                         case_names_and_verdicts_identical=verdicts,\n                         observed_leaf_differences=diffs[:60], observed_leaf_difference_count=len(diffs),\n                         kinds={k: sum(1 for d in diffs if d['kind'] == k) for k in ('t_timestamp', 't_rewait', 't_old_epoch', 'other')},\n                         acceptable=ok)\ndef t_cells(run):\n    out = {}\n    for f in sorted(run.glob('*_results.json')):\n        for c in json.loads(f.read_text()).get('cases', []):\n            o = c.get('observed')\n            if isinstance(o, dict) and isinstance(o.get('T'), dict) and isinstance(o['T'].get('outcomes'), list):\n                out[c['name']] = [o['T']['outcomes'][1], o['T']['outcomes'][14]]\n    return out\n\n\ncross = {}\nfor name in ('control_timing', 'response_ready', 'rearm'):\n    runs = {'c72': models / 'c72' / base_runs[name]}\n    diag = sorted(models.glob('c72_diag_mirror/model_%s_c72_diag_mirror_[0-9][0-9]' % name))\n    if diag:\n        runs['c72_diag_mirror'] = diag[-1]\n    if 'c74_run' in drivers.get(name, {}):\n        runs['c74'] = models / 'c74' / drivers[name]['c74_run']\n    cells = {k: t_cells(v) for k, v in runs.items()}\n    names = sorted(set.intersection(*[set(c) for c in cells.values()])) if cells else []\n    cross[name] = dict(runs={k: v.name for k, v in runs.items()},\n                       distinct_cell1_cell14_per_run={k: sorted({tuple(c[n]) for n in names}) for k, c in cells.items()})\nreport = dict(schema='c74-gate-vs-c72-v1', build='c74', baseline='c72',\n              observation='SDK tofino-model functional output; not hardware, not timing',\n              rule='case names and verdicts identical; differing observed leaves only T timestamp registers or T hold '\n                   're-wait counts (results/builds/c72_diag_mirror/README.md: run-to-run variation)',\n              drivers=drivers, all_c74_runs_exit_0=all(d.get('c74_exit_code') == 0 for d in drivers.values()),\n              all_verdicts_identical=all(d.get('case_names_and_verdicts_identical') for d in drivers.values()),\n              only_stated_allowed_differences=strict,\n              only_run_to_run_variation=allowed,\n              t_outcome_cells_across_identical_t_binary_runs=cross,\n              t_binary_note='pipe 1 (T and x) of c74 equals c72 byte for byte in response_only.bfa except the compiler run_id line; '\n                            'c72_diag_mirror pipe 1 equals c72 after generated-name normalisation (scripts/diag_mirror_checks.py pipe1_equivalence)',\n              comparator=dict(path='this script (source embedded)', sha256=sha(__file__), source=Path(__file__).read_text(),\n                              reuses='scripts/model/diag_gate_compare.py cases()', reused_sha256=sha(repo / 'scripts/model/diag_gate_compare.py')))\nout.parent.mkdir(parents=True, exist_ok=True)\nout.write_text(json.dumps(report, indent=1, default=str) + '\\n')\nprint(json.dumps(dict(all_c74_runs_exit_0=report['all_c74_runs_exit_0'], all_verdicts_identical=report['all_verdicts_identical'],\n                      only_stated_allowed_differences=strict,\n              only_run_to_run_variation=allowed,\n              t_outcome_cells_across_identical_t_binary_runs=cross,\n              t_binary_note='pipe 1 (T and x) of c74 equals c72 byte for byte in response_only.bfa except the compiler run_id line; '\n                            'c72_diag_mirror pipe 1 equals c72 after generated-name normalisation (scripts/diag_mirror_checks.py pipe1_equivalence)',\n                      per_driver={k: (v.get('c74_exit_code'), v.get('case_count'), v.get('kinds')) for k, v in drivers.items()}), indent=0))\nsys.exit(0 if allowed else 1)\n",
+  "reuses": "scripts/model/diag_gate_compare.py cases()",
+  "reused_sha256": "c339d79466e79a222571620dda485b8f7f289b5455739961c98962e06cececd4"
+ }
+}

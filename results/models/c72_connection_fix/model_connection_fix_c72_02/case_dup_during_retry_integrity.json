@@ -1,0 +1,190 @@
+{
+ "case": "dup_during_retry_integrity",
+ "checks": [
+  {
+   "actual": 0,
+   "expect": 2,
+   "name": "both_copies_retried",
+   "ok": false
+  },
+  {
+   "actual": [
+    "busy_drop",
+    "busy_drop"
+   ],
+   "expect": [],
+   "name": "no_loss_action",
+   "ok": false
+  },
+  {
+   "actual": 0,
+   "expect": 1,
+   "name": "one_admission",
+   "ok": false
+  },
+  {
+   "actual": 0,
+   "expect": 1,
+   "name": "one_duplicate",
+   "ok": false
+  },
+  {
+   "actual": "AssertionError: dup_during_retry_integrity_READ_ACK",
+   "expect": null,
+   "name": "no_exception",
+   "ok": false
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 27000101,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 277,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554460,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 27000901,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 282,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 27000101
+ },
+ "error": "Traceback (most recent call last):\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_connection_fix.py\", line 950, in run_case\n    reached = CASE_FUNCTIONS[case['scenario']](ctx, case, ck, rec, isn)\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_connection_fix.py\", line 649, in case_dup_during_retry\n    ctx.respond(case['case'] + '_READ', c, s, wire, native, image, timed=False)\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_connection_fix.py\", line 278, in respond\n    g.exchange(tag + '_ACK', ack, wire_ack, reverse=True)\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_packets.py\", line 317, in exchange\n    self.add(name, 'one exact frame', len(flat), ok=exact, sent=sent, received=got, expected_frame=expected)\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c74_wt/scripts/model/model_packets.py\", line 302, in add\n    raise AssertionError(name)\nAssertionError: dup_during_retry_integrity_READ_ACK\n",
+ "evidence_kind": "forced_register",
+ "expect": "a TCP retransmission of the READ arrives while the first copy retries: one admission, one duplicate (first_request_dup), no loss action, no internal clone",
+ "expectation": "fix",
+ "isn": {
+  "master": 27000100,
+  "relay": 27000900
+ },
+ "observations": [
+  {
+   "decisive_line": null,
+   "decisive_wait_s": 8.000050671864301,
+   "hook": {
+    "loop_line": null,
+    "second_copy_sent": true
+   },
+   "offset": 138140738,
+   "port64": [],
+   "port9": []
+  }
+ ],
+ "port64_READ_copies": 0,
+ "progress_wire": 27000901,
+ "read_class": "integrity",
+ "read_length": 27,
+ "read_summary": {
+  "aborts": 0,
+  "busy": [
+   "busy_drop",
+   "busy_drop"
+  ],
+  "first_event": [],
+  "loss": [
+   "busy_drop",
+   "busy_drop"
+  ],
+  "passes": 4,
+  "t_ingress": 0,
+  "terminal_ack": 0
+ },
+ "registers_before": {
+  "client": 26000128,
+  "epoch": 268,
+  "owner": 17760283,
+  "server": 26001035,
+  "work_phase": 4
+ },
+ "scenario": "dup_during_retry",
+ "state_evidence": {
+  "reached": true,
+  "seeded_generation": 2147483646,
+  "victim_actions": [
+   "NoAction",
+   "forward_flow",
+   "route",
+   "response_only531_0",
+   "response_only531",
+   "crc_head",
+   "read_configure",
+   "rd_request_full_crc",
+   "eligible",
+   "NoAction",
+   "network_accept",
+   "go_new",
+   "next_read_len",
+   "claim_work",
+   "read_request_full_input",
+   "ack_native",
+   "load_epoch",
+   "NoAction",
+   "NoAction",
+   "load_server",
+   "load_client",
+   "owner_read",
+   "diff_forward",
+   "busy_drop"
+  ],
+  "victim_cell_before": {
+   "generation": 2147483646,
+   "phase": 1
+  },
+  "victim_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head",
+    "read_configure",
+    "rd_request_full_crc",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_read_len",
+    "claim_work",
+    "read_request_full_input",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "owner_read",
+    "diff_forward",
+    "busy_drop"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0x6ac",
+   "port": 48
+  }
+ },
+ "state_reached": null,
+ "t_ingress": 0,
+ "timed": false,
+ "verdict": "fail"
+}

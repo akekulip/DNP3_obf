@@ -2,7 +2,9 @@
 
 Each registered block (results/analysis/diag_mirror_d3/DESIGN.json) is its own one-block definition, so a failed block
 cannot leave the others unexecuted. prepare() with the declared c72_diag_mirror build writes the diagnostic contract
-into each config; every other definition's prepared output is byte-for-byte what it was."""
+into each config; every other definition's prepared output is byte-for-byte what it was. These c72 definitions are
+historical since c74 became canonical: c72_diag_mirror is admitted only in the c72-canonical context
+(tests/hardware/historical_c72.py), which these tests reinstate."""
 import contextlib
 import hashlib
 import importlib.util
@@ -22,6 +24,8 @@ import campaign_base
 import diag_mirror_sessions
 import freeze_gate
 import matrix
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import historical_c72  # noqa: E402
 
 DESIGN = json.loads((ROOT / 'results/analysis/diag_mirror_d3/DESIGN.json').read_text())
 DIAG = ROOT / 'results/builds/c72_diag_mirror'
@@ -109,6 +113,9 @@ def test_every_registered_diag_block_has_exactly_one_definition():
     # that later design files register themselves (the combined-arm connection-start baseline)
     later_blocks = {json.loads((ROOT / 'results/analysis/diag_mirror_d3' / name).read_text())['block']['id']
                     for name in ('DESIGN_e2_combined.json',)}
+    # and the c74 confirmation design's diagnostic blocks (on c74_diag_mirror)
+    later_blocks |= {block['id'] for block in json.loads((ROOT / 'results/analysis/c74_confirmation/DESIGN.json')
+                                                         .read_text())['blocks'] if block['diagnostic']}
     later = {n for n, block_id in matrix.DIAG_BLOCKS.items() if block_id in later_blocks}
     assert len(later) == len(later_blocks)
     assert sorted(n for n, spec in matrix.DEFINITIONS.items() if spec.get('diagnostic')) == \
@@ -131,8 +138,10 @@ def test_diag_master_ports_are_disjoint_from_each_other_and_every_existing_defin
 @pytest.fixture(scope='module')
 def prepared_diag(tmp_path_factory):
     root = tmp_path_factory.mktemp('diag_matrix')
-    return {name: json.loads(matrix.prepare(DIAG, NATIVE, root / name, 'offline_' + name, definition=name).read_text())
-            for name in DIAG_DEFINITIONS}
+    with pytest.MonkeyPatch.context() as mp:
+        historical_c72.use_c72_context(mp, root)
+        return {name: json.loads(matrix.prepare(DIAG, NATIVE, root / name, 'offline_' + name, definition=name)
+                                 .read_text()) for name in DIAG_DEFINITIONS}
 
 
 @needs_diag
@@ -238,6 +247,7 @@ def outside_paths(mp):
 @needs_diag
 def test_prepared_diag_configs_freeze_and_bind_to_the_diag_build_but_never_qualify(prepared_diag, tmp_path,
                                                                                     monkeypatch):
+    historical_c72.use_c72_context(monkeypatch, tmp_path)
     outside_paths(monkeypatch)
     controlled_files(monkeypatch)
     configs = [path for manifest in prepared_diag.values() for path in configs_of(manifest)]

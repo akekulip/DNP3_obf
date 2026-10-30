@@ -1,0 +1,186 @@
+{
+ "case": "operate_retry_before_select_response",
+ "checks": [
+  {
+   "actual": 9,
+   "expect": 9,
+   "name": "SELECT_outstanding_owner_9",
+   "ok": true
+  },
+  {
+   "actual": "busy_drop",
+   "expect": "busy_retry_ack",
+   "name": "OPERATE_retried",
+   "ok": false
+  },
+  {
+   "actual": [],
+   "expect": [
+    "count_refused"
+   ],
+   "name": "OPERATE_refused_after_claim",
+   "ok": false
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "OPERATE_not_on_port64",
+   "ok": true
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 38000146,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 359,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554472,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 38000901,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 2147483646,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 38000146
+ },
+ "evidence_kind": "forced_register",
+ "expect": "OPERATE retried while the SELECT is outstanding (owner 9): it claims and is refused by first_event, never reaches port 64",
+ "expectation": "fix",
+ "isn": {
+  "master": 38000100,
+  "relay": 38000900
+ },
+ "observations": [
+  {
+   "decisive_line": null,
+   "decisive_wait_s": 8.000681318808347,
+   "hook": {
+    "released_after_first_retry": true
+   },
+   "offset": 178840395,
+   "port64": [],
+   "port9": []
+  }
+ ],
+ "operate_summary": {
+  "aborts": 0,
+  "busy": [
+   "busy_drop"
+  ],
+  "first_event": [],
+  "loss": [
+   "busy_drop"
+  ],
+  "passes": 2,
+  "t_ingress": 0,
+  "terminal_ack": 0
+ },
+ "owner_before_OPERATE": 589864,
+ "progress_wire": 38000901,
+ "read_class": null,
+ "read_length": null,
+ "registers_before": {
+  "client": 37000126,
+  "epoch": 351,
+  "owner": 33554471,
+  "server": 37000992,
+  "work_phase": 4
+ },
+ "scenario": "operate_retry_before_select_response",
+ "state_evidence": {
+  "reached": true,
+  "seeded_generation": 2147483646,
+  "victim_actions": [
+   "NoAction",
+   "forward_flow",
+   "route",
+   "response_only531_0",
+   "response_only531",
+   "crc_head_first",
+   "configure",
+   "input_tail",
+   "eligible",
+   "NoAction",
+   "network_accept",
+   "go_new",
+   "next_control",
+   "claim_work",
+   "NoAction",
+   "compare_operate_inputs",
+   "ack_native",
+   "load_epoch",
+   "NoAction",
+   "NoAction",
+   "load_server",
+   "load_client",
+   "NoAction",
+   "NoAction",
+   "NoAction",
+   "owner_read",
+   "diff_forward",
+   "busy_drop"
+  ],
+  "victim_cell_before": {
+   "generation": 2147483646,
+   "phase": 1
+  },
+  "victim_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head_first",
+    "configure",
+    "input_tail",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_control",
+    "claim_work",
+    "NoAction",
+    "compare_operate_inputs",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "NoAction",
+    "NoAction",
+    "NoAction",
+    "owner_read",
+    "diff_forward",
+    "busy_drop"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0x89e",
+   "port": 48
+  }
+ },
+ "state_reached": true,
+ "timed": false,
+ "verdict": "fail"
+}

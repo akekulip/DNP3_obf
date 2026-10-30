@@ -1,0 +1,190 @@
+{
+ "case": "H1prime_integrity",
+ "checks": [
+  {
+   "actual": true,
+   "expect": true,
+   "name": "first_retry_seen_before_release",
+   "ok": true
+  },
+  {
+   "actual": "busy_retry_ack",
+   "expect": "busy_retry_ack",
+   "name": "READ_first_claim_busy_retry_ack",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "busy": [
+    "busy_retry_ack"
+   ],
+   "expect": true,
+   "name": "READ_only_retry_busy_actions",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "expect": true,
+   "name": "READ_retries_within_budget",
+   "ok": true,
+   "retries": 1
+  },
+  {
+   "actual": [],
+   "expect": [],
+   "name": "READ_no_loss_action",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "READ_no_abort",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "first_event": [
+    "first_read_request"
+   ],
+   "name": "READ_admitted_once_by_first_read_request",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "name": "READ_T_ingress_once",
+   "ok": true
+  },
+  {
+   "actual": [
+    "READ"
+   ],
+   "expect": [
+    "READ"
+   ],
+   "name": "port64",
+   "ok": true
+  }
+ ],
+ "closed": true,
+ "evidence_kind": "forced_register",
+ "expect": "cell forced busy, READ retries; cell released after the first retry; READ admitted once; timed cycle",
+ "expectation": "fix",
+ "image_len": {
+  "READ": 158
+ },
+ "isn": {
+  "master": 23000100,
+  "relay": 23000900
+ },
+ "observations": [
+  {
+   "decisive_line": ":10-30 01:39:24.031983:        :0x888:-:<0,0,7>:Execute Action: n_Ingress.busy_retry_ack",
+   "decisive_wait_s": 0.022797133307904005,
+   "hook": {
+    "released_after_first_retry": true
+   },
+   "offset": 175538838,
+   "port64": [
+    "READ"
+   ],
+   "port9": []
+  }
+ ],
+ "progress_wire": 23000901,
+ "read_class": "integrity",
+ "read_length": 27,
+ "read_summary": {
+  "aborts": 0,
+  "busy": [
+   "busy_retry_ack"
+  ],
+  "first_event": [
+   "first_read_request"
+  ],
+  "loss": [],
+  "passes": 9,
+  "t_ingress": 1,
+  "terminal_ack": 0
+ },
+ "registers_before": {
+  "client": 22000218,
+  "epoch": 289,
+  "owner": 17760279,
+  "server": 22001133,
+  "work_phase": 4
+ },
+ "scenario": "H1prime",
+ "state_evidence": {
+  "reached": true,
+  "seeded_generation": 2147483646,
+  "victim_actions": [
+   "NoAction",
+   "forward_flow",
+   "route",
+   "response_only531_0",
+   "response_only531",
+   "crc_head",
+   "read_configure",
+   "rd_request_full_crc",
+   "eligible",
+   "NoAction",
+   "network_accept",
+   "go_new",
+   "next_read_len",
+   "claim_work",
+   "read_request_full_input",
+   "ack_native",
+   "load_epoch",
+   "NoAction",
+   "NoAction",
+   "load_server",
+   "load_client",
+   "owner_read",
+   "diff_forward",
+   "busy_retry_ack"
+  ],
+  "victim_cell_before": {
+   "generation": 2147483646,
+   "phase": 1
+  },
+  "victim_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head",
+    "read_configure",
+    "rd_request_full_crc",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_read_len",
+    "claim_work",
+    "read_request_full_input",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "owner_read",
+    "diff_forward",
+    "busy_retry_ack"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0x888",
+   "port": 48
+  }
+ },
+ "state_reached": true,
+ "timed": true,
+ "verdict": "pass"
+}

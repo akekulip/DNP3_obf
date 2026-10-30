@@ -1,0 +1,148 @@
+{
+ "B_read_summary": {
+  "aborts": 0,
+  "busy": [
+   "busy_retry_ack",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next"
+  ],
+  "first_event": [
+   "first_read_request"
+  ],
+  "loss": [],
+  "passes": 10,
+  "t_ingress": 1,
+  "terminal_ack": 0
+ },
+ "case": "reconnect_mixed",
+ "checks": [
+  {
+   "actual": [
+    "final_ACK",
+    "READ"
+   ],
+   "expect": [
+    "final_ACK",
+    "READ"
+   ],
+   "name": "B_port64_order",
+   "ok": true
+  },
+  {
+   "actual": [],
+   "expect": [],
+   "name": "B_READ_no_loss_action",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "old_incarnation_ACK_refused",
+   "ok": true
+  },
+  {
+   "actual": {
+    "client": 13500126,
+    "epoch": 181,
+    "owner": 917518,
+    "server": 13500901,
+    "work_phase": 4
+   },
+   "expect": {
+    "client": 13500126,
+    "epoch": 181,
+    "owner": 917518,
+    "server": 13500901,
+    "work_phase": 4
+   },
+   "name": "old_incarnation_ACK_N_state_unchanged",
+   "ok": true
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 13500126,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 181,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554446,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 13500992,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 187,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 13500126
+ },
+ "evidence_kind": "genuine_processing",
+ "expect": "connection A closed by FIN; connection B on the same 4-tuple: ACK + READ back to back delivered; A's handshake ACK (old incarnation) refused",
+ "expectation": "fix",
+ "isn": {
+  "master": 13000100,
+  "relay": 13000900
+ },
+ "observations": [
+  {
+   "decisive_line": null,
+   "decisive_wait_s": null,
+   "hook": null,
+   "offset": 106255546,
+   "port64": [
+    "final_ACK",
+    "READ"
+   ],
+   "port9": []
+  },
+  {
+   "decisive_line": null,
+   "decisive_wait_s": null,
+   "hook": null,
+   "offset": 107534468,
+   "port64": [],
+   "port9": []
+  }
+ ],
+ "old_incarnation_probe": {
+  "port64": [],
+  "summary": {
+   "aborts": 0,
+   "busy": [],
+   "first_event": [],
+   "loss": [],
+   "passes": 1,
+   "t_ingress": 0,
+   "terminal_ack": 0
+  }
+ },
+ "progress_wire": 13501042,
+ "read_class": "mixed",
+ "read_length": 25,
+ "registers_before": {
+  "client": 12000126,
+  "epoch": 162,
+  "owner": 33554444,
+  "server": 12000992,
+  "work_phase": 4
+ },
+ "scenario": "reconnect",
+ "state_reached": null,
+ "timed": false,
+ "verdict": "pass"
+}

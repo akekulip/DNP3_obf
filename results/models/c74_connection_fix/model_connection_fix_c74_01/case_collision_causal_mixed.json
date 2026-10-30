@@ -1,0 +1,247 @@
+{
+ "case": "collision_causal_mixed",
+ "checks": [
+  {
+   "actual": "busy_retry_ack",
+   "expect": "busy_retry_ack",
+   "name": "OPERATE_first_claim_busy_retry_ack",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "busy": [
+    "busy_retry_ack",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next"
+   ],
+   "expect": true,
+   "name": "OPERATE_only_retry_busy_actions",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "expect": true,
+   "name": "OPERATE_retries_within_budget",
+   "ok": true,
+   "retries": 3
+  },
+  {
+   "actual": [],
+   "expect": [],
+   "name": "OPERATE_no_loss_action",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "OPERATE_no_abort",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "first_event": [
+    "first_operate"
+   ],
+   "name": "OPERATE_admitted_once_by_first_operate",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "name": "OPERATE_T_ingress_once",
+   "ok": true
+  },
+  {
+   "actual": 1,
+   "expect": 1,
+   "name": "OPERATE_on_port64_once",
+   "ok": true
+  }
+ ],
+ "closed": true,
+ "evidence_kind": "genuine_processing",
+ "expect": "after the SELECT image reached the master: the relay retransmits the SELECT response and the master sends OPERATE back to back; the retransmission holds the cell, the OPERATE retries, is admitted once by first_operate and reaches port 64 once",
+ "expectation": "fix",
+ "image_len": {
+  "OPERATE": 60,
+  "SELECT": 60
+ },
+ "isn": {
+  "master": 5000100,
+  "relay": 5000900
+ },
+ "observations": [
+  {
+   "decisive_line": ":10-30 01:36:41.804420:        :0x243:-:<0,0,9>:Execute Action: n_Ingress.first_operate",
+   "decisive_wait_s": 0.09814998786896467,
+   "hook": null,
+   "offset": 45626668,
+   "port64": [
+    "OPERATE"
+   ],
+   "port9": [
+    null
+   ]
+  }
+ ],
+ "operate_summary": {
+  "aborts": 0,
+  "busy": [
+   "busy_retry_ack",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next"
+  ],
+  "first_event": [
+   "first_operate"
+  ],
+  "loss": [],
+  "passes": 10,
+  "t_ingress": 1,
+  "terminal_ack": 0
+ },
+ "progress_wire": 5001102,
+ "read_class": "mixed",
+ "read_length": 25,
+ "registers_before": {
+  "client": 4000171,
+  "epoch": 61,
+  "owner": 33554436,
+  "server": 4001041,
+  "work_phase": 4
+ },
+ "retransmission_summary": {
+  "aborts": 0,
+  "busy": [],
+  "first_event": [
+   "first_response_dup"
+  ],
+  "loss": [],
+  "passes": 5,
+  "t_ingress": 1,
+  "terminal_ack": 0
+ },
+ "scenario": "collision_causal",
+ "state_evidence": {
+  "holder_cell_after": {
+   "generation": 82,
+   "phase": 1
+  },
+  "holder_generation": 82,
+  "holder_pass": {
+   "actions": [
+    "NoAction",
+    "reverse_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head_first",
+    "configure",
+    "response_crct",
+    "response_status_good",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_response",
+    "claim_work",
+    "NoAction",
+    "compare_response_inputs",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "compare_control_state",
+    "load_server",
+    "load_client",
+    "snapshot",
+    "compare_native_end",
+    "compare_real_tcp_dst",
+    "compare_real_links",
+    "owner_read",
+    "diff_response",
+    "control_state_delta",
+    "response_only566",
+    "first_response_dup"
+   ],
+   "event": null,
+   "id": "0x23c",
+   "port": 64
+  },
+  "reached": true,
+  "victim_actions": [
+   "NoAction",
+   "forward_flow",
+   "route",
+   "response_only531_0",
+   "response_only531",
+   "crc_head_first",
+   "configure",
+   "input_tail",
+   "eligible",
+   "NoAction",
+   "network_accept",
+   "go_new",
+   "next_control",
+   "claim_work",
+   "NoAction",
+   "compare_operate_inputs",
+   "ack_native",
+   "load_epoch",
+   "NoAction",
+   "NoAction",
+   "load_server",
+   "load_client",
+   "NoAction",
+   "NoAction",
+   "NoAction",
+   "owner_read",
+   "diff_forward",
+   "busy_retry_ack"
+  ],
+  "victim_cell_before": {
+   "generation": 82,
+   "phase": 1
+  },
+  "victim_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head_first",
+    "configure",
+    "input_tail",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_control",
+    "claim_work",
+    "NoAction",
+    "compare_operate_inputs",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "NoAction",
+    "NoAction",
+    "NoAction",
+    "owner_read",
+    "diff_forward",
+    "busy_retry_ack"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0x23d",
+   "port": 48
+  }
+ },
+ "state_reached": true,
+ "timed": false,
+ "verdict": "pass"
+}
