@@ -33,31 +33,109 @@
  },
  "cases": {
   "dimensions": "every case for both READ classes (mixed 25 B request, integrity 27 B request) and with T on (enabled=1, model_relay_sbo's timed parameters) and T off (enabled=0), on c72, c74 and c75; one fresh connection per case on the same 4-tuple",
-  "late_ack_wire_order": {"family": 1, "evidence_kind": "forced_register", "stimulus": "the master sends the final handshake ACK then the first READ. The work cell is forced held when the ACK arrives, so the ACK busy-retries; the cell is released after the ACK's first retry and the READ is sent at once, so the fresh READ can claim before the retrying ACK (the hardware route to H2). Whether the READ overtook is read from the log (state_reached)."},
-  "late_ack_reverse_order": {"family": 1, "evidence_kind": "genuine_processing", "stimulus": "the ACK built first, the READ sent first and fully processed (owner 0xe), then the ACK (model_connection_fix H2)"},
-  "r1_ack_behind_read": {"family": 2, "evidence_kind": "genuine_processing", "stimulus": "the master's pure ACK of response 1 (built before READ 2) arrives after READ 2 (model_connection_fix residual_later_read)"},
-  "r2_offset": {"family": 2, "evidence_kind": "genuine_processing", "conforming": false, "stimulus": "a pure ACK at the client register minus the other READ length (ISN-1 while a mixed READ is outstanding, ISN+3 while an integrity READ is); not produced by a conforming master; outside the decision gate"},
-  "window_increase_outstanding": {"family": 3, "evidence_kind": "genuine_processing", "stimulus": "after the READ is admitted and before any relay segment: a pure ACK at SND.NXT and the current ACK with the window field 4096 -> 4608"},
-  "window_increase_idle": {"family": 3, "evidence_kind": "genuine_processing", "control": true, "stimulus": "the same window-only ACK at idle (owner 5), after a complete exchange"},
-  "zero_window_outstanding": {"family": 4, "evidence_kind": "genuine_processing", "stimulus": "after the READ is admitted: a pure ACK with window 0, then the reopening ACK with window 4096, then the relay's ACK and response; the response must reach the master"},
-  "keepalive_idle": {"family": 5, "evidence_kind": "genuine_processing", "stimulus": "at idle after a complete exchange: a keepalive at SND.NXT-1 with 0 octets, then one with 1 octet (the last request octet); the relay's reply when forwarded"},
-  "keepalive_outstanding": {"family": 5, "evidence_kind": "genuine_processing", "stimulus": "after the READ is admitted and the relay's ACK of it has been sent: the same two keepalives at SND.NXT-1; the relay's reply when forwarded; then the response. With T on the relay's ACK is held in T, so the master has not received it and a conforming TCP would retransmit rather than probe; the probe is still sent and labelled."},
-  "duplicate_ack_idle": {"family": 6, "evidence_kind": "genuine_processing", "control": true, "stimulus": "two identical pure ACKs (same bytes) at idle"},
-  "response_ack_control": {"family": 6, "evidence_kind": "genuine_processing", "control": true, "stimulus": "the master's normal ACK of a delivered READ response (mapped complete ACK)"}
+  "late_ack_wire_order": {
+   "family": 1,
+   "evidence_kind": "forced_register",
+   "stimulus": "the master sends the final handshake ACK then the first READ. The work cell is forced held when the ACK arrives, so the ACK busy-retries; the cell is released after the ACK's first retry and the READ is sent at once, so the fresh READ can claim before the retrying ACK (the hardware route to H2). Whether the READ overtook is read from the log (state_reached)."
+  },
+  "late_ack_reverse_order": {
+   "family": 1,
+   "evidence_kind": "genuine_processing",
+   "stimulus": "the ACK built first, the READ sent first and fully processed (owner 0xe), then the ACK (model_connection_fix H2)"
+  },
+  "r1_ack_behind_read": {
+   "family": 2,
+   "evidence_kind": "genuine_processing",
+   "stimulus": "the master's pure ACK of response 1 (built before READ 2) arrives after READ 2 (model_connection_fix residual_later_read)"
+  },
+  "r2_offset": {
+   "family": 2,
+   "evidence_kind": "genuine_processing",
+   "conforming": false,
+   "stimulus": "a pure ACK at the client register minus the other READ length (ISN-1 while a mixed READ is outstanding, ISN+3 while an integrity READ is); not produced by a conforming master; outside the decision gate"
+  },
+  "window_increase_outstanding": {
+   "family": 3,
+   "evidence_kind": "genuine_processing",
+   "stimulus": "after the READ is admitted and before any relay segment: a pure ACK at SND.NXT and the current ACK with the window field 4096 -> 4608"
+  },
+  "window_increase_idle": {
+   "family": 3,
+   "evidence_kind": "genuine_processing",
+   "control": true,
+   "stimulus": "the same window-only ACK at idle (owner 5), after a complete exchange"
+  },
+  "zero_window_outstanding": {
+   "family": 4,
+   "evidence_kind": "genuine_processing",
+   "stimulus": "after the READ is admitted: a pure ACK with window 0, then the reopening ACK with window 4096, then the relay's ACK and response; the response must reach the master"
+  },
+  "keepalive_idle": {
+   "family": 5,
+   "evidence_kind": "genuine_processing",
+   "stimulus": "at idle after a complete exchange: a keepalive at SND.NXT-1 with 0 octets, then one with 1 octet (the last request octet); the relay's reply when forwarded"
+  },
+  "keepalive_outstanding": {
+   "family": 5,
+   "evidence_kind": "genuine_processing",
+   "stimulus": "after the READ is admitted and the relay's ACK of it has been sent: the same two keepalives at SND.NXT-1; the relay's reply when forwarded; then the response. With T on the relay's ACK is held in T, so the master has not received it and a conforming TCP would retransmit rather than probe; the probe is still sent and labelled."
+  },
+  "duplicate_ack_idle": {
+   "family": 6,
+   "evidence_kind": "genuine_processing",
+   "control": true,
+   "stimulus": "two identical pure ACKs (same bytes) at idle"
+  },
+  "response_ack_control": {
+   "family": 6,
+   "evidence_kind": "genuine_processing",
+   "control": true,
+   "stimulus": "the master's normal ACK of a delivered READ response (mapped complete ACK)"
+  }
  },
  "predictions_from_rows": {
   "basis": "first_event kind-3 rows: owner 4 with differences (0,0) first_ack; owners 5, 8, 9, 0xa, 0xb, 0xc with (0,0) forward_original; no kind-3 row for owner 0xd/0xe on c72 and c75; c74 adds owner 0xd/0xe with client_diff -25/-27 and server_diff 0 (forward_original). A kind-3 miss takes the default NoAction (code 255) and the abort laps. The window, TSval and option fields are not first_event keys. A 1-octet segment has ip.len 53, which the N parser does not dispatch, so no packet kind is predicted for it.",
-  "late_ack_wire_order": {"c72": "suppressed (abort); obsolete -> meets by suppressing if N state unchanged", "c74": "forwarded (forward_original) -> meets; the relay reply then enters T as a READ ACK (open item H-1)", "c75": "as c72"},
-  "late_ack_reverse_order": {"c72": "as wire order", "c74": "as wire order", "c75": "as c72"},
-  "r1_ack_behind_read": {"c72": "suppressed; obsolete -> meets by suppressing", "c74": "forwarded -> meets", "c75": "as c72"},
-  "r2_offset": {"c72": "suppressed; mixed (ISN-1) obsolete -> meets by suppressing; integrity (ISN+3) not covered by the READ (its SEG.SEQ ISN+1 is before ISN+3) -> violates (non-conforming stimulus)", "c74": "forwarded -> meets", "c75": "as c72"},
-  "window_increase_outstanding": {"all": "owner 0xe, differences (0,0): no row -> suppressed; carries new window -> violates"},
-  "window_increase_idle": {"all": "owner 5, (0,0): forward_original -> meets"},
-  "zero_window_outstanding": {"all": "both the closing and the reopening ACK suppressed -> violates; the response is still sent by the scripted relay"},
-  "keepalive_idle": {"all": "0 octets: owner 5, client_diff -1: no row -> suppressed; not obsolete -> violates. 1 octet: not predicted"},
-  "keepalive_outstanding": {"all": "0 octets: owner 0xe, client_diff -1 -> suppressed -> violates. 1 octet: not predicted"},
-  "duplicate_ack_idle": {"all": "both copies forward_original -> meets"},
-  "response_ack_control": {"all": "forwarded with the ACK mapped to the native end -> meets"}
+  "late_ack_wire_order": {
+   "c72": "suppressed (abort); obsolete -> meets by suppressing if N state unchanged",
+   "c74": "forwarded (forward_original) -> meets; the relay reply then enters T as a READ ACK (open item H-1)",
+   "c75": "as c72"
+  },
+  "late_ack_reverse_order": {
+   "c72": "as wire order",
+   "c74": "as wire order",
+   "c75": "as c72"
+  },
+  "r1_ack_behind_read": {
+   "c72": "suppressed; obsolete -> meets by suppressing",
+   "c74": "forwarded -> meets",
+   "c75": "as c72"
+  },
+  "r2_offset": {
+   "c72": "suppressed; mixed (ISN-1) obsolete -> meets by suppressing; integrity (ISN+3) not covered by the READ (its SEG.SEQ ISN+1 is before ISN+3) -> violates (non-conforming stimulus)",
+   "c74": "forwarded -> meets",
+   "c75": "as c72"
+  },
+  "window_increase_outstanding": {
+   "all": "owner 0xe, differences (0,0): no row -> suppressed; carries new window -> violates"
+  },
+  "window_increase_idle": {
+   "all": "owner 5, (0,0): forward_original -> meets"
+  },
+  "zero_window_outstanding": {
+   "all": "both the closing and the reopening ACK suppressed -> violates; the response is still sent by the scripted relay"
+  },
+  "keepalive_idle": {
+   "all": "0 octets: owner 5, client_diff -1: no row -> suppressed; not obsolete -> violates. 1 octet: not predicted"
+  },
+  "keepalive_outstanding": {
+   "all": "0 octets: owner 0xe, client_diff -1 -> suppressed -> violates. 1 octet: not predicted"
+  },
+  "duplicate_ack_idle": {
+   "all": "both copies forward_original -> meets"
+  },
+  "response_ack_control": {
+   "all": "forwarded with the ACK mapped to the native end -> meets"
+  }
  },
  "falsifiers": [
   "A probe predicted suppressed reaches dev64, or one predicted forwarded does not: the reading of the rows is wrong for that path.",
@@ -70,5 +148,42 @@
   "The model relay is scripted: it does not honour the master's window, run timers or retransmit, so a suppressed window update or keepalive cannot change what it sends. Consequences that need a real TCP (a relay sending into a closed window, a master aborting after unanswered keepalives) are inferred, not observed, and are labelled so.",
   "The model does not measure D; T evidence is its outcome counts and the ACK-then-response order at the master.",
   "Forced-register cases are labelled apart from genuine processing."
+ ],
+ "amendments": [
+  {
+   "id": 1,
+   "date": "2026-10-30",
+   "before_any_run": true,
+   "case": "keepalive_outstanding",
+   "text": "With T on the keepalives are sent after the READ and before the relay's ACK: an ACK held in T while the model observes two probes (seconds of wall clock) would exceed T's budget and measure the harness. With T off the relay's ACK of the READ reaches the master first, as registered."
+  },
+  {
+   "id": 2,
+   "date": "2026-10-30",
+   "before_any_run": true,
+   "case": "late_ack_wire_order",
+   "text": "The overtake is a race between the fresh READ and the retrying ACK: up to 3 fresh connections are tried and every attempt is recorded. Because the READ changes N state in the same observation, the ACK's state check is against the READ-only result (owner 0xe with the connection's low half, client ISN+1+len, server, epoch, retry_epoch, work phase 4); application_state is recorded, not compared, for this case."
+  },
+  {
+   "id": 3,
+   "date": "2026-10-30",
+   "before_any_run": true,
+   "case": "r2_offset",
+   "text": "The offset ACK is built before the READ (earlier send order and TSval), as a stale ACK would be."
+  },
+  {
+   "id": 4,
+   "date": "2026-10-30",
+   "before_any_run": true,
+   "case": "all, relay_reply",
+   "text": "With T on and a READ outstanding, a due relay reply is sent back to back with the relay's ACK and response (order kept, timing compressed) for the same budget reason; with T off it is sent on its own and observed."
+  },
+  {
+   "id": 5,
+   "date": "2026-10-30",
+   "before_any_run": true,
+   "case": "all",
+   "text": "A smoke run restricted by the ACK_CASES environment filter may precede the full runs. It is labelled by case_filter in its results and is not part of the reported table."
+  }
  ]
 }
