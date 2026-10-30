@@ -2,8 +2,9 @@
 """Finish a block's switch restore after its bf_switchd stop did not complete, recorded for reconcile (Philip,
 2026-10-30).
 
-  python3 switch_process_repair.py CAMPAIGN_DIR STEP_ID            # check only: identify, refuse or report
-  python3 switch_process_repair.py CAMPAIGN_DIR STEP_ID --apply    # end the candidate, restore, record
+  python3 switch_process_repair.py CAMPAIGN_DIR STEP_ID              # check only: identify, refuse or report
+  python3 switch_process_repair.py CAMPAIGN_DIR STEP_ID --apply      # end the candidate, restore, record
+  python3 switch_process_repair.py CAMPAIGN_DIR STEP_ID --complete   # finish a partial repair (see below)
 
 rc01_hw_c74diag_e2c_20261030_01: every trial ran, then the runner's final cold-swap (switch_swap.sh: SIGTERM, 20 s
 wait) printed STILL_RUNNING: termination did not finish within that interval. Production never launched, so the port
@@ -27,10 +28,17 @@ and the ping, and the Vision restore passed.
      one remote command that re-reads the pid's comm and start time and signals only on a match. If the process still
      remains, nothing is launched;
   4. no bf_switchd may run and :50052 may not listen (an unreadable state counts as running);
-  5. the runner's own restore commands (campaign_base.Campaign.restore), unchanged but for a new production log name:
-     switch_swap.sh with the production launch script, restore_ports.py with the block's pre-run snapshot,
-     switch_slot.py relay, the relay-profile Vision restore and the production ping. Unlike the runner's best-effort
-     restore, the first failing command stops the sequence.
+  5. the runner's own commands for exactly the four failed restore steps (campaign_base.Campaign.restore), unchanged
+     but for a new production log name: switch_swap.sh with the production launch script, restore_ports.py with the
+     block's pre-run snapshot, switch_slot.py relay and the production ping. Unlike the runner's best-effort restore,
+     the first failing command stops the sequence. The runner's Vision restore passed in the block and is not repeated:
+     it consumes the pending receive-offload baseline, so a second run fails with nothing to restore (first repair of
+     rc01_hw_c74diag_e2c_20261030_01); the fresh restore_verify checks the Vision state independently.
+
+--complete finishes a partial repair whose latest record (bound to the same terminal and runner record) proved the
+candidate exited, no bf_switchd before launch, and launch_production, replay_ports and relay_slot at rc 0, and failed
+only after them. The switch must observe the production program (observe_program.py, read-only). It runs the ping and
+writes a new record that binds the earlier one by sha256 and carries its evidence; the earlier record is untouched.
 The record CAMPAIGN_DIR/steps/STEP_ID/switch_process_repair_<UTC>/repair.json is created exclusively, also when a step
 raises (partial evidence kept). After production has launched, a second run refuses (production is not this block's
 composite); a partial repair is finished by hand and reconcile then refuses until the fresh check passes. The original
@@ -55,7 +63,6 @@ import evaluation_campaign as ec  # noqa: E402
 
 STEPS = list(ec.SWITCH_PROCESS_STEPS)
 STEP_NAMES = tuple(ec.SWITCH_PROCESS_STEP_NAMES)
-RELAY_PYTHON = campaign_base.RELAY_PYTHON
 FAILED_LINE = re.compile(r'^RESTORE STEP FAILED: (?P<step>.+?) \(rc (?P<rc>-?\d+)\)(?: (?P<detail>.*))?$')
 TERM_WAIT_S, KILL_WAIT_S = 60, 30
 SSH_OPTIONS = ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', '-o', 'IdentityAgent=none', '-o', 'ControlMaster=no',
@@ -171,15 +178,15 @@ def terminate(target, list_procs, kill, now=time.monotonic, sleep=time.sleep):
 
 
 def commands(config, run_id, stamp):
-    """The runner's own restore commands (campaign_base.Campaign.restore), with a new production log name."""
-    R, V, p = config['hosts']['switch_remote_dir'], config['hosts']['vision_run_dir'], config['production']
+    """The runner's own commands for the four failed restore steps (campaign_base.Campaign.restore), with a new
+    production log name."""
+    R, p = config['hosts']['switch_remote_dir'], config['production']
     switch, vision, aux = config['hosts']['switch'], config['hosts']['vision'], R + '/aux'
     return [('launch_production', switch, 'bash %s/switch_swap.sh %s/switchd_production_%s_repair_%s.log %s'
              % (aux, R, run_id, stamp, p['launch_script'])),
             ('replay_ports', switch, 'python3 %s/restore_ports.py %s %s/snap/%s_prerun.json --apply --wait 35'
              % (aux, p['program'], R, run_id)),
             ('relay_slot', switch, 'python3 %s/switch_slot.py relay' % aux),
-            ('vision_restore', vision, '%s %s/vision_run.py restore --endpoint-profile sel751' % (RELAY_PYTHON, V)),
             ('ping', vision, 'ping -c %d -I %s %s' % (p['ping']['count'], p['ping']['src'], p['ping']['dst']))]
 
 
@@ -251,6 +258,52 @@ def _apply(out, config, run_id, stamp, recorded_pid, run, list_procs, kill, list
         if r.returncode:
             out['errors'].append('%s exited %d' % (name, r.returncode))
             return
+
+
+def continuable(previous, bound):
+    """Pure. Problems with finishing PREVIOUS (the latest repair record of this step) by --complete ([] = allowed)."""
+    problems = []
+    names = [s.get('name') for s in previous.get('steps') or []]
+    if previous.get('ok') is not False:
+        problems.append('the latest repair record is not a failed repair')
+    if previous.get('bound_sha256') != bound:
+        problems.append('the latest repair record is bound to a different terminal, runner record or inputs')
+    if (previous.get('termination') or {}).get('exited') is not True or previous.get('absent_before_launch') is not True:
+        problems.append('the latest repair record does not prove the candidate exited before launch')
+    done = [s for s in previous.get('steps') or [] if s.get('rc') == 0]
+    if names[:3] != list(STEP_NAMES[:3]) or [s.get('name') for s in done][:3] != list(STEP_NAMES[:3]):
+        problems.append('the latest repair record did not pass launch_production, replay_ports and relay_slot')
+    return problems
+
+
+def complete_repair(config, previous, run, observe):
+    """Finish a partial repair: the switch must observe the production program, then the ping runs."""
+    out = dict(errors=[], steps=[dict(s) for s in previous['steps'][:3]])
+    for key in ('termination', 'absent_before_launch', 'processes_before', 'deployed_inputs'):
+        out[key] = previous.get(key)
+    try:
+        out['observed_program'] = program = observe()
+        if program != config['production']['program']:
+            out['errors'].append('the switch runs %r, not production %r; nothing run'
+                                 % (program, config['production']['program']))
+        else:
+            name, host, command = commands(config, 'unused', 'unused')[3]
+            r = run(host, command)
+            out['steps'].append(dict(name=name, host=host, command=command, rc=r.returncode,
+                                     stdout=r.stdout[-4000:], stderr=r.stderr[-2000:]))
+            if r.returncode:
+                out['errors'].append('%s exited %d' % (name, r.returncode))
+    except BaseException as error:  # noqa: BLE001 - recorded as a failed completion, never a pass
+        out['errors'].append('completion raised: %r' % (error,))
+    out['ok'] = not out['errors'] and [s['name'] for s in out['steps']] == list(STEP_NAMES)
+    return out
+
+
+def observe_program(config):
+    """The switch's running program, by the read-only tool restore_verify.py uses."""
+    r = ssh(config['hosts']['switch'], 'python3 %s/aux/observe_program.py' % config['hosts']['switch_remote_dir'],
+            timeout=120)
+    return json.loads([l for l in r.stdout.splitlines() if l.startswith('{')][-1]).get('program')
 
 
 def ssh(host, command, timeout=1800):
@@ -348,11 +401,37 @@ def preconditions(directory, step, records, root):
     return record, config, run_id, failure.get('recorded_pid'), (freeze_files, prerun_sha), problems
 
 
-def main(argv=None, root=None, live_inputs=live, run=ssh):
+def complete_main(record, config, records, run, observe):
+    """--complete under the lock main() holds: refuse unless the latest record is continuable, then record."""
+    earlier = sorted(records.glob('switch_process_repair_*/repair.json'))
+    if not earlier:
+        sys.exit('REFUSED: no earlier switch_process_repair record to complete')
+    raw = earlier[-1].read_bytes()
+    previous = json.loads(raw)
+    problems = continuable(previous, record['bound_sha256'])
+    if problems:
+        print(json.dumps(dict(record, problems=problems), indent=1, default=str))
+        sys.exit('REFUSED: ' + '; '.join(problems))
+    stamp = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
+    out = records / ('switch_process_repair_%s' % stamp)
+    out.mkdir()
+    evidence = complete_repair(config, previous, run, lambda: observe(config))
+    record.update(evidence, continues=dict(path=str(earlier[-1]), sha256=sha(raw)), finished_at=time.time())
+    record['result'] = ('partial repair %s completed and passed' % earlier[-1].parent.name if evidence.get('ok')
+                        else 'FAILED')
+    ec.atomic_json(out / 'repair.json', record, exclusive=True)
+    print(json.dumps({'ok': record.get('ok'), 'record': str(out / 'repair.json'), 'continues': record['continues'],
+                      'errors': record.get('errors')}, default=str))
+    return 0 if record.get('ok') else 1
+
+
+def main(argv=None, root=None, live_inputs=live, run=ssh, observe=observe_program):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('campaign')
     ap.add_argument('step_id')
-    ap.add_argument('--apply', action='store_true')
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument('--apply', action='store_true')
+    mode.add_argument('--complete', action='store_true')
     a = ap.parse_args(argv)
     directory, manifest, _ = ec.load(Path(a.campaign).resolve(strict=True))
     step = next((s for s in manifest['steps'] if s['id'] == a.step_id and s['kind'] == 'block'), None)
@@ -366,6 +445,8 @@ def main(argv=None, root=None, live_inputs=live, run=ssh):
         if problems:
             print(json.dumps(dict(record, problems=problems), indent=1, default=str))
             sys.exit('REFUSED: ' + '; '.join(problems))
+        if a.complete:
+            return complete_main(record, config, records, run, observe)
         list_procs, kill, listening, inputs_ok = live_inputs(config, run_id, freeze_files, prerun_sha)
         if not a.apply:
             procs = list_procs()

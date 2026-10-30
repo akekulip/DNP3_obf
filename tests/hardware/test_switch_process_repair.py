@@ -78,7 +78,8 @@ def test_commands_equal_the_runners_planned_restore_commands_but_for_the_log_nam
     config = json.loads(CAMPAIGN_CONFIG.read_text())
     ours = [c for _, _, c in spr.commands(config, RUN_ID, 'STAMP')]
     assert ours[0] == tail[0].replace('%s.log' % RUN_ID, '%s_repair_STAMP.log' % RUN_ID)
-    assert ours[1:] == tail[1:]
+    assert 'vision_run.py restore' in tail[3]                # the runner's Vision restore passed: not repeated
+    assert ours[1:] == tail[1:3] + tail[4:]
 
 
 # --- identifying the process ---------------------------------------------------------------------------------------
@@ -279,6 +280,14 @@ def repair_record(**over):
                   failed_restoration=dict(steps=[dict(step=s) for s in spr.STEPS]),
                   termination=dict(exited=True), absent_before_launch=True,
                   steps=[dict(name=n, rc=0) for n in spr.STEP_NAMES])
+    record.update(over)
+    return record
+
+
+def partial_record(**over):
+    """The first c74 e2c repair's shape: switch steps passed, then a failed step after relay_slot."""
+    record = repair_record(ok=False, steps=[dict(name=n, rc=0) for n in spr.STEP_NAMES[:3]] +
+                           [dict(name='vision_restore', rc=1)], errors=['vision_restore exited 1'])
     record.update(over)
     return record
 
@@ -549,3 +558,86 @@ def test_the_remote_scripts_run_and_the_signal_script_refuses_a_process_that_is_
     finally:
         sleeper.kill()
         sleeper.wait()
+
+
+# --- completing a partial repair -----------------------------------------------------------------------------------
+
+BOUND = {'terminal': 'T', 'campaign_run.json': 'C'}
+
+
+@pytest.mark.parametrize('over,allowed', [({}, True), (dict(ok=True), False), (dict(bound_sha256={'terminal': 'X'}), False),
+                                          (dict(termination=dict(exited=False)), False),
+                                          (dict(absent_before_launch=False), False),
+                                          (dict(steps=[dict(name='launch_production', rc=0),
+                                                       dict(name='replay_ports', rc=1)]), False),
+                                          (dict(steps=[]), False)])
+def test_only_a_partial_repair_that_passed_the_switch_steps_can_be_completed(over, allowed):
+    assert (spr.continuable(partial_record(**over), BOUND) == []) is allowed
+
+
+def test_completion_runs_only_the_ping_and_only_on_the_production_program():
+    hosts = FakeHosts([], {})
+    out = spr.complete_repair(CONFIG, partial_record(), hosts.run, lambda: 'case4_response_path')
+    assert out['ok'] and [s['name'] for s in out['steps']] == list(spr.STEP_NAMES)
+    assert restore_commands(hosts) == ['ping -c 2 -I 192.168.10.1 192.168.10.7']
+    hosts = FakeHosts([], {})
+    out = spr.complete_repair(CONFIG, partial_record(), hosts.run, lambda: 'response_only')
+    assert not out['ok'] and hosts.commands == []
+    out = spr.complete_repair(CONFIG, partial_record(), hosts.run, lambda: (_ for _ in ()).throw(OSError('ssh')))
+    assert not out['ok'] and 'raised' in out['errors'][0]
+
+
+def test_reconcile_accepts_a_completion_bound_to_its_partial_repair(tmp_path):
+    f = Fixture(tmp_path)
+    bound = {'terminal': sha(f.steps / 'terminal.json'), 'campaign_run.json': sha(f.run_root / 'campaign_run.json')}
+    first = f.steps / 'switch_process_repair_20261030T155946Z'
+    first.mkdir()
+    (first / 'repair.json').write_text(json.dumps(partial_record(bound_sha256=bound)))
+    with pytest.raises(ec.Refused):
+        f.reconcile(ONLY)                                            # the partial repair alone is refused
+    completion = repair_record(bound_sha256=bound, continues=dict(path=str(first / 'repair.json'),
+                                                                  sha256=sha(first / 'repair.json')))
+    second = f.steps / 'switch_process_repair_20261030T161000Z'
+    second.mkdir()
+    (second / 'repair.json').write_text(json.dumps(completion))
+    record = json.loads(Path(f.reconcile(ONLY, now=1001)).read_text())
+    assert f.flag() is False and record['switch_process_repair']['problems'] == []
+
+
+@pytest.mark.parametrize('tamper', ['sha', 'carried', 'elsewhere'])
+def test_a_completion_that_does_not_bind_its_partial_repair_is_refused(tmp_path, tamper):
+    first = tmp_path / 'switch_process_repair_20261030T155946Z'
+    first.mkdir()
+    (first / 'repair.json').write_text(json.dumps(partial_record()))
+    path, digest = str(first / 'repair.json'), sha(first / 'repair.json')
+    over = {}
+    if tamper == 'sha':
+        digest = '0' * 64
+    elif tamper == 'carried':
+        over = dict(termination=dict(exited=True, signals=['TERM']))
+    elif tamper == 'elsewhere':
+        other = tmp_path / 'other' / 'switch_process_repair_x'
+        other.mkdir(parents=True)
+        (other / 'repair.json').write_text(json.dumps(partial_record()))
+        path, digest = str(other / 'repair.json'), sha(other / 'repair.json')
+    write_repair(tmp_path, repair_record(continues=dict(path=path, sha256=digest), **over))
+    assert accept(tmp_path)[1]
+
+
+def test_main_complete_refuses_without_a_continuable_record_and_records_a_bound_completion(tmp_path, monkeypatch):
+    f = hardware_fixture(tmp_path, monkeypatch)
+    hosts = FakeHosts([], {})
+    argv = [str(f.campaign), 'block0', '--complete']
+    with pytest.raises(SystemExit, match='REFUSED'):
+        spr.main(argv, root=f.testbed, live_inputs=Untouchable(), run=hosts.run, observe=lambda c: 'case4_response_path')
+    record, *_ = spr.preconditions(f.campaign, ec.load(f.campaign)[1]['steps'][0], f.steps, f.testbed)
+    first = f.steps / 'switch_process_repair_20261030T155946Z'
+    first.mkdir()
+    (first / 'repair.json').write_text(json.dumps(partial_record(bound_sha256=record['bound_sha256'])))
+    assert spr.main(argv, root=f.testbed, live_inputs=Untouchable(), run=hosts.run,
+                    observe=lambda c: 'case4_response_path') == 0
+    done = sorted(f.steps.glob('switch_process_repair_*/repair.json'))[-1]
+    data = json.loads(done.read_text())
+    assert data['ok'] and data['continues']['sha256'] == sha(first / 'repair.json')
+    assert ec.switch_process_acceptance(f.steps, data['bound_sha256']['terminal'], data['bound_sha256']['campaign_run.json'],
+                                        fresh_ok(), 'case4_response_path')[1] == []

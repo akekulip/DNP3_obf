@@ -1274,7 +1274,7 @@ SWITCH_PROCESS_STEPS = ['cold-swap bf_switchd back to the observed production pr
                         'replay the pre-run $PORT snapshot on the production program', 'reinstall the relay slot',
                         PING_STEP]
 SWITCH_PROCESS_REPAIRED_FAILURE = "runner restore step(s) failed: %r" % SWITCH_PROCESS_STEPS
-SWITCH_PROCESS_STEP_NAMES = ['launch_production', 'replay_ports', 'relay_slot', 'vision_restore', 'ping']
+SWITCH_PROCESS_STEP_NAMES = ['launch_production', 'replay_ports', 'relay_slot', 'ping']
 
 
 def switch_process_acceptance(records, terminal_sha, campaign_run_sha, fresh, production_program):
@@ -1283,7 +1283,9 @@ def switch_process_acceptance(records, terminal_sha, campaign_run_sha, fresh, pr
     did not finish, and the port replay, relay slot and ping after it), and only when a switch_process_repair.py
     record (latest switch_process_repair_*/repair.json) is ok, bound to this terminal and runner record, names exactly
     those failed steps, proves the candidate exited and that no bf_switchd ran before production was launched, and ran
-    all five of the runner's restore commands with rc 0; the fresh check must itself show the production program, a
+    the runner's four failed restore commands with rc 0; a completion record (switch_process_repair.py --complete)
+    must bind the earlier record it continues by sha256, and that record must carry the same binding, termination,
+    absent-before-launch proof and first three steps. The fresh check must itself show the production program, a
     clean snapshot comparison, Vision state and the ping."""
     problems = []
     if (fresh or {}).get('failures') != [SWITCH_PROCESS_REPAIRED_FAILURE]:
@@ -1325,8 +1327,22 @@ def switch_process_acceptance(records, terminal_sha, campaign_run_sha, fresh, pr
         problems.append('repair record does not prove no bf_switchd ran before production was launched')
     ran = repair.get('steps') or []
     if [s.get('name') for s in ran] != SWITCH_PROCESS_STEP_NAMES or any(s.get('rc') != 0 for s in ran):
-        problems.append('repair record did not run all five runner restore commands with rc 0')
-    return dict(path=str(path), sha256=digest(raw), termination=repair.get('termination')), problems
+        problems.append('repair record did not run the four failed runner restore commands with rc 0')
+    continued = repair.get('continues')
+    if continued is not None:
+        try:
+            earlier_path = Path(continued['path'])
+            earlier_raw = earlier_path.read_bytes()
+            earlier = json.loads(earlier_raw)
+            if earlier_path.parent.parent != Path(records) or digest(earlier_raw) != continued['sha256']:
+                raise ValueError('continued record is not the bound one in this step')
+            carried = [(earlier.get(k), repair.get(k)) for k in ('bound_sha256', 'termination', 'absent_before_launch')]
+            if any(a != b for a, b in carried) or (earlier.get('steps') or [])[:3] != ran[:3]:
+                raise ValueError('carried evidence differs from the continued record')
+        except (KeyError, TypeError, ValueError, OSError) as error:
+            problems.append('completion record does not bind its continued record: %s' % error)
+    return dict(path=str(path), sha256=digest(raw), termination=repair.get('termination'),
+                continues=continued), problems
 
 
 # Steps a runner takes before it changes any switch or Vision state (campaign.py deploy_switch / switch_toolkit and the
