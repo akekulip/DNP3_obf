@@ -185,3 +185,8 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   H2 rows also forward R1 (old ACK delayed behind the next READ; c72 drops it) and R2 (pure ACK at ISN-1 / ISN+3, not
   produced by a conforming master); excluding them needs new state (new binary). Proceeding with c74 as built.
   Running: independent P4 review; c74 integration + c74_diag_mirror + confirmation definitions in the worktree.
+- 2026-10-30 c72 baselines DONE (results/analysis/strict_cycle/SUMMARY_c72_baseline.md; counts from the new
+  scripts/analysis/confirmation_summary.py): strict d20/d5 8/8 trials, order 8/8, sizes 1,024/1,024, CROB 512/512,
+  CLRT medians at D; one first-request retransmission (sc20 t3, 212.5 ms). Combined-arm connection starts on
+  c72_diag_mirror: 5 of 32 (3 handshake ACKs t17-t19, 2 first requests t0/t30); off-arm E2 also 5 of 32
+  (c72_e2_off_starts.json). These are the comparison baselines for c74.
