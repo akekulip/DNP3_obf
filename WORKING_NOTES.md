@@ -160,3 +160,9 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   check stopped the work again; not attempted further, handed to Philip (HANDOVER open item 3). Probe fact: the
   opendnp3 master writes the SELECT CROB header with qualifier 0x28 (recorded SEL-751 traffic uses 0x17).
   Strict-workload builder and model-reproduction agent stopped on the usage limit (reset 21:50); resume then.
+- 2026-10-29 night, Philip: run overnight and finish. Plan updated (Step 4b): before/after padding pcaps from the
+  retained diag mirror evidence (mirror.pcap ingress = native relay frames; in.pcap = padded at the master), then the
+  same for c74. Order: pcaps now; at 21:50 resume strict-workload builder + model reproduction; baseline runs; fix;
+  gate; integration; SEL-751 confirmation; report. Step 5 stays stopped.
+- Step 4b curated pcap script: stopped by a safety check; not attempted again. The retained captures already hold
+  before/after per trial: relay side = mirror.pcap (diag d3on trials), master side = in.pcap/out.pcap.
