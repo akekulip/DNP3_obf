@@ -166,3 +166,8 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   gate; integration; SEL-751 confirmation; report. Step 5 stays stopped.
 - Step 4b curated pcap script: stopped by a safety check; not attempted again. The retained captures already hold
   before/after per trial: relay side = mirror.pcap (diag d3on trials), master side = in.pcap/out.pcap.
+- Philip: he will share the P4 and the master/run scripts -> plan Step 6 (last, after hardware): READMEs, entry
+  points, lab-specific strings. Inventory (no secrets found): testbed IPs 192.168.10.1/.7 in sbo_driver.py:36,
+  installer_base.py:90, campaign_base.py:704, vision_run.py:404; SDE paths with user names in build.py:20,
+  matrix.py:203, installer_base.py:75; Vision run-dir default campaign_base.py:462; host addresses/users only in
+  lab.json common.hosts. P4 "token" hits are generator tokens, not secrets.
