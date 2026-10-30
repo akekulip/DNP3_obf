@@ -18,7 +18,7 @@ MODEL = ROOT / 'scripts/model'
 DRIVER = MODEL / 'model_abandon.py'
 TIMED_DRIVER = MODEL / 'model_abandon_t1.py'
 BUILD = ROOT / 'results/builds/c72'
-# the canonical candidate whose live model gate must stay unblocked (c74 since c74 became canonical)
+# the canonical candidate whose live model gate must stay unblocked (c75 since c75 became canonical)
 CANON = ROOT / json.loads((ROOT / 'results/analysis/stage_cut/current_build.json').read_text())['build']
 GATE_RUN = ROOT / 'results/models/c72/model_abandon_c72_02'
 EXPECTATIONS = ROOT / 'results/models/c72_e4_abandon_t1/EXPECTATIONS.json'

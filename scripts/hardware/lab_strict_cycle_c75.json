@@ -1,0 +1,41 @@
+{
+  "_note": "c75 strict-cycle confirmation: the c72 strict-cycle blocks (lab_strict_cycle.json) unchanged except the block ids and master ports; design in results/analysis/c75_confirmation/DESIGN.json.",
+  "base": "lab.json",
+  "template": "05_d20_reference_rest",
+  "blocks": [
+    {
+      "id": "strict_cycle_d20_combined_c75",
+      "d_ms": 20,
+      "arm": {
+        "name": "combined",
+        "T": 1,
+        "padding": 1
+      },
+      "trials_per_arm": 4,
+      "reads_per_trial": 64,
+      "sbo_cycles": 32,
+      "sbo_strict_cycle": true,
+      "master_port_range": {
+        "first": 60420,
+        "last": 60423
+      }
+    },
+    {
+      "id": "strict_cycle_d5_combined_c75",
+      "d_ms": 5,
+      "arm": {
+        "name": "combined",
+        "T": 1,
+        "padding": 1
+      },
+      "trials_per_arm": 4,
+      "reads_per_trial": 64,
+      "sbo_cycles": 32,
+      "sbo_strict_cycle": true,
+      "master_port_range": {
+        "first": 60424,
+        "last": 60427
+      }
+    }
+  ]
+}

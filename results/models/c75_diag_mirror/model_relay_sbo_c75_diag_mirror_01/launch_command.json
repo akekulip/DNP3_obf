@@ -1,0 +1,47 @@
+{
+  "command": [
+    "bash",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75/diag_overlay/scripts/model/launch_model.sh",
+    "-p",
+    "/home/philip/Projects/DNP3/results/builds/c75_diag_mirror/compile_local/out",
+    "-o",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75/diag_overlay/results/models/c75_diag_mirror/model_relay_sbo_c75_diag_mirror_01",
+    "-P",
+    "9 48 64 68 180 182 196",
+    "-d",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75/diag_overlay/scripts/model/record_closure.py"
+  ],
+  "PORT_MAP": "/home/philip/Projects/DNP3/results/builds/c75_diag_mirror/response_only.inputs.json",
+  "PAD_ENABLE": "1",
+  "MILESTONE": "current",
+  "pb_injected": null,
+  "timeline": false,
+  "hardware": false,
+  "source_sha256": "be52635641fde1cc436d96293bf0a220b4a962cedc9cb2d4519de39e2fead4c5",
+  "driver_sha256": "93164d08d7568e728ed7bd48653427d744d6cb8f5d013c5e2820afbf195a0b05",
+  "compile_manifest_sha256": "6008b7efc151df3aa6466233b977eba5719fb519ec84576d64acc99aa8dff3e3",
+  "library_sha256": {
+    "scripts/model/model_driver.py": "8c6eed38df6c3470adc79d8b0d5499f4bf4c19b44b86f74c8587da253a9cf115",
+    "scripts/hardware/t_config.py": "2236a208856a3f27b8d29c0669da7aecb13e43eb40ac9990d5c128036f2fc358",
+    "scripts/model/action_observations.json": "f79ac426ba2fcf8bfd973d094637097de26175c5eed5d3a6020bd5308bbed4e2"
+  },
+  "dependency_sha256": {
+    "scripts/model/model_repeat.py": "a5b21576299213d0ef9373688a03e388ce8b797a1e54b0f4c4fd365d445698ca",
+    "scripts/model/model_drive_composite.py": "9447f5edfe1714e2da156cc44a4dc64e98e53cf7c7d5b2ba58e213e995dcd3ab"
+  },
+  "closure_target": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75/diag_overlay/scripts/model/model_relay_sbo.py",
+  "dependency_closure_sha256": "0e9f76982d8187c1d3c27fcdcdda3947839a3f84f759625a4bbf5d7669b3e0c8",
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "reset_restart_required": true,
+  "supported_profile_sha256": "8d7103926fb164402006533e291e34f85210299fce304e9ae7a20cae40c046d8",
+  "observation_source": "SDK model action log; not physical switch counters",
+  "stimulus_environment": {
+    "REPEAT_CYCLES": "64",
+    "REPEAT_TIMED_CYCLES": "3",
+    "ABANDON_T": "0",
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "model_log_retention_sha256": "5195b05f15ba6706b905baaab305eaf41b5583e9ef019e93e6a597a68dbb1455",
+  "retention_error": null,
+  "exit_code": 0
+}

@@ -1,5 +1,6 @@
-"""The canonical candidate's diagnostic build (BASE_diag_mirror; c74_diag_mirror since c74 became canonical):
-generator, session script and static compile checks (offline; no switch, no model). c72_diag_mirror is historical."""
+"""The canonical candidate's diagnostic build (BASE_diag_mirror; c75_diag_mirror since c75 became canonical):
+generator, session script and static compile checks (offline; no switch, no model). c72_diag_mirror and
+c74_diag_mirror are historical."""
 import hashlib
 import importlib.util
 import json

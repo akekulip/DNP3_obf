@@ -35,7 +35,10 @@ NAME = 'e4b_select_only'
 LATER = {'strict_cycle_c72_d20', 'strict_cycle_c72_d5', 'diag_e2_combined',
          # c74 confirmation (tests/hardware/test_c74_confirmation_definition.py)
          'strict_cycle_c74_d20', 'strict_cycle_c74_d5', 'diag_e2_combined_c74', 'diag_e2_off_c74',
-         'recovery_c74_r1', 'recovery_c74_r2', 'recovery_c74_r3', 'e4b_select_only_c74'}
+         'recovery_c74_r1', 'recovery_c74_r2', 'recovery_c74_r3', 'e4b_select_only_c74',
+         # c75 confirmation (tests/hardware/test_c75_confirmation_definition.py)
+         'strict_cycle_c75_d20', 'strict_cycle_c75_d5', 'diag_e2_combined_c75', 'diag_e2_off_c75',
+         'recovery_c75_r1', 'recovery_c75_r2', 'recovery_c75_r3', 'e4b_select_only_c75'}
 LAB = json.loads((matrix.HERE / 'lab.json').read_text())
 TEMPLATE = next(block for block in LAB['blocks'] if block['id'] == '10_d20_loss_full')
 REGISTERED = DESIGN['block']

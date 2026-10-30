@@ -113,9 +113,10 @@ def test_every_registered_diag_block_has_exactly_one_definition():
     # that later design files register themselves (the combined-arm connection-start baseline)
     later_blocks = {json.loads((ROOT / 'results/analysis/diag_mirror_d3' / name).read_text())['block']['id']
                     for name in ('DESIGN_e2_combined.json',)}
-    # and the c74 confirmation design's diagnostic blocks (on c74_diag_mirror)
-    later_blocks |= {block['id'] for block in json.loads((ROOT / 'results/analysis/c74_confirmation/DESIGN.json')
-                                                         .read_text())['blocks'] if block['diagnostic']}
+    # and the c74 and c75 confirmation designs' diagnostic blocks (on c74_diag_mirror and c75_diag_mirror)
+    for design in ('c74_confirmation', 'c75_confirmation'):
+        later_blocks |= {block['id'] for block in json.loads((ROOT / 'results/analysis' / design / 'DESIGN.json')
+                                                             .read_text())['blocks'] if block['diagnostic']}
     later = {n for n, block_id in matrix.DIAG_BLOCKS.items() if block_id in later_blocks}
     assert len(later) == len(later_blocks)
     assert sorted(n for n, spec in matrix.DEFINITIONS.items() if spec.get('diagnostic')) == \

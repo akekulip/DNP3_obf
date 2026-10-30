@@ -238,3 +238,22 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   trials whatever the outcome), expected-outcome stop policy for recovery blocks, then the eight blocks on c75.
   Wrap replay stays Philip's item (safety stop). Model track running in worktree scratchpad/c75_wt. Step 0 record
   corrections done (c74 README status, 62/64 completeness, classifier = c72 only, wrap coverage precise, stop rule).
+- 2026-10-30 evening: model track done and cherry-picked (0e13d7030..b4f5c1013). c75 source 5ca9168d (c72 lines
+  519/529 changed; c74 lines 404/405 restored), compiled once, resources identical to c72, gate model_gate_passed with
+  verdicts identical to c72, 40-case three-way as predicted (reconnect matches c74: B's READ takes the retry path).
+  ACK runs on c72/c74/c75: window update, zero window/reopen (READ outstanding) and keepalives suppressed on all
+  three builds (rule violation, inherited); no progress break, but the review showed the model gate cannot fire
+  for those (scripted relay ignores windows, no timers): not testable in the model, not cleared (14430daf3).
+  Retained hardware captures: 0 such master segments in 498 trials. No c76 (Philip's rule: fix only a demonstrated
+  break; no speculative rows). c75 made canonical in the tree; c75_diag_mirror derived and compiled (be52635641),
+  static checks pass, resource deltas = c74's; its model evidence (fidelity + 17 drivers) running from
+  scratchpad/c75/diag_overlay. Next: diag_gate_compare, README, integration commit, suites, D=date c75_prepare.sh
+  then c75_run.sh (scratchpad/c75/).
+- 2026-10-30 Philip's scope freeze: c75 is the final candidate; finish the mirror gate, commit c75 as the source
+  selected for testing (current_build status selected_for_testing; hardware_qualified only if the existing acceptance
+  criteria pass), run the eight blocks once, compare with the existing analysis, wrap replay BLOCKED with its exact
+  blocker, one FINAL_RECORD answering his five questions. Window updates/keepalives stay documented, unqualified.
+  c75_diag_mirror gate: 17/17 exit 0 first try, verdicts identical to c75 (gate_vs_c75_01.json); differences only the
+  T timestamp, re-wait and old-epoch classes of the c75-vs-c72 compare. Suites: 772 passed; analysis 161 passed, 2
+  skipped. Procedure scripts in results/analysis/c75_confirmation/procedure/ (E4b and first-request counters reproduce
+  the published c72/c74 numbers).

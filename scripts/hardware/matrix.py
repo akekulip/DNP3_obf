@@ -61,8 +61,24 @@ C74_RECOVERY_BLOCKS = {'recovery_c74_r1': 'r1_d20_combined_c74', 'recovery_c74_r
                        'recovery_c74_r3': 'r3_d5_combined_c74'}
 RECOVERY_BLOCKS.update(C74_RECOVERY_BLOCKS)
 DEFINITIONS.update({name: dict(file='lab_recovery_c74.json', blocks=1, exchanges=132) for name in C74_RECOVERY_BLOCKS})
-SELECT_ONLY = ('e4b_select_only', 'e4b_select_only_c74')
+SELECT_ONLY = ('e4b_select_only', 'e4b_select_only_c74', 'e4b_select_only_c75')
 DEFINITIONS['e4b_select_only_c74'] = dict(file='lab_e4b_c74.json', blocks=1, exchanges=144)
+# c75 confirmation (results/analysis/c75_confirmation/DESIGN.json): the same eight shapes on c75 (c72 plus the request
+# retries only), new block ids and master ports; the recovery entries also declare their expected recovery outcome.
+STRICT_BLOCKS.update({'strict_cycle_c75_d20': 'strict_cycle_d20_combined_c75',
+                      'strict_cycle_c75_d5': 'strict_cycle_d5_combined_c75'})
+DEFINITIONS.update({name: dict(file='lab_strict_cycle_c75.json', blocks=1, exchanges=512)
+                    for name in ('strict_cycle_c75_d20', 'strict_cycle_c75_d5')})
+C75_DIAG_BLOCKS = {'diag_e2_combined_c75': 'e2_combined_first_request_d20_c75',
+                   'diag_e2_off_c75': 'e2_off_first_request_d20_c75'}
+DIAG_BLOCKS.update(C75_DIAG_BLOCKS)
+DEFINITIONS.update({name: dict(file='lab_diag_c75.json', blocks=1, exchanges=256, diagnostic=True)
+                    for name in C75_DIAG_BLOCKS})
+C75_RECOVERY_BLOCKS = {'recovery_c75_r1': 'r1_d20_combined_c75', 'recovery_c75_r2': 'r2_d20_size_only_c75',
+                       'recovery_c75_r3': 'r3_d5_combined_c75'}
+RECOVERY_BLOCKS.update(C75_RECOVERY_BLOCKS)
+DEFINITIONS.update({name: dict(file='lab_recovery_c75.json', blocks=1, exchanges=132) for name in C75_RECOVERY_BLOCKS})
+DEFINITIONS['e4b_select_only_c75'] = dict(file='lab_e4b_c75.json', blocks=1, exchanges=144)
 
 
 def sha(path):

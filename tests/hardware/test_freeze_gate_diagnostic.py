@@ -1,6 +1,6 @@
 """Freeze-gate admission of the canonical candidate's declared diagnostic build (offline; committed evidence is only
-read). The canonical candidate is results/analysis/stage_cut/current_build.json (c74 since c74 became canonical); its
-diagnostic build is BASE_diag_mirror (c74_diag_mirror). c72_diag_mirror is historical: its retained evidence stays
+read). The canonical candidate is results/analysis/stage_cut/current_build.json (c75 since c75 became canonical); its
+diagnostic build is BASE_diag_mirror (c75_diag_mirror). c72_diag_mirror and c74_diag_mirror are historical: its retained evidence stays
 valid and readable, but it is no longer admitted, because its canonical base is no longer the canonical P4.
 
 A build with diag_mirror.json is admitted only when that identity binds the current canonical P4, the current generator

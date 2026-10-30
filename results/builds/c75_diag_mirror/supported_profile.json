@@ -1,0 +1,112 @@
+{
+  "candidate": {
+    "build": "c75_diag_mirror",
+    "milestone": "current",
+    "source_sha256": "be52635641fde1cc436d96293bf0a220b4a962cedc9cb2d4519de39e2fead4c5",
+    "segment_sha256": {
+      "N": "e2fda497b074544e73ccf8594e7ecbf6c7e5b545530a7939d3f8a8a86537822f",
+      "E": "2b9c400f8b0faa2f0e6bb9ae240e77e5e7c9ee2e97690855fdc2e7274c73a970",
+      "T": "2f1ba4ce98236cae4116106fb0817e3354ea5bd89fcb71714a7e26e8a0bc11c7"
+    },
+    "artifact_sha256": {
+      "compile_local": {
+        "bfrt.json": "5529da9ec9eba67613ceec50751ee66ea9be953ab9901d479c9a8713d9500e01",
+        "manifest.json": "83ea6443eea8ce7300277c10db35b0a80d2601b6fd35c1acd7ff95c71a349190",
+        "p0/context.json": "025eedc436e7a6a53fba1e7b92000921d9d46dc43953dd8240f513cd17732aca",
+        "p0/response_only.bfa": "9fd1323aa7fb23f2f089b89572ec80e1a84617c2a43f8ac80a8c3ff77c0731b6",
+        "p0/tofino.bin": "8d266eb879e1ff827fd3ff39da3e33f12dc50209ce5452bbc2d0474a6263cea0",
+        "p1/context.json": "c27306f8a81098e77f49bc9cb23ba790af4780236d3e40a46084976676efa46b",
+        "p1/response_only.bfa": "c506c0b257759558a9ef87aabecf296b415eb0d6af04dd154d21769632955e21",
+        "p1/tofino.bin": "e5c150e897f9509184214b1f9c994524c0ad90189de4fac625450fabd2e9fb8c",
+        "response_only.conf": "ff89eae79cbf4f5a4134aa0797fd3bee1b7a9a0b31b4d8e8f3e775d2a7e5e772",
+        "response_only.p4pp": "c69926ff3ab8657632e02107f2884cf9f0ae9b519bf84a24d3659f9d49a2a129"
+      }
+    }
+  },
+  "reset_restart_required": true,
+  "t_child_count": 1,
+  "profile_version": "supported-profile-v1-20261017",
+  "clock": {
+    "t_unit_ns": 256,
+    "t_grid_ns": 512,
+    "t_source": "global_tstamp[39:8] & ~1",
+    "rounding": "durations in ns are converted to T units by t_config.t_units (one shared writer)"
+  },
+  "timing_ns": {
+    "D_release_budget": 5000000
+  },
+  "n": {
+    "retry_budget_laps": 32
+  },
+  "ports": {
+    "master_dev": 9,
+    "relay_dev": 64,
+    "n_ack_return": 48,
+    "t_in": 180,
+    "held_return": 182,
+    "recirc": 68,
+    "stat_ports": "9,64",
+    "note": "physical SEL-751: master dev9, relay dev64"
+  },
+  "encoding": {
+    "native_input_octets": {
+      "READ": [
+        91,
+        134
+      ],
+      "SELECT": 49,
+      "OPERATE": 49
+    },
+    "output_octets": 60,
+    "output_octets_note": "SELECT/OPERATE image (the control-timing contract field); the READ image is read_output_octets",
+    "read_output_octets": [
+      141,
+      158
+    ],
+    "read_construction": "prefix (tests/fixtures/vectors/constants_two_read_relay.json: mixed_g1v2_g30v1_91, integrity_134)",
+    "control_application_partition": [
+      15,
+      17
+    ],
+    "control_partition_note": "all32 original application octets, transport15+17; whole49 TCP input",
+    "read_images": {
+      "91": 141,
+      "134": 158
+    },
+    "control_request_octets": 45,
+    "control_frames": [
+      28,
+      32
+    ],
+    "tcp_header_octets": 32,
+    "syn_tcp_header_octets": 40,
+    "synack_tcp_header_octets": 44,
+    "ipv4_ihl": 5,
+    "timestamp_option_prefix": "0101080a",
+    "master_window_scale": 7,
+    "relay_window_scale": 0,
+    "native_ipv4_octets": {
+      "mixed": 143,
+      "integrity": 186,
+      "SELECT": 101,
+      "OPERATE": 101
+    },
+    "image_ipv4_octets": {
+      "mixed": 193,
+      "integrity": 210,
+      "SELECT": 112,
+      "OPERATE": 112
+    },
+    "control_request_ipv4_octets": 97
+  },
+  "_note": "SEL-751 guarded two-CROB45/49 profile; READ91->141 and134->158; SBO49->60; one TCP child; whole input only; genuine ACK waits for whole child0; response follows ACK commit by D; retries drop only while a genuine request or response is retained; no switch measurement state (outcome/count registers and counters removed); OPERATE forwards immediately through common response timing; no fixed J hold",
+  "endpoint_profile": "sel751",
+  "not_admitted_reads": [
+    "range_g10v2_23",
+    "analog",
+    "class0"
+  ],
+  "tcp_profile": "sel751_ts",
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "switch_telemetry": false
+}

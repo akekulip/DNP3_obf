@@ -4,7 +4,9 @@ results/analysis/c74_confirmation/DESIGN.json registers eight one-block definiti
 strict_cycle_c74_d20/_d5, diag_e2_combined_c74/diag_e2_off_c74 (on c74_diag_mirror), recovery_c74_r1/r2/r3 and
 e4b_select_only_c74. Each is its c72 counterpart unchanged except the block id and the master ports; ports are disjoint
 from every other definition. The non-diagnostic ones freeze and qualify only on the canonical build; the diagnostic
-ones are admitted only with c74_diag_mirror and never qualify."""
+ones are admitted only with c74_diag_mirror and never qualify. These definitions are historical since c75 became
+canonical: c74 and c74_diag_mirror are admitted only in the c74-canonical context (tests/hardware/historical_c74.py),
+which the admission tests reinstate."""
 import contextlib
 import hashlib
 import io
@@ -20,6 +22,8 @@ sys.path[:0] = [str(ROOT / 'scripts/hardware'), str(ROOT / 'scripts/checks')]
 import campaign_base  # noqa: E402
 import freeze_gate  # noqa: E402
 import matrix  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import historical_c74  # noqa: E402
 
 DESIGN = json.loads((ROOT / 'results/analysis/c74_confirmation/DESIGN.json').read_text())
 CURRENT = json.loads((ROOT / 'results/analysis/stage_cut/current_build.json').read_text())
@@ -59,9 +63,8 @@ def ports(name):
     return out
 
 
-def test_c74_is_the_canonical_candidate_and_the_design_binds_both_builds():
-    assert CURRENT['candidate'] == 'c74' and CURRENT['build'] == 'results/builds/c74'
-    assert sha(ROOT / 'p4/response_only.p4') == sha(C74 / 'response_only.p4') == CURRENT['source_sha256']
+def test_the_design_binds_both_c74_builds_and_c74_is_no_longer_canonical():
+    assert CURRENT['candidate'] != 'c74' and sha(ROOT / 'p4/response_only.p4') != sha(C74 / 'response_only.p4')
     assert DESIGN['schema'] == 'c74-confirmation-design-v1' and DESIGN['registered_before_traffic'] == '2026-10-30'
     assert DESIGN['build']['source_sha256'] == sha(C74 / 'response_only.p4')
     assert DESIGN['diag_build']['source_sha256'] == sha(C74_DIAG / 'response_only.p4')
@@ -126,7 +129,8 @@ def test_prepare_with_the_canonical_build_writes_configs_the_campaign_accepts(na
 
 @needs_diag
 @pytest.mark.parametrize('name', sorted(DIAGNOSTIC))
-def test_prepare_of_a_c74_diag_definition_writes_the_c74_diagnostic_contract(name, tmp_path):
+def test_prepare_of_a_c74_diag_definition_writes_the_c74_diagnostic_contract(name, tmp_path, monkeypatch):
+    historical_c74.use_c74_context(monkeypatch, tmp_path)
     manifest = json.loads(matrix.prepare(C74_DIAG, NATIVE, tmp_path / 'm', 'offline_' + name, definition=name)
                           .read_text())
     assert manifest['expected_exchanges'] == 256
@@ -177,20 +181,20 @@ def check(frozen_path, config, record):
 
 
 @needs_c74
-def test_canonical_c74_is_admitted_with_its_model_gate_and_its_blocks_qualify(tmp_path, monkeypatch):
-    assert freeze_gate.compile_problems(C74, sha(C74 / 'response_only.p4')) == []
+def test_c74_no_longer_freezes_as_a_qualifying_candidate_now_that_c75_is_canonical(tmp_path, monkeypatch):
+    # c74 was admitted and qualified while it was canonical (its retained freezes under results/hardware/campaigns/
+    # rc01_hw_c74_*); its model runs bind the c74 observation library, so only the canonical c75 can qualify now
+    assert 'candidate is not the canonical current P4 source' in freeze_gate.compile_problems(C74, sha(C74 / 'response_only.p4'))
     manifest = json.loads(matrix.prepare(C74, NATIVE, tmp_path / 'm', 'offline_sc', definition='strict_cycle_c74_d20')
                           .read_text())
-    config = Path(manifest['steps'][0]['argv'][4])
-    frozen = freeze(C74, [config], tmp_path / 'freeze.json', monkeypatch)
-    assert frozen['candidate']['model']['qualification'] == 'model_gate_passed'
-    assert not frozen['candidate'].get('diagnostic')
-    code, record = check(tmp_path / 'freeze.json', config, tmp_path / 'check.json')
-    assert code == 0 and record['ok'] is True and record['qualifies'] is True
+    with pytest.raises(SystemExit, match='cannot freeze'):
+        freeze(C74, [Path(manifest['steps'][0]['argv'][4])], tmp_path / 'freeze.json', monkeypatch)
+    assert not (tmp_path / 'freeze.json').exists()
 
 
 @needs_diag
 def test_c74_diag_mirror_is_admitted_with_its_own_evidence_and_never_qualifies(tmp_path, monkeypatch):
+    historical_c74.use_c74_context(monkeypatch, tmp_path)
     source = sha(C74_DIAG / 'response_only.p4')
     assert freeze_gate.diagnostic_problems(C74_DIAG, source) == []
     assert freeze_gate.compile_problems(C74_DIAG, source) == []
