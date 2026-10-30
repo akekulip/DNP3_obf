@@ -215,3 +215,13 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   c74_diag_mirror t31 composite, still serving :50052 at 15:27 UTC); production case4_response_path never launched;
   port replay, relay slot and ping failed after it. ownership.json: unsafe_restoration true. Remaining 5 blocks not
   run (off-arm starts, recovery r1-r3, E4b). No hardware writes since. Restoration needs Philip's decision.
+- 2026-10-30 restoration of rc01_hw_c74diag_e2c_20261030_01 (Philip: SIGKILL fallback, recorded repair, reviewed
+  reconcile path). switch_process_repair.py (c67e08018, 1386493e2, d9cd7132f; three independent reviews, 66 tests):
+  first --apply (switch_process_repair_20261030T155946Z): pid 3735291 re-identified, pre-signal state saved, SIGTERM
+  rc 0 but no exit in 61 s, SIGKILL ended it in 0.76 s; production launch, port replay and relay slot rc 0; the
+  re-run Vision restore exited 1 (its baseline was consumed by the runner's passed restore; my design error), ping
+  not run. Independent reverify_20261030T160235Z: every current check passes. Tool limited to the four failed steps;
+  --complete (switch_process_repair_20261030T160918Z) ran the ping on production, bound to the first record. Philip
+  approved reconcile on that basis; reconcile_..._20261030T161214Z cleared the flag. The never-run _01 preparations
+  of e2o, recovery r1-r3 and e4b are superseded (stale freezes, not committed); the five blocks run as _02 with fresh
+  freezes and dry-runs.

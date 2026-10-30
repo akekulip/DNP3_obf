@@ -1,0 +1,74 @@
+{
+  "at": 1793376734.3539746,
+  "bound_sha256": {
+    "config": "cf4520306857a95a3c6b51a55d7757a634c21d841f07d190763b2d88d6675278",
+    "original_restore_verify": "54a6238d55c46e5b87936353b4bd4e8645c0537f3b82be1a86186aef1161b32e",
+    "ownership": "4f8d473238840d5e4004719d63f2d037c9f59bd9610fbd30c04bee25d8fd3c04",
+    "terminal": "7074a42ef256543a6981d0e21c5da88a42301410b2bd9f01487b2f315437fb2a"
+  },
+  "campaign_dir": "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c74diag_e2c_20261030_01/rc01_hw_c74diag_e2c_20261030_01",
+  "command": [
+    "/usr/bin/python3",
+    "/home/philip/Projects/DNP3/scripts/hardware/restore_verify.py",
+    "--config",
+    "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c74diag_e2c_20261030_01/configs/e2_combined_first_request_d20_c74.json",
+    "--run-root",
+    "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c74diag_e2c_20261030_01/reconcile_e2_combined_first_request_d20_c74_20261030T161214Z"
+  ],
+  "config": "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c74diag_e2c_20261030_01/configs/e2_combined_first_request_d20_c74.json",
+  "earlier_reverifies": {
+    "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c74diag_e2c_20261030_01/reverify_20261030T160235Z/restore_verify.json": "04c3e45a176ecd2f918f3320d03701099340ad19bc594d49e85ffd731061b0d2"
+  },
+  "fresh_restore_verify": "f42d75cf616aa9ad3067cb2fabc7969a2528e36b2b8bfada20b8f7296cbadfbc",
+  "original_failures": null,
+  "rc": 1,
+  "restore_verify_tool": {
+    "last_commit": "b2634701dabcc2b7aa48c0c99e7ff1de2b2951f7 2026-10-28T10:00:51-04:00 Adopt the shallow current layout and record the c72 qualification evidence",
+    "path": "/home/philip/Projects/DNP3/scripts/hardware/restore_verify.py",
+    "rule_note": "comparison rules as committed; the original failed check may predate later rule commits (see last_commit)",
+    "sha256": "66520e537927facdc749e4045ec8dc7352a10a94b673a0f3a0e6c0b7908d28b2",
+    "stripped_statistics": [
+      "$COUNTER_SPEC_BYTES",
+      "$COUNTER_SPEC_PKTS",
+      "drop_count_bytes",
+      "drop_count_packets",
+      "guaranteed_min_usage_cells",
+      "shared_pool_usage_cells",
+      "usage_cells",
+      "watermark_cells"
+    ],
+    "uncommitted_changes": false,
+    "volatile_tables": [
+      "$PORT_STAT",
+      "log_tbl_counter",
+      "tbl_dbg_counter",
+      "tf1.log_tbl_counter"
+    ]
+  },
+  "result": "restoration verified afresh; ownership update follows (the clear is proven by reconciliation_sha256 in ownership.json); the runner restore result remains FAILED as recorded -- the switch restore whose bf_switchd stop did not finish was completed by the bound switch_process_repair record (its four failed steps; the runner's Vision restore, which had passed, was not repeated) and the switch and Vision state were verified afresh",
+  "step_id": "e2_combined_first_request_d20_c74",
+  "switch_process_repair": {
+    "binding": {
+      "continues": {
+        "path": "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c74diag_e2c_20261030_01/rc01_hw_c74diag_e2c_20261030_01/steps/e2_combined_first_request_d20_c74/switch_process_repair_20261030T155946Z/repair.json",
+        "sha256": "5bc7d8d08a2e90d251b897354ef3a30bcfa5665965aef4f85f1c1ad0cb26fc0b"
+      },
+      "path": "/home/philip/Projects/DNP3/results/hardware/campaigns/rc01_hw_c74diag_e2c_20261030_01/rc01_hw_c74diag_e2c_20261030_01/steps/e2_combined_first_request_d20_c74/switch_process_repair_20261030T160918Z/repair.json",
+      "sha256": "cf30a5957db73b10026e92e298be61ccd99b82a7d9192dab07f0de3b7eaa3ab1",
+      "termination": {
+        "exited": true,
+        "kill_rc": 0,
+        "kill_wait_s": 0.7568752653896809,
+        "pid": 3735291,
+        "signals": [
+          "TERM",
+          "KILL"
+        ],
+        "starttime": 241142860,
+        "term_rc": 0,
+        "term_wait_s": 61.08691409882158
+      }
+    },
+    "problems": []
+  }
+}

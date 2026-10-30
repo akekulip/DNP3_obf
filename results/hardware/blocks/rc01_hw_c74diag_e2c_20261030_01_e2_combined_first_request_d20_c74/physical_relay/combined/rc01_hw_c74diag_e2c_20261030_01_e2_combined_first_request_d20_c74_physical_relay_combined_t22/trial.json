@@ -1,0 +1,160 @@
+{
+  "fixture": "physical_relay",
+  "label": "rc01_hw_c74diag_e2c_20261030_01_e2_combined_first_request_d20_c74_physical_relay_combined_t22",
+  "master_port": 60332,
+  "reads": 8,
+  "ok": true,
+  "failures": [],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 0,
+    "gap_ms": 0,
+    "start_delay_ms": 50,
+    "start_seed": 57123
+  },
+  "diag_mirror": {
+    "build_label": "c74_diag_mirror",
+    "source_sha256": "e46391d81e569a19a527604d3f2d3d454589f4261149ce697c79af952cbca7f4",
+    "state": "on",
+    "copy_port": 10,
+    "capture_interface": "enp59s0f1np1",
+    "files": {
+      "mirror.pcap": "5c54741621c2d96d3c319a3a91533bcf1e16b0675b2b4a0fe8c252ca4402f202",
+      "mirror_iface_before.json": "a4c803eb1a5a8f33f03a0e0a36ab9e53df5e4a7d5a966375110c4c26f33cd894",
+      "mirror_iface_after.json": "96a50c0ceeb1fcbcc7896e9c047a68dbf1d27fe74432b71206064c719bceba96",
+      "mirror_offloads.json": "bde282710523bc572d0ba29920cb4e85e4988d40a0d50901efd0dc7441b3345f",
+      "mirror_capture.json": "52206497b3bd8bc14f35d44b43dccca946c6ad7da2b75d9638e8b490d6de4e28"
+    }
+  },
+  "generation_headroom": {
+    "current": {
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "read": 65508
+    },
+    "remaining_before_reserve": {
+      "read": 65534
+    },
+    "reserve": {
+      "read": 26
+    },
+    "reserves": {
+      "read": 26
+    },
+    "snapshot": {
+      "bfrt_sha256": "4a14cfc22246cd678710e6129e7f5bd556d226039384826eeebab6b04b21e1f2",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1793373197.807207,
+      "timing_contract": "response_ready_ack_d_no_j_v3",
+      "valid": true
+    },
+    "time": 1793373197.8150403,
+    "budget": {
+      "reads": 8,
+      "sbo_cycles": 0,
+      "cancelled_selects": 0,
+      "connections": 1,
+      "control_timed": true,
+      "timed": true,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "read_lane_per_connection": 8,
+      "source": "T gen_access and N first_event: common READ/SELECT/OPERATE allocator"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c74diag_e2c_20261030_01_e2_combined_first_request_d20_c74_physical_relay_combined_t22_before_generation_headroom.json"
+  },
+  "observed": {
+    "connections": {
+      "single": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 4,
+            "piggyback": 0,
+            "min_us": 20026.0,
+            "median_us": 20698.0,
+            "max_us": 21668.0,
+            "values_us": [
+              20026.0,
+              20138.0,
+              21258.0,
+              21668.0
+            ]
+          },
+          "READ integrity": {
+            "n": 4,
+            "piggyback": 0,
+            "min_us": 19172.0,
+            "median_us": 19749.5,
+            "max_us": 21561.0,
+            "values_us": [
+              19172.0,
+              19333.0,
+              20166.0,
+              21561.0
+            ]
+          },
+          "SELECT": {
+            "n": 0,
+            "piggyback": 0,
+            "min_us": null,
+            "median_us": null,
+            "max_us": null,
+            "values_us": []
+          },
+          "OPERATE": {
+            "n": 0,
+            "piggyback": 0,
+            "min_us": null,
+            "median_us": null,
+            "max_us": null,
+            "values_us": []
+          }
+        }
+      }
+    },
+    "switch": {
+      "outcomes": "no switch telemetry in this build",
+      "pktgen": {
+        "READ": {
+          "triggers": 8,
+          "pkts": 32
+        }
+      },
+      "token_stale_bound": "unknown: no switch telemetry in this build",
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+      }
+    }
+  },
+  "endpoint_profile": "sel751",
+  "dimension_verdicts": {
+    "application": true,
+    "switch": true,
+    "standards": true,
+    "diag_mirror": true
+  }
+}
