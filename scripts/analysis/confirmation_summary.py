@@ -12,13 +12,17 @@ standards_verdict.json, CROB SUCCESS on points 1 and 3, master and relay TCP ret
 
 starts: per mirror-on fresh connection, which of the master's first frames (SYN, final handshake ACK, first request)
 has no egress copy toward the relay while the switch counters show it received and not emitted (dev9 RX - dev64 TX
-covers it). A missing copy the counters do not cover is reported as unexplained, never as a switch loss. The mirror is
-used for packet presence only. Every count carries its denominator.
+covers it). A missing copy the counters do not cover is reported as unexplained, never as a switch loss. Also per
+connection, for a relay reply to a late forwarded handshake ACK: whether the handshake ACK's egress copy left after the
+first request's, the pure ACKs acknowledging the first request before the first response (relay side from the ingress
+copies, master side from in.pcap), and the first exchange's CLRT. The mirror is used for packet presence and order
+only. Every count carries its denominator.
 """
 import argparse
 import json
 import statistics
 import sys
+from collections import Counter
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -27,11 +31,14 @@ sys.path.insert(0, str(HERE))
 import diag_mirror_capture as cap  # noqa: E402
 import diag_mirror_d3 as d3  # noqa: E402
 import preservation_check as pc  # noqa: E402
+import relay_check as rc  # noqa: E402
+
+SYN = cap.wc.SYN
 
 CYCLE = (('READ', 'mixed'), ('SELECT', None), ('OPERATE', None), ('READ', 'integrity'))
 CLASS = {('READ', 'mixed'): 'READ mixed', ('SELECT', None): 'SELECT', ('OPERATE', None): 'OPERATE',
          ('READ', 'integrity'): 'READ integrity'}
-FRAMES = ('none', 'handshake_ack', 'first_request', 'unexplained_missing_copy')
+FRAMES = ('none', 'syn', 'handshake_ack', 'first_request', 'unexplained_missing_copy')
 
 
 def frac(n, of):
@@ -96,14 +103,39 @@ def start_row(trial):
     if not missing:
         frame = 'none'
     elif cnt and not_forwarded >= len(missing):
-        frame = 'first_request' if missing[0]['len'] else 'handshake_ack'
+        frame = ('first_request' if missing[0]['len'] else 'syn' if missing[0]['flags'] & SYN else
+                 'handshake_ack')
     else:
         frame = 'unexplained_missing_copy'
     first = cap.first_request(trial)
     return dict(trial=trial['name'], frame=frame, missing_copies=len(missing), dev9_rx_minus_dev64_tx=not_forwarded,
                 counter_error=error, first_request_retransmitted=first.get('retransmitted'),
                 retransmission_delay_ms=first.get('retransmission_delay_ms'),
-                capture_complete=d3.completeness(trial)['ok'])
+                capture_complete=d3.completeness(trial)['ok'], **reply_observable(trial))
+
+
+def reply_observable(trial):
+    """Late handshake-ACK forward and the pure ACKs that precede the first response (c72: one per side)."""
+    sent = trial['master']['to_relay']
+    isn = next(s['seq'] for s in sent if s['flags'] & SYN)
+    first = next(s for s in sent if s['len'])
+    end = rc.stream_offset(first['seq'], isn) + first['len']
+    handshake = next((s for s in sent if not s['len'] and not s['flags'] & SYN), None)
+
+    def egress_ns(seg):
+        return min((c['timestamp_ns'] for c in trial['mirror']['to_relay'] if seg and c['seq'] == seg['seq']
+                    and c['len'] == seg['len'] and c['flags'] == seg['flags']), default=None)
+
+    def acks_before_response(segments):
+        acked = [s for s in segments if rc.stream_offset(s['ack'], isn) >= end and not s['flags'] & SYN]
+        response = min((s['timestamp_ns'] for s in acked if s['len']), default=None)
+        return sum(1 for s in acked if not s['len'] and (response is None or s['timestamp_ns'] < response))
+    ack_ns, request_ns = egress_ns(handshake), egress_ns(first)
+    wire = cap.read_json(trial['dir'] / 'relay_wire.json') or {}
+    return dict(late_handshake_ack_forwarded=bool(ack_ns and request_ns and ack_ns > request_ns),
+                relay_pure_acks_before_first_response=acks_before_response(trial['mirror']['from_relay']),
+                master_pure_acks_before_first_response=acks_before_response(trial['master']['from_relay']),
+                first_clrt_us=(wire.get('exchanges') or [{}])[0].get('complete_clrt_us'))
 
 
 def starts(paths, label, sha):
@@ -113,7 +145,13 @@ def starts(paths, label, sha):
                 connections=len(rows), not_forwarded={f: sum(r['frame'] == f for r in rows) for f in FRAMES},
                 first_request_retransmitted=frac(sum(bool(r['first_request_retransmitted']) for r in rows),
                                                  len(rows)),
-                capture_complete=frac(sum(r['capture_complete'] for r in rows), len(rows)), per_trial=rows)
+                capture_complete=frac(sum(r['capture_complete'] for r in rows), len(rows)),
+                late_handshake_ack_forwarded=frac(sum(r['late_handshake_ack_forwarded'] for r in rows), len(rows)),
+                pure_acks_before_first_response={
+                    side: {str(k): v for k, v in sorted(Counter(r['%s_pure_acks_before_first_response' % side]
+                                                                for r in rows).items())}
+                    for side in ('relay', 'master')},
+                per_trial=rows)
 
 
 def main(argv=None):

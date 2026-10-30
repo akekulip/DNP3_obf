@@ -56,7 +56,8 @@ def test_strict_order_failure_is_caught(tmp_path):
 def test_combined_starts_baseline():
     out = cs.starts(E2C, 'c72_diag_mirror', DIAG_SHA)
     assert out['connections'] == 32
-    assert out['not_forwarded'] == dict(none=27, handshake_ack=3, first_request=2, unexplained_missing_copy=0)
+    assert out['not_forwarded'] == dict(none=27, syn=0, handshake_ack=3, first_request=2,
+                                         unexplained_missing_copy=0)
     lost = {r['trial'].rsplit('_', 1)[1]: r['frame'] for r in out['per_trial'] if r['frame'] != 'none'}
     assert lost == dict(t0='first_request', t17='handshake_ack', t18='handshake_ack', t19='handshake_ack',
                         t30='first_request')
@@ -67,3 +68,23 @@ def test_starts_refuses_a_wrong_build_identity():
     with pytest.raises(SystemExit):
         cs.main(['starts', '--build-label', 'c72_diag_mirror', '--source-sha256', '0' * 64, '--out',
                  '/dev/null', str(ROOT)])
+
+
+@needs_evidence
+def test_starts_reply_observable_baseline():
+    """c72 never forwards a late handshake ACK: one relay ACK and one master ACK precede every first response."""
+    out = cs.starts(E2C, 'c72_diag_mirror', DIAG_SHA)
+    assert out['late_handshake_ack_forwarded'] == dict(n=0, of=32)
+    assert out['pure_acks_before_first_response'] == dict(relay={'1': 32}, master={'1': 32})
+    assert all(r['first_clrt_us'] for r in out['per_trial'])
+
+
+@needs_evidence
+def test_dropped_syn_is_not_a_handshake_ack(monkeypatch):
+    trial = cs.cap.load(E2C[0])
+    syn = trial['master']['to_relay'][0]
+    assert syn['flags'] & cs.SYN
+    trial['mirror']['to_relay'] = [s for s in trial['mirror']['to_relay'] if s['seq'] != syn['seq'] or s['len']]
+    monkeypatch.setattr(cs.d3, 'counters', lambda t: ({'dev9': dict(rx=9, tx=0), 'dev64': dict(rx=0, tx=7)}, None))
+    monkeypatch.setattr(cs.d3, 'completeness', lambda t: dict(ok=True))
+    assert cs.start_row(trial)['frame'] == 'syn'
