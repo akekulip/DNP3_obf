@@ -190,3 +190,11 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   CLRT medians at D; one first-request retransmission (sc20 t3, 212.5 ms). Combined-arm connection starts on
   c72_diag_mirror: 5 of 32 (3 handshake ACKs t17-t19, 2 first requests t0/t30); off-arm E2 also 5 of 32
   (c72_e2_off_starts.json). These are the comparison baselines for c74.
+- 2026-10-30 independent c74 P4 review (no critical findings): H1 (request retry) is correct and covers the 4 c72
+  first-request losses; resources byte-identical to c72 on an independent compile. HIGH H-1: the H2 rows forward the
+  late handshake ACK after the READ; the relay may answer it with an extra ACK that reaches T as an extra
+  response-ready ACK, which is untested in the model. c72's dropped handshake ACKs cost nothing (0 of 6
+  retransmitted). Decision: run c74 as built with a registered observable (relay and master pure ACKs before the
+  first response; c72 1/1 in 64/64 starts; late forward flag; first CLRT), and report any change as an H2-row defect.
+  An H1-only variant is the fallback. The integration agent has the README and DESIGN corrections; the tool update is
+  in 070440efc.
