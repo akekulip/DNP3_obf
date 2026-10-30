@@ -24,8 +24,10 @@ On both builds, c74 removes the connection-start loss in the trials run:
 | First request retransmitted by the master, diagnostic build (64 starts) | 4 | 0 |
 | First request retransmitted by the master, exact binary (32 fresh connections in the strict, recovery and E4b blocks) | 1 (212.5 ms) | 0 |
 
-Zero losses were observed in 64 mirror-observed starts, and zero first-request retransmissions in 96 fresh connections.
-This is not an unconditional loss-free claim.
+Zero losses were observed in 64 mirror-observed starts, with mirror completeness 62 of 64 trials (each exception
+accounted for on its own connection, below), and zero first-request retransmissions in 96 fresh connections. This
+is not an unconditional loss-free claim. c74 is a hardware-tested checkpoint with open findings; no classifier or
+evaluation campaign ran on c74, and those results belong to c72.
 
 ## Order, delivery, padding and timing (exact binary)
 
@@ -127,4 +129,5 @@ an application failure, as it did for c72. Every trial ran and is reported.
 - Diagnostic-build blocks qualify nothing about the exact binary. The exact-binary loss evidence is the master-side
   retransmission count.
 - The relay's select-timeout setting remains unread.
-- The SELECT/OPERATE transport-wrap replay against an independent stack has not been run.
+- The SELECT/OPERATE transport wrap has no independent reassembly of its original 63→0 bytes: TShark decoded the
+  wrap responses only on renumbered copies, and opendnp3 replayed only the READ wraps.

@@ -1,8 +1,23 @@
 # c74: c72 plus the connection-start loss correction
 
-**c74 is MODEL-QUALIFIED ONLY.** It has not run on the switch, Vision or the SEL-751. Every hardware result in this
-repository was taken with c72 (source SHA-256 `97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e`),
-and none of it transfers to c74. The focused hardware confirmation is plan Step 4 and needs its own registration.
+**Status, corrected 2026-10-30:** c74 is a hardware-tested checkpoint with open findings. On 2026-10-30 it ran
+eight guarded blocks on the SEL-751 with timing and padding enabled (`results/analysis/c74_confirmation/SUMMARY.md`).
+- **No start-frame loss:** 0 of 64 mirror-observed starts lost a start frame. Mirror completeness was 62 of 64 trials,
+  and each exception was accounted for on its own connection.
+- **No first-request retransmission:** 0 of 96 fresh connections.
+- **Workloads:** the strict workload and E4b pass.
+- **Open findings:**
+  - E3 gave 13/18 against c72's 16/18, unexplained;
+  - the late-ACK rows forwarded a relay-visible stale ACK, and with timing off the relay's reply reached the master as
+    a duplicate ACK;
+  - one block's final restore failed and was repaired.
+
+The four late-ACK rows are being isolated in c75 (c72 plus the request retries only). No classifier or evaluation
+campaign ran on c74; those results belong to c72.
+
+*Superseded status at model qualification (2026-10-29/30):* "c74 is MODEL-QUALIFIED ONLY. It has not run on the
+switch, Vision or the SEL-751. Every hardware result in this repository was taken with c72 (source SHA-256
+`97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e`), and none of it transfers to c74."
 
 - c74 source SHA-256: `c7e37eff347f09c30af3a46f566cf41069df2d9c099e0227a102c16733116efd`
 - **Canonical in this worktree** (integration below): `p4/response_only.p4` is c74; c72 stays the reference at tag
@@ -239,7 +254,7 @@ tests unchanged):
 
 ## What this does not show
 
-- **No hardware.** Nothing here says the hardware losses are fixed. The model shows that the two reproduced paths no
+- **No hardware (at model qualification; see the corrected status at the top).** Nothing here says the hardware losses are fixed. The model shows that the two reproduced paths no
   longer drop; it does not show that these paths caused every observed hardware loss.
 - **Model timing only.** The retry counts (one busy pass on arrival and two failed retry passes behind one ACK hold,
   0.33 to 0.34 s of model wall-clock to exhaust 32 retries) are not switch latency. How long 32 recirculations last on

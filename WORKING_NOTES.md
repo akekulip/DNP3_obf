@@ -231,3 +231,10 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   first-request retransmissions (c72 1). Testbed released safe. Records updated: c74_confirmation/SUMMARY.md,
   validation/REPORT.md section 5, HANDOVER, PLAN. Decisions for Philip: forward vs drop the late handshake ACK; the
   E3 difference.
+- 2026-10-30 Philip's review of c08c66fac -> new phase (plan rewritten, approved): c75 = c72 + request retries only
+  (no late-ACK rows), explicit ACK-behaviour tests on c72/c74/c75 (obsolete ACK = seq, ack, window and options all
+  covered by a later forwarded segment; window updates incl. zero-window, keepalives, timing on/off, endpoint
+  progress), offline bound of the E3 difference (relay TSval 30 ms ticks: OPERATE 34 ticks after SELECT in 34/36
+  trials whatever the outcome), expected-outcome stop policy for recovery blocks, then the eight blocks on c75.
+  Wrap replay stays Philip's item (safety stop). Model track running in worktree scratchpad/c75_wt. Step 0 record
+  corrections done (c74 README status, 62/64 completeness, classifier = c72 only, wrap coverage precise, stop rule).

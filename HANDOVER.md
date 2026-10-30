@@ -63,7 +63,8 @@ Every claim is labelled c72, diagnostic or model.
 - **Bindings and decode:**
   - figure inputs are bound;
   - the coverage record marks the abandoned SELECT with timing on as not covered by the gate;
-  - TShark decode agrees on all 49,408 responses, while opendnp3 reassembles the 63→0 wrap.
+  - TShark decode agrees on all 49,408 responses (wrap responses decoded only on copies with renumbered transport
+    sequence); opendnp3 reassembles the 128 READ 63→0 wraps.
 - **Classifier v2:** one grouped chronological split, block-clustered intervals, paired Δ. CLRT is unchanged from
   v1. Joint CLRT+size under timing+size is 0.667–0.875. The scope is operation classification on one SEL-751 with
   one master, not hidden device identity.
@@ -116,8 +117,10 @@ closure files were left alone on purpose, because the c72 gate binds them byte f
    class.
 2. **E3 difference.** c74 gave 13/18 against c72's 16/18, on the same recovery path. All TIMEOUTs fall in the
    departure band near 1.0 s where both outcomes occur, and the relay's select timeout was not read.
-3. **SELECT/OPERATE wrap replay: not done.** A safety check stopped the offline SelectAndOperate replay twice. Only the
-   128 READ wrap responses were replayed (all reassembled). Probe fact: the opendnp3 master writes its SELECT CROB
+3. **SELECT/OPERATE wrap replay: not done.** A safety check stopped the offline SelectAndOperate replay twice; it is
+   not attempted again and stays Philip's item. TShark decoded the 256 SELECT/OPERATE wrap responses only on copies
+   with renumbered transport sequence, so the original 63→0 bytes have no independent reassembly. Only the 128 READ
+   wrap responses were replayed (all reassembled). Probe fact: the opendnp3 master writes its SELECT CROB
    header with qualifier 0x28, where the SEL-751 uses 0x17.
 4. **The bf_switchd shutdown that did not finish:** cause not established; it is not shown to be mirror-specific.
 5. **SELECT/OPERATE residual.** The residual SELECT/OPERATE CLRT difference under timing+size remains open, as do the

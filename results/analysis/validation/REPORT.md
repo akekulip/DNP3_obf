@@ -119,7 +119,7 @@ padding enabled (`results/analysis/c74_confirmation/SUMMARY.md`):
 
 | Evidence | Label | c72 | c74 |
 |---|---|---|---|
-| Start frame received and not forwarded, combined / off arm (32 starts each) | diagnostic | 5 / 5 | 0 / 0 |
+| Start frame received and not forwarded, combined / off arm (32 starts each; mirror completeness 62 of 64 trials, each exception accounted for on its own connection) | diagnostic | 5 / 5 | 0 / 0 |
 | First request retransmitted by the master | diagnostic (64) and c72/c74 (32) | 4 and 1 | 0 and 0 |
 | Strict workload: order, sizes, CROB SUCCESS (8 trials, 1,024 exchanges) | c72 / c74 | all pass | all pass |
 | E3 OPERATE SUCCESS after a dropped padded SELECT response | c72 / c74 | 16/18 | 13/18 |
@@ -134,6 +134,11 @@ padding enabled (`results/analysis/c74_confirmation/SUMMARY.md`):
   outcomes occur near the relay's unread 1.0 s selection window. The difference stays open.
 - **Restoration:** the combined connection-start block's final restore failed (bf_switchd did not stop within 20 s).
   It was repaired, re-verified and reconciled; the runner result stays FAILED.
+- **Recovery stop rule:** the c74 design said a failed trial ends its campaign, but loss trials record failures and
+  continue (`campaign_base.verdict_loss`). All planned trials ran and are reported. Future configurations declare
+  expected recovery outcomes apart from failures that stop execution.
+- **Status:** c74 is a hardware-tested checkpoint with open findings. The classifier and the evaluation campaign
+  (sections 1, 3 and 4) are c72 results; neither was run on c74.
 
 ## What remains open
 
@@ -142,6 +147,8 @@ padding enabled (`results/analysis/c74_confirmation/SUMMARY.md`):
 - The E3 outcome difference between c74 (13/18) and c72 (16/18): not separable from the relay's selection-window edge
   with 18 trials each.
 - The SEL-751 select-timeout setting stays unverified (no relay settings access).
-- Offline opendnp3 replay of the 256 SELECT/OPERATE wrap responses has not been run.
+- SELECT/OPERATE transport wrap. TShark decoded the 256 SELECT/OPERATE wrap responses only on copies whose transport
+  sequence was renumbered; opendnp3 replayed only the 128 READ wraps. No independent stack has reassembled the original
+  SELECT/OPERATE 63→0 bytes.
 - The residual SELECT/OPERATE CLRT difference under timing+size, and the native request sizes.
 - The cause of the bf_switchd shutdown that did not finish at the end of one c74 block.

@@ -1,7 +1,20 @@
-# Current task: c72-derived connection-start loss fix, verified on the SEL-751 (status 2026-10-30, hardware done)
+# Current task: c75 (request retries only), ACK correctness and the recovery bound (2026-10-30)
 
-Set by Philip on 2026-10-29 after his review of `fb5ce81b1`. The detailed plan is
-`~/.claude/plans/we-were-on-tract-expressive-planet.md`. c72 stays the reference at tag `c72-validation-final`.
+Set by Philip's review of `c08c66fac`. Plan: `~/.claude/plans/we-were-on-tract-expressive-planet.md`.
+- **c74 status:** a hardware-tested checkpoint with open findings (`results/analysis/c74_confirmation/SUMMARY.md`).
+- **c75:** c72 plus the request retries only. It is derived exactly, compiled once and pinned, then qualified on the
+  17-driver gate and explicit ACK-behaviour tests (stale handshake ACKs, ACKs behind later READs, window updates
+  including zero-window, keepalives, timing on and off, endpoint progress).
+- **Hardware:** the eight guarded SEL-751 blocks run on c75 after the offline gates pass.
+- **Recovery:** the E3 difference stays unresolved unless new evidence explains it. Recovery blocks declare expected
+  outcomes apart from failures that stop execution.
+- **Wrap replay:** the SELECT/OPERATE wrap replay stays Philip's item (stopped by a safety check).
+- **Parked:** c73, cleanup, paper work and broader campaigns.
+
+## Previous task (completed 2026-10-30): c72-derived connection-start fix (c74)
+
+Set by Philip on 2026-10-29 after his review of `fb5ce81b1` (its plan file has since been rewritten for the c75
+phase). c72 stays the reference at tag `c72-validation-final`.
 c73 promotion, further cleanup and paper work are parked.
 
 **Done when**, on the exact tested hardware image: the connection-start loss is shown fixed, transaction order is
