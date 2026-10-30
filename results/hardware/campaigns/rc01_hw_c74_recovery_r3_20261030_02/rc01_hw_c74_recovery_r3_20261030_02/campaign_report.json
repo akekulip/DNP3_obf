@@ -1,0 +1,45 @@
+{
+  "campaign_id": "rc01_hw_c74_recovery_r3_20261030_02",
+  "completed": [],
+  "deadline": 1793466894.63769,
+  "evidence_kind": "hardware",
+  "excluded_from_main_evidence": false,
+  "failed": [
+    "r3_d5_combined_c74"
+  ],
+  "manifest_sha256": "e69d24430fe553579ffad92c65fca2b7130d0bbffde8ef4abf7f00886b75d966",
+  "phase": "stopped",
+  "planned_blocks": 1,
+  "result": "INCOMPLETE",
+  "start": 1793380494.63769,
+  "steps": {
+    "r3_d5_combined_c74": {
+      "artifact_manifest": {
+        "path": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c74_recovery_r3_20261030_02_r3_d5_combined_c74/artifact_manifest.json",
+        "sha256": "9d0cd2e9f9e72f05b02c88010fb44c0274863706c5c559b52c71a3aa520ae441"
+      },
+      "finished": 1793381034.8054936,
+      "hardware_entry": 1793380494.706329,
+      "id": "r3_d5_combined_c74",
+      "kind": "block",
+      "manifest_sha256": "e69d24430fe553579ffad92c65fca2b7130d0bbffde8ef4abf7f00886b75d966",
+      "postcheck_rc": null,
+      "rc": 1,
+      "reason": "block_failed",
+      "restoration": {
+        "device": 2050,
+        "inode": 51937183,
+        "mtime_ns": 1793381034754889726,
+        "ok": true,
+        "path": "/home/philip/Projects/DNP3/results/hardware/blocks/rc01_hw_c74_recovery_r3_20261030_02_r3_d5_combined_c74/restore_verify.json",
+        "sha256": "a33205b892b9e3887eb58e1f6172f121a08d7b9d9c5425fc48fdf2fdf2131742",
+        "size": 5616
+      },
+      "started": 1793380494.701223,
+      "status": "failed",
+      "unit": "dnp3-eval-rc01_hw_c74_recovery_r3_20261030_02-6489c82ac69a-step-r3_d5_combined_c74.service"
+    }
+  },
+  "stop_reason": "block_failed",
+  "unexecuted": []
+}

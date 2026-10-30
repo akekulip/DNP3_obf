@@ -1,0 +1,161 @@
+{
+  "fixture": "physical_relay",
+  "label": "rc01_hw_c74_e4b_20261030_02_e4b_select_only_d20_combined_c74_physical_relay_combined_t3",
+  "master_port": 60413,
+  "reads": 20,
+  "ok": true,
+  "failures": [],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 0,
+    "gap_ms": 0,
+    "start_delay_ms": 0,
+    "start_seed": 12348
+  },
+  "generation_headroom": {
+    "current": {
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "read": 65488
+    },
+    "remaining_before_reserve": {
+      "read": 65534
+    },
+    "reserve": {
+      "read": 46
+    },
+    "reserves": {
+      "read": 46
+    },
+    "snapshot": {
+      "bfrt_sha256": "5a460d9efa846e20af148e993cc82c60501b665d5ea6861c6be55eacc3f9814e",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1793381367.3740406,
+      "timing_contract": "response_ready_ack_d_no_j_v3",
+      "valid": true
+    },
+    "time": 1793381367.3813207,
+    "budget": {
+      "reads": 20,
+      "sbo_cycles": 4,
+      "cancelled_selects": 0,
+      "connections": 1,
+      "control_timed": true,
+      "timed": true,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "read_lane_per_connection": 28,
+      "source": "T gen_access and N first_event: common READ/SELECT/OPERATE allocator"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c74_e4b_20261030_02_e4b_select_only_d20_combined_c74_physical_relay_combined_t3_before_generation_headroom.json"
+  },
+  "observed": {
+    "connections": {
+      "single": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 0,
+            "piggyback": 0,
+            "min_us": null,
+            "median_us": null,
+            "max_us": null,
+            "values_us": []
+          },
+          "READ integrity": {
+            "n": 20,
+            "piggyback": 0,
+            "min_us": 17987.0,
+            "median_us": 20374.5,
+            "max_us": 21675.0,
+            "values_us": [
+              17987.0,
+              18009.0,
+              18363.0,
+              19201.0,
+              19212.0,
+              19511.0,
+              19533.0,
+              19550.0,
+              20150.0,
+              20289.0,
+              20460.0,
+              20494.0,
+              20606.0,
+              20669.0,
+              20832.0,
+              21138.0,
+              21508.0,
+              21545.0,
+              21580.0,
+              21675.0
+            ]
+          },
+          "SELECT": {
+            "n": 4,
+            "piggyback": 0,
+            "min_us": 19441.0,
+            "median_us": 20088.5,
+            "max_us": 21242.0,
+            "values_us": [
+              19441.0,
+              19767.0,
+              20410.0,
+              21242.0
+            ]
+          },
+          "OPERATE": {
+            "n": 0,
+            "piggyback": 0,
+            "min_us": null,
+            "median_us": null,
+            "max_us": null,
+            "values_us": []
+          }
+        }
+      }
+    },
+    "switch": {
+      "outcomes": "no switch telemetry in this build",
+      "pktgen": {
+        "READ": {
+          "triggers": 24,
+          "pkts": 96
+        }
+      },
+      "token_stale_bound": "unknown: no switch telemetry in this build",
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+      }
+    }
+  },
+  "endpoint_profile": "sel751",
+  "dimension_verdicts": {
+    "application": true,
+    "switch": true,
+    "standards": true
+  }
+}

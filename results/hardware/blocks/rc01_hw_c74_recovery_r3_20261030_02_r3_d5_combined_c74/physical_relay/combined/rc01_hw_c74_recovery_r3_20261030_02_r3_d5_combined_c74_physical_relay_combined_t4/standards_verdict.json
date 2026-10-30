@@ -1,0 +1,71 @@
+{
+  "ok": false,
+  "failures": [
+    "application: master records/counts/plan differ from frozen expected denominators",
+    "application: complete planned master denominators missing or failed",
+    "application: master transaction failed: OPERATE",
+    "application: OPERATE application: point 1 status TIMEOUT",
+    "application: OPERATE application: point 3 status TIMEOUT",
+    "application: OPERATE captured CROB not successful: [[1, 'TIMEOUT'], [3, 'TIMEOUT']]; point 1 status TIMEOUT; point 3 status TIMEOUT",
+    "observed.operate_success is False, expected True",
+    "observed.aggregate_verdict is False, expected True"
+  ],
+  "expected": {
+    "counts": {
+      "READ": 20,
+      "SELECT": 1,
+      "OPERATE": 1
+    },
+    "lengths": {
+      "READ": [
+        158
+      ],
+      "SELECT": [
+        60
+      ],
+      "OPERATE": [
+        60
+      ]
+    },
+    "read_classes": {
+      "integrity": {
+        "count": 20,
+        "image": 158
+      }
+    },
+    "read_schedule": "full",
+    "padded": true,
+    "planned_exchanges": 22
+  },
+  "capture_hashes": {
+    "capture_offloads": {
+      "sha256": "38956ea541157eb21fbf9405852271edb20154f2ccf177562890bcbb90a4de6f"
+    },
+    "in": {
+      "sha256": "42cc9fb83f825aae3a54cf0397fa6503c0f96c4d6cacd37db402a16b2e5deb9c"
+    },
+    "master": {
+      "sha256": "b925fe06e27065c055ce493eeb61a6a0093fe197cada8c0e8ef8f60db55c2d6d"
+    },
+    "out": {
+      "sha256": "9a61aa4d9ed3320c5949482e690770690d895e90289d0985df6678612530800b"
+    },
+    "relay_wire": {
+      "sha256": "a11bc5fb3b5815ce92332f2e350990449d1f4898ff993a32b95089c84187ffcb"
+    },
+    "run_result": {
+      "sha256": "449183b9b48945ca1e3456bd1b4d8755c3240d51ed1ae54ef0c3934e73de18d6"
+    }
+  },
+  "scope": "sel751_receiver_visible",
+  "verdicts": {
+    "transport": true,
+    "application": false,
+    "size": true
+  },
+  "not_evaluated": {
+    "switch_emitted_boundaries": "NOT EVALUATED",
+    "departure_timing": "NOT EVALUATED",
+    "physical_event_protection": "NOT EVALUATED"
+  }
+}

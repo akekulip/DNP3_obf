@@ -1,0 +1,159 @@
+{
+  "fixture": "physical_relay",
+  "label": "rc01_hw_c74diag_e2o_20261030_02_e2_off_first_request_d20_c74_physical_relay_off_t19",
+  "master_port": 60369,
+  "reads": 8,
+  "ok": true,
+  "failures": [],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 0,
+    "gap_ms": 0,
+    "start_delay_ms": 50,
+    "start_seed": 57120
+  },
+  "diag_mirror": {
+    "build_label": "c74_diag_mirror",
+    "source_sha256": "e46391d81e569a19a527604d3f2d3d454589f4261149ce697c79af952cbca7f4",
+    "state": "on",
+    "copy_port": 10,
+    "capture_interface": "enp59s0f1np1",
+    "files": {
+      "mirror.pcap": "7d311929cc37dd035822c44e40815bc407addd20ac26d0ad47e2056555d24136",
+      "mirror_iface_before.json": "63f215f1a162f4a75bfb3af5890b55a60b6f2e6eee7323fe98e68ff10ea98828",
+      "mirror_iface_after.json": "7c0610f6890b47f62a0815fdd259dd1a1a513d94bddfcdfea94b8b4b9323e64f",
+      "mirror_offloads.json": "bde282710523bc572d0ba29920cb4e85e4988d40a0d50901efd0dc7441b3345f",
+      "mirror_capture.json": "d1f3ee49519aab38a3f6e54eaac9bd3a62d416a7075fbbdfcfb4b737745ed1d5"
+    }
+  },
+  "generation_headroom": {
+    "current": {
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "read": 65516
+    },
+    "remaining_before_reserve": {
+      "read": 65534
+    },
+    "reserve": {
+      "read": 18
+    },
+    "reserves": {
+      "read": 18
+    },
+    "snapshot": {
+      "bfrt_sha256": "4a14cfc22246cd678710e6129e7f5bd556d226039384826eeebab6b04b21e1f2",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1793378372.420668,
+      "timing_contract": "response_ready_ack_d_no_j_v3",
+      "valid": true
+    },
+    "time": 1793378372.4283392,
+    "budget": {
+      "reads": 8,
+      "sbo_cycles": 0,
+      "cancelled_selects": 0,
+      "connections": 1,
+      "control_timed": true,
+      "timed": false,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "read_lane_per_connection": 0,
+      "source": "T gen_access and N first_event: common READ/SELECT/OPERATE allocator"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c74diag_e2o_20261030_02_e2_off_first_request_d20_c74_physical_relay_off_t19_before_generation_headroom.json"
+  },
+  "observed": {
+    "connections": {
+      "single": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 4,
+            "piggyback": 0,
+            "min_us": 11.0,
+            "median_us": 2103.0,
+            "max_us": 30382.0,
+            "values_us": [
+              11.0,
+              2014.0,
+              2192.0,
+              30382.0
+            ]
+          },
+          "READ integrity": {
+            "n": 4,
+            "piggyback": 0,
+            "min_us": 1011.0,
+            "median_us": 2277.0,
+            "max_us": 2634.0,
+            "values_us": [
+              1011.0,
+              2120.0,
+              2434.0,
+              2634.0
+            ]
+          },
+          "SELECT": {
+            "n": 0,
+            "piggyback": 0,
+            "min_us": null,
+            "median_us": null,
+            "max_us": null,
+            "values_us": []
+          },
+          "OPERATE": {
+            "n": 0,
+            "piggyback": 0,
+            "min_us": null,
+            "median_us": null,
+            "max_us": null,
+            "values_us": []
+          }
+        }
+      }
+    },
+    "switch": {
+      "outcomes": "no switch telemetry in this build",
+      "pktgen": {
+        "READ": {
+          "triggers": 0,
+          "pkts": 0
+        }
+      },
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+      }
+    }
+  },
+  "endpoint_profile": "sel751",
+  "dimension_verdicts": {
+    "application": true,
+    "switch": true,
+    "standards": true,
+    "diag_mirror": true
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "label": "rc01_hw_c74_e4b_20261030_02_e4b_select_only_d20_combined_c74_physical_relay_combined_t3",
+  "endpoint_profile": "sel751",
+  "master_port": 60413,
+  "reads": 20,
+  "observation_scope": "single master NIC TX/RX; switch emission not observed",
+  "endpoint_controls": {
+    "read_pause_ms": 25,
+    "run_sbo": true,
+    "close_grace_ms": 0,
+    "sbo_select_only": true
+  },
+  "tcpdump": {
+    "out": {
+      "captured": 29,
+      "received": 80,
+      "dropped_kernel": 0
+    },
+    "in": {
+      "captured": 51,
+      "received": 80,
+      "dropped_kernel": 0
+    }
+  },
+  "ok": true,
+  "source_port_wait": {
+    "result": "free",
+    "polls": 1,
+    "elapsed_s": 0.02982867998071015
+  },
+  "master_rc": 0,
+  "close_observation": {
+    "complete": true,
+    "mode": "graceful",
+    "polls": 1,
+    "elapsed_s": 0.001195630058646202
+  }
+}

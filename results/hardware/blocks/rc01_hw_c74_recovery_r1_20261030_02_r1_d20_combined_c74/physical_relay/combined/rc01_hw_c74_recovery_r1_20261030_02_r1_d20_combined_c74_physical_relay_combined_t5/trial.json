@@ -1,0 +1,280 @@
+{
+  "fixture": "physical_relay",
+  "label": "rc01_hw_c74_recovery_r1_20261030_02_r1_d20_combined_c74_physical_relay_combined_t5",
+  "master_port": 60395,
+  "reads": 20,
+  "ok": false,
+  "failures": [
+    "single: master records/counts/plan differ from frozen expected denominators",
+    "single: complete planned master denominators missing or failed",
+    "single: master transaction failed: OPERATE",
+    "single: OPERATE application: point 1 status TIMEOUT",
+    "single: OPERATE application: point 3 status TIMEOUT",
+    "single: standards: application: master records/counts/plan differ from frozen expected denominators",
+    "single: standards: application: complete planned master denominators missing or failed",
+    "single: standards: application: master transaction failed: OPERATE",
+    "single: standards: application: OPERATE application: point 1 status TIMEOUT",
+    "single: standards: application: OPERATE application: point 3 status TIMEOUT",
+    "single: standards: application: OPERATE captured CROB not successful: [[1, 'TIMEOUT'], [3, 'TIMEOUT']]; point 1 status TIMEOUT; point 3 status TIMEOUT",
+    "single: standards: observed.operate_success is False, expected True",
+    "single: standards: observed.aggregate_verdict is False, expected True",
+    "physical relay Vision workload failed"
+  ],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 0,
+    "gap_ms": 0,
+    "start_delay_ms": 0,
+    "start_seed": 12350
+  },
+  "generation_headroom": {
+    "current": {
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "read": 65494
+    },
+    "remaining_before_reserve": {
+      "read": 65534
+    },
+    "reserve": {
+      "read": 40
+    },
+    "reserves": {
+      "read": 40
+    },
+    "snapshot": {
+      "bfrt_sha256": "5a460d9efa846e20af148e993cc82c60501b665d5ea6861c6be55eacc3f9814e",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1793379848.973103,
+      "timing_contract": "response_ready_ack_d_no_j_v3",
+      "valid": true
+    },
+    "time": 1793379848.9813468,
+    "budget": {
+      "reads": 20,
+      "sbo_cycles": 1,
+      "cancelled_selects": 0,
+      "connections": 1,
+      "control_timed": true,
+      "timed": true,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "read_lane_per_connection": 22,
+      "source": "T gen_access and N first_event: common READ/SELECT/OPERATE allocator"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c74_recovery_r1_20261030_02_r1_d20_combined_c74_physical_relay_combined_t5_before_generation_headroom.json"
+  },
+  "observed": {
+    "connections": {
+      "single": {
+        "application": false,
+        "master_acceptance": false,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 0,
+            "piggyback": 0,
+            "min_us": null,
+            "median_us": null,
+            "max_us": null,
+            "values_us": []
+          },
+          "READ integrity": {
+            "n": 20,
+            "piggyback": 0,
+            "min_us": 18652.0,
+            "median_us": 20297.0,
+            "max_us": 22364.0,
+            "values_us": [
+              18652.0,
+              18741.0,
+              18883.0,
+              19064.0,
+              19171.0,
+              19251.0,
+              19377.0,
+              19992.0,
+              20048.0,
+              20188.0,
+              20406.0,
+              20705.0,
+              20995.0,
+              21021.0,
+              21203.0,
+              21217.0,
+              21297.0,
+              21347.0,
+              21513.0,
+              22364.0
+            ]
+          },
+          "SELECT": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 20471.0,
+            "median_us": 20471.0,
+            "max_us": 20471.0,
+            "values_us": [
+              20471.0
+            ]
+          },
+          "OPERATE": {
+            "n": 1,
+            "piggyback": 0,
+            "min_us": 20224.0,
+            "median_us": 20224.0,
+            "max_us": 20224.0,
+            "values_us": [
+              20224.0
+            ]
+          }
+        }
+      }
+    },
+    "switch": {
+      "outcomes": "no switch telemetry in this build",
+      "pktgen": {
+        "READ": {
+          "triggers": 22,
+          "pkts": 88
+        }
+      },
+      "token_stale_bound": "unknown: no switch telemetry in this build",
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+      }
+    },
+    "loss_timing": "capture includes intentionally dropped attempts"
+  },
+  "endpoint_profile": "sel751",
+  "dimension_verdicts": {
+    "application": false,
+    "switch": true,
+    "standards": false,
+    "loss_target": true
+  },
+  "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+      "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60395 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4ff0d911 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4Rd6b52e50398367bc  --log-tcp-sequence",
+      "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60395 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4ff0d911 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+      {
+        "pos": 1,
+        "target": "LOG",
+        "pkts": 1,
+        "bytes": 112
+      },
+      {
+        "pos": 2,
+        "target": "DROP",
+        "pkts": 1,
+        "bytes": 112
+      }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+      "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+      "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+      "text": "select_resp_padded:1:identity",
+      "schedule": "full",
+      "padding": 1,
+      "class": "select_resp_padded",
+      "n": 1,
+      "dir": "O>M",
+      "ip_len": 112,
+      "flags": "ACK,PSH",
+      "occurrence": 1,
+      "chain": "INPUT",
+      "base": "select_resp_padded",
+      "operation": "SELECT",
+      "index": 0,
+      "frontier": "response",
+      "length_only": false,
+      "target": "identity",
+      "match": "SEQ",
+      "response_payload": null
+    },
+    "kernel_log": [
+      "[927108.277605] D4Rd6b52e50398367bc IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11461 PROTO=TCP SPT=20000 DPT=60395 SEQ=1341184273 ACK=169845017 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+      "LEN": 112,
+      "SPT": 20000,
+      "DPT": 60395,
+      "SEQ": 1341184273,
+      "ACK": 169845017,
+      "SRC": "192.168.10.7",
+      "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+      "applied": true,
+      "errors": [],
+      "restored": true,
+      "before": [
+        "-P INPUT ACCEPT"
+      ],
+      "after": [
+        "-P INPUT ACCEPT"
+      ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+      "armed": true,
+      "key": "SEQ",
+      "value": 1341184273,
+      "master_isn": 169844431,
+      "relay_isn": 1341181112,
+      "operation": "SELECT",
+      "index": 0,
+      "error": null,
+      "arm_ns": 31390808
+    }
+  }
+}

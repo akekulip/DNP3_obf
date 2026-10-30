@@ -1,0 +1,2556 @@
+{
+ "trials": 18,
+ "operate_status_counts": {
+  "1:SUCCESS,3:SUCCESS": 13,
+  "1:TIMEOUT,3:TIMEOUT": 5
+ },
+ "rows": [
+  {
+   "trial": "rc01_hw_c74_recovery_r1_20261030_02_r1_d20_combined_c74_physical_relay_combined_t0",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60390 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4a4c0b29 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4Rd81a7717e259a9ce  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60390 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4a4c0b29 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[926732.513645] D4Rd81a7717e259a9ce IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11221 PROTO=TCP SPT=20000 DPT=60390 SEQ=1246497577 ACK=1457325661 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60390,
+     "SEQ": 1246497577,
+     "ACK": 1457325661,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1246497577,
+     "master_isn": 1457325075,
+     "relay_isn": 1246494416,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 34723528
+    }
+   },
+   "select_request_ns": 1793379477172764000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 4.174,
+    "first_select_response_copy": 24.086,
+    "retransmitted_select_response_copy": 1005.6,
+    "operate_request": 1006.69,
+    "relay_ack_of_operate": 1011.233,
+    "operate_response": 1030.609
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r1_20261030_02_r1_d20_combined_c74_physical_relay_combined_t1",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60391 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4b6c8998 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4Rff2a109326a1402d  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60391 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4b6c8998 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[926807.539487] D4Rff2a109326a1402d IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11269 PROTO=TCP SPT=20000 DPT=60391 SEQ=1265404312 ACK=385205465 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60391,
+     "SEQ": 1265404312,
+     "ACK": 385205465,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1265404312,
+     "master_isn": 385204879,
+     "relay_isn": 1265401151,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 32143338
+    }
+   },
+   "select_request_ns": 1793379552195893000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 5.766,
+    "first_select_response_copy": 26.552,
+    "retransmitted_select_response_copy": 1015.997,
+    "operate_request": 1017.097,
+    "relay_ack_of_operate": 1021.966,
+    "operate_response": 1041.324
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r1_20261030_02_r1_d20_combined_c74_physical_relay_combined_t2",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60392 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4c8d00d9 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4Rcf546219d8c8d264  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60392 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4c8d00d9 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[926882.610581] D4Rcf546219d8c8d264 IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11317 PROTO=TCP SPT=20000 DPT=60392 SEQ=1284309209 ACK=2414140353 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60392,
+     "SEQ": 1284309209,
+     "ACK": 2414140353,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1284309209,
+     "master_isn": 2414139767,
+     "relay_isn": 1284306048,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 31015427
+    }
+   },
+   "select_request_ns": 1793379627257897000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 15.892,
+    "first_select_response_copy": 35.398,
+    "retransmitted_select_response_copy": 1014.256,
+    "operate_request": 1015.365,
+    "relay_ack_of_operate": 1025.575,
+    "operate_response": 1046.173
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r1_20261030_02_r1_d20_combined_c74_physical_relay_combined_t3",
+   "ok": false,
+   "verdict_ok": false,
+   "verdict_failures": [
+    "application: master records/counts/plan differ from frozen expected denominators",
+    "application: complete planned master denominators missing or failed",
+    "application: master transaction failed: OPERATE",
+    "application: OPERATE application: point 1 status TIMEOUT",
+    "application: OPERATE application: point 3 status TIMEOUT",
+    "application: OPERATE captured CROB not successful: [[1, 'TIMEOUT'], [3, 'TIMEOUT']]; point 1 status TIMEOUT; point 3 status TIMEOUT",
+    "observed.operate_success is False, expected True",
+    "observed.aggregate_verdict is False, expected True"
+   ],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60393 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4dae2246 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4Rc8bf41a20b860b3f  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60393 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4dae2246 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[926957.777965] D4Rc8bf41a20b860b3f IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11365 PROTO=TCP SPT=20000 DPT=60393 SEQ=1303257670 ACK=2765015963 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60393,
+     "SEQ": 1303257670,
+     "ACK": 2765015963,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1303257670,
+     "master_isn": 2765015377,
+     "relay_isn": 1303254509,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 34706264
+    }
+   },
+   "select_request_ns": 1793379702433739000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 5.344,
+    "first_select_response_copy": 26.695,
+    "retransmitted_select_response_copy": 1020.298,
+    "operate_request": 1021.35,
+    "relay_ack_of_operate": 1028.922,
+    "operate_response": 1047.234
+   },
+   "operate_points": [
+    [
+     1,
+     "TIMEOUT"
+    ],
+    [
+     3,
+     "TIMEOUT"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r1_20261030_02_r1_d20_combined_c74_physical_relay_combined_t4",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60394 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4ed00ba0 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R60d28038362b2d70  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60394 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4ed00ba0 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[927033.085639] D4R60d28038362b2d70 IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11413 PROTO=TCP SPT=20000 DPT=60394 SEQ=1322257312 ACK=1380221399 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60394,
+     "SEQ": 1322257312,
+     "ACK": 1380221399,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1322257312,
+     "master_isn": 1380220813,
+     "relay_isn": 1322254151,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 35293786
+    }
+   },
+   "select_request_ns": 1793379777744662000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 2.848,
+    "first_select_response_copy": 23.203,
+    "retransmitted_select_response_copy": 1010.626,
+    "operate_request": 1011.711,
+    "relay_ack_of_operate": 1016.403,
+    "operate_response": 1036.186
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r1_20261030_02_r1_d20_combined_c74_physical_relay_combined_t5",
+   "ok": false,
+   "verdict_ok": false,
+   "verdict_failures": [
+    "application: master records/counts/plan differ from frozen expected denominators",
+    "application: complete planned master denominators missing or failed",
+    "application: master transaction failed: OPERATE",
+    "application: OPERATE application: point 1 status TIMEOUT",
+    "application: OPERATE application: point 3 status TIMEOUT",
+    "application: OPERATE captured CROB not successful: [[1, 'TIMEOUT'], [3, 'TIMEOUT']]; point 1 status TIMEOUT; point 3 status TIMEOUT",
+    "observed.operate_success is False, expected True",
+    "observed.aggregate_verdict is False, expected True"
+   ],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60395 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4ff0d911 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4Rd6b52e50398367bc  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60395 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x4ff0d911 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[927108.277605] D4Rd6b52e50398367bc IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11461 PROTO=TCP SPT=20000 DPT=60395 SEQ=1341184273 ACK=169845017 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60395,
+     "SEQ": 1341184273,
+     "ACK": 169845017,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1341184273,
+     "master_isn": 169844431,
+     "relay_isn": 1341181112,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 31390808
+    }
+   },
+   "select_request_ns": 1793379852934267000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 4.847,
+    "first_select_response_copy": 25.318,
+    "retransmitted_select_response_copy": 1003.75,
+    "operate_request": 1004.823,
+    "relay_ack_of_operate": 1011.149,
+    "operate_response": 1031.373
+   },
+   "operate_points": [
+    [
+     1,
+     "TIMEOUT"
+    ],
+    [
+     3,
+     "TIMEOUT"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r2_20261030_02_r2_d20_size_only_c74_physical_relay_size_only_t0",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60396 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x528bb703 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R80c6279caaa8605f  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60396 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x528bb703 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[927282.048481] D4R80c6279caaa8605f IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11514 PROTO=TCP SPT=20000 DPT=60396 SEQ=1384888067 ACK=16083396 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60396,
+     "SEQ": 1384888067,
+     "ACK": 16083396,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1384888067,
+     "master_isn": 16082810,
+     "relay_isn": 1384884906,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 34874688
+    }
+   },
+   "select_request_ns": 1793380026727078000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 2.766,
+    "first_select_response_copy": 2.818,
+    "retransmitted_select_response_copy": 1004.729,
+    "operate_request": 1005.819,
+    "relay_ack_of_operate": 1008.849,
+    "operate_response": 1009.092
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r2_20261030_02_r2_d20_size_only_c74_physical_relay_size_only_t1",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60397 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x53ab6b90 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R4e35279c0ecb53bf  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60397 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x53ab6b90 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[927356.832445] D4R4e35279c0ecb53bf IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11562 PROTO=TCP SPT=20000 DPT=60397 SEQ=1403743120 ACK=2642831339 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60397,
+     "SEQ": 1403743120,
+     "ACK": 2642831339,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1403743120,
+     "master_isn": 2642830753,
+     "relay_isn": 1403739959,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 34200784
+    }
+   },
+   "select_request_ns": 1793380101510755000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 2.802,
+    "first_select_response_copy": 2.85,
+    "retransmitted_select_response_copy": 1012.983,
+    "operate_request": 1014.194,
+    "relay_ack_of_operate": 1016.194,
+    "operate_response": 1020.803
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r2_20261030_02_r2_d20_size_only_c74_physical_relay_size_only_t2",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60398 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x54cb1b97 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R11236cdd79d5dd7b  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60398 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x54cb1b97 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[927431.635531] D4R11236cdd79d5dd7b IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11610 PROTO=TCP SPT=20000 DPT=60398 SEQ=1422597015 ACK=2083496964 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60398,
+     "SEQ": 1422597015,
+     "ACK": 2083496964,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1422597015,
+     "master_isn": 2083496378,
+     "relay_isn": 1422593854,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 33188743
+    }
+   },
+   "select_request_ns": 1793380176308034000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 1.555,
+    "first_select_response_copy": 8.379,
+    "retransmitted_select_response_copy": 1006.594,
+    "operate_request": 1007.705,
+    "relay_ack_of_operate": 1011.364,
+    "operate_response": 1013.891
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r2_20261030_02_r2_d20_size_only_c74_physical_relay_size_only_t3",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60399 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x55eac09c -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R06ea3cffc0ecce50  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60399 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x55eac09c -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[927506.523568] D4R06ea3cffc0ecce50 IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11658 PROTO=TCP SPT=20000 DPT=60399 SEQ=1441448092 ACK=2020170267 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60399,
+     "SEQ": 1441448092,
+     "ACK": 2020170267,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1441448092,
+     "master_isn": 2020169681,
+     "relay_isn": 1441444931,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 33512924
+    }
+   },
+   "select_request_ns": 1793380251198834000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 2.148,
+    "first_select_response_copy": 5.372,
+    "retransmitted_select_response_copy": 997.328,
+    "operate_request": 998.433,
+    "relay_ack_of_operate": 1002.087,
+    "operate_response": 1004.314
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r2_20261030_02_r2_d20_size_only_c74_physical_relay_size_only_t4",
+   "ok": false,
+   "verdict_ok": false,
+   "verdict_failures": [
+    "application: master records/counts/plan differ from frozen expected denominators",
+    "application: complete planned master denominators missing or failed",
+    "application: master transaction failed: OPERATE",
+    "application: OPERATE application: point 1 status TIMEOUT",
+    "application: OPERATE application: point 3 status TIMEOUT",
+    "application: OPERATE captured CROB not successful: [[1, 'TIMEOUT'], [3, 'TIMEOUT']]; point 1 status TIMEOUT; point 3 status TIMEOUT",
+    "observed.operate_success is False, expected True",
+    "observed.aggregate_verdict is False, expected True"
+   ],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60400 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x56ca0c22 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R74d46bbebe974097  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60400 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x56ca0c22 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[927581.068170] D4R74d46bbebe974097 IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11707 PROTO=TCP SPT=20000 DPT=60400 SEQ=1456081954 ACK=2700726143 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60400,
+     "SEQ": 1456081954,
+     "ACK": 2700726143,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1456081954,
+     "master_isn": 2700725557,
+     "relay_isn": 1456078793,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 32986619
+    }
+   },
+   "select_request_ns": 1793380325745164000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 3.101,
+    "first_select_response_copy": 3.38,
+    "retransmitted_select_response_copy": 1005.602,
+    "operate_request": 1006.711,
+    "relay_ack_of_operate": 1010.382,
+    "operate_response": 1010.394
+   },
+   "operate_points": [
+    [
+     1,
+     "TIMEOUT"
+    ],
+    [
+     3,
+     "TIMEOUT"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r2_20261030_02_r2_d20_size_only_c74_physical_relay_size_only_t5",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60401 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x57e8d758 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4Rf815c526fddbfe41  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60401 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x57e8d758 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[927655.732016] D4Rf815c526fddbfe41 IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11755 PROTO=TCP SPT=20000 DPT=60401 SEQ=1474877272 ACK=2871291898 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60401,
+     "SEQ": 1474877272,
+     "ACK": 2871291898,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1474877272,
+     "master_isn": 2871291312,
+     "relay_isn": 1474874111,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 32136722
+    }
+   },
+   "select_request_ns": 1793380400407314000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 2.497,
+    "first_select_response_copy": 4.814,
+    "retransmitted_select_response_copy": 1012.222,
+    "operate_request": 1013.351,
+    "relay_ack_of_operate": 1016.947,
+    "operate_response": 1020.033
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r3_20261030_02_r3_d5_combined_c74_physical_relay_combined_t0",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60402 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x5ab648e7 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R721300158137f1ed  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60402 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x5ab648e7 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[927843.300139] D4R721300158137f1ed IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11808 PROTO=TCP SPT=20000 DPT=60402 SEQ=1521895655 ACK=3329052920 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60402,
+     "SEQ": 1521895655,
+     "ACK": 3329052920,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1521895655,
+     "master_isn": 3329052334,
+     "relay_isn": 1521892494,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 33951302
+    }
+   },
+   "select_request_ns": 1793380587972564000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 1.608,
+    "first_select_response_copy": 7.031,
+    "retransmitted_select_response_copy": 1011.367,
+    "operate_request": 1012.43,
+    "relay_ack_of_operate": 1017.676,
+    "operate_response": 1022.721
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r3_20261030_02_r3_d5_combined_c74_physical_relay_combined_t1",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60403 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x5bd69cdb -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R7788e91e3474e731  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60403 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x5bd69cdb -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[927918.218339] D4R7788e91e3474e731 IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11856 PROTO=TCP SPT=20000 DPT=60403 SEQ=1540791515 ACK=608193866 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60403,
+     "SEQ": 1540791515,
+     "ACK": 608193866,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1540791515,
+     "master_isn": 608193280,
+     "relay_isn": 1540788354,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 35220415
+    }
+   },
+   "select_request_ns": 1793380662886418000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 5.003,
+    "first_select_response_copy": 11.113,
+    "retransmitted_select_response_copy": 1010.252,
+    "operate_request": 1011.332,
+    "relay_ack_of_operate": 1021.911,
+    "operate_response": 1026.97
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r3_20261030_02_r3_d5_combined_c74_physical_relay_combined_t2",
+   "ok": false,
+   "verdict_ok": false,
+   "verdict_failures": [
+    "application: master records/counts/plan differ from frozen expected denominators",
+    "application: complete planned master denominators missing or failed",
+    "application: master transaction failed: OPERATE",
+    "application: OPERATE application: point 1 status TIMEOUT",
+    "application: OPERATE application: point 3 status TIMEOUT",
+    "application: OPERATE captured CROB not successful: [[1, 'TIMEOUT'], [3, 'TIMEOUT']]; point 1 status TIMEOUT; point 3 status TIMEOUT",
+    "observed.operate_success is False, expected True",
+    "observed.aggregate_verdict is False, expected True"
+   ],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60404 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x5cf6e37c -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4Ra69171450dc4ffb7  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60404 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x5cf6e37c -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[927993.178487] D4Ra69171450dc4ffb7 IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11904 PROTO=TCP SPT=20000 DPT=60404 SEQ=1559683964 ACK=4231654698 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60404,
+     "SEQ": 1559683964,
+     "ACK": 4231654698,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1559683964,
+     "master_isn": 4231654112,
+     "relay_isn": 1559680803,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 34405238
+    }
+   },
+   "select_request_ns": 1793380737848287000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 4.844,
+    "first_select_response_copy": 9.135,
+    "retransmitted_select_response_copy": 1021.866,
+    "operate_request": 1022.942,
+    "relay_ack_of_operate": 1026.529,
+    "operate_response": 1031.204
+   },
+   "operate_points": [
+    [
+     1,
+     "TIMEOUT"
+    ],
+    [
+     3,
+     "TIMEOUT"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r3_20261030_02_r3_d5_combined_c74_physical_relay_combined_t3",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60405 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x5e16e792 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R504d5179e3e65292  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60405 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x5e16e792 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[928068.077644] D4R504d5179e3e65292 IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=11952 PROTO=TCP SPT=20000 DPT=60405 SEQ=1578559378 ACK=515297457 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60405,
+     "SEQ": 1578559378,
+     "ACK": 515297457,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1578559378,
+     "master_isn": 515296871,
+     "relay_isn": 1578556217,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 34418959
+    }
+   },
+   "select_request_ns": 1793380812744268000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 7.182,
+    "first_select_response_copy": 12.05,
+    "retransmitted_select_response_copy": 1004.98,
+    "operate_request": 1006.104,
+    "relay_ack_of_operate": 1012.945,
+    "operate_response": 1019.081
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r3_20261030_02_r3_d5_combined_c74_physical_relay_combined_t4",
+   "ok": false,
+   "verdict_ok": false,
+   "verdict_failures": [
+    "application: master records/counts/plan differ from frozen expected denominators",
+    "application: complete planned master denominators missing or failed",
+    "application: master transaction failed: OPERATE",
+    "application: OPERATE application: point 1 status TIMEOUT",
+    "application: OPERATE application: point 3 status TIMEOUT",
+    "application: OPERATE captured CROB not successful: [[1, 'TIMEOUT'], [3, 'TIMEOUT']]; point 1 status TIMEOUT; point 3 status TIMEOUT",
+    "observed.operate_success is False, expected True",
+    "observed.aggregate_verdict is False, expected True"
+   ],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60406 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x5f36ac55 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R5112cc276f0161e5  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60406 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x5f36ac55 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[928142.891480] D4R5112cc276f0161e5 IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=12000 PROTO=TCP SPT=20000 DPT=60406 SEQ=1597418581 ACK=4205521456 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60406,
+     "SEQ": 1597418581,
+     "ACK": 4205521456,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1597418581,
+     "master_isn": 4205520870,
+     "relay_isn": 1597415420,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 31457504
+    }
+   },
+   "select_request_ns": 1793380887560655000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 3.572,
+    "first_select_response_copy": 9.237,
+    "retransmitted_select_response_copy": 1013.122,
+    "operate_request": 1014.289,
+    "relay_ack_of_operate": 1017.651,
+    "operate_response": 1022.121
+   },
+   "operate_points": [
+    [
+     1,
+     "TIMEOUT"
+    ],
+    [
+     3,
+     "TIMEOUT"
+    ]
+   ]
+  },
+  {
+   "trial": "rc01_hw_c74_recovery_r3_20261030_02_r3_d5_combined_c74_physical_relay_combined_t5",
+   "ok": true,
+   "verdict_ok": true,
+   "verdict_failures": [],
+   "loss": {
+    "class": "select_resp_padded",
+    "n": 1,
+    "occurrence": 1,
+    "base": "select_resp_padded",
+    "dir": "O>M",
+    "ip_len": 112,
+    "flags": "ACK,PSH",
+    "length_only": false,
+    "ns": "ns_vepa_a",
+    "chain": "INPUT",
+    "mode": "identity u32 one-shot (limit-burst-1)",
+    "rules": [
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60407 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x6055b870 -m limit --limit 1/hour --limit-burst 1 -j LOG --log-prefix D4R9cc5dc20229bbcfd  --log-tcp-sequence",
+     "-p tcp -s 192.168.10.7 -d 192.168.10.1 --sport 20000 --dport 60407 -m length --length 112 --tcp-flags SYN,RST,ACK,FIN,PSH ACK,PSH -m u32 --u32 0>>22&0x3C@4=0x6055b870 -m limit --limit 1/hour --limit-burst 1 -j DROP"
+    ],
+    "counters": [
+     {
+      "pos": 1,
+      "target": "LOG",
+      "pkts": 1,
+      "bytes": 112
+     },
+     {
+      "pos": 2,
+      "target": "DROP",
+      "pkts": 1,
+      "bytes": 112
+     }
+    ],
+    "counter_error": null,
+    "dropped_packets": 1,
+    "dropped_bytes": 112,
+    "earlier_matches": 0,
+    "exact": true,
+    "removed": true,
+    "remove_errors": [],
+    "state_before": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_after": [
+     "-P INPUT ACCEPT"
+    ],
+    "state_restored": true,
+    "spec": {
+     "text": "select_resp_padded:1:identity",
+     "schedule": "full",
+     "padding": 1,
+     "class": "select_resp_padded",
+     "n": 1,
+     "dir": "O>M",
+     "ip_len": 112,
+     "flags": "ACK,PSH",
+     "occurrence": 1,
+     "chain": "INPUT",
+     "base": "select_resp_padded",
+     "operation": "SELECT",
+     "index": 0,
+     "frontier": "response",
+     "length_only": false,
+     "target": "identity",
+     "match": "SEQ",
+     "response_payload": null
+    },
+    "kernel_log": [
+     "[928217.520937] D4R9cc5dc20229bbcfd IN=enp59s0f0np0 OUT= MAC=3c:fd:fe:cc:5d:c0:00:30:a7:02:4c:a2:08:00 SRC=192.168.10.7 DST=192.168.10.1 LEN=112 TOS=0x00 PREC=0x00 TTL=64 ID=12048 PROTO=TCP SPT=20000 DPT=60407 SEQ=1616230512 ACK=1950745997 WINDOW=8103 RES=0x00 ACK PSH URGP=0 "
+    ],
+    "kernel_packet": {
+     "LEN": 112,
+     "SPT": 20000,
+     "DPT": 60407,
+     "SEQ": 1616230512,
+     "ACK": 1950745997,
+     "SRC": "192.168.10.7",
+     "DST": "192.168.10.1"
+    },
+    "log_rc": 0,
+    "restoration": {
+     "applied": true,
+     "errors": [],
+     "restored": true,
+     "before": [
+      "-P INPUT ACCEPT"
+     ],
+     "after": [
+      "-P INPUT ACCEPT"
+     ]
+    },
+    "observation_point": "master host INPUT",
+    "switch_sides_observed": false,
+    "iptables_version": "iptables v1.8.10 (nf_tables)",
+    "identity": {
+     "armed": true,
+     "key": "SEQ",
+     "value": 1616230512,
+     "master_isn": 1950745411,
+     "relay_isn": 1616227351,
+     "operation": "SELECT",
+     "index": 0,
+     "error": null,
+     "arm_ns": 33056255
+    }
+   },
+   "select_request_ns": 1793380962192394000,
+   "select_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ],
+   "select_response_copies": 2,
+   "ms_from_select_request": {
+    "relay_ack_of_select": 2.238,
+    "first_select_response_copy": 6.701,
+    "retransmitted_select_response_copy": 1021.189,
+    "operate_request": 1022.507,
+    "relay_ack_of_operate": 1027.366,
+    "operate_response": 1032.208
+   },
+   "operate_points": [
+    [
+     1,
+     "SUCCESS"
+    ],
+    [
+     3,
+     "SUCCESS"
+    ]
+   ]
+  }
+ ]
+}
