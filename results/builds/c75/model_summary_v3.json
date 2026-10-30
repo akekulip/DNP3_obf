@@ -1,0 +1,662 @@
+{
+ "build": "c75",
+ "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+ "generated_by": "scripts/model/model_summary.py (v3)",
+ "required_drivers": [
+  "smoke",
+  "packets",
+  "rearm",
+  "dup",
+  "repeat",
+  "select_lifecycle",
+  "control_timing",
+  "contention",
+  "abort",
+  "policy",
+  "policy_boundary",
+  "two_read_robust",
+  "smoke_sizeoff",
+  "abandon",
+  "relay_sbo",
+  "fin_busy",
+  "response_ready"
+ ],
+ "qualification": "model_gate_passed",
+ "blocked_reasons": [],
+ "latest_by_driver": {
+  "abandon": "model_abandon_c75_01",
+  "abort": "model_abort_c75_01",
+  "contention": "model_contention_c75_01",
+  "control_timing": "model_control_timing_c75_01",
+  "dup": "model_dup_c75_01",
+  "fin_busy": "model_fin_busy_c75_01",
+  "packets": "model_packets_c75_01",
+  "policy": "model_policy_c75_01",
+  "policy_boundary": "model_policy_boundary_c75_01",
+  "rearm": "model_rearm_c75_01",
+  "relay_sbo": "model_relay_sbo_c75_01",
+  "repeat": "model_repeat_c75_01",
+  "response_ready": "model_response_ready_c75_01",
+  "select_lifecycle": "model_select_lifecycle_c75_01",
+  "smoke": "model_smoke_c75_01",
+  "smoke_sizeoff": "model_smoke_sizeoff_c75_01",
+  "two_read_robust": "model_two_read_robust_c75_01"
+ },
+ "runs": [
+  {
+   "run": "model_abandon_c75_01",
+   "driver": "abandon",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "00059dce369af4017eaf5a657f4476a86323765e1e23eb142419102da8ef919a",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 12,
+   "total": 12,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "abandon_results.json"
+   ],
+   "driver_source_sha256": "00059dce369af4017eaf5a657f4476a86323765e1e23eb142419102da8ef919a",
+   "executed_driver_sha256": "00059dce369af4017eaf5a657f4476a86323765e1e23eb142419102da8ef919a",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_abort_c75_01",
+   "driver": "abort",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "1d129d64f9b623dcae1569e5f3ca06385a548b7d5f89805a47a3c25827c71853",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 84,
+   "total": 84,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "abort_results.json"
+   ],
+   "driver_source_sha256": "1d129d64f9b623dcae1569e5f3ca06385a548b7d5f89805a47a3c25827c71853",
+   "executed_driver_sha256": "2b8c4564d2c3ff0daf91646d01594d99f65d2b21520c45a5a3e0cf8a7a59afdc",
+   "sections": [
+    "abort"
+   ],
+   "abort_negative_failures": [],
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_contention_c75_01",
+   "driver": "contention",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "2b8c4564d2c3ff0daf91646d01594d99f65d2b21520c45a5a3e0cf8a7a59afdc",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 457,
+   "total": 457,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "contention_results.json"
+   ],
+   "driver_source_sha256": "2b8c4564d2c3ff0daf91646d01594d99f65d2b21520c45a5a3e0cf8a7a59afdc",
+   "executed_driver_sha256": "2b8c4564d2c3ff0daf91646d01594d99f65d2b21520c45a5a3e0cf8a7a59afdc",
+   "sections": "all",
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_control_timing_c75_01",
+   "driver": "control_timing",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "d08a36644f869b94e829fb793310c0d95dcfbf0b20e4cbaffc0d9359b5b346f2",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 417,
+   "total": 417,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "control_timing_results.json"
+   ],
+   "driver_source_sha256": "d08a36644f869b94e829fb793310c0d95dcfbf0b20e4cbaffc0d9359b5b346f2",
+   "executed_driver_sha256": "08e0698343ffa35d78e0e5d4d60d0d201bab3f3d682a28c2bdbcefba2e4fe201",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_dup_c75_01",
+   "driver": "dup",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "ee0fac375720f6ff83b43f06e56c8aad5b2aa0ef2c43be63e5c7437aef519a63",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 308,
+   "total": 308,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "dup_results.json"
+   ],
+   "driver_source_sha256": "ee0fac375720f6ff83b43f06e56c8aad5b2aa0ef2c43be63e5c7437aef519a63",
+   "executed_driver_sha256": "08e0698343ffa35d78e0e5d4d60d0d201bab3f3d682a28c2bdbcefba2e4fe201",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_fin_busy_c75_01",
+   "driver": "fin_busy",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "148a410aedffe67edf0f9b4b3ac931c7c1dc3b0e9decbfe99fa3002b381f9912",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 193,
+   "total": 193,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "fin_busy_results.json"
+   ],
+   "driver_source_sha256": "148a410aedffe67edf0f9b4b3ac931c7c1dc3b0e9decbfe99fa3002b381f9912",
+   "executed_driver_sha256": "148a410aedffe67edf0f9b4b3ac931c7c1dc3b0e9decbfe99fa3002b381f9912",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_packets_c75_01",
+   "driver": "packets",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "e076aa2ab0307085c512e8d4a826feefbf631f754abd93f1fb5ad923df8ced01",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 763,
+   "total": 763,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "packet_results.json"
+   ],
+   "driver_source_sha256": "e076aa2ab0307085c512e8d4a826feefbf631f754abd93f1fb5ad923df8ced01",
+   "executed_driver_sha256": "e076aa2ab0307085c512e8d4a826feefbf631f754abd93f1fb5ad923df8ced01",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_policy_boundary_c75_01",
+   "driver": "policy_boundary",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "da5a0dbe9692530a805a3a277788b2e004c1c59a110be905abc7cd648756d120",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 206,
+   "total": 206,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "packet_results.json"
+   ],
+   "driver_source_sha256": "da5a0dbe9692530a805a3a277788b2e004c1c59a110be905abc7cd648756d120",
+   "executed_driver_sha256": "2a752989d4bae0903bb89a16b9ffc355e05abb7aa5d456f65ab2e3d9a9a0e58d",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_policy_c75_01",
+   "driver": "policy",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "2a752989d4bae0903bb89a16b9ffc355e05abb7aa5d456f65ab2e3d9a9a0e58d",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 281,
+   "total": 281,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "packet_results.json"
+   ],
+   "driver_source_sha256": "2a752989d4bae0903bb89a16b9ffc355e05abb7aa5d456f65ab2e3d9a9a0e58d",
+   "executed_driver_sha256": "2a752989d4bae0903bb89a16b9ffc355e05abb7aa5d456f65ab2e3d9a9a0e58d",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_rearm_c75_01",
+   "driver": "rearm",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "0f508b9e8484dd9e5589ea5e6899c3e318fe683b5343e111b29dbd9b697299b6",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 798,
+   "total": 798,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "rearm_results.json"
+   ],
+   "driver_source_sha256": "0f508b9e8484dd9e5589ea5e6899c3e318fe683b5343e111b29dbd9b697299b6",
+   "executed_driver_sha256": "0f508b9e8484dd9e5589ea5e6899c3e318fe683b5343e111b29dbd9b697299b6",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_relay_sbo_c75_01",
+   "driver": "relay_sbo",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "93164d08d7568e728ed7bd48653427d744d6cb8f5d013c5e2820afbf195a0b05",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 1069,
+   "total": 1069,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "relay_sbo_results.json"
+   ],
+   "driver_source_sha256": "93164d08d7568e728ed7bd48653427d744d6cb8f5d013c5e2820afbf195a0b05",
+   "executed_driver_sha256": "93164d08d7568e728ed7bd48653427d744d6cb8f5d013c5e2820afbf195a0b05",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_repeat_c75_01",
+   "driver": "repeat",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "a5b21576299213d0ef9373688a03e388ce8b797a1e54b0f4c4fd365d445698ca",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 526,
+   "total": 526,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "repeat_results.json"
+   ],
+   "driver_source_sha256": "a5b21576299213d0ef9373688a03e388ce8b797a1e54b0f4c4fd365d445698ca",
+   "executed_driver_sha256": "a5b21576299213d0ef9373688a03e388ce8b797a1e54b0f4c4fd365d445698ca",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_response_ready_c75_01",
+   "driver": "response_ready",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "08e0698343ffa35d78e0e5d4d60d0d201bab3f3d682a28c2bdbcefba2e4fe201",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 838,
+   "total": 838,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "response_ready_results.json"
+   ],
+   "driver_source_sha256": "08e0698343ffa35d78e0e5d4d60d0d201bab3f3d682a28c2bdbcefba2e4fe201",
+   "executed_driver_sha256": "08e0698343ffa35d78e0e5d4d60d0d201bab3f3d682a28c2bdbcefba2e4fe201",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_select_lifecycle_c75_01",
+   "driver": "select_lifecycle",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "499362c08eac2378fe9958c8462b47bb671f8168205a64cad13972f359dbbd70",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 146,
+   "total": 146,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "select_lifecycle_results.json"
+   ],
+   "driver_source_sha256": "499362c08eac2378fe9958c8462b47bb671f8168205a64cad13972f359dbbd70",
+   "executed_driver_sha256": "499362c08eac2378fe9958c8462b47bb671f8168205a64cad13972f359dbbd70",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_smoke_c75_01",
+   "driver": "smoke",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "91fd32c53a79d82facbdbb5df4be071abb7b4eab6803d6ce03c2296617d88722",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 30,
+   "total": 30,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "smoke_results.json"
+   ],
+   "driver_source_sha256": "91fd32c53a79d82facbdbb5df4be071abb7b4eab6803d6ce03c2296617d88722",
+   "executed_driver_sha256": "91fd32c53a79d82facbdbb5df4be071abb7b4eab6803d6ce03c2296617d88722",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_smoke_sizeoff_c75_01",
+   "driver": "smoke_sizeoff",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "ddb11f9e8c953e7dadb4e5ad3bc4317b98fd8494fc77410bd0c3527466523dc0",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 30,
+   "total": 30,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "smoke_results.json"
+   ],
+   "driver_source_sha256": "ddb11f9e8c953e7dadb4e5ad3bc4317b98fd8494fc77410bd0c3527466523dc0",
+   "executed_driver_sha256": "91fd32c53a79d82facbdbb5df4be071abb7b4eab6803d6ce03c2296617d88722",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  },
+  {
+   "run": "model_two_read_robust_c75_01",
+   "driver": "two_read_robust",
+   "attempt": 1,
+   "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+   "driver_sha256": "b6c8e07cd811086ff7bea4999024300012e3aa115d4c41272c20e2410774e7ce",
+   "milestone": "current",
+   "pb_injected": null,
+   "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+   "exit_code": 0,
+   "passed": 181,
+   "total": 181,
+   "failed": [],
+   "unresolved_failure_notes": [],
+   "results_files": [
+    "robust_results.json"
+   ],
+   "driver_source_sha256": "b6c8e07cd811086ff7bea4999024300012e3aa115d4c41272c20e2410774e7ce",
+   "executed_driver_sha256": "b6c8e07cd811086ff7bea4999024300012e3aa115d4c41272c20e2410774e7ce",
+   "sections": null,
+   "provenance_problems": [],
+   "failure_notes": [],
+   "dependency_problems": []
+  }
+ ],
+ "note": "every attempt listed; a driver is judged by its latest attempt; an earlier pass never stands in for a later failure",
+ "summary_version": "model-summary-v3-20261017",
+ "disclosed_unresolved": [],
+ "compiled_t_state_audit": {
+  "banks_by_register": {
+   "t_Ingress.ack_commit_at_reg": [
+    5
+   ],
+   "t_Ingress.ack_commit_gen_reg": [
+    5
+   ],
+   "t_Ingress.ack_done_reg": [
+    4
+   ],
+   "t_Ingress.child_seen0_reg": [
+    2
+   ],
+   "t_Ingress.cur_epoch_reg": [
+    0
+   ],
+   "t_Ingress.gen_alloc_reg": [
+    1
+   ],
+   "t_Ingress.resp_done_reg": [
+    6
+   ]
+  },
+  "problems": [],
+  "layout": {
+   "N": {
+    "occupied_indices": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "occupied_count": 10,
+    "maximum_occupied_stage": 9
+   },
+   "E": {
+    "occupied_indices": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "occupied_count": 10,
+    "maximum_occupied_stage": 9
+   },
+   "T": {
+    "occupied_indices": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "occupied_count": 8,
+    "maximum_occupied_stage": 7
+   },
+   "p1_egress": {
+    "occupied_indices": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "occupied_count": 4,
+    "maximum_occupied_stage": 3
+   }
+  },
+  "context_sha256": "8a74333d702e107cb95fc568dbf4d460ae26ea74853c7ccb633488bdaa61f3da",
+  "context_sha256_by_pipeline": {
+   "p0": "03221ae2b4790c567a9ad75743b417c910129886fc696b1e81dae499aa1d10db",
+   "p1": "8a74333d702e107cb95fc568dbf4d460ae26ea74853c7ccb633488bdaa61f3da"
+  }
+ },
+ "provenance_limitations": [],
+ "stimulus_by_driver": {
+  "abandon": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "abort": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "contention": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "control_timing": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "dup": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "fin_busy": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "packets": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "policy": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "policy_boundary": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "rearm": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "relay_sbo": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "repeat": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "response_ready": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "select_lifecycle": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "smoke": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "smoke_sizeoff": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  },
+  "two_read_robust": {
+   "REPEAT_CYCLES": "64",
+   "REPEAT_TIMED_CYCLES": "3",
+   "ABANDON_T": "0",
+   "MODEL_SDE": "/home/philip/bf-sde-9.13.2"
+  }
+ },
+ "coverage_not_established": [
+  {
+   "driver": "abandon",
+   "scenario": "abandoned SELECT with timing enabled (ABANDON_T=1)",
+   "recorded": "0"
+  }
+ ]
+}
