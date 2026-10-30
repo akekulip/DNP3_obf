@@ -570,18 +570,21 @@ BOUND = {'terminal': 'T', 'campaign_run.json': 'C'}
                                           (dict(absent_before_launch=False), False),
                                           (dict(steps=[dict(name='launch_production', rc=0),
                                                        dict(name='replay_ports', rc=1)]), False),
-                                          (dict(steps=[]), False)])
+                                          (dict(steps=[]), False),
+                                          (dict(continues=dict(path='x', sha256='y')), False)])
 def test_only_a_partial_repair_that_passed_the_switch_steps_can_be_completed(over, allowed):
     assert (spr.continuable(partial_record(**over), BOUND) == []) is allowed
 
 
 def test_completion_runs_only_the_ping_and_only_on_the_production_program():
     hosts = FakeHosts([], {})
-    out = spr.complete_repair(CONFIG, partial_record(), hosts.run, lambda: 'case4_response_path')
+    out = spr.complete_repair(CONFIG, partial_record(), hosts.run, lambda: {'program': 'case4_response_path'})
     assert out['ok'] and [s['name'] for s in out['steps']] == list(spr.STEP_NAMES)
     assert restore_commands(hosts) == ['ping -c 2 -I 192.168.10.1 192.168.10.7']
+    assert out['continued_steps'][-1] == dict(name='vision_restore', rc=1)       # the failed attempt stays visible
+    assert out['continued_errors'] == ['vision_restore exited 1']
     hosts = FakeHosts([], {})
-    out = spr.complete_repair(CONFIG, partial_record(), hosts.run, lambda: 'response_only')
+    out = spr.complete_repair(CONFIG, partial_record(), hosts.run, lambda: {'program': 'response_only'})
     assert not out['ok'] and hosts.commands == []
     out = spr.complete_repair(CONFIG, partial_record(), hosts.run, lambda: (_ for _ in ()).throw(OSError('ssh')))
     assert not out['ok'] and 'raised' in out['errors'][0]
@@ -629,13 +632,13 @@ def test_main_complete_refuses_without_a_continuable_record_and_records_a_bound_
     hosts = FakeHosts([], {})
     argv = [str(f.campaign), 'block0', '--complete']
     with pytest.raises(SystemExit, match='REFUSED'):
-        spr.main(argv, root=f.testbed, live_inputs=Untouchable(), run=hosts.run, observe=lambda c: 'case4_response_path')
+        spr.main(argv, root=f.testbed, live_inputs=Untouchable(), run=hosts.run, observe=lambda c: {'program': 'case4_response_path'})
     record, *_ = spr.preconditions(f.campaign, ec.load(f.campaign)[1]['steps'][0], f.steps, f.testbed)
     first = f.steps / 'switch_process_repair_20261030T155946Z'
     first.mkdir()
     (first / 'repair.json').write_text(json.dumps(partial_record(bound_sha256=record['bound_sha256'])))
     assert spr.main(argv, root=f.testbed, live_inputs=Untouchable(), run=hosts.run,
-                    observe=lambda c: 'case4_response_path') == 0
+                    observe=lambda c: {'program': 'case4_response_path'}) == 0
     done = sorted(f.steps.glob('switch_process_repair_*/repair.json'))[-1]
     data = json.loads(done.read_text())
     assert data['ok'] and data['continues']['sha256'] == sha(first / 'repair.json')

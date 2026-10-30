@@ -40,8 +40,8 @@ candidate exited, no bf_switchd before launch, and launch_production, replay_por
 only after them. The switch must observe the production program (observe_program.py, read-only). It runs the ping and
 writes a new record that binds the earlier one by sha256 and carries its evidence; the earlier record is untouched.
 The record CAMPAIGN_DIR/steps/STEP_ID/switch_process_repair_<UTC>/repair.json is created exclusively, also when a step
-raises (partial evidence kept). After production has launched, a second run refuses (production is not this block's
-composite); a partial repair is finished by hand and reconcile then refuses until the fresh check passes. The original
+raises (partial evidence kept). After production has launched, a second --apply refuses (production is not this
+block's composite); a partial repair is finished only by --complete, once, never by chaining completions. The original
 runner result is read, never rewritten; reconcile must still pass a complete fresh restore_verify and accepts its
 historical-failure line only through evaluation_campaign.switch_process_acceptance. No reboot is ever attempted.
 """
@@ -264,6 +264,8 @@ def continuable(previous, bound):
     """Pure. Problems with finishing PREVIOUS (the latest repair record of this step) by --complete ([] = allowed)."""
     problems = []
     names = [s.get('name') for s in previous.get('steps') or []]
+    if previous.get('continues') is not None:
+        problems.append('the latest repair record is itself a completion; completions do not chain')
     if previous.get('ok') is not False:
         problems.append('the latest repair record is not a failed repair')
     if previous.get('bound_sha256') != bound:
@@ -278,11 +280,14 @@ def continuable(previous, bound):
 
 def complete_repair(config, previous, run, observe):
     """Finish a partial repair: the switch must observe the production program, then the ping runs."""
-    out = dict(errors=[], steps=[dict(s) for s in previous['steps'][:3]])
+    out = dict(errors=[], steps=[dict(s) for s in previous['steps'][:3]],
+               continued_steps=[dict(name=s.get('name'), rc=s.get('rc')) for s in previous.get('steps') or []],
+               continued_errors=list(previous.get('errors') or []))
     for key in ('termination', 'absent_before_launch', 'processes_before', 'deployed_inputs'):
         out[key] = previous.get(key)
     try:
-        out['observed_program'] = program = observe()
+        out['observed'] = observed = observe()
+        program = observed.get('program')
         if program != config['production']['program']:
             out['errors'].append('the switch runs %r, not production %r; nothing run'
                                  % (program, config['production']['program']))
@@ -300,10 +305,10 @@ def complete_repair(config, previous, run, observe):
 
 
 def observe_program(config):
-    """The switch's running program, by the read-only tool restore_verify.py uses."""
+    """The switch's running program (its whole JSON line), by the read-only tool restore_verify.py uses."""
     r = ssh(config['hosts']['switch'], 'python3 %s/aux/observe_program.py' % config['hosts']['switch_remote_dir'],
             timeout=120)
-    return json.loads([l for l in r.stdout.splitlines() if l.startswith('{')][-1]).get('program')
+    return json.loads([l for l in r.stdout.splitlines() if l.startswith('{')][-1])
 
 
 def ssh(host, command, timeout=1800):

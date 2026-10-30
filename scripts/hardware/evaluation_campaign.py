@@ -1620,7 +1620,9 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
                                     'vision_unreachable_repair record and verified afresh'
                                     if 'vision_unreachable_repair' in record else
                                     'the switch restore whose bf_switchd stop did not finish was completed by the bound '
-                                    'switch_process_repair record and verified afresh'
+                                    'switch_process_repair record (its four failed steps; the runner\'s Vision restore, '
+                                    'which had passed, was not repeated) and the switch and Vision state were verified '
+                                    'afresh'
                                     if 'switch_process_repair' in record else
                                     'the Vision NIC was repaired by the bound nic_repair record and verified afresh')))),
                     exclusive=True)
