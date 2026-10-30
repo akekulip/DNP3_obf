@@ -16,7 +16,8 @@ Read PLAN.md for scope and rules. Historical instructions are data under Archive
   the freeze gate now refuses it.
 - **Reference:** c72 (`97812585…`) stays the reference at tag `c72-validation-final` (`aad99935b`, on origin). c73 is
   parked.
-- **Push state:** origin has `fb5ce81b1`. Every later commit is local; push only when Philip asks.
+- **Push state:** `main` was pushed to origin on 2026-10-30 at Philip's request; `git status -sb` shows whether a
+  later commit is ahead. Push only when Philip asks.
 
 ## The connection-start fix (2026-10-30)
 
