@@ -1,0 +1,203 @@
+{
+ "action_trace": [
+  {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head",
+    "read_configure",
+    "rd_request_mx_crc",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_read_len",
+    "claim_work",
+    "read_request_mx_input",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "owner_read",
+    "diff_forward",
+    "busy_drop"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0xa4",
+   "label": "READ",
+   "port": 48
+  }
+ ],
+ "case": "H1prime_mixed",
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 5000126,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 25,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554437,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 5000901,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 29,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 5000126
+ },
+ "decisive_action": "busy_drop",
+ "decisive_action_seen": true,
+ "evidence_kind": "forced_register",
+ "forced_cell_before_release": {
+  "action_name": null,
+  "generation": 2147483646,
+  "is_default_entry": false,
+  "phase": 1
+ },
+ "isn": {
+  "master": 5000100,
+  "relay": 5000900
+ },
+ "lost_frame": "READ",
+ "lost_frame_absent_on_port64": true,
+ "observations": [
+  {
+   "decisive_line": ":10-29 22:03:14.905785:        :0xa4:-:<0,0,7>:Execute Action: n_Ingress.busy_drop",
+   "decisive_wait_s": 0.02817933540791273,
+   "offset": 13237425,
+   "send_spacing_s": 2.311263233423233e-05
+  }
+ ],
+ "port64_frames": [],
+ "port9_frames": [],
+ "read_class": "mixed",
+ "read_length": 25,
+ "registers_before": {
+  "client": {
+   "action_name": null,
+   "f1": 4000171,
+   "is_default_entry": false
+  },
+  "epoch": {
+   "action_name": null,
+   "f1": 14,
+   "is_default_entry": false
+  },
+  "owner": {
+   "action_name": null,
+   "f1": 33554436,
+   "is_default_entry": false
+  },
+  "server": {
+   "action_name": null,
+   "f1": 4001041,
+   "is_default_entry": false
+  },
+  "work.work": {
+   "action_name": null,
+   "generation": 23,
+   "is_default_entry": false,
+   "phase": 4
+  }
+ },
+ "retransmitted_READ_forwarded": 1,
+ "scenario": "H1prime",
+ "send_order": [
+  "READ"
+ ],
+ "spacing": "single",
+ "state_check": "the seeded generation holds the work cell (phase 1) at the READ stage-0 claim",
+ "state_evidence": {
+  "reached": true,
+  "seeded_generation": 2147483646,
+  "victim_actions": [
+   "NoAction",
+   "forward_flow",
+   "route",
+   "response_only531_0",
+   "response_only531",
+   "crc_head",
+   "read_configure",
+   "rd_request_mx_crc",
+   "eligible",
+   "NoAction",
+   "network_accept",
+   "go_new",
+   "next_read_len",
+   "claim_work",
+   "read_request_mx_input",
+   "ack_native",
+   "load_epoch",
+   "NoAction",
+   "NoAction",
+   "load_server",
+   "load_client",
+   "owner_read",
+   "diff_forward",
+   "busy_drop"
+  ],
+  "victim_cell_before": {
+   "generation": 2147483646,
+   "phase": 1
+  },
+  "victim_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head",
+    "read_configure",
+    "rd_request_mx_crc",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_read_len",
+    "claim_work",
+    "read_request_mx_input",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "owner_read",
+    "diff_forward",
+    "busy_drop"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0xa4",
+   "port": 48
+  }
+ },
+ "verdict": "reproduced"
+}

@@ -1,0 +1,32 @@
+{
+  "scenario": "connection-start loss paths (H1, H2, H2r, collision genuine; H1prime forced); a separate labelled scenario, not part of the 17-driver model gate",
+  "model_gate": false,
+  "command": [
+    "bash",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/cs_wt/scripts/model/launch_model.sh",
+    "-p",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/cs_wt/results/builds/c72/compile_local/out",
+    "-o",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/cs_wt/results/models/c72_connection_start/model_connection_start_c72_02",
+    "-P",
+    "9 48 64 68 180 182 196",
+    "-d",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/cs_wt/scripts/model/record_closure.py"
+  ],
+  "PORT_MAP": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/cs_wt/results/builds/c72/response_only.inputs.json",
+  "source_sha256": "97812585d64146dd5de65b8fd42d19c1471e2c5d80da85dacaae68b4083d887e",
+  "driver_sha256": "c55207bb320177016cf432a14e411a1ff704d5ba860ea56423a23bb4b2180886",
+  "closure_target": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/cs_wt/scripts/model/model_connection_start.py",
+  "compile_manifest_sha256": "210da0637250363903ae8a7ab7808281941738ebbb7ece4096b011ce8cf4b33b",
+  "dependency_closure_sha256": "1903afd736e9e2b2ba3adb748d766341f999fb55b3e263e9b7f832d0bbc8ceaa",
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "supported_profile_sha256": "a4f653024e290d659f36ca4830fd91badaf849c584a6a11a70eec51cfc021f78",
+  "observation_source": "SDK model action log and BFRT register reads; not physical switch counters",
+  "stimulus_environment": {
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2",
+    "PAD_ENABLE": "1"
+  },
+  "model_log_retention_sha256": "c1e00de83d8a875fa82c33a84aabd916ef1567246d96458540b2efb8f83ecba2",
+  "retention_error": null,
+  "exit_code": 0
+}
