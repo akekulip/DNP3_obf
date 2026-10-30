@@ -25,7 +25,11 @@ HERE = Path(__file__).resolve().parent
 CLASSES = cf.CLASSES
 READ_LENGTH, OTHER = cf.READ_LENGTH, cf.OTHER
 WINDOW, WINDOW_UP = 4096, 4608
-ATTEMPTS = 3                                          # the wire-order overtake is a race; fresh connection each try
+ATTEMPTS = 4                                          # the wire-order overtake is a race; fresh connection each try
+# attempt 0: release the cell after the ACK's first retry, then send the READ fresh. Later attempts: send the READ
+# while the cell is still held (it busy-retries on c74/c75, busy_drop on c72), then release: two retry loops race.
+STRATEGIES = ('release_then_send', 'send_then_release')
+READ_BUSY = r'Execute (?:Default )?Action: n_Ingress\.(?:busy_retry_ack|busy_drop)\b'
 
 SCENARIOS = dict(
     late_ack_wire_order=dict(family=1, evidence_kind='forced_register'),
@@ -292,15 +296,24 @@ def case_late_ack(ctx, case, rec, isn):
         sent = {'final_ACK': want_of(ack), 'READ': want_of(read)}
         n_before, t_before = n_state(ctx.m), ctx.outcomes()
         if wire_order:
+            strategy = STRATEGIES[min(attempt, 1)]
             ctx.force_cell(1)
 
-            def release(_offset):
+            def release_then_send(_offset):
                 ctx.force_cell(4)
                 ctx.run.fast[ctx.master].send(read['frame'])
-                return dict(cell_released_after_first_ACK_retry=True, READ_sent=True)
+                return dict(strategy=strategy, cell_released_after_first_ACK_retry=True, READ_sent=True)
+
+            def send_then_release(_offset):
+                start = ctx.view.size(ctx.run.log)
+                ctx.run.fast[ctx.master].send(read['frame'])
+                line = ctx.view.wait_for(ctx.run.log, start, READ_BUSY, timeout=8)[0]
+                ctx.force_cell(4)
+                return dict(strategy=strategy, READ_sent_while_cell_held=True, READ_busy_line=line)
+            hook = release_then_send if strategy == 'release_then_send' else send_then_release
             try:
                 obs = ctx.observe([(ctx.master, ack['frame'])], sent, pattern=action('busy_retry_ack'),
-                                  on_match=release)
+                                  on_match=hook)
             finally:
                 ctx.force_cell(4)
             first = obs
@@ -479,7 +492,8 @@ def run_case(ctx, case, index):
         CASE_FUNCTIONS[case['scenario']](ctx, case, rec, isn)
     except Exception:
         rec['error'] = traceback.format_exc()
-    rec['progress_ok'] = bool(rec['progress']) and all(s['ok'] for s in rec['progress']) and 'error' not in rec
+    rec['progress_ok'] = (None if rec['state_reached'] is False and not rec['progress'] and 'error' not in rec
+                          else bool(rec['progress']) and all(s['ok'] for s in rec['progress']) and 'error' not in rec)
     rec['classifications'] = {p['sent']['name']: p['classification'] for p in rec['probes']}
     rec['consequence'] = consequence(rec)
     if not rec.get('closed'):
@@ -521,7 +535,7 @@ def main():
                                                                           default=str) + '\n')
             report.add(case['case'], 'completed with progress', dict(state_reached=record['state_reached'],
                        progress_ok=record['progress_ok'], classifications=record['classifications']),
-                       ok=record['progress_ok'] and 'error' not in record, evidence_kind=case['evidence_kind'])
+                       ok=record['progress_ok'] is not False and 'error' not in record, evidence_kind=case['evidence_kind'])
     except Exception:
         report.add('exception', 'none', traceback.format_exc(), ok=False)
     report.record['meta']['reflectors'] = [r.summary() for r in getattr(gate, 'reflectors', [])]

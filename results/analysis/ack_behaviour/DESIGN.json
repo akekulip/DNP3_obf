@@ -184,6 +184,14 @@
    "before_any_run": true,
    "case": "all",
    "text": "A smoke run restricted by the ACK_CASES environment filter may precede the full runs. It is labelled by case_filter in its results and is not part of the reported table."
+  },
+  {
+   "id": 6,
+   "date": "2026-10-30",
+   "before_any_run": false,
+   "after": "the c75 smoke run model_ack_behaviour_c75_01 (case filter, 5 cases), before any full run",
+   "case": "late_ack_wire_order",
+   "text": "In the smoke run the ACK claimed first on all 3 attempts (release, then a fresh READ): the READ never overtook. Up to 4 attempts now: attempt 0 keeps that construction; attempts 1-3 send the READ while the cell is still held (it busy-retries on c74/c75 and is dropped by busy_drop on c72) and release the cell after the READ's busy action, so two retry loops race. Each attempt records its strategy. A case whose state is not reached records progress_ok null, not false."
   }
  ]
 }
