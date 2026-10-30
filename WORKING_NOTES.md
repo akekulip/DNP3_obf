@@ -204,3 +204,14 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   compile outputs and model logs copied from the worktree. Agent-reported suites in the worktree: repository 646 + 2
   path-bound failures, build 53, model 137, analysis 138; fidelity and gate compare pass. Running on main: suites,
   then prepare/freeze/dry-run of 8 blocks (scratchpad c74_prepare.sh), then campaigns (c74_run.sh).
+- 2026-10-30 c74 SEL-751 runs. Suites on main before the runs: repository 648, analysis 145 (+2 skipped). Strict d20
+  and d5 (rc01_hw_c74_sc20/sc5_20261030_01): 8/8 trials, order 8/8, sizes 1,024/1,024, CROB 512/512, 0
+  retransmissions, CLRT medians at D, one master ACK before every first response. Combined-arm starts on
+  c74_diag_mirror (rc01_hw_c74diag_e2c_20261030_01): 0 of 32 start frames not forwarded (c72: 5 of 32), 0 of 32
+  first-request retransmissions (c72: 2 of 32), 32/32 trials ok. Late handshake ACK forwarded in 4 of 32 (t4, t7,
+  t12, t15); the relay answered each with a second ACK (H-1 confirmed on hardware); the master still received one ACK
+  and the first CLRT stayed at D. Mirror completeness 31/32 (t11: one non-connection copy not made by the switch).
+- STOPPED 11:25: the block's final restore failed. switch_swap.sh SIGTERM did not stop bf_switchd (pid 3735291,
+  c74_diag_mirror t31 composite, still serving :50052 at 15:27 UTC); production case4_response_path never launched;
+  port replay, relay slot and ping failed after it. ownership.json: unsafe_restoration true. Remaining 5 blocks not
+  run (off-arm starts, recovery r1-r3, E4b). No hardware writes since. Restoration needs Philip's decision.
