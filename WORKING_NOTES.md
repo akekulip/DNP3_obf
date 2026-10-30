@@ -175,3 +175,7 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   abort) reproduced by genuine processing for both READ lengths; collision rule reproduced (non-causal setup);
   H1' forced control separate. Step 3 (c74 fix: request retry + narrow late-ACK acceptance, regressions, 17-driver
   gate) running in worktree scratchpad/c74_wt. Strict-workload builder still running on main.
+- 2026-10-30 01:5x: strict workload + ordered-transaction gate committed 87b1184cb (review: no crit/high; 14/14
+  mutants killed; tests 604). c72 baselines running sequentially (stop on unverified restoration):
+  rc01_hw_c72_sc20_20261030_01, rc01_hw_c72_sc5_20261030_01 (strict, combined arm, 4 trials each),
+  rc01_hw_c72diag_e2c_20261030_01 (32 combined-arm fresh connections, mirror). c74 fix in worktree c74_wt.
