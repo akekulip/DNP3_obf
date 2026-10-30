@@ -1,0 +1,233 @@
+{
+  "milestone": "current",
+  "image_len": 141,
+  "scope": "SEL-751 guarded two-CROB45/49 profile; READ91->141 and134->158; SBO49->60; one TCP child; whole input only; genuine ACK waits for whole child0; response follows ACK commit by D; retries drop only while a genuine request or response is retained; no switch measurement state (outcome/count registers and counters removed); OPERATE forwards immediately through common response timing; no fixed J hold",
+  "full_target": true,
+  "runnable": true,
+  "intermediate_note": null,
+  "supported_profile": {
+    "candidate": {
+      "build": "c75",
+      "milestone": "current",
+      "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+      "segment_sha256": {
+        "N": "dc9cadac0813486c3dd067afe2616ec20d6c8a6092af74665d05e678ac3380bd",
+        "E": "0093accff9834cd19f40805cf1454a4eed6ca5eaad48f931a0f7d4cd65241378",
+        "T": "2f1ba4ce98236cae4116106fb0817e3354ea5bd89fcb71714a7e26e8a0bc11c7"
+      },
+      "artifact_sha256": {
+        "compile_local": {
+          "bfrt.json": "dcf9853796834df7c73b9071dae30f87bc0942868562d53e814107db99fad8b9",
+          "manifest.json": "a62b6403cb0e0a4c93721bd624ceb49e9e0a9e58ac644c64f5a2a922cc16896c",
+          "p0/context.json": "03221ae2b4790c567a9ad75743b417c910129886fc696b1e81dae499aa1d10db",
+          "p0/response_only.bfa": "49edc510a3cd7bc90d6442845cfeb094d318a0af71d7c326f100d59aaa6f738e",
+          "p0/tofino.bin": "3e11043af08a3e7de7e89956ec20d2b86d50199afdebc3d71a6d79c2adcb45b3",
+          "p1/context.json": "8a74333d702e107cb95fc568dbf4d460ae26ea74853c7ccb633488bdaa61f3da",
+          "p1/response_only.bfa": "8d96a32ead8b3adbb39607f6bc59ca48e6b99b90fc1489ce1333bcf9cbe54dbc",
+          "p1/tofino.bin": "f52aaedd35c0c737de1b90f6914f3825dd19f87e4738e6fe09d9c8c1c7a12b99",
+          "response_only.conf": "bfd58475fc9faf35ca9be6e13044d5166b5ab8e03dfa3b003396845cf9abe39e",
+          "response_only.p4pp": "70070401fd2025a33dd961654a9ab462242c285683ff81d2e004494436bd1d79"
+        }
+      }
+    },
+    "reset_restart_required": true,
+    "t_child_count": 1,
+    "profile_version": "supported-profile-v1-20261017",
+    "clock": {
+      "t_unit_ns": 256,
+      "t_grid_ns": 512,
+      "t_source": "global_tstamp[39:8] & ~1",
+      "rounding": "durations in ns are converted to T units by t_config.t_units (one shared writer)"
+    },
+    "timing_ns": {
+      "D_release_budget": 5000000
+    },
+    "n": {
+      "retry_budget_laps": 32
+    },
+    "ports": {
+      "master_dev": 9,
+      "relay_dev": 64,
+      "n_ack_return": 48,
+      "t_in": 180,
+      "held_return": 182,
+      "recirc": 68,
+      "stat_ports": "9,64",
+      "note": "physical SEL-751: master dev9, relay dev64"
+    },
+    "encoding": {
+      "native_input_octets": {
+        "READ": [
+          91,
+          134
+        ],
+        "SELECT": 49,
+        "OPERATE": 49
+      },
+      "output_octets": 60,
+      "output_octets_note": "SELECT/OPERATE image (the control-timing contract field); the READ image is read_output_octets",
+      "read_output_octets": [
+        141,
+        158
+      ],
+      "read_construction": "prefix (tests/fixtures/vectors/constants_two_read_relay.json: mixed_g1v2_g30v1_91, integrity_134)",
+      "control_application_partition": [
+        15,
+        17
+      ],
+      "control_partition_note": "all32 original application octets, transport15+17; whole49 TCP input",
+      "read_images": {
+        "91": 141,
+        "134": 158
+      },
+      "control_request_octets": 45,
+      "control_frames": [
+        28,
+        32
+      ],
+      "tcp_header_octets": 32,
+      "syn_tcp_header_octets": 40,
+      "synack_tcp_header_octets": 44,
+      "ipv4_ihl": 5,
+      "timestamp_option_prefix": "0101080a",
+      "master_window_scale": 7,
+      "relay_window_scale": 0,
+      "native_ipv4_octets": {
+        "mixed": 143,
+        "integrity": 186,
+        "SELECT": 101,
+        "OPERATE": 101
+      },
+      "image_ipv4_octets": {
+        "mixed": 193,
+        "integrity": 210,
+        "SELECT": 112,
+        "OPERATE": 112
+      },
+      "control_request_ipv4_octets": 97
+    },
+    "_note": "SEL-751 guarded two-CROB45/49 profile; READ91->141 and134->158; SBO49->60; one TCP child; whole input only; genuine ACK waits for whole child0; response follows ACK commit by D; retries drop only while a genuine request or response is retained; no switch measurement state (outcome/count registers and counters removed); OPERATE forwards immediately through common response timing; no fixed J hold",
+    "endpoint_profile": "sel751",
+    "not_admitted_reads": [
+      "range_g10v2_23",
+      "analog",
+      "class0"
+    ],
+    "tcp_profile": "sel751_ts",
+    "timing_contract": "response_ready_ack_d_no_j_v3",
+    "switch_telemetry": false
+  },
+  "t_time": {
+    "unit_ns": 256,
+    "grid_ns": 512,
+    "source": "global_tstamp[39:8] & ~1"
+  },
+  "t_lifetime_encoding": "sealed_low31",
+  "native_lengths": {
+    "READ": 91,
+    "SELECT_OPERATE": 49
+  },
+  "read_boundary": "cimg",
+  "passthrough_reads": {},
+  "not_admitted_reads": [
+    "range_g10v2_23",
+    "analog",
+    "class0"
+  ],
+  "read_images": {
+    "91": 141,
+    "134": 158
+  },
+  "read_shapes": {
+    "mixed": {
+      "native_total": 91,
+      "native_link_len": 76,
+      "native_ip_len": 143,
+      "target": 141,
+      "frames_out": [
+        50,
+        91
+      ],
+      "added": 50,
+      "padding_points": 26,
+      "padding_indices": [
+        1024,
+        1049
+      ],
+      "prefix_link_len": 39,
+      "request_len": 25,
+      "request_link_len": 18,
+      "request_ip_len": 77,
+      "request_objects": "010200000f1e01000007"
+    },
+    "full": {
+      "native_total": 134,
+      "native_link_len": 115,
+      "native_ip_len": 186,
+      "target": 158,
+      "frames_out": [
+        24,
+        134
+      ],
+      "added": 24,
+      "padding_points": 4,
+      "padding_indices": [
+        1024,
+        1027
+      ],
+      "prefix_link_len": 17,
+      "request_len": 27,
+      "request_link_len": 20,
+      "request_ip_len": 79,
+      "request_objects": "3c02063c03063c04063c0106"
+    }
+  },
+  "output_lengths": {
+    "READ": {
+      "mixed": 141,
+      "full": 158
+    },
+    "SELECT_OPERATE": 60
+  },
+  "policy": {
+    "constants_file": "tests/fixtures/vectors/constants_two_read_relay.json",
+    "constants_sha256": "9e715d8f02d60d909333aa09ba42f6adec92d7f04e5846fc457bf412066dd745",
+    "policy_targets": [
+      141,
+      158
+    ],
+    "p1_read_pad_conn_table": "p1.x_Egress.p1_conn"
+  },
+  "read_growth": 50,
+  "control_growth": 11,
+  "port_map": {
+    "relay_port": 64,
+    "n_ack_return": 48,
+    "t_in": 180,
+    "held_return": 182
+  },
+  "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+  "segment_sha256": {
+    "N": "dc9cadac0813486c3dd067afe2616ec20d6c8a6092af74665d05e678ac3380bd",
+    "E": "0093accff9834cd19f40805cf1454a4eed6ca5eaad48f931a0f7d4cd65241378",
+    "T": "2f1ba4ce98236cae4116106fb0817e3354ea5bd89fcb71714a7e26e8a0bc11c7"
+  },
+  "package_files": {
+    "scripts/profile.py": "47d35033dcd9487d918dd16b37c6581fab9fdac3f0fb859f311690865fab3ffe",
+    "scripts/build.py": "8462fb9cc3e8866342d2412a61e8b6aeb70b51c53198a599c9890be2739f8a47",
+    "p4/profile_template.json": "0d5a2ac3db498af92e0b02004ab2f99432935d812a820d570775502ca33e7569",
+    "tests/fixtures/vectors/constants.json": "6f819e7e136606325b9ded70a458e9f69ebd7b4da5d57fb5ac0d1b4ae9cedc73",
+    "tests/fixtures/vectors/constants_segmented.json": "72beff0382a66820b12833d36b1ff554496f96dc5afd1a8307f8abdb5453152d",
+    "tests/fixtures/vectors/constants_two_read.json": "40b5f03bb380cf22089e51ebda577199a199cbdc0cb296ef8270994bf11992d7",
+    "tests/fixtures/vectors/constants_two_read_relay.json": "9e715d8f02d60d909333aa09ba42f6adec92d7f04e5846fc457bf412066dd745",
+    "tests/fixtures/vectors/read141_vectors.json": "5c4cad9012244189d7cc4e1e668dbab66a9a07cda428fd09542d020e39250466",
+    "tests/fixtures/vectors/read_class_templates.json": "ff461802d772e6ff2c557055a1e2902b6840440981bf128d0ae3f3eff1a166eb",
+    "tests/fixtures/vectors/relay_sbo_templates.json": "b30d9c279414ca847e55f33940bdc533df3bd56996cf8b316610f7df0f7dda4c",
+    "tests/fixtures/vectors/reset_postcheck_cases.json": "86ad22f2ea54f5b15a240f9c930805b5eba666238fe69482c40603cbd7aabf97",
+    "tests/fixtures/vectors/segmented_vectors.json": "37e9875667cba2c4ef58c2c7fbf541a3f34301e3314add4642a67232352ae566",
+    "tests/fixtures/vectors/two_read_templates.json": "df8685c0b9326ab13746a9c1bebfe0ea379247240fd5fc77f89d5cba2cd00e03",
+    "tests/fixtures/vectors/two_read_templates_relay.json": "20decbee1451f8c6563ed549b3a6a3966b4c7fc15f02f5ef91515582f91cd751",
+    "p4/response_only.p4": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49"
+  },
+  "package_sha256": "d1e48057208f0cde1e3f2e47e7036d87a75eb14632d57e066f12c9f783330c72"
+}
