@@ -1270,6 +1270,65 @@ def vision_unreachable_acceptance(records, terminal_sha, campaign_run_sha, fresh
     return dict(path=str(path), sha256=digest(raw), vision_host=repair.get('vision_host')), problems
 
 
+SWITCH_PROCESS_STEPS = ['cold-swap bf_switchd back to the observed production program',
+                        'replay the pre-run $PORT snapshot on the production program', 'reinstall the relay slot',
+                        PING_STEP]
+SWITCH_PROCESS_REPAIRED_FAILURE = "runner restore step(s) failed: %r" % SWITCH_PROCESS_STEPS
+SWITCH_PROCESS_STEP_NAMES = ['launch_production', 'replay_ports', 'relay_slot', 'vision_restore', 'ping']
+
+
+def switch_process_acceptance(records, terminal_sha, campaign_run_sha, fresh, production_program):
+    """Pure (reads files only; Philip, 2026-10-30). (binding or None, problems): the fresh restoration check may differ
+    from a full pass ONLY by the block's historical failed switch restore steps (the cold-swap whose bf_switchd stop
+    did not finish, and the port replay, relay slot and ping after it), and only when a switch_process_repair.py
+    record (latest switch_process_repair_*/repair.json) is ok, bound to this terminal and runner record, names exactly
+    those failed steps, proves the candidate exited and that no bf_switchd ran before production was launched, and ran
+    all five of the runner's restore commands with rc 0; the fresh check must itself show the production program, a
+    clean snapshot comparison, Vision state and the ping."""
+    problems = []
+    if (fresh or {}).get('failures') != [SWITCH_PROCESS_REPAIRED_FAILURE]:
+        problems.append('fresh check failures %r are not exactly the historical switch restore steps'
+                        % ((fresh or {}).get('failures'),))
+    checks = (fresh or {}).get('checks') or {}
+    if not production_program:
+        problems.append('no production program to compare the fresh check with')
+    elif (checks.get('program') or {}).get('program') != production_program:
+        problems.append('fresh check did not observe the production program %s' % production_program)
+    snapshot = checks.get('snapshot')
+    if not isinstance(snapshot, dict) or snapshot.get('errors') != []:
+        problems.append('fresh check has no clean pre-run snapshot comparison')
+    for name in ('vision_state', 'ping'):
+        if (checks.get(name) or {}).get('rc') != 0:
+            problems.append('fresh check %s did not pass' % name)
+    repairs = sorted(Path(records).glob('switch_process_repair_*/repair.json'))
+    if not repairs:
+        return None, problems + ['no switch_process_repair record for this step']
+    path = repairs[-1]                      # names sort chronologically: the latest decides
+    raw = path.read_bytes()
+    try:
+        repair = json.loads(raw)
+        if not isinstance(repair, dict):
+            raise ValueError('not an object')
+    except ValueError as error:
+        return dict(path=str(path), sha256=digest(raw)), problems + ['repair record unreadable: %s' % error]
+    bound = repair.get('bound_sha256') or {}
+    if repair.get('ok') is not True:
+        problems.append('latest switch_process_repair record is not ok')
+    if bound.get('terminal') != terminal_sha or bound.get('campaign_run.json') != campaign_run_sha:
+        problems.append('repair record is bound to a different terminal or runner record')
+    steps = (repair.get('failed_restoration') or {}).get('steps') or [{}]
+    if [s.get('step') for s in steps] != SWITCH_PROCESS_STEPS:
+        problems.append('repair record does not name exactly the failed switch restore steps')
+    if (repair.get('termination') or {}).get('exited') is not True:
+        problems.append('repair record does not prove the candidate bf_switchd exited')
+    if repair.get('absent_before_launch') is not True:
+        problems.append('repair record does not prove no bf_switchd ran before production was launched')
+    ran = repair.get('steps') or []
+    if [s.get('name') for s in ran] != SWITCH_PROCESS_STEP_NAMES or any(s.get('rc') != 0 for s in ran):
+        problems.append('repair record did not run all five runner restore commands with rc 0')
+    return dict(path=str(path), sha256=digest(raw), termination=repair.get('termination')), problems
+
+
 # Steps a runner takes before it changes any switch or Vision state (campaign.py deploy_switch / switch_toolkit and the
 # native baseline's identity checks): copying and hashing tools, read-only observation and snapshot, identity hashes.
 PRE_CONTACT_STEPS = re.compile(
@@ -1508,6 +1567,18 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
                 vision_host or (json.loads(Path(config).read_text())['hosts']['vision'] if config else None))
             record['vision_unreachable_repair'] = dict(binding=repair, problems=repair_problems)
             ok = not repair_problems
+        elif not ok and isinstance(fresh, dict) and rc == 1 and sorted(records.glob('switch_process_repair_*/repair.json')):
+            # the runner's final cold-swap did not finish stopping bf_switchd and the switch restore was finished
+            # afterwards by switch_process_repair.py: the historical runner record stays failed; every fresh check
+            # must pass
+            try:
+                program = json.loads(Path(config).read_text())['production']['program']
+            except (OSError, ValueError, KeyError, TypeError):
+                program = None
+            repair, repair_problems = switch_process_acceptance(
+                records, bound.get('terminal'), digest((run_root / 'campaign_run.json').read_bytes()), fresh, program)
+            record['switch_process_repair'] = dict(binding=repair, problems=repair_problems)
+            ok = not repair_problems
         elif not ok and isinstance(fresh, dict) and rc == 1:
             # the runner's own restore step failed and was repaired afterwards (nic_repair.py): the historical runner
             # record stays failed; every fresh switch, Vision and NIC check must pass and the repair must be bound
@@ -1532,6 +1603,9 @@ def reconcile(directory, step_id, root=None, units=running_eval_units, verifier=
                                  + ('the Vision restore and ping, which never reached Vision, were run by the bound '
                                     'vision_unreachable_repair record and verified afresh'
                                     if 'vision_unreachable_repair' in record else
+                                    'the switch restore whose bf_switchd stop did not finish was completed by the bound '
+                                    'switch_process_repair record and verified afresh'
+                                    if 'switch_process_repair' in record else
                                     'the Vision NIC was repaired by the bound nic_repair record and verified afresh')))),
                     exclusive=True)
         atomic_json(state_path, dict(active=False, unsafe_restoration=False, campaign_dir=str(directory),
