@@ -156,3 +156,7 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   identical verdicts; independent P4 review: behaviour-preserving). c72 stays canonical; results/builds/c73/
   canonical_switch.patch switches after Philip approves hardware qualification. Final checks: repository 474, build 48,
   c72 live gate passed. Running: offline investigation of the connection-start drop (E2 mechanism), scratch only.
+- 2026-10-29 evening: Step 0 record corrections committed 1433c5c31. Step 5 (SELECT/OPERATE wrap replay): a safety
+  check stopped the work again; not attempted further, handed to Philip (HANDOVER open item 3). Probe fact: the
+  opendnp3 master writes the SELECT CROB header with qualifier 0x28 (recorded SEL-751 traffic uses 0x17).
+  Strict-workload builder and model-reproduction agent stopped on the usage limit (reset 21:50); resume then.

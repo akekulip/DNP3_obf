@@ -90,8 +90,12 @@ paper work are parked.
    model before any fix. They are not yet shown to cause every hardware loss.
 2. **Strict workload (in progress).** The current workload interleaves an extra SELECT/OPERATE between integrity and
    mixed READs and passes on counts; an opt-in strict cycle and an order-checking gate are being added.
-3. **SELECT/OPERATE wrap replay (in progress).** Offline opendnp3 replay of all 256 retained SELECT/OPERATE wrap
-   responses, transport reassembly reported apart from command-echo acceptance.
+3. **SELECT/OPERATE wrap replay: not done in this session.** A safety check stopped the work on the offline
+   SelectAndOperate replay again (2026-10-29), so it was not attempted further. One fact was recorded first: on
+   localhost, the opendnp3 master in pydnp3 writes its SELECT command header with qualifier 0x28, where the SEL-751's
+   recorded requests and echoes use 0x17. All 256 SELECT/OPERATE wrap responses remain untested against an
+   independent stack; only the 128 READ wrap responses were replayed (all reassembled). This needs Philip to run it
+   or decide how to handle it.
 4. **Relay select timeout.** Not read; it stays unverified.
 5. **SELECT/OPERATE residual.** The residual SELECT/OPERATE CLRT difference under timing+size (45/64 windows) remains
    open, as do the native request sizes.
