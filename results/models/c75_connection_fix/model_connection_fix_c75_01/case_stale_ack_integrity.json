@@ -1,0 +1,332 @@
+{
+ "case": "stale_ack_integrity",
+ "checks": [
+  {
+   "actual": [
+    "READ"
+   ],
+   "expect": [
+    "READ"
+   ],
+   "name": "READ_delivered",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "wrong_seq_on_port64",
+   "ok": true
+  },
+  {
+   "actual": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "expect": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "name": "wrong_seq_N_state_unchanged",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "wrong_ack_high_on_port64",
+   "ok": true
+  },
+  {
+   "actual": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "expect": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "name": "wrong_ack_high_N_state_unchanged",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "wrong_ack_low_on_port64",
+   "ok": true
+  },
+  {
+   "actual": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "expect": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "name": "wrong_ack_low_N_state_unchanged",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 1,
+   "name": "late_handshake_ACK_on_port64",
+   "ok": false
+  },
+  {
+   "actual": [
+    "NoAction"
+   ],
+   "expect": [
+    "forward_original"
+   ],
+   "name": "late_handshake_ACK_forward_original",
+   "ok": false
+  },
+  {
+   "actual": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "expect": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "name": "late_handshake_ACK_N_state_unchanged",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 1,
+   "name": "duplicate_late_ACK_on_port64",
+   "ok": false
+  },
+  {
+   "actual": [
+    "NoAction"
+   ],
+   "expect": [
+    "forward_original"
+   ],
+   "name": "duplicate_late_ACK_forward_original",
+   "ok": false
+  },
+  {
+   "actual": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "expect": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "name": "duplicate_late_ACK_N_state_unchanged",
+   "ok": true
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 29000128,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 379,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554462,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 29001035,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 389,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 29000128
+ },
+ "evidence_kind": "genuine_processing",
+ "expect": "after the first READ: ACKs with wrong seq (+1) and wrong ack (+1, -1) refused (abort, not on 64); the exact late handshake ACK forwarded; its duplicate forwarded again; N state unchanged",
+ "expectation": "fix",
+ "isn": {
+  "master": 29000100,
+  "relay": 29000900
+ },
+ "probes": {
+  "duplicate_late_ACK": {
+   "ack": 29000901,
+   "port64": [],
+   "registers": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "seq": 29000101,
+   "summary": {
+    "aborts": 1,
+    "busy": [],
+    "first_event": [
+     "NoAction"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 0
+   }
+  },
+  "late_handshake_ACK": {
+   "ack": 29000901,
+   "port64": [],
+   "registers": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "seq": 29000101,
+   "summary": {
+    "aborts": 1,
+    "busy": [],
+    "first_event": [
+     "NoAction"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 0
+   }
+  },
+  "wrong_ack_high": {
+   "ack": 29000902,
+   "port64": [],
+   "registers": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "seq": 29000101,
+   "summary": {
+    "aborts": 1,
+    "busy": [],
+    "first_event": [
+     "NoAction"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 0
+   }
+  },
+  "wrong_ack_low": {
+   "ack": 29000900,
+   "port64": [],
+   "registers": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "seq": 29000101,
+   "summary": {
+    "aborts": 1,
+    "busy": [],
+    "first_event": [
+     "NoAction"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 0
+   }
+  },
+  "wrong_seq": {
+   "ack": 29000901,
+   "port64": [],
+   "registers": {
+    "client": 29000128,
+    "epoch": 379,
+    "owner": 917534,
+    "server": 29000901,
+    "work_phase": 4
+   },
+   "seq": 29000102,
+   "summary": {
+    "aborts": 1,
+    "busy": [],
+    "first_event": [
+     "NoAction"
+    ],
+    "loss": [],
+    "passes": 5,
+    "t_ingress": 0,
+    "terminal_ack": 0
+   }
+  }
+ },
+ "progress_wire": 29001059,
+ "read_class": "integrity",
+ "read_length": 27,
+ "registers_after_READ": {
+  "client": 29000128,
+  "epoch": 379,
+  "owner": 917534,
+  "server": 29000901,
+  "work_phase": 4
+ },
+ "registers_before": {
+  "client": 28000128,
+  "epoch": 371,
+  "owner": 33554461,
+  "server": 28001035,
+  "work_phase": 4
+ },
+ "scenario": "stale_ack",
+ "state_reached": null,
+ "timed": false,
+ "verdict": "fail"
+}

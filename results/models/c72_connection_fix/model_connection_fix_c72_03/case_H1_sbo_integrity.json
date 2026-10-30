@@ -1,0 +1,258 @@
+{
+ "case": "H1_sbo_integrity",
+ "checks": [
+  {
+   "actual": "busy_drop",
+   "expect": "busy_retry_ack",
+   "name": "SELECT_first_claim_busy_retry_ack",
+   "ok": false
+  },
+  {
+   "actual": false,
+   "busy": [
+    "busy_drop"
+   ],
+   "expect": true,
+   "name": "SELECT_only_retry_busy_actions",
+   "ok": false
+  },
+  {
+   "actual": true,
+   "expect": true,
+   "name": "SELECT_retries_within_budget",
+   "ok": true,
+   "retries": 1
+  },
+  {
+   "actual": [
+    "busy_drop"
+   ],
+   "expect": [],
+   "name": "SELECT_no_loss_action",
+   "ok": false
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "SELECT_no_abort",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 1,
+   "first_event": [],
+   "name": "SELECT_admitted_once_by_first_select",
+   "ok": false
+  },
+  {
+   "actual": 0,
+   "expect": 1,
+   "name": "SELECT_T_ingress_once",
+   "ok": false
+  },
+  {
+   "actual": [
+    "ACK"
+   ],
+   "expect": [
+    "ACK",
+    "SELECT"
+   ],
+   "name": "SELECT_port64_order",
+   "ok": false
+  },
+  {
+   "actual": "AssertionError: H1_sbo_integrity_SELECT_timed_ACK_then_complete_response",
+   "expect": null,
+   "name": "no_exception",
+   "ok": false
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 24000128,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 249,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554457,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 24001035,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 258,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 24000128
+ },
+ "command_summary": {
+  "SELECT": {
+   "aborts": 0,
+   "busy": [
+    "busy_drop"
+   ],
+   "first_event": [],
+   "loss": [
+    "busy_drop"
+   ],
+   "passes": 2,
+   "t_ingress": 0,
+   "terminal_ack": 0
+  }
+ },
+ "error": "Traceback (most recent call last):\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/scripts/model/model_connection_fix.py\", line 950, in run_case\n    reached = CASE_FUNCTIONS[case['scenario']](ctx, case, ck, rec, isn)\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/scripts/model/model_connection_fix.py\", line 533, in case_H1_sbo\n    nsq, wsq, length = ctx.respond(tag + '_' + name, c, nsq, wsq, cnative, cimage, timed=True,\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/scripts/model/model_connection_fix.py\", line 274, in respond\n    g.add(tag + '_timed_ACK_then_complete_response', True, exact, received=got)\n  File \"/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/scripts/model/model_packets.py\", line 302, in add\n    raise AssertionError(name)\nAssertionError: H1_sbo_integrity_SELECT_timed_ACK_then_complete_response\n",
+ "evidence_kind": "genuine_processing",
+ "expect": "mapped ACK + SELECT and mapped ACK + OPERATE back to back after timed responses: each command retries, is admitted once and reaches port 64 once; timed padded responses; integrity/mixed READ follows",
+ "expectation": "fix",
+ "image_len": {
+  "READ": 158
+ },
+ "isn": {
+  "master": 24000100,
+  "relay": 24000900
+ },
+ "progress_wire": 24001059,
+ "read_class": "integrity",
+ "read_length": 27,
+ "registers_before": {
+  "client": 23000101,
+  "epoch": 243,
+  "owner": 33554456,
+  "server": 23000901,
+  "work_phase": 4
+ },
+ "scenario": "H1_sbo",
+ "state_evidence": {
+  "SELECT": {
+   "holder_cell_after": {
+    "generation": 255,
+    "phase": 1
+   },
+   "holder_generation": 255,
+   "holder_pass": {
+    "actions": [
+     "NoAction",
+     "forward_flow",
+     "route",
+     "response_only531_0",
+     "response_only531",
+     "NoAction",
+     "NoAction",
+     "network_accept",
+     "go_new",
+     "next_seq",
+     "claim_work",
+     "NoAction",
+     "ack_native",
+     "load_epoch",
+     "NoAction",
+     "NoAction",
+     "load_server",
+     "load_client",
+     "snapshot_lap",
+     "owner_read",
+     "diff_forward",
+     "response_only566",
+     "forward_original"
+    ],
+    "event": [
+     225,
+     0
+    ],
+    "id": "0x624",
+    "port": 48
+   },
+   "reached": true,
+   "victim_actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head_first",
+    "configure",
+    "input_tail",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_control",
+    "claim_work",
+    "NoAction",
+    "compare_select_inputs",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "NoAction",
+    "NoAction",
+    "NoAction",
+    "owner_read",
+    "diff_forward",
+    "busy_drop"
+   ],
+   "victim_cell_before": {
+    "generation": 255,
+    "phase": 1
+   },
+   "victim_pass": {
+    "actions": [
+     "NoAction",
+     "forward_flow",
+     "route",
+     "response_only531_0",
+     "response_only531",
+     "crc_head_first",
+     "configure",
+     "input_tail",
+     "eligible",
+     "NoAction",
+     "network_accept",
+     "go_new",
+     "next_control",
+     "claim_work",
+     "NoAction",
+     "compare_select_inputs",
+     "ack_native",
+     "load_epoch",
+     "NoAction",
+     "NoAction",
+     "load_server",
+     "load_client",
+     "NoAction",
+     "NoAction",
+     "NoAction",
+     "owner_read",
+     "diff_forward",
+     "busy_drop"
+    ],
+    "event": [
+     225,
+     0
+    ],
+    "id": "0x625",
+    "port": 48
+   }
+  }
+ },
+ "state_reached": null,
+ "timed": true,
+ "verdict": "fail"
+}

@@ -1,0 +1,91 @@
+{
+ "case": "residual_class_mismatch_mixed",
+ "checks": [
+  {
+   "actual": [
+    "READ"
+   ],
+   "expect": [
+    "READ"
+   ],
+   "name": "READ_delivered",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "expect": true,
+   "name": "residual_recorded",
+   "ok": true
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 16000126,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 200,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554449,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 16000992,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 206,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 16000126
+ },
+ "evidence_kind": "genuine_processing",
+ "expect": "pure ACK at client minus the OTHER READ length (seq ISN+3 or ISN-1): accepted by the H2 rows (residual, not distinguishable without the READ length)",
+ "expectation": "residual",
+ "isn": {
+  "master": 16000100,
+  "relay": 16000900
+ },
+ "probe": {
+  "isn_plus_1": 16000101,
+  "port64": [],
+  "seq": 16000099,
+  "summary": {
+   "aborts": 1,
+   "busy": [],
+   "first_event": [
+    "NoAction"
+   ],
+   "loss": [],
+   "passes": 5,
+   "t_ingress": 0,
+   "terminal_ack": 0
+  }
+ },
+ "progress_wire": 16001042,
+ "read_class": "mixed",
+ "read_length": 25,
+ "registers_before": {
+  "client": 15000126,
+  "epoch": 192,
+  "owner": 17760272,
+  "server": 15000992,
+  "work_phase": 4
+ },
+ "residual_accepted": false,
+ "scenario": "residual_class_mismatch",
+ "state_reached": null,
+ "timed": false,
+ "verdict": "pass"
+}

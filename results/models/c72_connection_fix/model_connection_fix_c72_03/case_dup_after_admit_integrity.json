@@ -1,0 +1,99 @@
+{
+ "case": "dup_after_admit_integrity",
+ "checks": [
+  {
+   "actual": [
+    "first_request_dup"
+   ],
+   "expect": [
+    "first_request_dup"
+   ],
+   "name": "duplicate_first_event",
+   "ok": true
+  },
+  {
+   "actual": [],
+   "expect": [],
+   "name": "no_busy_action",
+   "ok": true
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 28000128,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 283,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554461,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 28001035,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 290,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 28000128
+ },
+ "evidence_kind": "genuine_processing",
+ "expect": "TCP retransmission of an admitted READ: first_request_dup path, as on c72",
+ "expectation": "as_before",
+ "isn": {
+  "master": 28000100,
+  "relay": 28000900
+ },
+ "observations": [
+  {
+   "decisive_line": null,
+   "decisive_wait_s": null,
+   "hook": null,
+   "offset": 141357016,
+   "port64": [
+    "READ"
+   ],
+   "port9": []
+  }
+ ],
+ "port64_READ_copies": 1,
+ "progress_wire": 28000901,
+ "read_class": "integrity",
+ "read_length": 27,
+ "read_summary": {
+  "aborts": 0,
+  "busy": [],
+  "first_event": [
+   "first_request_dup"
+  ],
+  "loss": [],
+  "passes": 6,
+  "t_ingress": 1,
+  "terminal_ack": 0
+ },
+ "registers_before": {
+  "client": 27000101,
+  "epoch": 277,
+  "owner": 33554460,
+  "server": 27000901,
+  "work_phase": 4
+ },
+ "scenario": "dup_after_admit",
+ "state_reached": null,
+ "t_ingress": 1,
+ "timed": false,
+ "verdict": "pass"
+}

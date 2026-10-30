@@ -1,0 +1,262 @@
+{
+ "case": "exhaust_integrity",
+ "checks": [
+  {
+   "actual": [
+    "busy_retry_ack",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_exhausted"
+   ],
+   "expect": [
+    "busy_retry_ack",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_retry_rst_next",
+    "busy_exhausted"
+   ],
+   "name": "busy_sequence_exactly_the_budget",
+   "ok": true
+  },
+  {
+   "actual": [],
+   "expect": [],
+   "name": "never_admitted",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "READ_not_on_port64",
+   "ok": true
+  },
+  {
+   "actual": "busy_exhausted",
+   "expect": "busy_exhausted",
+   "name": "no_pass_after_exhaustion",
+   "ok": true
+  },
+  {
+   "actual": [
+    "READ"
+   ],
+   "expect": [
+    "READ"
+   ],
+   "name": "retransmission_delivered_once",
+   "ok": true
+  }
+ ],
+ "closed": true,
+ "evidence_kind": "forced_register",
+ "expect": "cell held past the budget: busy_retry_ack, 31 busy_retry_rst_next, busy_exhausted; READ never on port 64; no pass after exhaustion; the master retransmission is then delivered",
+ "expectation": "fix",
+ "isn": {
+  "master": 25000100,
+  "relay": 25000900
+ },
+ "observations": [
+  {
+   "decisive_line": ":10-30 16:54:55.663424:        :0x9fa:-:<0,0,7>:Execute Action: n_Ingress.busy_exhausted",
+   "decisive_wait_s": 0.35536595806479454,
+   "hook": null,
+   "offset": 201001589,
+   "port64": [],
+   "port9": []
+  }
+ ],
+ "progress_wire": 25000901,
+ "read_class": "integrity",
+ "read_length": 27,
+ "read_summary": {
+  "aborts": 0,
+  "busy": [
+   "busy_retry_ack",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_exhausted"
+  ],
+  "first_event": [],
+  "loss": [
+   "busy_exhausted"
+  ],
+  "passes": 34,
+  "t_ingress": 0,
+  "terminal_ack": 0
+ },
+ "recovery": {
+  "decisive_line": null,
+  "decisive_wait_s": null,
+  "hook": null,
+  "offset": 203605580,
+  "port64": [
+   "READ"
+  ],
+  "port9": []
+ },
+ "registers_before": {
+  "client": 24000243,
+  "epoch": 325,
+  "owner": 17760281,
+  "server": 24001224,
+  "work_phase": 4
+ },
+ "scenario": "exhaust",
+ "state_evidence": {
+  "reached": true,
+  "seeded_generation": 2147483646,
+  "victim_actions": [
+   "NoAction",
+   "forward_flow",
+   "route",
+   "response_only531_0",
+   "response_only531",
+   "crc_head",
+   "read_configure",
+   "rd_request_full_crc",
+   "eligible",
+   "NoAction",
+   "network_accept",
+   "go_new",
+   "next_read_len",
+   "claim_work",
+   "read_request_full_input",
+   "ack_native",
+   "load_epoch",
+   "NoAction",
+   "NoAction",
+   "load_server",
+   "load_client",
+   "owner_read",
+   "diff_forward",
+   "busy_retry_ack"
+  ],
+  "victim_cell_before": {
+   "generation": 2147483646,
+   "phase": 1
+  },
+  "victim_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head",
+    "read_configure",
+    "rd_request_full_crc",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_read_len",
+    "claim_work",
+    "read_request_full_input",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "owner_read",
+    "diff_forward",
+    "busy_retry_ack"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0x9da",
+   "port": 48
+  }
+ },
+ "state_reached": true,
+ "timed": false,
+ "verdict": "pass"
+}

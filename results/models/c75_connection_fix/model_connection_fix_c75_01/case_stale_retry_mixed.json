@@ -1,0 +1,190 @@
+{
+ "case": "stale_retry_mixed",
+ "checks": [
+  {
+   "actual": "busy_retry_ack",
+   "expect": "busy_retry_ack",
+   "name": "first_busy_retry_ack",
+   "ok": true
+  },
+  {
+   "actual": [
+    1,
+    "retry_stale"
+   ],
+   "expect": [
+    1,
+    "retry_stale"
+   ],
+   "name": "retry_stale_once_and_last",
+   "ok": true
+  },
+  {
+   "actual": [],
+   "expect": [],
+   "name": "never_admitted",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "READ_not_on_port64",
+   "ok": true
+  },
+  {
+   "actual": 137,
+   "expect": 137,
+   "name": "retry_epoch_restored",
+   "ok": true
+  },
+  {
+   "actual": [
+    "READ"
+   ],
+   "expect": [
+    "READ"
+   ],
+   "name": "retransmission_delivered_once",
+   "ok": true
+  }
+ ],
+ "closed": true,
+ "evidence_kind": "forced_register",
+ "expect": "a retrying READ whose epoch no longer matches retry_epoch is dropped by retry_stale once",
+ "expectation": "fix",
+ "isn": {
+  "master": 9000100,
+  "relay": 9000900
+ },
+ "observations": [
+  {
+   "decisive_line": ":10-30 16:51:58.775126:        :0x41f:-:<0,0,7>:Execute Action: n_Ingress.busy_retry_ack",
+   "decisive_wait_s": 0.021464109886437654,
+   "hook": {
+    "stale_line": ":10-30 16:51:58.895100:        :0x42a:-:<0,0,7>:Execute Action: n_Ingress.retry_stale",
+    "stale_wait_s": 0.012715098913758993
+   },
+   "offset": 83405869,
+   "port64": [],
+   "port9": []
+  }
+ ],
+ "progress_wire": 9000901,
+ "read_class": "mixed",
+ "read_length": 25,
+ "read_summary": {
+  "aborts": 0,
+  "busy": [
+   "busy_retry_ack",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "busy_retry_rst_next",
+   "retry_stale"
+  ],
+  "first_event": [],
+  "loss": [
+   "retry_stale"
+  ],
+  "passes": 13,
+  "t_ingress": 0,
+  "terminal_ack": 0
+ },
+ "recovery": {
+  "decisive_line": null,
+  "decisive_wait_s": null,
+  "hook": null,
+  "offset": 84417461,
+  "port64": [
+   "READ"
+  ],
+  "port9": []
+ },
+ "registers_before": {
+  "client": 8000126,
+  "epoch": 128,
+  "owner": 17760264,
+  "server": 8000992,
+  "work_phase": 4
+ },
+ "retry_epoch_after": 137,
+ "retry_epoch_before": 137,
+ "scenario": "stale_retry",
+ "state_evidence": {
+  "reached": true,
+  "seeded_generation": 2147483646,
+  "victim_actions": [
+   "NoAction",
+   "forward_flow",
+   "route",
+   "response_only531_0",
+   "response_only531",
+   "crc_head",
+   "read_configure",
+   "rd_request_mx_crc",
+   "eligible",
+   "NoAction",
+   "network_accept",
+   "go_new",
+   "next_read_len",
+   "claim_work",
+   "read_request_mx_input",
+   "ack_native",
+   "load_epoch",
+   "NoAction",
+   "NoAction",
+   "load_server",
+   "load_client",
+   "owner_read",
+   "diff_forward",
+   "busy_retry_ack"
+  ],
+  "victim_cell_before": {
+   "generation": 2147483646,
+   "phase": 1
+  },
+  "victim_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "crc_head",
+    "read_configure",
+    "rd_request_mx_crc",
+    "eligible",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_read_len",
+    "claim_work",
+    "read_request_mx_input",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "owner_read",
+    "diff_forward",
+    "busy_retry_ack"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0x41f",
+   "port": 48
+  }
+ },
+ "state_reached": true,
+ "timed": false,
+ "verdict": "pass"
+}

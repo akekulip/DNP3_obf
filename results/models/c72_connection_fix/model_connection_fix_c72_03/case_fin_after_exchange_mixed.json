@@ -1,0 +1,39 @@
+{
+ "case": "fin_after_exchange_mixed",
+ "checks": [
+  {
+   "actual": true,
+   "expect": true,
+   "name": "exchange_and_FIN_close_completed",
+   "ok": true
+  }
+ ],
+ "closed": true,
+ "evidence_kind": "genuine_processing",
+ "expect": "READ exchange then FIN close",
+ "expectation": "as_before",
+ "isn": {
+  "master": 15000100,
+  "relay": 15000900
+ },
+ "read_class": "mixed",
+ "read_length": 25,
+ "registers_after": {
+  "client": 15000126,
+  "epoch": 147,
+  "owner": 17760272,
+  "server": 15000992,
+  "work_phase": 4
+ },
+ "registers_before": {
+  "client": 14000126,
+  "epoch": 143,
+  "owner": 33554447,
+  "server": 14000901,
+  "work_phase": 4
+ },
+ "scenario": "fin_after_exchange",
+ "state_reached": null,
+ "timed": false,
+ "verdict": "pass"
+}

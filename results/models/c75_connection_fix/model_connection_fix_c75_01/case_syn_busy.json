@@ -1,0 +1,167 @@
+{
+ "case": "syn_busy",
+ "checks": [
+  {
+   "actual": [
+    "busy_drop"
+   ],
+   "expect": [
+    "busy_drop"
+   ],
+   "name": "SYN_busy_drop",
+   "ok": true
+  },
+  {
+   "actual": 0,
+   "expect": 0,
+   "name": "SYN_not_on_port64",
+   "ok": true
+  },
+  {
+   "actual": true,
+   "expect": true,
+   "name": "retransmitted_SYN_connects",
+   "ok": true
+  }
+ ],
+ "cleanup": {
+  "registers_after": {
+   "client": {
+    "action_name": null,
+    "f1": 40000101,
+    "is_default_entry": false
+   },
+   "epoch": {
+    "action_name": null,
+    "f1": 463,
+    "is_default_entry": false
+   },
+   "owner": {
+    "action_name": null,
+    "f1": 33554474,
+    "is_default_entry": false
+   },
+   "server": {
+    "action_name": null,
+    "f1": 40000901,
+    "is_default_entry": false
+   },
+   "work.work": {
+    "action_name": null,
+    "generation": 465,
+    "is_default_entry": false,
+    "phase": 4
+   }
+  },
+  "rst_forwarded": 1,
+  "rst_seq": 40000101
+ },
+ "evidence_kind": "forced_register",
+ "expect": "SYN while the cell is held: busy_drop (SYN deliberately unchanged); its retransmission connects",
+ "expectation": "as_before",
+ "isn": {
+  "master": 40000100,
+  "relay": 40000900
+ },
+ "observations": [
+  {
+   "decisive_line": ":10-30 16:57:28.104681:        :0xcd7:-:<0,0,7>:Execute Action: n_Ingress.busy_drop",
+   "decisive_wait_s": 0.02416344592347741,
+   "hook": {
+    "released": true
+   },
+   "offset": 263929028,
+   "port64": [],
+   "port9": []
+  }
+ ],
+ "progress_wire": 40000901,
+ "read_class": null,
+ "read_length": null,
+ "registers_before": {
+  "client": 39000191,
+  "epoch": 454,
+  "owner": 33554473,
+  "server": 39000950,
+  "work_phase": 4
+ },
+ "scenario": "syn_busy",
+ "state_evidence": {
+  "reached": true,
+  "seeded_generation": 2147483646,
+  "victim_actions": [
+   "NoAction",
+   "forward_flow",
+   "route",
+   "response_only531_0",
+   "response_only531",
+   "NoAction",
+   "NoAction",
+   "network_accept",
+   "go_new",
+   "next_seq",
+   "claim_work",
+   "NoAction",
+   "ack_native",
+   "load_epoch",
+   "NoAction",
+   "NoAction",
+   "load_server",
+   "load_client",
+   "owner_read",
+   "diff_syn",
+   "busy_drop"
+  ],
+  "victim_cell_before": {
+   "generation": 2147483646,
+   "phase": 1
+  },
+  "victim_pass": {
+   "actions": [
+    "NoAction",
+    "forward_flow",
+    "route",
+    "response_only531_0",
+    "response_only531",
+    "NoAction",
+    "NoAction",
+    "network_accept",
+    "go_new",
+    "next_seq",
+    "claim_work",
+    "NoAction",
+    "ack_native",
+    "load_epoch",
+    "NoAction",
+    "NoAction",
+    "load_server",
+    "load_client",
+    "owner_read",
+    "diff_syn",
+    "busy_drop"
+   ],
+   "event": [
+    225,
+    0
+   ],
+   "id": "0xcd7",
+   "port": 48
+  }
+ },
+ "state_reached": true,
+ "syn_summary": {
+  "aborts": 0,
+  "busy": [
+   "busy_drop"
+  ],
+  "first_event": [],
+  "loss": [
+   "busy_drop"
+  ],
+  "passes": 2,
+  "t_ingress": 0,
+  "terminal_ack": 0
+ },
+ "timed": false,
+ "verdict": "pass"
+}

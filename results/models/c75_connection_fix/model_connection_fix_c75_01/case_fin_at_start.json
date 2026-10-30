@@ -1,0 +1,39 @@
+{
+ "case": "fin_at_start",
+ "checks": [
+  {
+   "actual": true,
+   "expect": true,
+   "name": "FIN_close_completed",
+   "ok": true
+  }
+ ],
+ "closed": true,
+ "evidence_kind": "genuine_processing",
+ "expect": "FIN close right after the handshake",
+ "expectation": "as_before",
+ "isn": {
+  "master": 36000100,
+  "relay": 36000900
+ },
+ "read_class": null,
+ "read_length": null,
+ "registers_after": {
+  "client": 36000101,
+  "epoch": 437,
+  "owner": 17760294,
+  "server": 36000901,
+  "work_phase": 4
+ },
+ "registers_before": {
+  "client": 35000101,
+  "epoch": 435,
+  "owner": 33554469,
+  "server": 35000901,
+  "work_phase": 4
+ },
+ "scenario": "fin_at_start",
+ "state_reached": null,
+ "timed": false,
+ "verdict": "pass"
+}

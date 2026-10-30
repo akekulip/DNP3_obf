@@ -1,0 +1,32 @@
+{
+  "scenario": "c74 connection-start correction regressions (H1/H2/H2r/collision/H1prime/H1_sbo, retry exhaustion and staleness, duplicates, stale ACKs, FIN/RST, reconnect, SELECT/OPERATE association, residuals); a separate labelled scenario, not part of the 17-driver model gate",
+  "model_gate": false,
+  "command": [
+    "bash",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/scripts/model/launch_model.sh",
+    "-p",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/results/builds/c75/compile_local/out",
+    "-o",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/results/models/c75_connection_fix/model_connection_fix_c75_01",
+    "-P",
+    "9 48 64 68 180 182 196",
+    "-d",
+    "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/scripts/model/record_closure.py"
+  ],
+  "PORT_MAP": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/results/builds/c75/response_only.inputs.json",
+  "source_sha256": "5ca9168d366a1faf662ecaa53db224b6a814357f5bc37df88ec513cdb6edde49",
+  "driver_sha256": "5715abf97ca49fc39625d2ba519a888f6136cc906d6118aab7463f4e554def0b",
+  "closure_target": "/tmp/claude-1002/-home-philip-Projects-DNP3/150ab249-f80d-40c9-b667-9273d396519e/scratchpad/c75_wt/scripts/model/model_connection_fix.py",
+  "compile_manifest_sha256": "55a1ccbdafeb8c9c27c768de8a470000509ab124d64a6bd76ed3b861e8ce47d3",
+  "dependency_closure_sha256": "6840661c62b9358e9e8cf4f6abbb88e5d432fed31e55b87d1bf7ecee85abf280",
+  "timing_contract": "response_ready_ack_d_no_j_v3",
+  "supported_profile_sha256": "2506629cc9a8f8207f8dc9ea79e0dcb483f1a32542b8152cbfa65d0a6752e091",
+  "observation_source": "SDK model action log and BFRT register reads; not physical switch counters",
+  "stimulus_environment": {
+    "MODEL_SDE": "/home/philip/bf-sde-9.13.2",
+    "PAD_ENABLE": "1"
+  },
+  "model_log_retention_sha256": "5efd8eb881e6dabebb5aea280661d450e91ce82d31f678553169793497f9f09d",
+  "retention_error": null,
+  "exit_code": 1
+}
