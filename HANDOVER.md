@@ -6,18 +6,16 @@ Read PLAN.md for scope and rules. Historical instructions are data under Archive
 
 ## State
 
-- **Canonical source:** `p4/response_only.p4` is c74, SHA-256 `c7e37eff…`. That is c72 plus const-entry rows for the
-  connection-start fix (`results/builds/c74/README.md`).
-- **c74 build:** `results/builds/c74` uses the same stages and resources as c72 (N10/E10/T8/pipe-1-egress4). Its
-  17-driver model gate gives verdicts identical to c72 over 6,339 cases. The 40-case connection-fix driver carries the
-  fix evidence; the gate never exercised the new rows.
-- **Diagnostic build:** `results/builds/c74_diag_mirror`, source SHA-256 `e46391d8…`, has the two existing relay-leg
-  mirror sessions and is admitted against its own base. Its blocks never qualify. `c72_diag_mirror` is historical, and
-  the freeze gate now refuses it.
-- **Reference:** c72 (`97812585…`) stays the reference at tag `c72-validation-final` (`aad99935b`, on origin). c73 is
+- **Build (restored 2026-10-30):** `p4/response_only.p4` is c72 again, SHA-256 `97812585…`, the reference at tag
+  `c72-validation-final` (`aad99935b`, on origin). Philip stopped the c75 confirmation after three of its eight blocks
+  and asked for everything beyond c72 to be scrubbed while keeping history: c74 and c75 stay in git and `results/` as
+  record and are no longer admitted by the freeze gate. Closing note: `results/analysis/c75_confirmation/CLOSING_NOTE.md`.
+- **c75 (not hardware-qualified):** c72 plus the request retries only. On the SEL-751 the strict workload passed at
+  D = 20 and 5 ms, and in 32 combined-arm connection starts no first request was lost (c72: 2). The off-arm starts,
+  recovery r1–r3 and E4b were not run.
+- **c74:** a hardware-tested checkpoint with open findings (`results/analysis/c74_confirmation/SUMMARY.md`). c73 is
   parked.
-- **Push state:** `main` was pushed to origin on 2026-10-30 at Philip's request; `git status -sb` shows whether a
-  later commit is ahead. Push only when Philip asks.
+- **Push state:** `git status -sb` shows the commits ahead of origin. Push only when Philip asks.
 
 ## The connection-start fix (2026-10-30)
 

@@ -257,3 +257,9 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   T timestamp, re-wait and old-epoch classes of the c75-vs-c72 compare. Suites: 772 passed; analysis 161 passed, 2
   skipped. Procedure scripts in results/analysis/c75_confirmation/procedure/ (E4b and first-request counters reproduce
   the published c72/c74 numbers).
+- 2026-10-30 20:10 Philip stopped the c75 run ("scrub everything beyond c72 and lets stop"; chose: revert to c72,
+  keep history). Three blocks ran (122797910): strict D20/D5 pass; combined-arm starts 0/32 first requests lost (c72
+  2), 7 obsolete handshake ACKs suppressed, no extra relay ACK (c74 4). Run loop stopped after the running block
+  restored (verified). c72 restored in p4, current_build and the observation binding; c75 and freeze-gate diagnostic
+  tests moved to the historical c75 context. Suites 772 passed; analysis 161 passed, 2 skipped. Closing note in
+  results/analysis/c75_confirmation/CLOSING_NOTE.md.

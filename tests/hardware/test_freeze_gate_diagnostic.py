@@ -1,7 +1,8 @@
 """Freeze-gate admission of the canonical candidate's declared diagnostic build (offline; committed evidence is only
-read). The canonical candidate is results/analysis/stage_cut/current_build.json (c75 since c75 became canonical); its
-diagnostic build is BASE_diag_mirror (c75_diag_mirror). c72_diag_mirror and c74_diag_mirror are historical: its retained evidence stays
-valid and readable, but it is no longer admitted, because its canonical base is no longer the canonical P4.
+read). The rules are exercised on c75 and its diagnostic build c75_diag_mirror in the c75 context
+(tests/hardware/historical_c75.py), the last state with a current-generator diagnostic build; c72 is the build again
+since 2026-10-30. c72_diag_mirror is historical in that context: its retained evidence stays valid and readable, but
+it is not admitted, because its canonical base is not the canonical P4 there.
 
 A build with diag_mirror.json is admitted only when that identity binds the current canonical P4, the current generator
 and the generator's own in-process derivation of the build's source. Its blocks are bound to the diagnostic model
@@ -22,8 +23,13 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / 'scripts/hardware'), str(ROOT / 'scripts/checks')]
 import freeze_gate
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import historical_c75  # noqa: E402
+
 CURRENT = json.loads((ROOT / 'results/analysis/stage_cut/current_build.json').read_text())
-CANON = ROOT / CURRENT['build']                                  # the canonical candidate
+# The admission rules are exercised on c75 and c75_diag_mirror in the c75 context (c75_context below): c72, the
+# build again since 2026-10-30, has a diagnostic build whose identity binds an older generator.
+CANON = ROOT / 'results/builds/c75'                              # the canonical candidate in that context
 DIAG = CANON.parent / (CANON.name + '_diag_mirror')               # its declared diagnostic build
 DIAG_MODELS = ROOT / 'results/models' / DIAG.name
 C72_DIAG = ROOT / 'results/builds/c72_diag_mirror'                # historical diagnostic build (c72 was canonical)
@@ -37,6 +43,13 @@ needs_canon = pytest.mark.skipif(not (CANON / COMPILED).is_file(), reason='compi
 
 def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+@pytest.fixture(scope='module', autouse=True)
+def c75_context(tmp_path_factory):
+    with pytest.MonkeyPatch.context() as mp:
+        historical_c75.use_c75_context(mp, tmp_path_factory.mktemp('c75_context'))
+        yield
 
 
 DIAG_SOURCE = sha(DIAG / 'response_only.p4')
@@ -144,7 +157,7 @@ def inputs(tmp_path, monkeypatch):
     """Temporary copies of the canonical P4 and the generator, bound into the gate in place of the committed files."""
     canonical = tmp_path / 'p4/response_only.p4'
     generator = tmp_path / 'scripts/build_diag_mirror.py'
-    for target, origin in ((canonical, ROOT / 'p4/response_only.p4'),
+    for target, origin in ((canonical, CANON / 'response_only.p4'),
                            (generator, ROOT / 'scripts/build_diag_mirror.py')):
         target.parent.mkdir(parents=True)
         shutil.copyfile(origin, target)
@@ -188,6 +201,7 @@ def test_undeclared_build_keeps_exactly_the_canonical_source_problem(tmp_path, m
     (build / 'compile_local/manifest.json').write_text(json.dumps(dict(source_sha256=digest, compiler='p4c 9.13.2',
                                                                        resources={'pipes': pipes})))
     monkeypatch.setattr(freeze_gate, 'REPO', tmp_path)
+    monkeypatch.setattr(freeze_gate, 'CANONICAL_P4', 'p4/response_only.p4')
     monkeypatch.setattr(freeze_gate, 'compiler_module', lambda: SimpleNamespace(
         verify_evidence=lambda *args, **kwargs: {'compiled_artifacts_verified': True}))
     monkeypatch.setattr(freeze_gate, 'diagnostic_problems', refuse)

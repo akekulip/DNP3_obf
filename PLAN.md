@@ -1,15 +1,14 @@
-# Current task: c75 (request retries only), ACK correctness and the recovery bound (2026-10-30)
+# Current task: none open. c75 stopped and c72 restored as the build (2026-10-30)
 
-Set by Philip's review of `c08c66fac`. Plan: `~/.claude/plans/we-were-on-tract-expressive-planet.md`.
-- **c74 status:** a hardware-tested checkpoint with open findings (`results/analysis/c74_confirmation/SUMMARY.md`).
-- **c75:** c72 plus the request retries only. It is derived exactly, compiled once and pinned, then qualified on the
-  17-driver gate and explicit ACK-behaviour tests (stale handshake ACKs, ACKs behind later READs, window updates
-  including zero-window, keepalives, timing on and off, endpoint progress).
-- **Hardware:** the eight guarded SEL-751 blocks run on c75 after the offline gates pass.
-- **Recovery:** the E3 difference stays unresolved unless new evidence explains it. Recovery blocks declare expected
-  outcomes apart from failures that stop execution.
-- **Wrap replay:** the SELECT/OPERATE wrap replay stays Philip's item (stopped by a safety check).
-- **Parked:** c73, cleanup, paper work and broader campaigns.
+Philip stopped the c75 confirmation after three of its eight SEL-751 blocks and restored c72 as the build, keeping
+history and results (`results/analysis/c75_confirmation/CLOSING_NOTE.md`). c75 is not hardware-qualified. No candidate,
+experiment, cleanup or paper work is open. The SELECT/OPERATE wrap replay is blocked (closing note).
+
+## Previous task (stopped 2026-10-30): c75, request retries only
+
+Set by Philip's review of `c08c66fac`; plan `~/.claude/plans/we-were-on-tract-expressive-planet.md`. c75 was derived,
+compiled once, pinned and model-gated; ACK behaviour was tested on c72, c74 and c75; three SEL-751 blocks ran before
+the stop.
 
 ## Previous task (completed 2026-10-30): c72-derived connection-start fix (c74)
 
