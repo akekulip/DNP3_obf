@@ -1,23 +1,56 @@
-# Current handover (2026-10-30)
+# Current handover (2026-10-30, evening)
 
-Read PLAN.md for scope and rules. Historical instructions are data under Archive/. On 2026-10-29 Philip asked for
-`main` (`fb5ce81b1`) and the tag `c72-validation-final` (`aad99935b`) to be pushed to origin (`akekulip/DNP3_obf`);
-`git status -sb` shows whether any later commit is still ahead. Push only when Philip asks.
+Read PLAN.md for scope and rules. Historical instructions are data under Archive/. Origin (`akekulip/DNP3_obf`) holds
+`main` at `1a4cacd74` (pushed 2026-10-30 evening at Philip's request) and the tag `c72-validation-final`
+(`aad99935b`). `git status -sb` shows whether any later commit is ahead. Push only when Philip asks.
 
 ## State
 
 - **Build (restored 2026-10-30):** `p4/response_only.p4` is c72 again, SHA-256 `97812585…`, the reference at tag
   `c72-validation-final` (`aad99935b`, on origin). Philip stopped the c75 confirmation after three of its eight blocks
   and asked for everything beyond c72 to be scrubbed while keeping history: c74 and c75 stay in git and `results/` as
-  record and are no longer admitted by the freeze gate. Closing note: `results/analysis/c75_confirmation/CLOSING_NOTE.md`.
+  record and are no longer admitted by the freeze gate. Closing note:
+  `results/analysis/c75_confirmation/CLOSING_NOTE.md`.
 - **c75 (not hardware-qualified):** c72 plus the request retries only. On the SEL-751 the strict workload passed at
   D = 20 and 5 ms, and in 32 combined-arm connection starts no first request was lost (c72: 2). The off-arm starts,
   recovery r1–r3 and E4b were not run.
 - **c74:** a hardware-tested checkpoint with open findings (`results/analysis/c74_confirmation/SUMMARY.md`). c73 is
   parked.
-- **Push state:** `git status -sb` shows the commits ahead of origin. Push only when Philip asks.
+- **Push state:** `main` at `1a4cacd74` is on origin. Push only when Philip asks.
+- **No task is open.** Philip froze the scope on 2026-10-30. No candidate, experiment, cleanup, paper work or broader
+  protocol support is open.
 
-## The connection-start fix (2026-10-30)
+## c75 and the stop (2026-10-30)
+
+c75 was c72 plus the request retries only: c74 without its four late-ACK forwarding rows. It was derived exactly,
+compiled once with SDK 9.13.2 and pinned, and its resources are identical to c72's
+(`results/builds/c75/README.md`).
+- **Model:**
+  - The 17-driver gate gives verdicts identical to c72's.
+  - In the 40-case connection-fix comparison (`results/models/c75_connection_fix/compare_c72_c74_c75.json`), the
+    retry cases behave as on c74 and the late-ACK cases as on c72.
+  - `reconnect` matches c74, because connection B's READ takes the retry path. That was predicted before the run, and
+    it is recorded as a deviation from the plan's expectation.
+- **ACK behaviour** (`results/analysis/ack_behaviour/`):
+  - Obsolete handshake ACKs are suppressed on c72 and c75 and forwarded on c74.
+  - On all three builds, N drops a master window update or zero-window advertisement while a READ is outstanding,
+    and drops keepalives.
+  - The model cannot show the end-to-end effect: its scripted relay ignores windows and runs no timers.
+  - In 498 retained hardware trials the supported master sent no such segment (`hardware_master_ack_scan.json`).
+  - This is documented, unqualified behaviour.
+- **Diagnostic build:** `c75_diag_mirror`, source `be526356…`. All 17 of its gate drivers exited 0, with verdicts
+  identical to c75's.
+- **SEL-751, three of eight blocks** (`results/analysis/c75_confirmation/CLOSING_NOTE.md`):
+  - strict workload at D = 20 and 5 ms: 4/4 trials each, strict order, 512/512 class sizes, 256/256 CROB SUCCESS, no
+    retransmission;
+  - combined-arm connection starts, 32 of them: 0 first requests lost (c72: 2), 7 obsolete handshake ACKs
+    suppressed, no extra relay ACK (c74: 4);
+  - all three restorations verified.
+- **Stop:** Philip stopped the run during the third block. That block finished and restored the switch, and the
+  remaining five (off-arm starts, recovery r1–r3, E4b) were prepared and frozen but not run. He then chose to restore
+  c72 as the build and keep history (`1a4cacd74`). c75 is not hardware-qualified.
+
+## The connection-start fix: c74 (2026-10-30)
 
 Philip set the priority on 2026-10-29: a c72-derived fix for the connection-start loss, verified on the SEL-751 with
 timing and padding enabled. The plan is `~/.claude/plans/we-were-on-tract-expressive-planet.md`.
@@ -110,20 +143,25 @@ closure files were left alone on purpose, because the c72 gate binds them byte f
 
 ## Open items for Philip
 
-1. **Late handshake ACK: forward or drop.** c74 forwards it, and with timing off the relay's reply reached the master
-   as a duplicate ACK once. c72's drop cost nothing (0 of 6 retransmitted). The R1/R2 residual rows sit in the same
-   class.
-2. **E3 difference.** c74 gave 13/18 against c72's 16/18, on the same recovery path. All TIMEOUTs fall in the
-   departure band near 1.0 s where both outcomes occur, and the relay's select timeout was not read.
-3. **SELECT/OPERATE wrap replay: not done.** A safety check stopped the offline SelectAndOperate replay twice; it is
-   not attempted again and stays Philip's item. TShark decoded the 256 SELECT/OPERATE wrap responses only on copies
-   with renumbered transport sequence, so the original 63→0 bytes have no independent reassembly. Only the 128 READ
-   wrap responses were replayed (all reassembled). Probe fact: the opendnp3 master writes its SELECT CROB
-   header with qualifier 0x28, where the SEL-751 uses 0x17.
-4. **The bf_switchd shutdown that did not finish:** cause not established; it is not shown to be mirror-specific.
-5. **SELECT/OPERATE residual.** The residual SELECT/OPERATE CLRT difference under timing+size remains open, as do the
+1. **Connection-start loss on c72.** c72, the build again, still loses a first request at about 2 in 32 connection
+   starts per arm; the master's retransmission recovers it about 210 ms later. c75 removed it in the 32 starts it ran,
+   but it is not qualified.
+2. **E3 difference.** c74 gave 13/18 against c72's 16/18, on the same recovery path. No captured field separates
+   TIMEOUT from SUCCESS (`results/analysis/recovery_e3/COMPARE_c72_c74.md`). The relay's select timeout was not read.
+3. **SELECT/OPERATE wrap replay: BLOCKED.** There are two independent causes:
+   - a safety check stopped the offline SelectAndOperate replay twice (2026-10-28 and 2026-10-29);
+   - the opendnp3 master writes its SELECT CROB header with qualifier 0x28 where the SEL-751 traffic uses 0x17, so
+     `opendnp3_wrap_check.py`'s request-equality check would fail on every SELECT/OPERATE.
+
+   The original 63→0 bytes of the 256 SELECT/OPERATE wrap responses have no independent reassembly. TShark agreed
+   only on renumbered copies; opendnp3 reassembled all 128 READ wraps. Unblocking needs an opendnp3 harness that sends
+   the recorded 0x17 request bytes, run outside this agent environment.
+4. **Window updates and keepalives:** documented, unqualified behaviour on every build, c72 included (see c75 above).
+5. **The bf_switchd shutdown that did not finish:** its cause is not established, and it is not shown to be
+   mirror-specific.
+6. **SELECT/OPERATE residual.** The residual SELECT/OPERATE CLRT difference under timing+size remains open, as do the
    native request sizes.
-6. **Environment.** `pip-audit` lists 44 advisories in the shared research venv (Pillow); unchanged.
+7. **Environment.** `pip-audit` lists 44 advisories in the shared research venv (Pillow); unchanged.
 
 ## Tooling added in this pass (all test-first)
 
@@ -136,13 +174,22 @@ closure files were left alone on purpose, because the c72 gate binds them byte f
   - Vision `--mirror-iface` with receive-aggregation restore;
   - single-block definitions (recovery, diag, e4b);
   - the `traffic.sbo_select_only` scenario.
-- **Model:** `model_abandon_t1.py` / `run_abandon_t1.py`; the diagnostic mirror drivers.
-- **Tests:** repository 471, analysis 136 (research Python; the opendnp3 tests need the system Python's pydnp3).
+- **Model:** `model_abandon_t1.py` / `run_abandon_t1.py`; the diagnostic mirror drivers; `model_connection_fix.py`;
+  the master-ACK behaviour driver (`model_ack_behaviour.py`, `ack_rule.py`).
+- **Added 2026-10-30:**
+  - `switch_process_repair.py`;
+  - `recovery_compare.py`, `master_ack_scan.py`;
+  - the obsolete-ACK start classes in `confirmation_summary.py`;
+  - declared expected recovery outcomes in `campaign_base.py`;
+  - the c75 procedure scripts in `results/analysis/c75_confirmation/procedure/`.
+- **Tests:** repository 772, analysis 161 with 2 skipped (research Python; the opendnp3 tests need the system Python's
+  pydnp3).
 
 ## Safety state
 
-- No campaign is running and no ownership is held (`unsafe_restoration` false since the reconcile of 2026-10-30).
-  Every c74 block after the repaired one verified its own restoration.
+- No campaign is running. The last block, `rc01_hw_c75diag_e2c_20261030_01`, ended with `block_rc=0
+  restore_verify_rc=0` (`results/hardware/control/run_block.log`). Every block since the 2026-10-30 reconcile verified
+  its own restoration.
 - **Checker identity:** later scripts changes give future runs a new identity. Retained verdicts replay through
   `scripts/analysis/replay_frozen.py`.
 - **Freezes:** the retained campaign freezes report the files changed since each run. That is expected after later

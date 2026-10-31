@@ -263,3 +263,6 @@ D3 analysis tool; then commit, freeze, dry-run, and run E3 (c72) and D3/E1/E2 (d
   restored (verified). c72 restored in p4, current_build and the observation binding; c75 and freeze-gate diagnostic
   tests moved to the historical c75 context. Suites 772 passed; analysis 161 passed, 2 skipped. Closing note in
   results/analysis/c75_confirmation/CLOSING_NOTE.md.
+- 2026-10-30 evening: pushed at Philip's request (origin/main c08c66fac -> 1a4cacd74; tag c72-validation-final
+  unchanged). HANDOVER rewritten for the stop: c72 is the build, c75 section, open items (wrap replay BLOCKED with
+  both causes; window updates/keepalives documented, unqualified). No task open.
