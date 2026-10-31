@@ -1,0 +1,267 @@
+{
+  "fixture": "physical_relay",
+  "label": "rc01_hw_c75_sc20_20261030_01_strict_cycle_d20_combined_c75_physical_relay_combined_t2",
+  "master_port": 60422,
+  "reads": 64,
+  "ok": true,
+  "failures": [],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 0,
+    "gap_ms": 0,
+    "start_delay_ms": 50,
+    "start_seed": 57103
+  },
+  "generation_headroom": {
+    "current": {
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "read": 65388
+    },
+    "remaining_before_reserve": {
+      "read": 65534
+    },
+    "reserve": {
+      "read": 146
+    },
+    "reserves": {
+      "read": 146
+    },
+    "snapshot": {
+      "bfrt_sha256": "dcf9853796834df7c73b9071dae30f87bc0942868562d53e814107db99fad8b9",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1793402120.9179995,
+      "timing_contract": "response_ready_ack_d_no_j_v3",
+      "valid": true
+    },
+    "time": 1793402120.9257152,
+    "budget": {
+      "reads": 64,
+      "sbo_cycles": 32,
+      "cancelled_selects": 0,
+      "connections": 1,
+      "control_timed": true,
+      "timed": true,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "read_lane_per_connection": 128,
+      "source": "T gen_access and N first_event: common READ/SELECT/OPERATE allocator"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c75_sc20_20261030_01_strict_cycle_d20_combined_c75_physical_relay_combined_t2_before_generation_headroom.json"
+  },
+  "observed": {
+    "connections": {
+      "single": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 32,
+            "piggyback": 0,
+            "min_us": 18368.0,
+            "median_us": 20472.0,
+            "max_us": 21966.0,
+            "values_us": [
+              18368.0,
+              18616.0,
+              18700.0,
+              18978.0,
+              19474.0,
+              19548.0,
+              19632.0,
+              19960.0,
+              19963.0,
+              19969.0,
+              20078.0,
+              20169.0,
+              20188.0,
+              20190.0,
+              20292.0,
+              20368.0,
+              20576.0,
+              20631.0,
+              20687.0,
+              20740.0,
+              20935.0,
+              20992.0,
+              21063.0,
+              21072.0,
+              21289.0,
+              21439.0,
+              21469.0,
+              21481.0,
+              21535.0,
+              21566.0,
+              21698.0,
+              21966.0
+            ]
+          },
+          "READ integrity": {
+            "n": 32,
+            "piggyback": 0,
+            "min_us": 18179.0,
+            "median_us": 19857.0,
+            "max_us": 22011.0,
+            "values_us": [
+              18179.0,
+              18330.0,
+              18499.0,
+              18622.0,
+              18981.0,
+              18986.0,
+              19124.0,
+              19226.0,
+              19276.0,
+              19440.0,
+              19492.0,
+              19519.0,
+              19680.0,
+              19682.0,
+              19704.0,
+              19846.0,
+              19868.0,
+              19944.0,
+              20020.0,
+              20231.0,
+              20365.0,
+              20411.0,
+              20735.0,
+              20852.0,
+              20948.0,
+              20956.0,
+              20966.0,
+              21301.0,
+              21361.0,
+              21535.0,
+              21986.0,
+              22011.0
+            ]
+          },
+          "SELECT": {
+            "n": 32,
+            "piggyback": 0,
+            "min_us": 18394.0,
+            "median_us": 20277.5,
+            "max_us": 23577.0,
+            "values_us": [
+              18394.0,
+              18970.0,
+              18977.0,
+              19167.0,
+              19346.0,
+              19617.0,
+              19677.0,
+              19769.0,
+              19771.0,
+              19884.0,
+              20013.0,
+              20030.0,
+              20153.0,
+              20163.0,
+              20209.0,
+              20265.0,
+              20290.0,
+              20332.0,
+              20550.0,
+              20592.0,
+              20604.0,
+              20638.0,
+              20687.0,
+              20816.0,
+              20831.0,
+              20914.0,
+              20996.0,
+              21131.0,
+              21253.0,
+              21284.0,
+              21557.0,
+              23577.0
+            ]
+          },
+          "OPERATE": {
+            "n": 32,
+            "piggyback": 0,
+            "min_us": 18510.0,
+            "median_us": 20111.5,
+            "max_us": 22022.0,
+            "values_us": [
+              18510.0,
+              18664.0,
+              18983.0,
+              19049.0,
+              19054.0,
+              19312.0,
+              19379.0,
+              19495.0,
+              19552.0,
+              19751.0,
+              19774.0,
+              19824.0,
+              19973.0,
+              20002.0,
+              20008.0,
+              20011.0,
+              20212.0,
+              20279.0,
+              20296.0,
+              20307.0,
+              20401.0,
+              20469.0,
+              20543.0,
+              20693.0,
+              20818.0,
+              20912.0,
+              21060.0,
+              21266.0,
+              21492.0,
+              21508.0,
+              22003.0,
+              22022.0
+            ]
+          }
+        }
+      }
+    },
+    "switch": {
+      "outcomes": "no switch telemetry in this build",
+      "pktgen": {
+        "READ": {
+          "triggers": 128,
+          "pkts": 512
+        }
+      },
+      "token_stale_bound": "unknown: no switch telemetry in this build",
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+      }
+    }
+  },
+  "endpoint_profile": "sel751",
+  "dimension_verdicts": {
+    "application": true,
+    "switch": true,
+    "standards": true
+  }
+}

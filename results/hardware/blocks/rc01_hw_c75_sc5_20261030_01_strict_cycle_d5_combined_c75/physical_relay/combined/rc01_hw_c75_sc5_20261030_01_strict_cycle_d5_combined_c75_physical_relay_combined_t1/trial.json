@@ -1,0 +1,267 @@
+{
+  "fixture": "physical_relay",
+  "label": "rc01_hw_c75_sc5_20261030_01_strict_cycle_d5_combined_c75_physical_relay_combined_t1",
+  "master_port": 60425,
+  "reads": 64,
+  "ok": true,
+  "failures": [],
+  "max_token_stale": 0,
+  "reconnect_policy": "characterize",
+  "diagnostic": false,
+  "preset": "shape_59570",
+  "conditions": {
+    "delay_ms": 0,
+    "gap_ms": 0,
+    "start_delay_ms": 50,
+    "start_seed": 57102
+  },
+  "generation_headroom": {
+    "current": {
+      "read": 0
+    },
+    "max_generation": 65534,
+    "ok": true,
+    "registers": {
+      "read": "p1.t_Ingress.gen_alloc_reg"
+    },
+    "remaining_after_reserve": {
+      "read": 65388
+    },
+    "remaining_before_reserve": {
+      "read": 65534
+    },
+    "reserve": {
+      "read": 146
+    },
+    "reserves": {
+      "read": 146
+    },
+    "snapshot": {
+      "bfrt_sha256": "dcf9853796834df7c73b9071dae30f87bc0942868562d53e814107db99fad8b9",
+      "errors": {},
+      "program": "response_only",
+      "registers": {
+        "p1.t_Ingress.gen_alloc_reg": {
+          "action_name": null,
+          "is_default_entry": false,
+          "t_Ingress.gen_alloc_reg.f1": [
+            0
+          ]
+        }
+      },
+      "software_read_fallbacks": [],
+      "time": 1793402472.218143,
+      "timing_contract": "response_ready_ack_d_no_j_v3",
+      "valid": true
+    },
+    "time": 1793402472.2251275,
+    "budget": {
+      "reads": 64,
+      "sbo_cycles": 32,
+      "cancelled_selects": 0,
+      "connections": 1,
+      "control_timed": true,
+      "timed": true,
+      "open_close_per_connection": 2,
+      "margin": 16,
+      "read_lane_per_connection": 128,
+      "source": "T gen_access and N first_event: common READ/SELECT/OPERATE allocator"
+    },
+    "output": "/home/decps/Philip_repo/dnp3-defense4/response_only_composite/snap/rc01_hw_c75_sc5_20261030_01_strict_cycle_d5_combined_c75_physical_relay_combined_t1_before_generation_headroom.json"
+  },
+  "observed": {
+    "connections": {
+      "single": {
+        "application": true,
+        "master_acceptance": true,
+        "visible_clrt": {
+          "READ mixed": {
+            "n": 32,
+            "piggyback": 0,
+            "min_us": 3369.0,
+            "median_us": 5051.5,
+            "max_us": 6551.0,
+            "values_us": [
+              3369.0,
+              3831.0,
+              3924.0,
+              4245.0,
+              4562.0,
+              4567.0,
+              4599.0,
+              4606.0,
+              4633.0,
+              4870.0,
+              4870.0,
+              4997.0,
+              5003.0,
+              5006.0,
+              5008.0,
+              5049.0,
+              5054.0,
+              5086.0,
+              5117.0,
+              5147.0,
+              5245.0,
+              5257.0,
+              5281.0,
+              5666.0,
+              5785.0,
+              5810.0,
+              5890.0,
+              6266.0,
+              6362.0,
+              6422.0,
+              6491.0,
+              6551.0
+            ]
+          },
+          "READ integrity": {
+            "n": 32,
+            "piggyback": 0,
+            "min_us": 3070.0,
+            "median_us": 4998.0,
+            "max_us": 6952.0,
+            "values_us": [
+              3070.0,
+              4258.0,
+              4280.0,
+              4286.0,
+              4630.0,
+              4637.0,
+              4689.0,
+              4733.0,
+              4797.0,
+              4862.0,
+              4883.0,
+              4923.0,
+              4943.0,
+              4987.0,
+              4987.0,
+              4995.0,
+              5001.0,
+              5002.0,
+              5007.0,
+              5060.0,
+              5073.0,
+              5119.0,
+              5132.0,
+              5228.0,
+              5235.0,
+              5272.0,
+              5293.0,
+              5308.0,
+              5526.0,
+              5694.0,
+              5807.0,
+              6952.0
+            ]
+          },
+          "SELECT": {
+            "n": 32,
+            "piggyback": 0,
+            "min_us": 3227.0,
+            "median_us": 4932.5,
+            "max_us": 6797.0,
+            "values_us": [
+              3227.0,
+              3482.0,
+              4001.0,
+              4027.0,
+              4281.0,
+              4338.0,
+              4379.0,
+              4457.0,
+              4525.0,
+              4542.0,
+              4544.0,
+              4609.0,
+              4658.0,
+              4693.0,
+              4876.0,
+              4901.0,
+              4964.0,
+              4988.0,
+              5002.0,
+              5027.0,
+              5058.0,
+              5142.0,
+              5194.0,
+              5266.0,
+              5292.0,
+              5434.0,
+              5597.0,
+              5627.0,
+              5951.0,
+              6141.0,
+              6793.0,
+              6797.0
+            ]
+          },
+          "OPERATE": {
+            "n": 32,
+            "piggyback": 0,
+            "min_us": 3091.0,
+            "median_us": 4945.0,
+            "max_us": 7029.0,
+            "values_us": [
+              3091.0,
+              3411.0,
+              4176.0,
+              4275.0,
+              4337.0,
+              4355.0,
+              4441.0,
+              4487.0,
+              4519.0,
+              4730.0,
+              4749.0,
+              4795.0,
+              4835.0,
+              4852.0,
+              4902.0,
+              4940.0,
+              4950.0,
+              5023.0,
+              5055.0,
+              5080.0,
+              5112.0,
+              5128.0,
+              5165.0,
+              5383.0,
+              5590.0,
+              5794.0,
+              5916.0,
+              6048.0,
+              6282.0,
+              6630.0,
+              6680.0,
+              7029.0
+            ]
+          }
+        }
+      }
+    },
+    "switch": {
+      "outcomes": "no switch telemetry in this build",
+      "pktgen": {
+        "READ": {
+          "triggers": 128,
+          "pkts": 512
+        }
+      },
+      "token_stale_bound": "unknown: no switch telemetry in this build",
+      "loop_octet_gap": {
+        "n_ack_return": 0,
+        "t_in": 0,
+        "held_return": 0
+      }
+    }
+  },
+  "endpoint_profile": "sel751",
+  "dimension_verdicts": {
+    "application": true,
+    "switch": true,
+    "standards": true
+  }
+}
